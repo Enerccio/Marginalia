@@ -13,10 +13,7 @@ import com.github.enerccio.marginalia.extensions.imagegenerator.ImageGeneratorEx
 import com.github.enerccio.marginalia.extensions.imagegenerator.ImageGeneratorLog;
 import com.github.enerccio.marginalia.extensions.imagegenerator.model.BackendConfig;
 import com.github.enerccio.marginalia.extensions.imagegenerator.model.ImageSettings;
-import com.github.enerccio.marginalia.extensions.imagegenerator.service.ImageFormats;
-import com.github.enerccio.marginalia.extensions.imagegenerator.service.ImageGeneratorService;
-import com.github.enerccio.marginalia.extensions.imagegenerator.service.ImageRequest;
-import com.github.enerccio.marginalia.extensions.imagegenerator.service.ImageSession;
+import com.github.enerccio.marginalia.extensions.imagegenerator.service.*;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
 import com.github.enerccio.marginalia.ui.widgets.*;
@@ -25,6 +22,7 @@ import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Div;
@@ -35,6 +33,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.IntegerField;
+import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.server.StreamResource;
 import org.apache.commons.lang3.StringUtils;
@@ -42,6 +41,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 import java.io.ByteArrayInputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -75,6 +76,10 @@ public class ImageGeneratorDialog extends Dialog {
     private final TextArea negative = new TextArea(T.localized(NEGATIVE_PROMPT));
     private final IntegerField width = new IntegerField(T.localized(WIDTH));
     private final IntegerField height = new IntegerField(T.localized(HEIGHT));
+    private final ComboBox<String> loraBox = new ComboBox<>(T.localized(LORA));
+    private final NumberField loraStrength = new NumberField(T.localized(LORA_STRENGTH));
+    private final HorizontalLayout loraRow = new HorizontalLayout(loraBox, loraStrength);
+    private List<String> loraItems = new ArrayList<>();
     private final Button generate = new Button(T.localized(GENERATE), Solid.IMAGE.create(), e -> generate());
     private final Button accept = new Button(T.localized(ACCEPT), Solid.CHECK.create(), e -> accept());
     private final Button discard = new Button(T.localized(DISCARD), Solid.TRASH.create(), e -> discard());
@@ -155,6 +160,7 @@ public class ImageGeneratorDialog extends Dialog {
         width.setStepButtonsVisible(true);
         height.setMin(64);
         height.setStepButtonsVisible(true);
+        initLora();
         Details more = new Details(T.localized(SIZE_AND_NEGATIVE_PROMPT), new VerticalLayout(new HorizontalLayout(width, height), negative));
         more.setWidthFull();
 
@@ -172,14 +178,14 @@ public class ImageGeneratorDialog extends Dialog {
             preview.add(hint);
         }
 
-        VerticalLayout content = new VerticalLayout(top, sendLore, details, prompt, more, status, preview);
+        VerticalLayout content = new VerticalLayout(top, sendLore, details, prompt, loraRow, more, status, preview);
         content.setPadding(false);
         content.setSpacing(true);
         add(content);
 
         getFooter().add(new Button(T.localized(CLOSE), e -> close()), discard, accept, generate);
         DialogShortcuts.submitWith(writePrompt, details);
-        DialogShortcuts.submitWith(generate, prompt, negative, width, height);
+        DialogShortcuts.submitWith(generate, prompt, negative, width, height, loraStrength);
 
         applyBackendDefaults(selected);
         updateButtons();
@@ -233,12 +239,107 @@ public class ImageGeneratorDialog extends Dialog {
     }
 
     private void applyBackendDefaults(BackendConfig backend) {
+        loraRow.setVisible(backend != null && backend.usesLora());
         if (backend == null) {
             return;
         }
         width.setValue(backend.getWidth());
         height.setValue(backend.getHeight());
         negative.setValue(backend.getNegativePrompt());
+        if (backend.usesLora()) {
+            setLoraItems(List.of(), backend.getLora());
+            loraStrength.setValue(backend.getLoraStrength());
+            loadLoras(backend);
+        }
+    }
+
+    // --- the LoRA ---
+
+    private void initLora() {
+        loraBox.setAllowCustomValue(true);
+        loraBox.setClearButtonVisible(true);
+        loraBox.setPlaceholder(T.localized(NO_LORA));
+        loraBox.setWidth("24em");
+        // a file the list misses (a subfolder, a server that does not list)
+        loraBox.addCustomValueSetListener(e -> {
+            String typed = e.getDetail().strip();
+            if (!typed.isEmpty()) {
+                setLoraItems(loraItems, typed);
+            }
+        });
+        loraStrength.setStep(0.05);
+        loraStrength.setMin(-5);
+        loraStrength.setMax(5);
+        loraStrength.setStepButtonsVisible(true);
+        loraStrength.setWidth("10em");
+        loraRow.setAlignItems(FlexComponent.Alignment.END);
+        loraRow.setVisible(false);
+    }
+
+    private void setLoraItems(List<String> names, String selected) {
+        List<String> items = new ArrayList<>(names);
+        if (selected != null && !items.contains(selected)) {
+            items.add(selected);
+        }
+        loraItems = items;
+        loraBox.setItems(items);
+        loraBox.setValue(selected);
+    }
+
+    /** Asks the server for its LoRAs; the stored choice stays when it can't answer. */
+    private void loadLoras(BackendConfig backend) {
+        UI ui = UI.getCurrent();
+        if (ui == null) {
+            return;
+        }
+        ImageBackend server = service.createBackend(backend);
+        Thread.ofVirtual().name("image-generator-loras").start(() -> {
+            List<String> names;
+            String error = null;
+            try {
+                names = server.loras();
+            } catch (BackendException e) {
+                names = null;
+                error = e.getMessage();
+            } catch (RuntimeException e) {
+                ImageGeneratorLog.get().warn("Reading the LoRAs failed: {}", e.getMessage(), e);
+                names = null;
+                error = String.valueOf(e.getMessage());
+            }
+            List<String> found = names;
+            String message = error;
+            ui.access(() -> {
+                if (backendSelect.getValue() != backend) {
+                    return;
+                }
+                if (found != null) {
+                    setLoraItems(found, loraBox.getValue());
+                } else {
+                    Notification.warning(T.localized(THE_LORAS_COULD_NOT_BE_READ).formatted(message));
+                }
+                UIPushGuard.push(ui);
+            });
+        });
+    }
+
+    /** Keeps the LoRA of the window with the backend, for the next window. */
+    private void rememberLora(BackendConfig backend, String lora, double strength) {
+        if (StringUtils.equals(backend.getLora(), lora) && backend.getLoraStrength() == strength) {
+            return;
+        }
+        backend.setLora(lora);
+        backend.setLoraStrength(strength);
+        try {
+            ImageSettings changed = service.getSettings();
+            BackendConfig stored = changed.find(backend.getId());
+            if (stored != null) {
+                stored.setLora(lora);
+                stored.setLoraStrength(strength);
+                service.saveSettings(changed);
+            }
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
     }
 
     // --- the prompt ---
@@ -341,9 +442,14 @@ public class ImageGeneratorDialog extends Dialog {
             Notification.warning(T.localized(THE_PROMPT_IS_EMPTY));
             return;
         }
+        String lora = backend.usesLora() ? StringUtils.trimToNull(loraBox.getValue()) : null;
+        double strength = loraStrength.getValue() == null ? backend.getLoraStrength() : loraStrength.getValue();
+        if (backend.usesLora()) {
+            rememberLora(backend, lora, strength);
+        }
         ImageRequest request = new ImageRequest(text, negative.getValue(), ImageGeneratorService.newSeed(),
                 width.getValue() == null ? backend.getWidth() : width.getValue(),
-                height.getValue() == null ? backend.getHeight() : height.getValue());
+                height.getValue() == null ? backend.getHeight() : height.getValue(), lora, strength);
         UI ui = UI.getCurrent();
         ImageSession active = session(backend, ui);
         AtomicBoolean cancel = new AtomicBoolean();

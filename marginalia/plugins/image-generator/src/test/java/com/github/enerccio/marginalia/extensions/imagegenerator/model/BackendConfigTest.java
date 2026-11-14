@@ -69,4 +69,23 @@ class BackendConfigTest {
 
         assertEquals(1, config.getAfterHooks().size());
     }
+
+    @Test
+    void theLoraChoiceHasDefaultsAndFollowsTheWorkflow() {
+        BackendConfig config = GSON.fromJson("{\"name\": \"ComfyUI\"}", BackendConfig.class);
+        assertNull(config.getLora());
+        assertEquals(1.0, config.getLoraStrength());
+        assertFalse(config.usesLora());
+
+        config.setWorkflow("{\"2\": {\"inputs\": {\"lora_name\": \"{{lora}}\"}}}");
+        assertTrue(config.usesLora());
+        config.setType(BackendType.OPENAI);
+        assertFalse(config.usesLora(), "only ComfyUI runs a workflow");
+
+        config.setLora("x.safetensors");
+        config.setLoraStrength(0);
+        BackendConfig read = GSON.fromJson(GSON.toJson(config), BackendConfig.class);
+        assertEquals("x.safetensors", read.getLora());
+        assertEquals(0.0, read.getLoraStrength());
+    }
 }

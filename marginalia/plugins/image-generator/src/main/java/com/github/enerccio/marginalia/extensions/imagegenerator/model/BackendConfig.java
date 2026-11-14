@@ -16,6 +16,7 @@ public class BackendConfig {
     public static final int DEFAULT_HEIGHT = 1024;
     public static final int DEFAULT_TIMEOUT_SECONDS = 300;
     public static final int DEFAULT_IDLE_SECONDS = 120;
+    public static final double DEFAULT_LORA_STRENGTH = 1.0;
 
 
     private String id = UUID.randomUUID().toString();
@@ -48,6 +49,10 @@ public class BackendConfig {
     private HttpHook after;
     /** The session is over this many seconds after the last image; 0 for never (it ends with the window). */
     private int idleSeconds = DEFAULT_IDLE_SECONDS;
+    /** ComfyUI: the LoRA last chosen in the window for {@code {{lora}}}; null for none. */
+    private String lora;
+    /** ComfyUI: the strength last chosen for {@code {{lora_strength}}}; null for the default. */
+    private Double loraStrength;
 
     public String getId() {
         return id;
@@ -199,6 +204,28 @@ public class BackendConfig {
 
     public void setIdleSeconds(int idleSeconds) {
         this.idleSeconds = idleSeconds;
+    }
+
+    public String getLora() {
+        return lora == null || lora.isBlank() ? null : lora;
+    }
+
+    public void setLora(String lora) {
+        this.lora = lora;
+    }
+
+    public double getLoraStrength() {
+        return loraStrength == null ? DEFAULT_LORA_STRENGTH : loraStrength;
+    }
+
+    public void setLoraStrength(double loraStrength) {
+        this.loraStrength = loraStrength;
+    }
+
+    /** Whether the window offers the LoRA choice: a ComfyUI workflow with {@code {{lora}}}. */
+    public boolean usesLora() {
+        return getType() == BackendType.COMFYUI
+                && com.github.enerccio.marginalia.extensions.imagegenerator.service.WorkflowTemplate.usesLora(workflow);
     }
 
     @Override

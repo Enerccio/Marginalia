@@ -22,7 +22,7 @@ spoken by stable-diffusion.cpp, LiteLLM and many hosted services).
 | Address | The base address of the server, for example `http://localhost:8188` for ComfyUI. |
 | Api key | Sent as a bearer token. It is stored encrypted and not shown again; type a new one to replace it, or **Remove the key**. |
 | Model | OpenAI images API only: the `model` of the request. |
-| Workflow | ComfyUI only: a workflow saved in ComfyUI with **Save (API Format)**. Write `{{prompt}}`, `{{negative}}`, `{{seed}}`, `{{width}}` and `{{height}}` where they go. |
+| Workflow | ComfyUI only: a workflow saved in ComfyUI with **Save (API Format)**. Write `{{prompt}}`, `{{negative}}`, `{{seed}}`, `{{width}}` and `{{height}}` where they go, and `{{lora}}` / `{{lora_strength}}` in a LoRA loader to [choose the LoRA in the window](#choosing-a-lora). |
 | The server is on this machine or on my network | Allows addresses of the local network. Leave it off for a server in the cloud: it then cannot be made to call your own machine. |
 | Width, Height, Negative prompt | What the window starts with (you can change them there for one image). |
 | Timeout | How long to wait for one image. |
@@ -59,6 +59,20 @@ built-in one.
 ![The image, with Accept, Discard and Reroll](../../images/plugin-imagegenerator.png)
 
 The open part shows the new image under its text at once.
+
+## Choosing a LoRA
+
+A LoRA is a small add-on to the image model, usually for a style. With ComfyUI you can choose it in the window instead of saving the
+workflow again for each one:
+
+1. In the exported workflow, write `{{lora}}` as the `lora_name` of the LoRA loader (*Load LoRA*, `LoraLoaderModelOnly`, or
+   `LoraLoader`), and `{{lora_strength}}` as its strength (`strength_model`; `strength_clip` too for `LoraLoader`).
+2. The window then shows **LoRA** with the LoRA files of the server (its `models/loras` folder) and **LoRA strength**. You can
+   also type the name of a file the list does not show.
+3. **None** (an empty LoRA) takes the LoRA loaders out of the workflow, so the image is made without them.
+
+The LoRA and the strength you generate with are remembered for the backend and are there the next time. When the server can't be
+asked for its LoRAs, a notice says so and the last choice stays.
 
 ## One GPU for the model and the images
 

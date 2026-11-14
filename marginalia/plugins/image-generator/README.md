@@ -17,7 +17,7 @@ part menu.
 
 | Type | What it talks to |
 |---|---|
-| **ComfyUI** | A ComfyUI server. Paste a workflow saved with *Save (API Format)* and write `{{prompt}}`, `{{negative}}`, `{{seed}}`, `{{width}}` and `{{height}}` where they go (`"seed": {{seed}}` and `"seed": "{{seed}}"` both work). The workflow is posted to `/prompt`, `/history/<id>` is polled and the image is fetched from `/view`. **Abort** interrupts the job. |
+| **ComfyUI** | A ComfyUI server. Paste a workflow saved with *Save (API Format)* and write `{{prompt}}`, `{{negative}}`, `{{seed}}`, `{{width}}` and `{{height}}` where they go (`"seed": {{seed}}` and `"seed": "{{seed}}"` both work). The workflow is posted to `/prompt`, `/history/<id>` is polled and the image is fetched from `/view`. **Abort** interrupts the job. `{{lora}}` (the file) and `{{lora_strength}}` (a number) in a LoRA loader make the LoRA selectable in the window: the list is `GET /models/loras`, the choice is remembered per backend, and with none chosen every node whose input is exactly `{{lora}}` is taken out of the graph (its users get its `model` input for output 0, its `clip` input for output 1). |
 | **OpenAI images API** | `POST <address>/v1/images/generations` (an address that ends with `/v1` is used as it is). Answers with `b64_json` or an `url` are both accepted. Also served by stable-diffusion.cpp, LiteLLM and many hosted services; the api key is sent as a bearer token. |
 
 The api key and the headers of the hooks are stored encrypted. A backend marked **The server is on this machine or on my network**

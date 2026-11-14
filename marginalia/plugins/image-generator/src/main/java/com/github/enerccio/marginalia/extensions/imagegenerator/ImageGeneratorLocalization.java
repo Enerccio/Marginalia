@@ -55,7 +55,7 @@ public class ImageGeneratorLocalization extends PluginLocalizationBundle {
     public static final String REMOVE_THE_KEY = "Remove the key";
     public static final String MODEL = "Model";
     public static final String WORKFLOW = "Workflow";
-    public static final String API_FORMAT_WORKFLOW = "Workflow of ComfyUI saved with Save (API Format), with {{prompt}}, {{negative}}, {{seed}}, {{width}} and {{height}} where they go";
+    public static final String API_FORMAT_WORKFLOW = "Workflow of ComfyUI saved with Save (API Format), with {{prompt}}, {{negative}}, {{seed}}, {{width}} and {{height}} where they go; {{lora}} and {{lora_strength}} in a LoRA loader let you choose the LoRA in the window";
     public static final String THE_SERVER_IS_LOCAL = "The server is on this machine or on my network";
     public static final String ALLOWS_ADDRESSES_OF_THE_LOCAL_NETWORK = "Allows the addresses of the local network; leave it off for a server in the cloud";
     public static final String TIMEOUT_SECONDS = "Timeout (s)";
@@ -85,6 +85,10 @@ public class ImageGeneratorLocalization extends PluginLocalizationBundle {
 
     public static final String GPU_NAME = "GPU (name)";
     public static final String GPU_NAME_HELP = "Optional. Name the GPU when this server shares it with other servers (a speech server, another image server), and give the same name there: they then wait for each other instead of unloading each other's model. Empty: only requests to this address wait for each other.";
+    public static final String LORA = "LoRA";
+    public static final String LORA_STRENGTH = "LoRA strength";
+    public static final String NO_LORA = "None";
+    public static final String THE_LORAS_COULD_NOT_BE_READ = "The LoRAs of the server could not be read: %s";
 
     @Override
     protected void loadKeys() {
@@ -456,13 +460,13 @@ public class ImageGeneratorLocalization extends PluginLocalizationBundle {
         ko(WORKFLOW, "워크플로");
         it(WORKFLOW, "Workflow");
 
-        ja(API_FORMAT_WORKFLOW, "ComfyUI の Save (API Format) で保存したワークフロー。{{prompt}}、{{negative}}、{{seed}}、{{width}}、{{height}} を入れる場所に書きます");
-        zh(API_FORMAT_WORKFLOW, "用 ComfyUI 的 Save (API Format) 保存的工作流，在相应位置写入 {{prompt}}、{{negative}}、{{seed}}、{{width}} 和 {{height}}");
-        fr(API_FORMAT_WORKFLOW, "Workflow ComfyUI enregistré avec Save (API Format), avec {{prompt}}, {{negative}}, {{seed}}, {{width}} et {{height}} aux bons endroits");
-        es(API_FORMAT_WORKFLOW, "Flujo de trabajo de ComfyUI guardado con Save (API Format), con {{prompt}}, {{negative}}, {{seed}}, {{width}} y {{height}} donde corresponda");
-        de(API_FORMAT_WORKFLOW, "Workflow von ComfyUI, gespeichert mit „Save (API Format)“, mit {{prompt}}, {{negative}}, {{seed}}, {{width}} und {{height}} an den passenden Stellen");
-        ko(API_FORMAT_WORKFLOW, "저장(API 형식)으로 저장한 ComfyUI 워크플로로, {{prompt}}, {{negative}}, {{seed}}, {{width}}, {{height}}가 들어갈 위치에 지정합니다");
-        it(API_FORMAT_WORKFLOW, "Workflow di ComfyUI salvato con Save (API Format), con {{prompt}}, {{negative}}, {{seed}}, {{width}} e {{height}} dove vanno");
+        ja(API_FORMAT_WORKFLOW, "ComfyUI の Save (API Format) で保存したワークフロー。{{prompt}}、{{negative}}、{{seed}}、{{width}}、{{height}} を入れる場所に書きます。LoRA ローダーに {{lora}} と {{lora_strength}} を書くと、ウィンドウで LoRA を選べます");
+        zh(API_FORMAT_WORKFLOW, "用 ComfyUI 的 Save (API Format) 保存的工作流，在相应位置写入 {{prompt}}、{{negative}}、{{seed}}、{{width}} 和 {{height}}；在 LoRA 加载器中写入 {{lora}} 和 {{lora_strength}}，即可在窗口中选择 LoRA");
+        fr(API_FORMAT_WORKFLOW, "Workflow ComfyUI enregistré avec Save (API Format), avec {{prompt}}, {{negative}}, {{seed}}, {{width}} et {{height}} aux bons endroits ; {{lora}} et {{lora_strength}} dans un chargeur de LoRA permettent de choisir la LoRA dans la fenêtre");
+        es(API_FORMAT_WORKFLOW, "Flujo de trabajo de ComfyUI guardado con Save (API Format), con {{prompt}}, {{negative}}, {{seed}}, {{width}} y {{height}} donde corresponda; {{lora}} y {{lora_strength}} en un cargador de LoRA permiten elegir la LoRA en la ventana");
+        de(API_FORMAT_WORKFLOW, "Workflow von ComfyUI, gespeichert mit „Save (API Format)“, mit {{prompt}}, {{negative}}, {{seed}}, {{width}} und {{height}} an den passenden Stellen; {{lora}} und {{lora_strength}} in einem LoRA-Loader machen die LoRA im Fenster wählbar");
+        ko(API_FORMAT_WORKFLOW, "저장(API 형식)으로 저장한 ComfyUI 워크플로로, {{prompt}}, {{negative}}, {{seed}}, {{width}}, {{height}}가 들어갈 위치에 지정합니다. LoRA 로더에 {{lora}}와 {{lora_strength}}를 지정하면 창에서 LoRA를 선택할 수 있습니다");
+        it(API_FORMAT_WORKFLOW, "Workflow di ComfyUI salvato con Save (API Format), con {{prompt}}, {{negative}}, {{seed}}, {{width}} e {{height}} dove vanno; {{lora}} e {{lora_strength}} in un caricatore di LoRA permettono di scegliere la LoRA nella finestra");
 
         ja(THE_SERVER_IS_LOCAL, "サーバーはこのマシンまたはローカルネットワークにあります");
         zh(THE_SERVER_IS_LOCAL, "服务器在本机或我的网络中");
@@ -682,5 +686,37 @@ public class ImageGeneratorLocalization extends PluginLocalizationBundle {
         de(GPU_NAME_HELP, "Optional. Gib der GPU einen Namen, wenn dieser Server sie mit anderen Servern teilt (einem Sprachserver, einem anderen Bildserver), und gib dort denselben Namen an: Sie warten dann aufeinander, statt gegenseitig ihr Modell zu entladen. Leer: Nur Anfragen an diese Adresse warten aufeinander.");
         ko(GPU_NAME_HELP, "선택 사항. 이 서버가 GPU를 다른 서버(음성 서버, 다른 이미지 서버)와 공유할 때 GPU 이름을 지정하고 그쪽에도 같은 이름을 지정하세요: 그러면 서로의 모델을 언로드하는 대신 서로를 기다립니다. 비워 두면 이 주소로의 요청끼리만 서로 기다립니다.");
         it(GPU_NAME_HELP, "Facoltativo. Indica il nome della GPU quando questo server la condivide con altri server (un server vocale, un altro server di immagini), e indica lì lo stesso nome: si aspettano allora a vicenda invece di scaricare il modello l'uno dell'altro. Vuoto: si aspettano solo le richieste a questo indirizzo.");
+
+        ja(LORA, "LoRA");
+        zh(LORA, "LoRA");
+        fr(LORA, "LoRA");
+        es(LORA, "LoRA");
+        de(LORA, "LoRA");
+        ko(LORA, "LoRA");
+        it(LORA, "LoRA");
+
+        ja(LORA_STRENGTH, "LoRA の強さ");
+        zh(LORA_STRENGTH, "LoRA 强度");
+        fr(LORA_STRENGTH, "Force de la LoRA");
+        es(LORA_STRENGTH, "Intensidad de la LoRA");
+        de(LORA_STRENGTH, "LoRA-Stärke");
+        ko(LORA_STRENGTH, "LoRA 강도");
+        it(LORA_STRENGTH, "Intensità della LoRA");
+
+        ja(NO_LORA, "なし");
+        zh(NO_LORA, "无");
+        fr(NO_LORA, "Aucune");
+        es(NO_LORA, "Ninguna");
+        de(NO_LORA, "Keine");
+        ko(NO_LORA, "없음");
+        it(NO_LORA, "Nessuna");
+
+        ja(THE_LORAS_COULD_NOT_BE_READ, "サーバーの LoRA を読み込めませんでした: %s");
+        zh(THE_LORAS_COULD_NOT_BE_READ, "无法读取服务器的 LoRA：%s");
+        fr(THE_LORAS_COULD_NOT_BE_READ, "Impossible de lire les LoRA du serveur : %s");
+        es(THE_LORAS_COULD_NOT_BE_READ, "No se pudieron leer las LoRA del servidor: %s");
+        de(THE_LORAS_COULD_NOT_BE_READ, "Die LoRAs des Servers konnten nicht gelesen werden: %s");
+        ko(THE_LORAS_COULD_NOT_BE_READ, "서버의 LoRA를 읽을 수 없습니다: %s");
+        it(THE_LORAS_COULD_NOT_BE_READ, "Impossibile leggere le LoRA del server: %s");
     }
 }
