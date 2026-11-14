@@ -198,6 +198,19 @@ doesn't take them.
 `ProgressBarDialog` (indeterminate), cuts the chosen range and exports it in a second one whose total is the number of
 messages, then shows the download link. The exporter gets `ExportOptions` (title, author, title page, language, and the `PartStyle` chosen in the dialog, null for the look of the format, and `authorship`, a `BookAuthorship` that the dialog works out with `MessageRevisionService.authorship(range)` only when the exporter `usesAuthorship()` and *Include authorship statement* is checked, null otherwise: the exporters that write text for reading end the file with it, rendered from `ExporterBase.AUTHORSHIP_TEMPLATE` / `ExportAuthorshipTemplateData`), the
 messages and the progress dialog, on which it calls `updateProgress()` for every message.
+
+**The file of an export is never held in memory.** The dialog creates a temporary file (`marginalia-export-*.<extension>`) and calls
+`Exporter.exportTo(options, messages, progress, target)`, which writes the export into it; the download link streams that file and it is
+deleted when the result window closes (or is detached), when the export fails, and when the exporter ended the progress dialog itself
+(`manualCancel`, nothing to download). `Exporter.export(...)`, which returns the bytes, is the other way round: each of the two methods has a
+default that calls the other (`exportTo` writes what `export` returns, `export` runs `exportTo` into a temporary file and reads it), so an
+exporter implements one of them, and one whose files can be large implements `exportTo`. `ExporterBase` opens the writer with the output stream
+(`open(options, out)`; `ExportWriter.finish()` writes what is left and the base closes the stream) and reads the images of a part only when
+that part is written, so the images of the book are not all loaded at once. The writers write as the content comes where the format allows:
+HTML and Markdown stream the text (images inline as `data:` URIs, one at a time), EPUB, LaTeX and the Obsidian vault write the images into the
+zip as they come (EPUB also each part of the text once it is complete; the navigation and the package document at the end), the PDF lays out
+every pass into a temporary file and copies the last one. Word is built in memory by POI, the TXT and AO3 text (no images) is kept until the end.
+The SillyTavern exporter writes its lines into the file.
 `ExportOptions.templates` holds the templates the user changed in the settings (by `ExportTemplate.key()`; `templateText(template)` gives the changed text or the default), which the dialog fills from `ExportSettingsService.getTemplates(exporter, manuscript)` on the UI thread, since the exporters run on a worker thread without the user's session.
 An exporter lists the templates it renders in `Exporter.getTemplates()` (`ExportTemplate`: key, label, default text, the `TemplateData` class that lists the variables); `ExporterBase` has the title page (`TITLE_PAGE_TEMPLATE`, `ExportHeaderTemplateData`: `title`, `author`), so every built-in format has it. `Exporter.getId()` (the file extension unless overridden) is the key of the user's settings for the exporter and must stay stable.
 

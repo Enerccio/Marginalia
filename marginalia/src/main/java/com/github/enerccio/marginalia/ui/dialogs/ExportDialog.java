@@ -39,7 +39,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
-import java.io.ByteArrayInputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -362,16 +363,26 @@ public class ExportDialog extends Dialog implements LLMInteract {
             locals = {@APILocals(name = "exported", type = AtomicReference.class),
                     @APILocals(name = "exporting", type = ProgressBarDialog.class)})
     private void export(Exporter exporter, ExportOptions options, String file, List<ChatMessage> messages) {
-        AtomicReference<byte[]> exported = new AtomicReference<>();
+        // the export is written into a temporary file and downloaded from it, it is never held in memory
+        AtomicReference<Path> exported = new AtomicReference<>();
 
         ProgressBarDialog exporting = new ProgressBarDialog(true);
         exporting.setTitle(loc.getValue(L.MSG_EXPORTING));
         exporting.setTotal((long) messages.size());
         exporting.create();
         exporting.setAction(dialog -> {
+            Path target = null;
             try {
-                exported.set(exporter.export(options, messages, dialog));
+                target = Files.createTempFile("marginalia-export-", "." + exporter.getFileExtension());
+                exporter.exportTo(options, messages, dialog, target);
+                if (dialog.manualCancel) {
+                    // the exporter ended the dialog itself (it had nothing to export), there is nothing to download
+                    deleteQuietly(target);
+                } else {
+                    exported.set(target);
+                }
             } catch (Exception e) {
+                deleteQuietly(target);
                 failed(dialog, e);
             }
         });
@@ -394,16 +405,16 @@ public class ExportDialog extends Dialog implements LLMInteract {
         });
     }
 
-    @PublicAPI(from = "1.1.0",
+    @PublicAPI(from = "1.9.0",
             returns = @APIReturn(type = void.class),
             parameters = {@APIParameter(name = "exporter", type = ExporterService.Exporter.class),
                     @APIParameter(name = "file", type = String.class),
-                    @APIParameter(name = "data", type = byte[].class)},
+                    @APIParameter(name = "exported", type = Path.class)},
             locals = {@APILocals(name = "result", type = Dialog.class),
                     @APILocals(name = "download", type = Anchor.class),
                     @APILocals(name = "downloadButton", type = Button.class),
                     @APILocals(name = "content", type = VerticalLayout.class)})
-    private void showResult(Exporter exporter, String file, byte[] data) {
+    private void showResult(Exporter exporter, String file, Path exported) {
         Dialog result = new Dialog();
         result.setHeaderTitle(loc.getValue(L.LABEL_EXPORT_STORY));
         result.setCloseOnEsc(true);
@@ -411,7 +422,7 @@ public class ExportDialog extends Dialog implements LLMInteract {
         result.setModality(ModalityMode.STRICT);
 
         Anchor download = new Anchor(new InputStreamDownloadHandler((InputStreamDownloadCallback) event ->
-                new DownloadResponse(new ByteArrayInputStream(data), file, exporter.getMimeType(), data.length)), "");
+                new DownloadResponse(Files.newInputStream(exported), file, exporter.getMimeType(), Files.size(exported))), "");
         download.getElement().setAttribute("download", true);
         Button downloadButton = new Button(loc.getValue(L.LABEL_DOWNLOAD) + " " + file, Solid.DOWNLOAD.create());
         downloadButton.setThemeName("primary");
@@ -421,7 +432,24 @@ public class ExportDialog extends Dialog implements LLMInteract {
         content.setPadding(false);
         result.add(content);
         result.getFooter().add(new Button(loc.getValue(L.LABEL_CLOSE), event -> result.close()));
+        // the file is kept only as long as the dialog is open (it can be downloaded more than once)
+        result.addOpenedChangeListener(event -> {
+            if (!event.isOpened()) {
+                deleteQuietly(exported);
+            }
+        });
+        result.addDetachListener(event -> deleteQuietly(exported));
         result.open();
+    }
+
+    private static void deleteQuietly(Path file) {
+        if (file != null) {
+            try {
+                Files.deleteIfExists(file);
+            } catch (Exception e) {
+                // a temporary file that stays is not worth an error
+            }
+        }
     }
 
     /**

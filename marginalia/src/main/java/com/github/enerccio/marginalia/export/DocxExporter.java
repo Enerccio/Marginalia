@@ -13,7 +13,7 @@ import org.openxmlformats.schemas.wordprocessingml.x2006.main.*;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -61,8 +61,8 @@ public class DocxExporter extends ExporterBase {
     }
 
     @Override
-    protected ExportWriter open(ExportOptions options) {
-        return new DocxWriter(options);
+    protected ExportWriter open(ExportOptions options, OutputStream out) {
+        return new DocxWriter(options, out);
     }
 
     /**
@@ -107,7 +107,10 @@ public class DocxExporter extends ExporterBase {
         private final Map<String, List<List<Run>>> partNotes = new HashMap<>();
         private boolean inNote;
 
-        private DocxWriter(ExportOptions options) {
+        private final OutputStream out;
+
+        private DocxWriter(ExportOptions options, OutputStream out) {
+            this.out = out;
             print = PrintStyle.of(options.style() != null ? options.style() : PartStyleRegistry.docxExportStyle());
             bodySize = Math.round(print.getBodySize());
             for (int i = 0; i < headingSizes.length; i++) {
@@ -412,12 +415,11 @@ public class DocxExporter extends ExporterBase {
         }
 
         @Override
-        public byte[] finish() throws Exception {
-            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        public void finish() throws Exception {
+            // Word files are built in memory by POI; only the copy of the result is spared
             try (document) {
-                document.write(bytes);
+                document.write(out);
             }
-            return bytes.toByteArray();
         }
 
         /**

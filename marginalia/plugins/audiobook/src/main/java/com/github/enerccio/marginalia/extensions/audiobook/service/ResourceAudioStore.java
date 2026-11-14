@@ -8,6 +8,7 @@ import com.github.enerccio.marginalia.extensions.audiobook.audio.AudioKind;
 import com.github.enerccio.marginalia.extensions.audiobook.queue.AudioStore;
 import com.google.gson.JsonObject;
 
+import java.io.File;
 import java.util.*;
 
 /**
@@ -185,6 +186,29 @@ public class ResourceAudioStore implements AudioStore {
             uuid = part != null && part.has("resource") ? part.get("resource").getAsString() : null;
         }
         return uuid == null ? null : data(uuid);
+    }
+
+    /**
+     * The file of the joined audio of the part (for the exports, which read it without loading it), null when the part has none.
+     */
+    public synchronized File partFile(String partId) {
+        PendingPart pending = pendingParts.get(partId);
+        String uuid = pending != null ? pending.resource() : null;
+        if (uuid == null) {
+            JsonObject part = index(partId).getAsJsonObject("part");
+            uuid = part != null && part.has("resource") ? part.get("resource").getAsString() : null;
+        }
+        if (uuid == null) {
+            return null;
+        }
+        try {
+            Resource resource = resources.findForUser(uuid);
+            return resource == null ? null : resources.getResourceFile(resource);
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new IllegalStateException(e.getMessage(), e);
+        }
     }
 
     private Resource upload(String filename, byte[] audio, String partId) {

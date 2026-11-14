@@ -113,27 +113,68 @@ public final class Ffmpeg {
     }
 
     /**
-     * Makes an m4b of the audio (one file, mp3 or wav, without a tag). An mp3 is encoded a second time (AAC); a wav is encoded once.
+     * An input file of ffmpeg, with the options that say what is in it when the file does not (bare samples).
+     */
+    public record Input(Path file, List<String> options) {
+
+        /** A file ffmpeg recognises by itself (mp3, wav). */
+        public static Input of(Path file) {
+            return new Input(file, List.of());
+        }
+
+        /** Bare samples in the format of a wav, as {@link WavJoiner#joinRaw} writes them. */
+        public static Input raw(Path file, WavJoiner.Format format) throws BackendException {
+            String samples = switch (format.tag() == 3 ? -format.bits() : format.bits()) {
+                case 16 -> "s16le";
+                case 24 -> "s24le";
+                case 32 -> "s32le";
+                case -32 -> "f32le";
+                case -64 -> "f64le";
+                default -> throw new BackendException("This kind of wav can't be encoded (" + format.bits() + " bits)");
+            };
+            return new Input(file, List.of("-f", samples, "-ar", String.valueOf(format.sampleRate()), "-ac", String.valueOf(format.channels())));
+        }
+    }
+
+    /**
+     * Makes an m4b of the audio into the file, from file to file (the audio is never in memory). An mp3 is encoded a second time (AAC); samples
+     * are encoded once.
      *
      * @param chapters where the chapters are in the audio
-     * @return the bytes of the m4b
      * @throws BackendException when ffmpeg is not there or fails
      */
-    public static byte[] m4b(byte[] audio, String title, String author, String album, List<Id3Tag.Chapter> chapters) throws BackendException {
-        return run(audio, AudioKind.of(audio).extension(), "m4b", metadata(title, author, album, chapters),
-                List.of("-map", "0:a", "-map_metadata", "1", "-map_chapters", "1", "-c:a", "aac", "-b:a", BITRATE, "-movflags", "+faststart",
-                        "-brand", "M4B ", "-f", "ipod"));
+    public static void m4b(Input audio, String title, String author, String album, List<Id3Tag.Chapter> chapters, Path out) throws BackendException {
+        execute(audio, metadata(title, author, album, chapters), M4B_OPTIONS, out);
+    }
+
+    /** An mp3 of the audio, from file to file (for the files of the export that are mp3, when the audio is stored as wav). */
+    public static void toMp3(Input audio, Path out) throws BackendException {
+        execute(audio, null, MP3_OPTIONS, out);
+    }
+
+    /** A wav of the audio file in the given format, from file to file (for the audio that was stored as mp3 and has to be joined with wav). */
+    public static void toWav(Path audio, WavJoiner.Format format, Path out) throws BackendException {
+        execute(Input.of(audio), null, wavOptions(format), out);
+    }
+
+    private static final List<String> M4B_OPTIONS = List.of("-map", "0:a", "-map_metadata", "1", "-map_chapters", "1", "-c:a", "aac", "-b:a", BITRATE,
+            "-movflags", "+faststart", "-brand", "M4B ", "-f", "ipod");
+
+    private static final List<String> MP3_OPTIONS = List.of("-map", "0:a", "-map_metadata", "-1", "-c:a", "libmp3lame", "-b:a", MP3_BITRATE, "-f", "mp3");
+
+    private static List<String> wavOptions(WavJoiner.Format format) {
+        return List.of("-map", "0:a", "-map_metadata", "-1", "-c:a", "pcm_s16le", "-ar", String.valueOf(format.sampleRate()), "-ac",
+                String.valueOf(format.channels()), "-f", "wav");
     }
 
     /** An mp3 of a wav (for the files of the export that are mp3, when the audio is stored as wav). */
     public static byte[] toMp3(byte[] wav) throws BackendException {
-        return run(wav, "wav", "mp3", null, List.of("-map", "0:a", "-map_metadata", "-1", "-c:a", "libmp3lame", "-b:a", MP3_BITRATE));
+        return run(wav, "wav", "mp3", null, MP3_OPTIONS);
     }
 
     /** A wav of the audio in the given format (for the audio that was stored as mp3 and has to be joined with wav). */
     public static byte[] toWav(byte[] audio, WavJoiner.Format format) throws BackendException {
-        return run(audio, AudioKind.of(audio).extension(), "wav", null,
-                List.of("-map", "0:a", "-map_metadata", "-1", "-c:a", "pcm_s16le", "-ar", String.valueOf(format.sampleRate()), "-ac", String.valueOf(format.channels())));
+        return run(audio, AudioKind.of(audio).extension(), "wav", null, wavOptions(format));
     }
 
     /** The loudness target of a part is a level a listener does not notice being missed by this much: such audio is left as it is (no second encoding). */
@@ -228,44 +269,74 @@ public final class Ffmpeg {
      * discarded ({@code -f null}, the options must say the format) and only the log is read.
      */
     private static Executed execute(byte[] input, String inputExtension, String outputExtension, String metadata, List<String> options) throws BackendException {
-        Path program = locate();
-        if (program == null) {
-            throw new BackendException("ffmpeg is not installed");
-        }
         Path folder = null;
         try {
             folder = Files.createTempDirectory("audiobook-ffmpeg");
             Path in = folder.resolve("in." + inputExtension);
             Path out = outputExtension == null ? null : folder.resolve("out." + outputExtension);
-            Path log = folder.resolve("ffmpeg.log");
             Files.write(in, input);
-            List<String> command = new ArrayList<>(List.of(program.toString(), "-nostdin", "-hide_banner", "-y", "-i", in.toString()));
-            if (metadata != null) {
-                Path meta = folder.resolve("chapters.txt");
-                Files.writeString(meta, metadata, StandardCharsets.UTF_8);
-                command.addAll(List.of("-i", meta.toString()));
-            }
-            command.addAll(options);
-            command.add(out == null ? "-" : out.toString());
-            Process process = new ProcessBuilder(command).redirectErrorStream(true).redirectOutput(log.toFile()).start();
-            if (!process.waitFor(TIMEOUT_MINUTES, TimeUnit.MINUTES)) {
-                process.destroyForcibly();
-                throw new BackendException("ffmpeg did not finish in " + TIMEOUT_MINUTES + " minutes");
-            }
-            if (process.exitValue() != 0 || (out != null && !Files.isRegularFile(out))) {
-                throw new BackendException("ffmpeg failed: " + tail(log));
-            }
-            return new Executed(out == null ? null : Files.readAllBytes(out), Files.readString(log, StandardCharsets.UTF_8));
+            String log = process(folder, Input.of(in), metadata, options, out);
+            return new Executed(out == null ? null : Files.readAllBytes(out), log);
         } catch (IOException e) {
             throw new BackendException("ffmpeg could not be run: " + e.getMessage(), e);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new BackendException("Interrupted", e);
         } finally {
             if (folder != null) {
                 deleteAll(folder);
             }
         }
+    }
+
+    /** Runs ffmpeg from a file to a file; only its log goes through a folder of its own. */
+    private static void execute(Input input, String metadata, List<String> options, Path out) throws BackendException {
+        Path folder = null;
+        try {
+            folder = Files.createTempDirectory("audiobook-ffmpeg");
+            process(folder, input, metadata, options, out);
+        } catch (IOException e) {
+            throw new BackendException("ffmpeg could not be run: " + e.getMessage(), e);
+        } finally {
+            if (folder != null) {
+                deleteAll(folder);
+            }
+        }
+    }
+
+    /**
+     * Runs ffmpeg on one input (and a metadata file, written into the folder, when there is text for it) into the output file; with no output
+     * the output is discarded ({@code -f null}, the options must say the format).
+     *
+     * @return the log of ffmpeg (it has the measurements)
+     */
+    private static String process(Path folder, Input input, String metadata, List<String> options, Path out) throws BackendException, IOException {
+        Path program = locate();
+        if (program == null) {
+            throw new BackendException("ffmpeg is not installed");
+        }
+        Path log = folder.resolve("ffmpeg.log");
+        List<String> command = new ArrayList<>(List.of(program.toString(), "-nostdin", "-hide_banner", "-y"));
+        command.addAll(input.options());
+        command.addAll(List.of("-i", input.file().toString()));
+        if (metadata != null) {
+            Path meta = folder.resolve("chapters.txt");
+            Files.writeString(meta, metadata, StandardCharsets.UTF_8);
+            command.addAll(List.of("-i", meta.toString()));
+        }
+        command.addAll(options);
+        command.add(out == null ? "-" : out.toString());
+        try {
+            Process process = new ProcessBuilder(command).redirectErrorStream(true).redirectOutput(log.toFile()).start();
+            if (!process.waitFor(TIMEOUT_MINUTES, TimeUnit.MINUTES)) {
+                process.destroyForcibly();
+                throw new BackendException("ffmpeg did not finish in " + TIMEOUT_MINUTES + " minutes");
+            }
+            if (process.exitValue() != 0 || (out != null && (!Files.isRegularFile(out) || Files.size(out) == 0))) {
+                throw new BackendException("ffmpeg failed: " + tail(log));
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new BackendException("Interrupted", e);
+        }
+        return Files.readString(log, StandardCharsets.UTF_8);
     }
 
     /** The last lines of the log: the reason is at the end. */

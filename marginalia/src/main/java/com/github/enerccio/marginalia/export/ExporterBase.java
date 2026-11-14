@@ -27,6 +27,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
+import java.io.BufferedOutputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -176,7 +180,8 @@ date: {{exportDate}}
     }
 
     /**
-     * Receives the exported content in the story order, {@link #finish()} produces the file.
+     * Receives the exported content in the story order and writes the file into the stream it was opened with; {@link #finish()} writes
+     * the rest.
      */
     protected interface ExportWriter {
 
@@ -231,7 +236,10 @@ date: {{exportDate}}
             }
         }
 
-        byte[] finish() throws Exception;
+        /**
+         * Writes what is left of the file into the stream given to {@link #open}.
+         */
+        void finish() throws Exception;
     }
 
     @Override
@@ -244,53 +252,66 @@ date: {{exportDate}}
         return List.of(TITLE_PAGE_TEMPLATE, AUTHORSHIP_TEMPLATE);
     }
 
-    protected abstract ExportWriter open(ExportOptions options) throws Exception;
+    /**
+     * @param out where the file goes; a writer may write into it as the content comes, or keep what it needs and write it all in
+     *            {@link ExportWriter#finish()}. It is closed by the caller after {@code finish}.
+     */
+    protected abstract ExportWriter open(ExportOptions options, OutputStream out) throws Exception;
+
+    /**
+     * A message that has something to export: its text and the images that are still there (their files are read only when the message is
+     * written, so the images of the whole book are never in memory at once).
+     */
+    private record Pending(String text, List<ImageAttachment> attached, List<Resource> resources, Chapter chapter) {
+    }
 
     @Override
-    public byte[] export(ExportOptions options, List<ChatMessage> chatMessages, ProgressBarDialog progress) throws Exception {
-        ExportWriter writer = open(options);
-        if (options.includeHeaders()) {
-            writer.titlePage(buildHeader(options));
-        }
-
-        // the table of contents comes before the text, so the chapters have to be known first
-        List<List<Part>> partsOf = new ArrayList<>();
-        List<Chapter> chapterOf = new ArrayList<>();
-        List<Chapter> chapters = new ArrayList<>();
-        for (ChatMessage message : chatMessages) {
-            String text = StringUtils.trimToNull(message.getResponse());
-            List<ImageAttachment> attached = new ArrayList<>();
-            List<ExportImage> images = loadImages(message, attached);
-            if (text != null || !images.isEmpty()) {
-                text = StringUtils.defaultString(text);
-                String title = chapterTitle(text);
-                Chapter chapter = title == null ? null : new Chapter(chapters.size() + 1, title);
-                if (chapter != null) {
-                    chapters.add(chapter);
-                }
-                partsOf.add(parts(text, attached, images));
-                chapterOf.add(chapter);
+    public void exportTo(ExportOptions options, List<ChatMessage> chatMessages, ProgressBarDialog progress, Path target) throws Exception {
+        try (OutputStream out = new BufferedOutputStream(Files.newOutputStream(target))) {
+            ExportWriter writer = open(options, out);
+            if (options.includeHeaders()) {
+                writer.titlePage(buildHeader(options));
             }
-        }
-        if (!chapters.isEmpty()) {
-            writer.contents(chapters);
-        }
 
-        for (int i = 0; i < partsOf.size(); i++) {
-            writer.message(partsOf.get(i), chapterOf.get(i));
-            progress.updateProgress();
+            // the table of contents comes before the text, so the chapters have to be known first
+            List<Pending> pending = new ArrayList<>();
+            List<Chapter> chapters = new ArrayList<>();
+            for (ChatMessage message : chatMessages) {
+                String text = StringUtils.trimToNull(message.getResponse());
+                List<ImageAttachment> attached = new ArrayList<>();
+                List<Resource> resources = findImages(message, attached);
+                if (text != null || !resources.isEmpty()) {
+                    text = StringUtils.defaultString(text);
+                    String title = chapterTitle(text);
+                    Chapter chapter = title == null ? null : new Chapter(chapters.size() + 1, title);
+                    if (chapter != null) {
+                        chapters.add(chapter);
+                    }
+                    pending.add(new Pending(text, attached, resources, chapter));
+                }
+            }
+            if (!chapters.isEmpty()) {
+                writer.contents(chapters);
+            }
+
+            for (Pending message : pending) {
+                List<ExportImage> images = loadImages(message.attached(), message.resources());
+                writer.message(parts(message.text(), message.attached(), images), message.chapter());
+                progress.updateProgress();
+            }
+            if (options.authorship() != null) {
+                writer.message(buildAuthorship(options), null);
+            }
+            writer.finish();
         }
-        if (options.authorship() != null) {
-            writer.message(buildAuthorship(options), null);
-        }
-        return writer.finish();
     }
 
     /**
      * @param attached the attachments of the images that were found, in the order of the result
+     * @return the resources of the images of the message that are still there (not their content)
      */
-    private List<ExportImage> loadImages(ChatMessage message, List<ImageAttachment> attached) throws Exception {
-        List<ExportImage> result = new ArrayList<>();
+    private List<Resource> findImages(ChatMessage message, List<ImageAttachment> attached) throws Exception {
+        List<Resource> result = new ArrayList<>();
         for (ImageAttachment attachment : message.getImages()) {
             Resource resource = resourceService.findImage(attachment.resource());
             if (resource == null) {
@@ -299,6 +320,19 @@ date: {{exportDate}}
                 continue;
             }
             attached.add(attachment);
+            result.add(resource);
+        }
+        return result;
+    }
+
+    /**
+     * @return the images of the attachments, read from their resources (the same positions)
+     */
+    private List<ExportImage> loadImages(List<ImageAttachment> attached, List<Resource> resources) throws Exception {
+        List<ExportImage> result = new ArrayList<>();
+        for (int i = 0; i < attached.size(); i++) {
+            ImageAttachment attachment = attached.get(i);
+            Resource resource = resources.get(i);
             result.add(new ExportImage(resourceService.getResourceData(resource), resource.getMimeType(),
                     StringUtils.defaultString(attachment.caption()).trim(), attachment.effectiveAnchor(), attachment.floats(),
                     attachment.effectiveWidth()));

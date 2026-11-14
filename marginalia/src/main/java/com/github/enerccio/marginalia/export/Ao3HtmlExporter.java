@@ -7,6 +7,8 @@ import org.commonmark.node.Heading;
 import org.commonmark.node.Node;
 import org.commonmark.renderer.html.HtmlRenderer;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -75,8 +77,8 @@ public class Ao3HtmlExporter extends ExporterBase {
     }
 
     @Override
-    protected ExportWriter open(ExportOptions options) {
-        return new Ao3Writer(options);
+    protected ExportWriter open(ExportOptions options, OutputStream out) {
+        return new Ao3Writer(options, out);
     }
 
     private static class Ao3Writer implements ExportWriter {
@@ -84,8 +86,11 @@ public class Ao3HtmlExporter extends ExporterBase {
         private final List<String> titles = new ArrayList<>();
         private final List<StringBuilder> texts = new ArrayList<>();
 
-        private Ao3Writer(ExportOptions options) {
+        private final OutputStream out;
+
+        private Ao3Writer(ExportOptions options, OutputStream out) {
             this.options = options;
+            this.out = out;
         }
 
         @Override
@@ -121,7 +126,7 @@ public class Ao3HtmlExporter extends ExporterBase {
         }
 
         @Override
-        public byte[] finish() {
+        public void finish() throws IOException {
             StringBuilder html = new StringBuilder();
             html.append("<!DOCTYPE html>\n<html lang=\"").append(escapeXml(StringUtils.defaultIfBlank(options.language(), "en"))).append("\">\n");
             html.append("<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n");
@@ -144,7 +149,7 @@ public class Ao3HtmlExporter extends ExporterBase {
                         .append("<!-- END chapter ").append(i + 1).append(" -->\n</section>\n");
             }
             html.append("</div>\n</body>\n</html>\n");
-            return html.toString().getBytes(StandardCharsets.UTF_8);
+            out.write(html.toString().getBytes(StandardCharsets.UTF_8));
         }
     }
 }

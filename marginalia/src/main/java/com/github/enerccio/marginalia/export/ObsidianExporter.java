@@ -5,7 +5,8 @@ import com.github.enerccio.marginalia.domain.service.ExporterService.ExportOptio
 import com.github.enerccio.marginalia.domain.service.ExporterService.ExportTemplate;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -53,8 +54,8 @@ public class ObsidianExporter extends ExporterBase {
     }
 
     @Override
-    protected ExportWriter open(ExportOptions options) throws Exception {
-        return new VaultWriter(options, buildFrontMatter(options));
+    protected ExportWriter open(ExportOptions options, OutputStream out) throws Exception {
+        return new VaultWriter(options, buildFrontMatter(options), out);
     }
 
     /**
@@ -122,11 +123,16 @@ public class ObsidianExporter extends ExporterBase {
         private String titlePage;
         private final List<Chapter> chapters = new ArrayList<>();
         private final List<StringBuilder> texts = new ArrayList<>();
-        private final Map<String, byte[]> attachments = new LinkedHashMap<>();
+        // the attachments go into the zip as they come, the notes at the end
+        private final ZipOutputStream zip;
+        private final String book;
+        private int attachments;
 
-        private VaultWriter(ExportOptions options, String frontMatter) {
+        private VaultWriter(ExportOptions options, String frontMatter, OutputStream out) {
             this.options = options;
             this.frontMatter = frontMatter;
+            this.zip = new ZipOutputStream(out, StandardCharsets.UTF_8);
+            this.book = noteName(options.bookName(), "Book");
         }
 
         @Override
@@ -144,10 +150,13 @@ public class ObsidianExporter extends ExporterBase {
         }
 
         @Override
-        public void images(List<ExportImage> images) {
+        public void images(List<ExportImage> images) throws IOException {
             for (ExportImage image : images) {
-                String file = "image-" + (attachments.size() + 1) + "." + image.extension();
-                attachments.put("Attachments/" + file, image.data());
+                attachments++;
+                String file = "image-" + attachments + "." + image.extension();
+                zip.putNextEntry(new ZipEntry(book + "/Attachments/" + file));
+                zip.write(image.data());
+                zip.closeEntry();
                 texts.getLast().append("![[").append(file).append("]]\n\n");
                 if (!image.caption().isEmpty()) {
                     texts.getLast().append('*').append(image.caption().replaceAll("\\s+", " ")).append("*\n\n");
@@ -156,8 +165,7 @@ public class ObsidianExporter extends ExporterBase {
         }
 
         @Override
-        public byte[] finish() throws Exception {
-            String book = noteName(options.bookName(), "Book");
+        public void finish() throws Exception {
             Map<String, byte[]> files = new LinkedHashMap<>();
 
             // the paths of the notes of the lore, by the name of the entry
@@ -239,17 +247,14 @@ public class ObsidianExporter extends ExporterBase {
                 });
             }
             files.put(book + ".md", index.toString().getBytes(StandardCharsets.UTF_8));
-            attachments.forEach(files::put);
 
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            try (ZipOutputStream zip = new ZipOutputStream(out, StandardCharsets.UTF_8)) {
-                for (Map.Entry<String, byte[]> file : files.entrySet()) {
-                    zip.putNextEntry(new ZipEntry(book + "/" + file.getKey()));
-                    zip.write(file.getValue());
-                    zip.closeEntry();
-                }
+            for (Map.Entry<String, byte[]> file : files.entrySet()) {
+                zip.putNextEntry(new ZipEntry(book + "/" + file.getKey()));
+                zip.write(file.getValue());
+                zip.closeEntry();
             }
-            return out.toByteArray();
+            // the stream itself is closed by the exporter
+            zip.finish();
         }
     }
 }

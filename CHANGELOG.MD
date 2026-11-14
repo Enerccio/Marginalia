@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Fixed
 
 - **Statistics: the Books tab shows its whole table again.** The grid of the books was squeezed to a strip of two rows; it fills the tab like the grid of the days.
+- **Exports of long books no longer run out of memory.** Every export is written into a temporary file and downloaded from it, instead of being built and copied in memory; the images of a book are read part by part. Audiobook: the m4b, the one mp3, the zip and *The whole audiobook* are made from the stored files of the parts by ffmpeg and the joiners, file to file (an m4b of a book stored as wav failed with `OutOfMemoryError`). API: `Exporter.exportTo(options, messages, progress, Path target)` (`export` now has a default, implement one of the two); `ExporterBase.open(options, OutputStream)` and `ExportWriter.finish()` returns nothing; `ExportDialog.showResult` takes the `Path` of the file.
 
 ## [1.8.0] - 2026-11-14
 
