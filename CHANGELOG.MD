@@ -59,6 +59,7 @@ Everything below is new since 1.7.0. Migration `V28`; plugins have to be rebuilt
 - **Statistics: the Books tab shows its whole table again.** The grid of the books was squeezed to a strip of two rows; it fills the tab like the grid of the days.
 - **Exports of long books no longer run out of memory.** Every export is written into a temporary file and downloaded from it, instead of being built and copied in memory; the images of a book are read part by part. Audiobook: the m4b, the one mp3, the zip and *The whole audiobook* are made from the stored files of the parts by ffmpeg and the joiners, file to file (an m4b of a book stored as wav failed with `OutOfMemoryError`). API: `Exporter.exportTo(options, messages, progress, Path target)` (`export` now has a default, implement one of the two); `ExporterBase.open(options, OutputStream)` and `ExportWriter.finish()` returns nothing; `ExportDialog.showResult` takes the `Path` of the file.
 - **A stop that came the moment a request was made no longer leaves the job hanging.** The request ended without telling anyone, so a summaries batch or a command bar generation stopped at that moment never finished and kept its book busy.
+- **Plugin builds no longer fail now and then with *can't determine implemented interfaces of missing type jakarta.servlet.http.HttpSessionBindingListener*.** The parent POM gives every module the servlet API (`provided`); a plugin built outside the repository declares `jakarta.servlet-api` itself.
 
 ## [1.7.0] - 2026-11-09
 

@@ -40,8 +40,10 @@ plugin should not.
 
 The easiest start is to copy the `pom.xml` of `marginalia/plugins/chaptermarker` and change the coordinates and the
 package names. The bundled plugins inherit their version from the repository's parent POM (`<parent>` with
-`marginalia-parent`); a plugin of your own outside the repository drops that `<parent>` and gives its `<version>`
-itself. The important parts:
+`marginalia-parent`), and the servlet API from it (`jakarta.servlet-api`, `provided`): the AspectJ compiler needs the
+servlet types the Vaadin classes refer to, and the application's own `provided` dependency does not reach a plugin. A plugin
+of your own outside the repository drops that `<parent>`, gives its `<version>` itself and declares
+`jakarta.servlet:jakarta.servlet-api:6.1.0` with `<scope>provided</scope>`. The important parts:
 
 ```xml
 <packaging>bundle</packaging>
