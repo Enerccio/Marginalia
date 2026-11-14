@@ -7,7 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
-## [1.8.0] - 2026-11-13
+## [1.8.0] - 2026-11-14
 
 Everything below is new since 1.7.0. Migration `V28`; plugins have to be rebuilt with the application.
 
