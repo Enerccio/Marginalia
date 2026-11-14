@@ -9,7 +9,8 @@ It runs in your browser - either as a small server for you and your friends (Doc
 computer - and works with any OpenAI-compatible API: OpenAI, OpenRouter, LiteLLM, llama.cpp, LM Studio, Ollama, vLLM and
 others.
 
-The manual is at **[enerccio.github.io/Marginalia](https://enerccio.github.io/Marginalia)**.
+The manual is at **[enerccio.github.io/Marginalia](https://enerccio.github.io/Marginalia)**, also in Japanese, French, Spanish, German,
+Korean, Italian and Chinese (the language links are in the top bar of the manual; the in-app help assistant reads it in the language of your interface).
 
 ![Marginalia story editor](manual/images/hero-story-editor.png)
 
@@ -23,7 +24,7 @@ Marginalia は、大規模言語モデル（LLM）と共同で長編小説を書
   （OpenAI、OpenRouter、LiteLLM、llama.cpp、LM Studio、Ollama、vLLM など）に対応しています。
 - 画面は日本語に翻訳済みです。ワークスペース下部の「言語」セレクターで日本語を選ぶと、設定がアカウントに保存され、
   次回ログイン時にも使われます。ログイン画面は英語です。
-- インストール方法は下の [Installation](#installation) を、マニュアル（英語）は上のリンクをご覧ください。
+- インストール方法は下の [Installation](#installation) を、日本語のマニュアルは [enerccio.github.io/Marginalia/ja](https://enerccio.github.io/Marginalia/ja/) をご覧ください。
 
 ## Français
 
@@ -36,7 +37,7 @@ les réglages de prompt qui façonnent le style.
   compatible OpenAI (OpenAI, OpenRouter, LiteLLM, llama.cpp, LM Studio, Ollama, vLLM, etc.).
 - L'interface est traduite en français. Choisissez le français dans le sélecteur **Langue** en bas de l'espace de travail :
   le choix est enregistré dans votre compte et réutilisé à la prochaine connexion. L'écran de connexion reste en anglais.
-- Pour l'installation, voir [Installation](#installation) plus bas ; le manuel (en anglais) est accessible par le lien ci-dessus.
+- Pour l'installation, voir [Installation](#installation) plus bas ; le manuel en français est ici : [enerccio.github.io/Marginalia/fr](https://enerccio.github.io/Marginalia/fr/).
 
 ## Español
 
@@ -50,7 +51,7 @@ los ajustes de prompt que dan forma al estilo.
 - La interfaz está traducida al español. Elige el español en el selector **Idioma** de la parte inferior del espacio de
   trabajo: la elección se guarda en tu cuenta y se usa en el próximo inicio de sesión. La pantalla de inicio de sesión
   siempre está en inglés.
-- Para la instalación, consulta [Installation](#installation) más abajo; el manual (en inglés) está en el enlace de arriba.
+- Para la instalación, consulta [Installation](#installation) más abajo; el manual en español está aquí: [enerccio.github.io/Marginalia/es](https://enerccio.github.io/Marginalia/es/).
 
 ## Deutsch
 
@@ -64,7 +65,7 @@ halten, und die Prompt-Einstellungen, die den Stil prägen.
 - Die Oberfläche ist ins Deutsche übersetzt. Wählen Sie Deutsch im Auswahlfeld **Sprache** am unteren Rand des
   Arbeitsbereichs: Die Wahl wird in Ihrem Konto gespeichert und bei der nächsten Anmeldung wieder verwendet. Die
   Anmeldeseite ist immer auf Englisch.
-- Die Installation steht unten unter [Installation](#installation); das Handbuch (auf Englisch) finden Sie über den Link oben.
+- Die Installation steht unten unter [Installation](#installation); das Handbuch auf Deutsch finden Sie hier: [enerccio.github.io/Marginalia/de](https://enerccio.github.io/Marginalia/de/).
 
 ## 한국어
 
@@ -76,7 +77,7 @@ Marginalia는 대규모 언어 모델(LLM)과 함께 장편 소설을 쓰기 위
   LiteLLM, llama.cpp, LM Studio, Ollama, vLLM 등)를 지원합니다.
 - 화면은 한국어로 번역되어 있습니다. 작업 공간 하단의 **언어** 선택기에서 한국어를 고르면 설정이 계정에 저장되어 다음
   로그인 때도 사용됩니다. 로그인 화면은 영어입니다.
-- 설치 방법은 아래 [Installation](#installation)을, 매뉴얼(영어)은 위의 링크를 참고하세요.
+- 설치 방법은 아래 [Installation](#installation)을, 한국어 매뉴얼은 여기에서 볼 수 있습니다: [enerccio.github.io/Marginalia/ko](https://enerccio.github.io/Marginalia/ko/).
 
 ## Italiano
 
@@ -89,7 +90,7 @@ prompt che danno forma allo stile.
   OpenRouter, LiteLLM, llama.cpp, LM Studio, Ollama, vLLM e altre).
 - L'interfaccia è tradotta in italiano. Scegli l'italiano nel selettore **Lingua** in fondo all'area di lavoro: la scelta
   viene salvata nel tuo account e usata di nuovo al prossimo accesso. La schermata di accesso è sempre in inglese.
-- Per l'installazione vedi [Installation](#installation) più sotto; il manuale (in inglese) è raggiungibile dal link qui sopra.
+- Per l'installazione vedi [Installation](#installation) più sotto; il manuale in italiano è qui: [enerccio.github.io/Marginalia/it](https://enerccio.github.io/Marginalia/it/).
 
 ## 简体中文
 
@@ -101,7 +102,7 @@ Marginalia 则负责管理其余的一切：分支的故事、世界设定（Lor
   LiteLLM、llama.cpp、LM Studio、Ollama、vLLM 等）。
 - 简体中文界面由扩展 *Chinese localization* 提供：管理员在 *Admin → Extensions* 中加载它（见 [Extensions](#extensions)）后，
   在工作区底部的**语言**选择器中选择「中文（简体）」，设置会保存到你的账户，下次登录时继续使用。登录界面始终为英文。
-- 安装方法见下方的 [Installation](#installation)；手册（英文）请见上方链接。
+- 安装方法见下方的 [Installation](#installation)；中文手册请见此处：[enerccio.github.io/Marginalia/zh](https://enerccio.github.io/Marginalia/zh/)。
 
 ## Features
 
@@ -118,7 +119,8 @@ Marginalia 则负责管理其余的一切：分支的故事、世界设定（Lor
 - **Backups** - per-book backups with restore and copy, plus full database backups on a cron schedule.
 - **Multiple users** - each with their own books, lore and models; administrators manage users, backups and cleanup.
 - **Languages** - the interface is available in English, Japanese, French, Spanish, German, Korean and Italian; every user
-  picks their own language, and extensions can add more (Simplified Chinese is included as a plugin).
+  picks their own language, and extensions can add more (Simplified Chinese is included as a plugin). The manual is translated
+  into all of them, and so are the built-in prompts (a separate *Prompt language* setting).
 - **Published books** - share a read-only view of a book.
 - **Search and replace, commands** - search and replace in the story and in lorebooks (also with regular
   expressions), and a command line in the story editor with commands that read and change the book.
