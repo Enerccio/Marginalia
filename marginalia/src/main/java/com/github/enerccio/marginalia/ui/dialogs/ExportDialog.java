@@ -405,7 +405,7 @@ public class ExportDialog extends Dialog implements LLMInteract {
         });
     }
 
-    @PublicAPI(from = "1.9.0",
+    @PublicAPI(from = "1.8.0",
             returns = @APIReturn(type = void.class),
             parameters = {@APIParameter(name = "exporter", type = ExporterService.Exporter.class),
                     @APIParameter(name = "file", type = String.class),

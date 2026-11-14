@@ -18,7 +18,7 @@ await main(async ({ page }) => {
     await idle(page, 600);
     await page.getByText('Extensions', { exact: true }).first().click();
     await idle(page, 800);
-    const jar = path.join(repo, 'marginalia/plugins/image-generator/target/image-generator-1.9.0.jar');
+    const jar = path.join(repo, 'marginalia/plugins/image-generator/target/image-generator-1.8.0.jar');
     if (!fs.existsSync(jar)) throw new Error('not built: ' + jar);
     await page.locator('vaadin-upload input[type=file]').setInputFiles(jar);
     await idle(page, 5000);
