@@ -6,7 +6,7 @@ icon: database
 
 # Cache del prompt e ID di sessione
 
-I server dei modelli conservano il prompt appena letto (la *cache del prompt*), così che la richiesta successiva che inizia con lo stesso testo non debba leggerlo di nuovo. Per una storia lunga la differenza è tra attendere pochi secondi e attendere minuti. Una cache aiuta solo finché il nuovo prompt inizia come quello vecchio (vedi [Perché una cache può non aiutare](#why-a-cache-may-not-help)). Marginalia può anche comunicare al server **che tipo di lavoro è una richiesta**, così che un server, o un proxy davanti a esso, possa mantenere una cache per ciascun tipo.
+I server dei modelli conservano il prompt appena letto (la *cache del prompt*), così la richiesta successiva che inizia con lo stesso testo non deve leggerlo di nuovo. Per una storia lunga la differenza è tra aspettare pochi secondi e aspettare minuti. Una cache aiuta solo finché il nuovo prompt inizia come quello vecchio (vedi [Perché una cache può non aiutare](#why-a-cache-may-not-help)). Marginalia può anche indicare al server **che tipo di lavoro è una richiesta**, così che un server, o un proxy davanti a esso, possa mantenere una cache per ciascun tipo.
 
 <a id="what-is-sent"></a>
 
@@ -22,73 +22,73 @@ Il valore è lo stesso per lo stesso utente che svolge lo stesso tipo di lavoro,
 
 | Tipo | Richieste |
 |---|---|
-| generazione | Una nuova parte, *Rigenera* e *Swipe*: i loro prompt condividono la storia, quindi condividono il valore. |
-| impersonificazione | *Impersonate*. |
-| annotazione | *Annota con l'IA* e l'annotazione automatica; il secondo modello della modalità a due fasi ha un valore proprio. |
-| riscrittura | *Riscrittura* e la riscrittura dell'annotazione automatica. |
-| riassunto | I riassunti. |
-| agente | Le richieste di un [agente](agents.md); ogni esecuzione ha un valore proprio, perché fa crescere una propria conversazione. |
-| aiuto | L'assistente di aiuto. |
-| plugin | Ciascun plugin ha il suo: *Reviewer*, *Side Query* (le sue schede hanno altri titoli), *Lore Generator*, *Arc Outline*, *Converter* e *Manga Generator*. |
+| generation | Una nuova parte, *Rigenera* e *Swipe*: i loro prompt condividono la storia, quindi condividono il valore. |
+| impersonate | *Impersonate*. |
+| annotate | *Annota con l'IA* e l'annotazione automatica; il secondo modello della modalità a due fasi ha un valore proprio. |
+| redraft | *Riscrittura* e la riscrittura dell'annotazione automatica. |
+| summary | I riassunti. |
+| agent | Le richieste di un [agente](agents.md); ogni esecuzione ha un valore proprio, perché fa crescere una propria conversazione. |
+| help | L'assistente di aiuto. |
+| plugins | Ogni plugin ha il proprio: *Reviewer*, *Side Query* (le sue schede hanno un altro titolo), *Lore Generator*, *Arc Outline*, *Converter* e *Manga Generator*. |
 
-Le richieste che non appartengono a nessun tipo (elencare i modelli, verificare la connessione, contare i token) non inviano l'header.
+Le richieste che non appartengono a nessun tipo (elencare i modelli, verificare la connessione, contare i token) non inviano alcun header.
 
-Il valore è un hash con chiave dell'utente e del tipo (la chiave viene da `secret.key` nella [cartella dei dati](administration/index.md#the-data-folder)). Non rivela né l'utente né il libro, nessuno può risalire a chi appartiene, e un'altra installazione dà un valore diverso per lo stesso utente. C'è un valore per utente e tipo, non uno per libro, quindi un server non deve mai mantenere più cache di quelle.
+Il valore è un hash con chiave dell'utente e del tipo (la chiave viene da `secret.key` nella [cartella dei dati](administration/index.md#the-data-folder)). Non rivela né l'utente né il libro, nessuno può risalire a chi appartiene, e un'altra installazione produce un valore diverso per lo stesso utente. C'è un valore per ogni coppia utente e tipo, non per ogni libro, quindi un server non deve mai mantenere più cache di quante ne servano.
 
-Tutti i provider lo inviano: quelli compatibili con OpenAI, e i provider [Anthropic Claude](extensions/anthropic.md) e [Google Gemini](extensions/google-genai.md). Un server che non usa l'header lo ignora. Non esiste un'impostazione per disattivarlo.
+Lo inviano tutti i provider: quelli compatibili con OpenAI, e i provider [Anthropic Claude](extensions/anthropic.md) e [Google Gemini](extensions/google-genai.md). Un server che non usa l'header lo ignora. Non esiste un'impostazione per disattivarlo.
 
 <a id="why-a-cache-may-not-help"></a>
 
 ## Perché una cache può non aiutare
 
-Un server riutilizza la parte della cache in cui il nuovo prompt è uguale al vecchio **fin dal primo token**; la prima differenza interrompe il riuso, e tutto ciò che viene dopo viene letto di nuovo, anche se gran parte è invariata. Guarda la riga di `llama-server` stampata all'avvio di una richiesta:
+Un server riutilizza la parte della cache in cui il nuovo prompt è uguale a quello vecchio **dal primo token**; la prima differenza interrompe il riuso, e tutto ciò che viene dopo viene letto di nuovo, anche se gran parte è invariata. Guarda la riga `llama-server` stampata all'inizio di una richiesta:
 
 ```
 selected slot by LCP similarity, sim_best = 0.163, f_keep = 0.151
 ```
 
-`f_keep` è la quota del prompt in cache che la nuova richiesta conserva. Vicino a 1 la cache viene usata; qui ne viene usato solo il 15 %, quindi il prompt differisce da quello in cache già all'inizio, che la cache sia stata ripristinata dal disco o non abbia mai lasciato lo slot.
+`f_keep` è la quota del prompt in cache che la nuova richiesta conserva. Vicino a 1 la cache viene usata; qui ne viene usato solo il 15 %, quindi il prompt differisce da quello in cache già all'inizio, sia che la cache sia stata ripristinata dal disco sia che non abbia mai lasciato lo slot.
 
-I modelli con una **finestra scorrevole** (Gemma, per esempio) e i modelli ibridi non possono eliminare la fine della cache e ripartire dal mezzo. Stando al sorgente di `llama.cpp`, `llama-server` può continuare da un prompt in cache solo quando il nuovo prompt ne estende esattamente l'inizio, oppure quando esiste un **checkpoint di contesto** nel punto in cui i due divergono o prima. Ne crea solo all'inizio dei messaggi dell'utente (distanziati di almeno 8192 token) e poco prima della fine del prompt, e li conserva nel file dello slot (le righe INFO `appended N context checkpoint(s)` e `restored N context checkpoint(s)` indicano quando lo fa). Senza un checkpoint utilizzabile rilegge l'intero prompt, indipendentemente da `f_keep`, e lo segnala solo al livello trace (`-lv 4`: `forcing full prompt re-processing due to lack of cache data`). Per questo la storia di una generazione, di un'annotazione e di una riscrittura viene inviata come una catena di messaggi, ciascuna parte come risposta del modello dopo un messaggio dell'utente: l'ultimo messaggio dell'utente riceve un checkpoint, ed è lì che la richiesta successiva comincia a differire, e una nuova parte aggiunge solo messaggi in fondo. Per leggere un prefill a freddo dal log: la prima riga `prompt processing, n_tokens = 4096` arriva dopo circa 7 s qui; se un prefisso fosse stato riutilizzato, arriverebbe dopo uno o due secondi.
+I modelli con una **finestra scorrevole** (Gemma, per esempio) e i modelli ibridi non possono eliminare la fine della loro cache e ripartire dal mezzo. Secondo il sorgente `llama.cpp`, `llama-server` può continuare da un prompt in cache solo quando il nuovo prompt lo estende esattamente, oppure quando esiste un **punto di controllo del contesto** nel punto in cui i due divergono o prima. Crea i punti di controllo solo all'inizio dei messaggi dell'utente (distanti almeno 8192 token l'uno dall'altro) e poco prima della fine del prompt, e li conserva nel file dello slot (le righe INFO `appended N context checkpoint(s)` e `restored N context checkpoint(s)` indicano quando lo fa). Senza un punto di controllo utilizzabile rilegge l'intero prompt, qualunque cosa dica `f_keep`, e lo segnala solo al livello trace (`-lv 4`: `forcing full prompt re-processing due to lack of cache data`). Per questo la storia di una generazione, di un'annotazione e di una riscrittura viene inviata come una catena di messaggi, ciascuna parte come risposta del modello dopo un messaggio dell'utente: l'ultimo messaggio dell'utente viene salvato come punto di controllo, ed è lì che la richiesta successiva inizia a differire, e una nuova parte aggiunge solo messaggi in fondo. Leggendo dal log un prefill a freddo: la prima riga `prompt processing, n_tokens = 4096` arriva dopo circa 7 s; se un prefisso fosse stato riutilizzato, arriverebbe dopo uno o due secondi.
 
-Il [prompt](books/prompts.md#how-the-prompt-is-put-together) inizia con il **messaggio di sistema**, e la storia viene dopo, quindi ciò che sta nel messaggio di sistema deve restare uguale da una richiesta alla successiva. Nel template principale predefinito il messaggio di sistema contiene, in quest'ordine, il blocco della lore, i riassunti e le note dell'autore (annotazioni). Quando uno di questi cambia tra due richieste, cosa comune (il nuovo testo attiva altre voci della lore, si aggiunge un riassunto, si aggiunge o si risolve una nota), la cache vale solo fino a quel punto e tutta la storia che ne segue viene letta di nuovo. Le parti più vecchie escono per prime dal prompt quando la storia non ci sta più, il che sposta l'inizio della storia di una parte a ogni turno. Ciò che aiuta:
+Il [prompt](books/prompts.md#how-the-prompt-is-put-together) inizia con il **messaggio di sistema**, e la storia viene dopo, quindi ciò che sta nel messaggio di sistema deve restare uguale da una richiesta all'altra. Nel modello predefinito il messaggio di sistema contiene, in quest'ordine, il blocco del lore, i riassunti e le note dell'autore (annotazioni). Quando una di queste cambia tra due richieste, cosa comune (il nuovo testo attiva altre voci del lore, si aggiunge un riassunto, si aggiunge o si risolve una nota), la cache è valida solo fino a quel punto e tutta la storia che segue viene riletta. Le parti più vecchie escono per prime dal prompt quando la storia non ci sta più, e questo sposta l'inizio della storia di una parte a ogni turno. Ciò che aiuta:
 
-- Assegna alle voci che cambiano da una parte all'altra la modalità di inserimento **Prima del prompt utente** ([Ordine e inserimento](lorebooks/entries.md#order-and-insertion)): vanno in fondo al prompt, dopo la storia, e non disturbano la cache. Lascia nel blocco della lore ciò che è sempre vero.
-- Escludi dal template principale i blocchi che non usi (per esempio le note dell'autore, se non dai note al modello), così che il messaggio di sistema resti uguale.
-- Apri **Confronta il prompt** nel menu di una parte per vedere dove termina la cache: confronta il prompt della parte con quello di una parte precedente (per impostazione predefinita la più vicina; il riquadro elenca le parti che la precedono e i suoi swipe) e segna il primo messaggio che differisce. Vedi [Confronta il prompt](#compare-prompt).
+- Assegna alle voci che cambiano di parte in parte la modalità di inserimento **Prima del prompt utente** ([Ordine e inserimento](lorebooks/entries.md#order-and-insertion)): vanno in fondo al prompt, dopo la storia, e non disturbano la cache. Tieni nel blocco del lore solo ciò che è sempre vero.
+- Escludi dal modello predefinito i blocchi che non usi (le note dell'autore, per esempio, se non dai note al modello), così il messaggio di sistema resta uguale.
+- Apri **Confronta il prompt** nel menu di una parte per vedere dove finisce la cache: confronta il prompt della parte con quello di una parte precedente (per impostazione predefinita la più vicina; il riquadro elenca le parti che la precedono e i relativi swipe) e segna il primo messaggio che differisce. Vedi [Confronta il prompt](#compare-prompt).
 
 <a id="compare-prompt"></a>
 
 ### Confronta il prompt
 
-**Confronta il prompt** nel menu di una parte (desktop e telefono) risponde alla domanda *perché la cache non è stata usata per questa parte?* Elenca i messaggi dei due prompt (il messaggio di sistema, poi un messaggio utente e una risposta del modello per ogni parte, poi il messaggio utente del turno) con uno stato per ciascuno: uguale, modificato, aggiunto o eliminato. Il primo messaggio che differisce viene evidenziato e quelli successivi sono segnati come *Rileggi*, perché un server rilegge tutto ciò che viene dopo la prima differenza. Sopra la tabella:
+**Confronta il prompt** nel menu di una parte (desktop e telefono) risponde alla domanda *perché la cache non è stata usata per questa parte?* Elenca i messaggi dei due prompt (il messaggio di sistema, poi un messaggio utente e una risposta del modello per ogni parte, poi il messaggio utente del turno) con uno stato per ciascuno: uguale, modificato, aggiunto o eliminato. Il primo messaggio che differisce viene evidenziato, e quelli successivi sono segnati come *Rileggi*, perché un server rilegge tutto ciò che viene dopo la prima differenza. Sopra la tabella:
 
-- dove si trova la prima differenza (messaggio e carattere) e quanto del prompt, in caratteri e approssimativamente in token, è uguale dall'inizio;
-- una lettura della differenza: il **messaggio di sistema** differisce (il jailbreak, il template, la lore, i riassunti o le note sono cambiati tra le due richieste: la causa più comune), una parte **nel mezzo della storia** differisce (è stata modificata, rigenerata o sostituita da un riassunto), l'**inizio della storia si è spostato** (le parti più vecchie sono state escluse o riassunte), oppure la differenza riguarda solo l'**ultimo messaggio del prompt precedente**, il messaggio utente di quel turno, che la storia non ripete. Quest'ultimo caso è il massimo che una parte successiva o uno swipe possono riutilizzare; se il server non ha comunque usato la sua cache, la causa non è il prompt (controlla lo slot, il modello e l'ID di sessione).
+- dove si trova la prima differenza (messaggio e carattere) e quanto del prompt è uguale dall'inizio, in caratteri e in token approssimativi;
+- una lettura della differenza: il **messaggio di sistema** differisce (il jailbreak, il modello, il lore, i riassunti o le note sono cambiati tra le due richieste: la causa più comune), una parte **a metà della storia** differisce (è stata modificata, rigenerata o sostituita da un riassunto), l'**inizio della storia si è spostato** (le parti più vecchie sono state escluse o riassunte), oppure la differenza riguarda solo l'**ultimo messaggio del prompt precedente**, il messaggio utente di quel turno, che la storia non ripete. In quest'ultimo caso è la massima quantità che una parte successiva o uno swipe può riutilizzare; se il server non ha comunque usato la sua cache, la causa non è il prompt (controlla lo slot, il modello e l'ID di sessione).
 
-Selezionando un messaggio si vedono i due testi affiancati, a partire poco prima della prima differenza. Vengono confrontati solo i messaggi: il modello, gli strumenti della richiesta e lo slot del server non fanno parte del prompt memorizzato. La parte deve avere un prompt memorizzato (le parti scritte dall'autore e quelle generate prima che i prompt venissero conservati non ne hanno).
+Selezionando un messaggio si vedono i due testi affiancati, a partire poco prima della prima differenza. Vengono confrontati solo i messaggi: il modello, gli strumenti della richiesta e lo slot del server non fanno parte del prompt memorizzato. La parte deve avere un prompt memorizzato (le parti scritte a mano dall'autore e quelle generate prima che i prompt venissero conservati non ne hanno).
 
-I tipi di richiesta qui sotto contano per ciò che viene conservato quando passi dall'uno all'altro; il prompt decide quanta parte di esso viene riutilizzata.
+I tipi di richiesta qui sotto contano per ciò che viene conservato quando passi dall'uno all'altro; il prompt decide quanto ne viene riutilizzato.
 <a id="using-it-one-slot-on-disk-with-llamacpp"></a>
 
 ## Uso: uno slot su disco con llama.cpp
 
-Il valore è per te se il server finisce la memoria per le cache. Un `llama-server` locale con memoria sufficiente per più slot
-può mantenere una cache per ogni tipo di lavoro e non richiede altro. Con memoria per **un solo** slot, ogni altro tipo di
-lavoro getta via la cache della storia: l'annotazione di una parte, la riscrittura successiva e la generazione seguente
-rileggono ogni volta i loro prompt.
+Questo è utile se il server esaurisce la memoria per le cache. Un `llama-server` locale con memoria sufficiente per diversi
+slot può mantenere una cache per ogni tipo di lavoro e non richiede nient'altro. Con memoria per **un solo** slot, ogni altro tipo di
+lavoro butta via la cache della storia: l'annotazione di una parte, la riscrittura successiva e la generazione
+successiva rileggono i loro prompt ogni volta.
 
-La soluzione è tenere su disco la cache di ogni tipo e caricarla nell'unico slot quando arriva una richiesta di quel tipo.
-`llama-server` può salvare uno slot in un file e ripristinarlo; un proxy davanti al server riconosce il tipo di una
-richiesta dall'intestazione. L'esempio seguente è un hook per [LiteLLM](https://docs.litellm.ai/).
+La soluzione è conservare su disco la cache di ogni tipo e inserirla nell'unico slot quando arriva una richiesta di quel tipo.
+`llama-server` può salvare uno slot su file e ripristinarlo; un proxy davanti a esso riconosce il tipo di una richiesta
+dall'intestazione. L'esempio seguente è un hook per [LiteLLM](https://docs.litellm.ai/).
 
-**Requisito:** un `llama-server` del 2026-10-08 o successivo (llama.cpp PR #26004, *preserve context checkpoints across
-slot save/restore*). Uno più vecchio scrive e ripristina la memoria dello slot ma non i suoi [checkpoint di
-contesto](#why-a-cache-may-not-help), quindi un modello con finestra scorrevole (Gemma, per esempio) o un modello ibrido
-rilegge l'intero prompt dopo ogni ripristino, per quanto di esso sia invariato. Verifica la build con `llama-server --version`;
+**Requisito:** un `llama-server` del 8 ottobre 2026 o successivo (llama.cpp PR #26004, *preserve context checkpoints across
+slot save/restore*). Una versione più vecchia scrive e ripristina la memoria dello slot ma non i suoi [checkpoint di
+contesto](#why-a-cache-may-not-help), quindi un modello con finestra scorrevole (Gemma, per esempio) o un modello ibrido rilegge l'intero
+prompt dopo ogni ripristino, per quanto ne sia rimasto invariato. Verifica la build con `llama-server --version`;
 un'immagine di container con un tag mobile (`full`, `server`...) non viene aggiornata finché non la scarichi di nuovo.
 
-Avvia `llama-server` con uno slot e una cartella per i file:
+Avvia `llama-server` con un solo slot e una cartella per i file:
 
 ```sh
 llama-server -m model.gguf -c 65536 -np 1 --slot-save-path /var/cache/llama-slots
@@ -491,9 +491,7 @@ class SlotCacheHook(CustomLogger):
 proxy_handler_instance = SlotCacheHook()
 ```
 
-e attivalo nel `config.yaml` di LiteLLM: il callback, e `slot_cache` nel `model_info` della route che va al
-`llama-server`. Basta una voce con wildcard, senza elencare nessun modello in LiteLLM (il server li conosce e il client
-indica quello che vuole):
+e attivalo nelle `config.yaml` di LiteLLM: la callback e `slot_cache` nel `model_info` della route che va al `llama-server`. Una voce con carattere jolly è sufficiente, non occorre elencare alcun modello in LiteLLM (il server li conosce e il client indica quello che vuole):
 
 ```yaml
 model_list:
@@ -511,124 +509,73 @@ litellm_settings:
   callbacks: slot_cache.proxy_handler_instance
 ```
 
-L'hook non ha un indirizzo proprio: usa `api_base` e `api_key` della route verso cui va la richiesta (gli slot si
-trovano alla radice del server, quindi un `/v1` finale viene tolto). Vengono toccate solo le route con `slot_cache`; una
-richiesta per un altro modello, per esempio uno in cloud, passa invariata anche se porta l'intestazione. Più server
-lavorano affiancati, ciascuno con il proprio slot. Con la wildcard la route è il modello richiesto dal client, quindi i file
-sono tenuti per modello (`qwen3-32b`), e puoi comunque elencare per nome alcuni modelli accanto ad essa se hanno bisogno di
-altre impostazioni. LiteLLM considera provider la parte del nome di un modello prima di una `/`, quindi per i nomi che ne
-contengono una (`org/model`, come in un preset del router) usa la route `model_name: "openai/*"` e indica a Marginalia il
-modello come `openai/org/model`: l'hook rimuove `openai/`, e i file e le chiamate agli slot usano il nome che il server
-conosce. Le route e il loro `model_info` provengono da `model_list`: un proxy avviato senza (solo con `litellm --model ...`)
-non ne ha, e lì l'hook non fa nulla. L'unica voce con wildcard è la sostituzione.
+L'hook non ha un indirizzo proprio: usa il `api_base` e il `api_key` della route verso cui va la richiesta (gli slot si trovano alla radice del server, quindi un `/v1` finale viene eliminato). Vengono toccate solo le route con `slot_cache`; una richiesta
+per un altro modello, per esempio uno in cloud, passa oltre anche se porta l'intestazione. Più server possono funzionare in parallelo, ciascuno con il proprio slot. Con il carattere jolly la route è il modello richiesto dal client, quindi i file sono conservati per modello (`qwen3-32b`), e puoi comunque elencare per nome alcuni modelli accanto ad essa se richiedono impostazioni diverse. LiteLLM legge come provider la parte di un nome di modello che precede un `/`, quindi per i nomi che ne contengono uno (`org/model`, come in un preset del router) usa la route
+`model_name: "openai/*"` e indica a Marginalia il modello come `openai/org/model`: l'hook rimuove il `openai/`, e i file e le chiamate allo slot usano il nome che il server conosce. Le route e i loro `model_info` provengono dal `model_list`: un proxy avviato senza di esso (solo `litellm --model ...`) non ne ha, e l'hook lì non fa nulla. La voce con carattere jolly unica è la sostituzione.
 
-**`llama-server` in modalità router** (molti modelli dietro un solo indirizzo, caricati a richiesta) funziona: ogni modello
-è un'istanza a sé con i propri slot, quindi l'hook tiene lo stato per server, modello e slot, e indica il modello nel corpo
-delle sue chiamate agli slot (il nome usato dal client, senza `openai/` di LiteLLM; l'impostazione `model` ne indica un
-altro, per una route il cui nome non è quello del modello). Serve un llama.cpp di febbraio 2026 o successivo, che inoltra
-`/slots` all'istanza (prima rispondeva `400 Invalid action`).
+**`llama-server` in modalità router** (molti modelli dietro un solo indirizzo, caricati su richiesta) funziona: ogni modello è un'istanza
+a sé con i propri slot, quindi l'hook mantiene lo stato per server, modello e slot, e indica il modello nel corpo
+delle sue chiamate allo slot (il nome usato dal client, senza il `openai/` di LiteLLM; l'impostazione `model` ne indica un altro, per una route
+il cui nome non è il modello). Richiede un llama.cpp di febbraio 2026 o successivo, che inoltra `/slots` all'
+istanza (prima rispondeva `400 Invalid action`).
 
-Quando il router può tenere caricati solo alcuni dei suoi modelli (`--models-max`, 4 per impostazione predefinita),
-chiederne un altro lo fa scaricare il modello usato da più tempo, e lo slot di quel modello, con la cache dentro, va perso.
-L'hook segue lo stesso ordine (imposta `models_max` in `slot_cache`, oppure `LLAMA_MODELS_MAX`, con lo stesso numero di
-`--models-max`; 0 per nessun limite) e salva quello slot **prima** della richiesta che fa scaricare il modello al router.
-Per questo il proxy deve essere l'unico client del router: una richiesta che lo raggiunge in altro modo non viene vista.
-Un salvataggio non carica mai un modello che il router ha scaricato. Come funziona: la cache di una sessione viene scritta
-su disco **quando lo slot serve a un'altra** (una richiesta di un altro tipo, un altro modello, o il router che scarica il
-modello), non dopo ogni richiesta, perché una scrittura di 3 GB dopo ogni generazione rallenterebbe solo il server. Quindi
-un file compare dopo il primo cambio, per esempio generazione, annotazione, generazione: l'annotazione salva per prima la
-generazione. Con `save_idle_seconds` in `slot_cache` (o `LLAMA_SAVE_IDLE_SECONDS`) la cache viene scritta anche quando non
-arriva nessuna richiesta per quel tempo, così la cartella l'ha poco dopo che smetti di lavorare; una richiesta ricomincia
-l'attesa, e una cache già presente su disco non viene riscritta al cambio successivo. L'hook invia un salvataggio, un
-ripristino o una cancellazione solo quando lo slot è libero (chiede `GET /slots`, `is_processing`; senza quell'endpoint
-invia subito): `llama-server` tiene in sospeso una chiamata del genere mentre una richiesta è in corso e ne rilascia una
-sola ogni volta che una richiesta finisce, quindi una richiesta di un altro client arrivata dietro di essa potrebbe
-attendere lì per sempre. Durante la scrittura di un salvataggio il server non fa altro.
+Quando il router può tenere caricati solo alcuni dei suoi modelli (`--models-max`, 4 per impostazione predefinita), chiederne un altro
+fa sì che scarichi il modello usato da più tempo, e lo slot di quel modello, con la cache al suo interno, va perso. L'hook segue lo stesso
+ordine (imposta `models_max` in `slot_cache`, oppure `LLAMA_MODELS_MAX`, allo stesso numero di `--models-max`; 0 per nessun limite)
+e salva quello slot **prima** della richiesta che fa scaricare il modello al router. Per questo il proxy deve essere l'unico client
+del router: una richiesta che lo raggiunge in altro modo non viene vista. Un salvataggio non carica mai un modello che il router ha scaricato.
+Ecco come funziona: la cache di una sessione viene scritta su disco **quando lo slot serve per un'altra** (una richiesta di
+un altro tipo, un altro modello, oppure il router che scarica il modello), non dopo ogni richiesta: una scrittura di 3 GB dopo ogni
+generazione rallenterebbe soltanto il server. Quindi un file compare dopo il primo cambio, per esempio generazione, annotazione,
+generazione: l'annotazione salva prima la generazione. Con `save_idle_seconds` nel `slot_cache` (o
+`LLAMA_SAVE_IDLE_SECONDS`) la cache viene scritta anche quando per tutto quel tempo non arriva alcuna richiesta, così la cartella la contiene poco
+dopo che smetti di lavorare; una richiesta fa ripartire l'attesa, e una cache già presente su disco non viene riscritta al cambio successivo.
+L'hook invia un salvataggio, un ripristino o una cancellazione solo quando lo slot è inattivo (chiede `GET /slots`, `is_processing`; senza
+quell'endpoint invia subito): `llama-server` trattiene una chiamate del genere mentre una richiesta è in corso e ne rilascia una sola
+ogni volta che una richiesta termina, quindi una richiesta di un altro client arrivata dietro di essa potrebbe restare lì per sempre. Il server
+non fa nient'altro mentre un salvataggio scrive.
 
 I dettagli: quando arriva una richiesta da una sessione diversa da quella nello slot, l'hook salva lo slot con il nome
-della sessione che vi si trovava, ripristina il file della nuova (o svuota lo slot se non c'è ancora un file) e lascia
-proseguire la richiesta. I file sono tenuti **per route** (il `model_name`): uno stato salvato si adatta solo al modello che
-lo ha scritto, quindi il file prende il nome dalla route e dalla sessione, e due route non ne condividono mai uno, anche se
-usano lo stesso server e la stessa cartella. Il server poi legge solo ciò che differisce dal prompt ripristinato. Una cache
-che non si può ripristinare, un file che non c'è più o un server che non risponde fanno solo rileggere il prompt; la
-richiesta in sé non fallisce mai per colpa dell'hook.
+della sessione che vi era, ripristina il file della nuova (o svuota lo slot se non c'è ancora un file) e lascia proseguire la
+richiesta. I file sono conservati **per route** (il `model_name`): uno stato salvato si adatta solo al modello che lo ha scritto, quindi il file prende il nome dalla route e dalla sessione, e due route non ne condividono mai uno, anche quando usano lo stesso server e la stessa cartella. Il server legge poi solo ciò che differisce dal prompt ripristinato. Una cache che non può essere ripristinata, un file che non c'è più o un server che non risponde fanno solo rileggere il prompt; la richiesta in sé non fallisce mai a causa dell'hook.
 
-Da sapere:
+Cose da sapere:
 
-- **Dimensione.** Un file contiene la memoria dello slot **e i suoi checkpoint di contesto**, quindi occupa quanto entrambi
-  insieme: per una storia lunga e un modello grande, da centinaia di megabyte a diversi gigabyte. Un esempio misurato: un
-  modello da 31 B con un prompt di 18.000 token ha prodotto file da 1,3 a 11 GB, il più grande con circa 18 checkpoint da
-  circa 450 MB ciascuno oltre a circa 1,5 GB di cache. Un server tiene di default fino a 32 checkpoint, e ogni cambio
-  scrive e legge tutti. `--ctx-checkpoints N` di `llama-server` ne limita il numero, il che rende i file più piccoli e i
-  cambi più brevi, ma un checkpoint serve solo quando il prompt successivo differisce per la prima volta da quello in cache
-  in corrispondenza di esso o subito dopo. Una nuova parte o uno swipe differiscono all'inizio dell'ultimo messaggio
-  dell'utente (il checkpoint più recente), mentre un'annotazione o una riscrittura può cambiare una parte di qualche
-  capitolo indietro, quindi tieni tanti checkpoint quanti ne richiede la storia (guarda le righe `prompt:` dell'hook, dicono
-  dove ogni richiesta differisce). C'è un file per route, utente e tipo, e ciascuno viene sovrascritto sul posto, quindi la
-  cartella resta di questa dimensione.
-- **Velocità.** Verifica che un cambio sia più veloce che rileggere il prompt (l'hook registra dimensione e tempo di ogni
-  salvataggio e ripristino). L'esempio sopra, su un disco NVMe con una AMD Radeon AI PRO R9700: il salvataggio di 11 GB ha
-  richiesto 6 s e il ripristino di 7,6 GB per 20.000 token 8 s, circa 14 s per un cambio, mentre rileggere un prompt di
-  quella lunghezza richiede circa 45 s a 440 token al secondo, e il prefill cresce con il prompt. Senza checkpoint gli
-  stessi file pesavano circa 1 GB e un cambio durava 5 s.
-- **Memoria.** I checkpoint dello slot sono tenuti nella **memoria di sistema** del server (non in quella della GPU), fino a
-  `--ctx-checkpoints` di essi (32 per impostazione predefinita, centinaia di megabyte ciascuno per un modello grande), e un
-  salvataggio o un ripristino legge o scrive tutti. `llama-server` tiene inoltre i prompt degli slot che ha abbandonato in
-  una propria cache in memoria (`--cache-ram`, 8 GiB per impostazione predefinita); i file dell'hook svolgono lo stesso
-  compito, quindi può essere impostato a 0 su una macchina con poca memoria. Quando la macchina inizia a usare la swap,
-  salvataggi e ripristini diventano diverse volte più lenti, perché i checkpoint vanno prima riletti dalla swap: guarda
-  `free -h` prima di guardare il disco.
+- **Dimensione.** Un file contiene la memoria dello slot **e i suoi checkpoint di contesto**, quindi occupa tanto quanto entrambi insieme: per una storia lunga e un modello grande, da centinaia di megabyte a diversi gigabyte. Un esempio misurato: un modello da 31 B con un prompt di 18.000 token ha prodotto file da 1,3 a 11 GB, il più grande con circa 18 checkpoint da circa 450 MB ciascuno oltre a circa 1,5 GB di cache. Un server conserva fino a 32 checkpoint per impostazione predefinita, e ogni cambio scrive e legge tutti. `--ctx-checkpoints N` di `llama-server` ne limita il numero, il che rende i file più piccoli e i cambi più brevi, ma un checkpoint serve solo quando il prompt successivo differisce per la prima volta dalla cache in quel punto o subito dopo. Una nuova parte o uno swipe differiscono all'inizio dell'ultimo messaggio dell'utente (il checkpoint più recente), mentre un'annotazione o una riscrittura possono cambiare una parte di diverse parti indietro, quindi conserva tanti checkpoint quanti ne richiede la distanza che la storia raggiunge a ritroso (guarda le righe `prompt:` dell'hook: indicano dove ogni richiesta differisce). Esiste un file per route, utente e tipo, e ciascuno viene sovrascritto sul posto, quindi la cartella resta piccola quanto questo.
+- **Velocità.** Verifica che un cambio sia più veloce della rilettura del prompt (l'hook registra dimensione e tempo di ogni salvataggio e ripristino). L'esempio sopra, su un disco NVMe con una AMD Radeon AI PRO R9700: un salvataggio di 11 GB ha impiegato 6 s e un ripristino di 7,6 GB per 20.000 token 8 s, circa 14 s per un cambio, mentre rileggere un prompt di quella lunghezza richiede circa 45 s a 440 token al secondo, e il prefill cresce con il prompt. Senza checkpoint gli stessi file erano di circa 1 GB e un cambio durava 5 s.
+- **Memoria.** I checkpoint dello slot sono conservati nella **memoria di sistema** del server (non nella memoria della GPU),
+  fino a `--ctx-checkpoints` (32 per impostazione predefinita, centinaia di megabyte ciascuno per un modello grande), e un salvataggio o un
+  ripristino legge o scrive tutti. `llama-server` mantiene anche in una cache di memoria propria i prompt degli slot che ha
+  abbandonato (`--cache-ram`, 8 GiB per impostazione predefinita); i file dell'hook fanno lo stesso lavoro, quindi può essere impostato a 0 su una macchina
+  con poca memoria. Quando la macchina inizia a usare lo swap, salvataggi e ripristini diventano diverse volte più lenti, perché i
+  checkpoint devono prima essere riletti dallo swap: guarda `free -h` prima di guardare il disco.
 - **Limiti.** Senza un limite la cartella cresce con il numero di route, utenti e tipi. Imposta `max_files` (un numero di
-  file) e/o `max_gib` (la loro dimensione totale) nello `slot_cache` di una route (oppure `LLAMA_CACHE_MAX_FILES` e
-  `LLAMA_CACHE_MAX_GIB` nell'ambiente del proxy, per tutte le route) e l'hook cancella dopo ogni salvataggio le cache **di
-  quella route** che sono state **usate** da più tempo: anche ripristinare una cache conta come usarla. Non cancella mai la
-  cache che ha appena salvato né quella che sta per ripristinare (quindi una route con due sessioni a turno conserva almeno
-  due file, qualunque sia il limite), e tocca solo i file della route, perciò le altre route e gli altri file nella cartella
-  sono al sicuro. Una singola cache più grande di `max_gib` resta (con un avviso nel log).
-  Per cancellare serve la cartella: imposta `save_path` (o `LLAMA_SLOT_SAVE_PATH`) alla cartella di `--slot-save-path` come
-  la vede il proxy; con `llama-server` in un container è un volume che entrambi i container montano. Senza di essa non si
-  cancella nulla. Una cache cancellata fa solo sì che la sua sessione rilegga il prompt una volta. I limiti sono facoltativi:
-  un cron job sull'host fa lo stesso lavoro se non ti serve un tetto alla dimensione, per esempio
-  `find /srv/ai/slots -name '*.bin' -mtime +2 -delete` (una cache in uso viene salvata di nuovo ogni volta che la sua
-  sessione viene sostituita, quindi la sua età ricomincia a contare da capo). I file cancellati dall'esterno non danno
-  problemi all'hook; uno mancante è semplicemente un miss.
-- **Dopo che cambi il modello di una route**, cancella i suoi file nella cartella (i nomi iniziano con la route): uno stato
-  salvato con altri pesi non si adatta al nuovo modello.
-- **Ogni cambio costa un salvataggio e un ripristino.** Con l'[annotazione automatica](books/annotations.md) attiva, a una
-  parte seguono un'annotazione e una riscrittura, quindi un turno può cambiare slot tre o quattro volte. Misura un turno
-  prima di farci affidamento.
-- **Un riavvio del proxy** dimentica quale sessione è nello slot; la prima richiesta dopo di esso ripristina sopra lo slot
-  il suo file, e quello che lo slot conteneva va perso.
-- **Un modello che il router ha scaricato senza che l'hook lo sappia** (un `models_max` sbagliato, un altro client) lascia lo
-  slot vuoto mentre l'hook crede ancora che vi sia l'ultima sessione. Una richiesta per la stessa sessione rilegge
-  semplicemente il prompt; una richiesta per un'altra sessione salva prima lo slot vuoto sopra il file di quella sessione,
-  quindi anche la sua cache va persa. In entrambi i casi si paga solo un prefill.
-- **`llama-server` non registra un salvataggio o un ripristino semplice** (registra i checkpoint di contesto che aggiunge o
-  ripristina, e gli errori). Ciò che ha fatto è nella sua risposta, e il log del proxy (con `LITELLM_LOG=INFO`) lo riporta,
-  con una riga per ogni chiamata che l'hook fa, per esempio `slot_cache: https://… restore <file> (openai/model): ok (21920
-  tokens, 2580 MB, 3.1 s)`, `… save <file> …: ok (…)` oppure `… restore … miss (400)`; il miss della prima richiesta di una
-  sessione è normale (llama-server lo registra come "Unable to restore slot, no available space in KV cache or invalid slot
-  save file"). I problemi reali sono gli avvisi: un certificato che non corrisponde all'indirizzo, una api key rifiutata, un
-  server che non risponde.
-- **Dove il prompt differisce.** Per ogni richiesta successiva alla prima di una sessione, il log ha una riga che dice quanto il
-  prompt è uguale all'ultimo di quella sessione, per esempio `slot_cache: <route>_<session> prompt: 14 messages, the last one
-  had 12: the first 11 are the same, message 12 (user) is the same for its first 2150 of 9031 characters`. Un server può
-  riusare la sua cache solo fino a quel punto (un messaggio vale circa tre o quattro caratteri per token), quindi è la riga da
-  leggere quando una seconda richiesta rilegge quasi tutto: il messaggio che nomina è quello il cui inizio è cambiato. La riga
-  confronta anche l'ultimo messaggio dei due prompt, che contiene ciò che cambia (il lore, la parte, il compito): quando la
-  storia è cresciuta di una parte, il vecchio ultimo messaggio non è più nello stesso punto, e il numero di caratteri che i
-  due ultimi messaggi hanno in comune dice quanto, per esempio, il lore è uguale nei due.
-- **Se non succede nulla**, guarda il log del proxy (`docker logs litellm-proxy 2>&1 | grep slot_cache`): con l'hook in
-  funzione c'è una riga per ogni chiamata, e una richiesta di Marginalia per una route senza `slot_cache` viene segnalata una
-  volta sola (`not used for <route>: no model_info.slot_cache`). Se non c'è alcuna riga `slot_cache`, l'hook non è stato
-  eseguito: il container ha ancora un file o una configurazione più vecchi. Un singolo file montato in un container
-  (`./slot_cache.py:/app/slot_cache.py`) continua a mostrare la versione che aveva quando il container è stato creato se un
-  editor ha sostituito il file; `docker compose up -d --force-recreate` prende quello nuovo (un semplice riavvio no).
-  `docker exec litellm-proxy grep -c save_idle_seconds /app/slot_cache.py` stampa 0 per un file troppo vecchio.
-- **In Docker** il proxy e `llama-server` sono due container, quindi la cartella di `--slot-save-path` è una directory
-  dell'host che entrambi montano (il proxy deve poterci scrivere: cancella i file vecchi e rinnova l'età di quelli usati);
-  il file dell'hook va accanto alla configurazione di LiteLLM, e `api_base` è un indirizzo che il proxy può raggiungere, con
-  il nome host del certificato quando il server usa TLS:
+  file) e/o `max_gib` (la loro dimensione totale) nel `slot_cache` di una route (oppure `LLAMA_CACHE_MAX_FILES` e
+  `LLAMA_CACHE_MAX_GIB` nell'ambiente del proxy, per tutte le route) e l'hook elimina dopo ogni salvataggio le cache **di quella route**
+  che sono state **usate** da più tempo: ripristinare una cache conta come usarla. Non elimina mai la cache
+  appena salvata né quella che sta per essere ripristinata (quindi una route con due sessioni a turno conserva almeno due file,
+  qualunque sia il limite), e tocca solo i file della route, perciò le altre route e gli altri file nella cartella sono al sicuro. Una singola cache più grande di `max_gib` resta (con un avviso nel log).
+  Per eliminare serve la cartella: imposta `save_path` (o `LLAMA_SLOT_SAVE_PATH`) alla cartella `--slot-save-path` così come la vede il proxy; con `llama-server` in un container, è un volume montato da entrambi i container. Senza di essa non viene eliminato nulla. Una
+  cache eliminata fa solo sì che la sua sessione rilegga il prompt una volta. I limiti sono facoltativi: anche un job cron sull'host
+  va bene se non ti serve un tetto alla dimensione, per esempio `find /srv/ai/slots -name '*.bin' -mtime +2 -delete`
+  (una cache in uso viene salvata di nuovo ogni volta che la sua sessione viene scambiata, quindi la sua età ricomincia da capo). I file eliminati dall'esterno non creano problemi all'hook; uno mancante è un mancato riscontro.
+- **Dopo aver cambiato il modello di una route**, elimina i suoi file nella cartella (i loro nomi iniziano con la route): uno stato salvato con altri pesi non si adatta al nuovo modello.
+- **Ogni cambio costa un salvataggio e un ripristino.** Con [annotazione automatica](books/annotations.md) attiva, a una parte seguono un'annotazione e una riscrittura, quindi un turno può cambiare slot tre o quattro volte. Misura un turno prima di farci affidamento.
+- **Un riavvio del proxy** dimentica quale sessione si trova nello slot; la prima richiesta dopo di esso ripristina il suo file sopra lo slot, e ciò che lo slot conteneva va perso.
+- **Un modello scaricato dal router senza che l'hook lo sappia** (un `models_max` errato, un altro client) lascia lo slot vuoto mentre l'hook crede ancora che vi sia l'ultima sessione. Una richiesta per la stessa sessione rilegge semplicemente il prompt; una richiesta per un'altra sessione salva prima lo slot vuoto sopra il file di quella sessione, quindi anche la sua cache va persa. Entrambi i casi costano solo un prefill.
+- **`llama-server` non registra un semplice salvataggio o ripristino** (registra i checkpoint di contesto che aggiunge o ripristina, e gli errori). Ciò che ha fatto è nella sua risposta, e il log del proxy (con `LITELLM_LOG=INFO`) lo riporta, con una riga per ogni chiamata che l'hook effettua, per esempio `slot_cache: https://… restore <file> (openai/model): ok (21920 tokens, 2580 MB,
+  3.1 s)`, `… save <file> …: ok (…)` or `… restore … miss (400)`; il mancato riscontro della
+  prima richiesta di una sessione è normale (llama-server lo registra come "Unable to restore slot, no available space in KV
+  cache or invalid slot save file"). I problemi reali sono avvisi: un certificato che non corrisponde all'indirizzo, una chiave API rifiutata, un server che non risponde.
+- **Dove il prompt differisce.** Per ogni richiesta successiva alla prima di una sessione, il log contiene una riga che indica quanto il prompt è uguale all'ultimo di quella sessione, per esempio `slot_cache: <route>_<session> prompt: 14 messages, the last
+  one had 12: the first 11 are the same, message 12 (user) is the same for its first 2150 of 9031 characters`. Un server può riutilizzare la sua cache solo fino a quel punto (un messaggio equivale a circa tre o quattro caratteri per token), quindi questa è la riga da leggere quando una seconda richiesta rilegge quasi tutto: il messaggio indicato è quello il cui inizio è cambiato. La riga confronta anche l'ultimo messaggio dei due prompt, che contiene ciò che cambia (il lore, la parte, il compito): quando la storia è cresciuta di una parte, il vecchio ultimo messaggio non è più nello stesso punto, e il numero di caratteri che i due ultimi messaggi hanno in comune indica quanto, per esempio, il lore è uguale nei due.
+- **Se non succede nulla**, guarda il log del proxy (`docker logs litellm-proxy 2>&1 | grep slot_cache`): con
+  l'hook in funzione compare una riga per ogni chiamata, e una richiesta di Marginalia per una route senza `slot_cache` viene segnalata una sola volta (`not used for <route>: no model_info.slot_cache`). Se non compare alcuna riga `slot_cache`, l'hook non è stato eseguito: il
+  container ha ancora un file o una configurazione più vecchi. Un singolo file montato in un container (`./slot_cache.py:/app/slot_cache.py`)
+  continua a mostrare la versione che aveva quando il container è stato creato, se un editor ha sostituito il file; `docker compose up -d
+  --force-recreate` picks the new one up (a plain restart does not). `docker exec litellm-proxy grep -c save_idle_seconds
+  /app/slot_cache.py` stampa 0 per un file troppo vecchio.
+- **In Docker** il proxy e `llama-server` sono due container, quindi la cartella di `--slot-save-path` è una directory dell'host montata da entrambi (il proxy deve potervi scrivere: elimina i file vecchi e rinnova l'età di quelli usati); il file dell'hook va accanto alla configurazione di LiteLLM, e `api_base` è un indirizzo raggiungibile dal proxy, con il nome host del certificato quando il server usa TLS:
 
   ```yaml
   # llama-server                              # litellm
@@ -639,17 +586,14 @@ Da sapere:
     --slot-save-path /slots
   ```
 
-  con `save_path: /slots` e `models_max: 1` nello `slot_cache` della route.
-- L'hook usa `CustomLogger.async_pre_call_deployment_hook`, che LiteLLM chiama dopo aver scelto il deployment e prima di
-  inviare la richiesta (la versione 1.106.5 è stata verificata con un router reale e un server di prova); controllalo con la
-  versione che usi. Un proxy che cambia modello dietro un unico indirizzo riavviando un solo server (llama-swap) non è
-  supportato: le chiamate agli slot raggiungerebbero qualunque modello sia caricato. Nulla di tutto questo è stato eseguito
-  contro un vero router `llama-server`; i test usano un server di prova che controlla le chiamate fatte dall'hook.
+  con `save_path: /slots` e `models_max: 1` nel `slot_cache` della route.
+- L'hook usa `CustomLogger.async_pre_call_deployment_hook`, che LiteLLM chiama dopo aver scelto il deployment e
+  prima di inviare la richiesta (la versione 1.106.5 è stata verificata con un router reale e un server di prova); verificala con la versione che usi. Un proxy che cambia modello dietro un solo indirizzo riavviando un singolo server (llama-swap) non è supportato: le chiamate allo slot raggiungerebbero qualunque modello sia caricato. Nulla di tutto questo è stato eseguito con un router `llama-server` reale; i test usano un server di prova che verifica le chiamate che l'hook effettua.
 <a id="freeing-the-gpu-for-another-model"></a>
 
 ## Liberare la GPU per un altro modello
 
-Una GPU che ospita il modello linguistico non ha spazio per un modello di immagini o di sintesi vocale accanto. Con `llama-server` in modalità router, un secondo hook può scaricare i modelli su richiesta, quindi un plugin che ha bisogno della GPU (il [Generatore di immagini](extensions/image-generator.md#one-gpu-for-the-model-and-the-images), l'Audiolibro) la richiede con una richiesta al proxy, con la stessa chiave che usa per tutto il resto:
+Una GPU che ospita il modello linguistico non ha spazio per un modello di immagini o di voce accanto a esso. Con `llama-server` in modalità router, un secondo hook può scaricare i modelli su richiesta. Così un plugin che ha bisogno della GPU (il [Generatore di immagini](extensions/image-generator.md#one-gpu-for-the-model-and-the-images), l'audiolibro) la chiede con una richiesta al proxy, usando la stessa chiave che usa per tutto il resto:
 
 ```sh
 curl http://litellm:4000/v1/chat/completions \
@@ -659,9 +603,9 @@ curl http://litellm:4000/v1/chat/completions \
   -d '{"model": "qwen3-32b", "messages": [{"role": "user", "content": "unload"}]}'
 ```
 
-Una richiesta con l'intestazione `X-Llama-Unload` riceve risposta dall'hook stesso (HTTP 200, il testo `unloaded: <names>`) e non arriva mai a un modello. L'hook elenca i modelli del router (`GET /models`), scarica quelli caricati (`POST /models/unload` con il nome) e attende finché il router non segnala che nessuno è più in memoria (`loaded`, `loading` e `unloading` occupano la memoria), per al massimo `LLAMA_UNLOAD_WAIT_SECONDS` (120). Se il server non è raggiungibile, risponde con un errore o i modelli sono ancora presenti dopo l'attesa, la risposta è un errore (HTTP 502), così un plugin che invia questa richiesta come richiesta *before* non avvia l'altro modello su una GPU piena. Il modello torna da solo: la richiesta ordinaria successiva fa caricare il modello al router, quindi la richiesta *after* di un plugin può essere vuota per il modello linguistico. Il nome del modello nel corpo deve solo essere uno che una route accetta (con la route `openai/*` inizia con `openai/`, per esempio `openai/unload`); conta l'intestazione. Un nome che nessuna route accetta riceve un 400 *dopo* che i modelli sono stati scaricati, perché l'hook viene eseguito prima che LiteLLM controlli il nome. Lo scaricamento va a ogni server la cui route ha `unload`, non a un solo modello.
+Una richiesta con l'intestazione `X-Llama-Unload` viene risposta dall'hook stesso (HTTP 200, il testo `unloaded: <names>`) e non raggiunge mai un modello. L'hook elenca i modelli del router (`GET /models`), scarica quelli caricati (`POST /models/unload` con il nome) e attende finché il router non segnala che nessuno è più in memoria (`loaded`, `loading` e `unloading` indicano la memoria), per al massimo `LLAMA_UNLOAD_WAIT_SECONDS` (120). Se il server non è raggiungibile, se risponde con un errore, o se i modelli sono ancora presenti dopo l'attesa, la risposta è un errore (HTTP 502). Così un plugin che invia questa richiesta come richiesta *prima* non avvia l'altro modello su una GPU piena. Il modello linguistico torna da solo: la richiesta ordinaria successiva fa caricare il modello al router, quindi la richiesta *dopo* di un plugin può essere vuota per il modello linguistico. Il nome del modello nel corpo deve solo essere uno che una rotta accetta (con la rotta `openai/*` inizia con `openai/`, per esempio `openai/unload`); conta l'intestazione. Un nome che nessuna rotta accetta riceve un 400 *dopo* che i modelli sono stati scaricati, perché l'hook viene eseguito prima che LiteLLM controlli il nome. Lo scaricamento va a ogni server la cui rotta ha `unload`, non a un solo modello.
 
-L'hook è uno script a sé, `gpu_unload.py`, accanto a `slot_cache.py` e concatenato con esso. Sono indipendenti: `gpu_unload.py` funziona anche senza l'hook della cache. Quando sono concatenati entrambi, `gpu_unload.py` trova l'hook della cache tra i callback di LiteLLM e chiama il suo `release_server`, che **salva prima la cache di ogni slot e ne dimentica il contenuto**, così che la richiesta successiva ripristini nel modello ricaricato la cache della sua sessione. (Senza quella chiamata, l'hook della cache crederebbe ancora che la sessione sia nello slot e non ripristinerebbe nulla: l'intero prompt verrebbe letto di nuovo dopo ogni scambio.)
+L'hook è uno script a sé, `gpu_unload.py`, accanto a `slot_cache.py` e concatenato con esso. Sono indipendenti: `gpu_unload.py` funziona anche senza l'hook della cache. Quando sono concatenati entrambi, `gpu_unload.py` trova l'hook della cache tra i callback di LiteLLM e ne chiama `release_server`, che **prima salva la cache di ogni slot e dimentica ciò che c'era**, in modo che la richiesta successiva ripristini la cache della sua sessione nel modello ricaricato. (Senza questa chiamata, l'hook della cache crederebbe ancora che la sessione sia nello slot e non ripristinerebbe nulla: l'intero prompt verrebbe letto di nuovo dopo ogni scambio.)
 
 ```python
 """LiteLLM hook: frees the GPU on request, so that another model (images, speech) can use it.
@@ -793,9 +737,9 @@ class GpuUnloadHook(CustomLogger):
 proxy_handler_instance = GpuUnloadHook()
 ```
 
-In Docker il file deve essere nel container come lo è `slot_cache.py`: aggiungi `- ./gpu_unload.py:/app/gpu_unload.py:ro` ai `volumes` del proxy, accanto alla riga di `slot_cache.py`. Un file che non c'è si mostra all'avvio come `ImportError: Could not import proxy_handler_instance from gpu_unload` (il motivo reale, `FileNotFoundError` o un errore dello script stesso, si trova poche righe sopra nel log).
+In Docker il file deve trovarsi nel container come lo è `slot_cache.py`: aggiungi `- ./gpu_unload.py:/app/gpu_unload.py:ro` al `volumes` del proxy, accanto alla riga di `slot_cache.py`. Un file mancante appare all'avvio come `ImportError: Could not import proxy_handler_instance from gpu_unload` (la causa reale, `FileNotFoundError` oppure un errore dello script stesso, si trova poche righe sopra nel log).
 
-Concatena i due in `litellm_config.yml` e contrassegna la route con `unload`:
+Concatena i due in `litellm_config.yml` e contrassegna la rotta con `unload`:
 
 ```yaml
 model_list:
@@ -809,9 +753,9 @@ litellm_settings:
   callbacks: [slot_cache.proxy_handler_instance, gpu_unload.proxy_handler_instance]
 ```
 
-Nel Generatore di immagini (o in qualsiasi plugin che ha le due richieste) imposta la richiesta *before* come `POST` all'indirizzo sopra, con le intestazioni `Authorization: Bearer <key>` e `X-Llama-Unload: all` e il corpo dell'esempio; le intestazioni sono memorizzate cifrate.
+Nel Generatore di immagini (o in qualsiasi plugin che ha le due richieste) imposta la richiesta *prima* su `POST` sull'indirizzo qui sopra, con le intestazioni `Authorization: Bearer <key>` e `X-Llama-Unload: all` e il corpo dell'esempio; le intestazioni sono memorizzate cifrate.
 
-Il server dell'altro modello può essere controllato attraverso lo stesso proxy. LiteLLM inoltra un percorso a un altro indirizzo (`general_settings: pass_through_endpoints`, `path`, `target` e `include_subpath: true`; la chiave del proxy viene verificata, e l'intestazione `Authorization` del client **non** viene inoltrata, quindi il target ha il proprio segreto in `headers`). Un piccolo servizio accanto al server di sintesi vocale o di immagini che ferma e avvia il suo container è un target del genere: [`tools/gpu-control`](https://github.com/Enerccio/Marginalia/tree/master/tools/gpu-control) (`POST /<container>/start` risponde quando il servizio al suo interno è pronto, `stop` quando è terminato; il suo README contiene l'esempio di compose e la route LiteLLM per il server di sintesi vocale, `/v1/audio/speech`).
+Il server dell'altro modello può essere controllato tramite lo stesso proxy. LiteLLM inoltra un percorso verso un altro indirizzo (`general_settings: pass_through_endpoints`, `path`, `target` e `include_subpath: true`; la chiave del proxy viene verificata e l'intestazione `Authorization` del client **non** viene inoltrata, quindi la destinazione ha il proprio segreto in `headers`). Un piccolo servizio accanto al server della voce o delle immagini, che ferma e avvia il suo container, è una destinazione di questo tipo: [`tools/gpu-control`](https://github.com/Enerccio/Marginalia/tree/master/tools/gpu-control) (`POST /<container>/start` risponde quando il servizio al suo interno è pronto, `stop` quando è terminato; il suo README contiene l'esempio compose e la rotta LiteLLM per il server della voce, `/v1/audio/speech`).
 
 ```yaml
 general_settings:
@@ -822,4 +766,4 @@ general_settings:
       headers: {X-Control-Token: os.environ/GPU_CONTROL_TOKEN}
 ```
 
-Cosa è stato verificato: LiteLLM 1.108.3 con un router di prova che riporta `loaded`, `unloading` e `unloaded` (l'attesa tratteneva la risposta finché lo stato non era `unloaded`, un server non raggiungibile dava 502, con entrambi gli hook concatenati lo slot veniva salvato prima dello scaricamento e ripristinato dalla richiesta successiva, con solo `gpu_unload.py` non veniva chiamato nient'altro, e il pass-through raggiungeva il suo target, aggiungeva il proprio valore di `headers` al posto di uno inviato dal client, e rifiutava una richiesta senza la chiave). È stato eseguito anche contro un vero router `llama-server` dietro LiteLLM (un modello da 31B): la richiesta ha restituito `unloaded: <model>` dopo da 1 a 2 secondi, il router ha registrato `stopping model instance` e `exited with status 0` (il processo è terminato, quindi la memoria è libera), una seconda richiesta con nulla caricato ha restituito `unloaded: nothing` immediatamente, e la richiesta ordinaria successiva ha impiegato circa un minuto perché il router ha ricaricato il modello. Se il tuo `GET /models` usa nomi diversi per gli stati, modifica `IN_MEMORY` nello script.
+Cosa è stato verificato: LiteLLM 1.108.3 con un router sostitutivo che riporta `loaded`, `unloading` e `unloaded` (l'attesa tratteneva la risposta finché lo stato non era `unloaded`; un server spento dava 502; con entrambi gli hook concatenati lo slot veniva salvato prima dello scaricamento e ripristinato dalla richiesta successiva; con solo `gpu_unload.py` non veniva chiamato nient'altro; il pass-through raggiungeva la sua destinazione, aggiungeva un proprio valore `headers` al posto di quello inviato dal client, e rifiutava una richiesta senza la chiave). È stato eseguito anche contro un vero router `llama-server` dietro LiteLLM (un modello da 31B): la richiesta restituiva `unloaded: <model>` dopo da 1 a 2 secondi, il router registrava `stopping model instance` e `exited with status 0` (il processo non c'è più, quindi la memoria è libera), una seconda richiesta con nulla caricato restituiva `unloaded: nothing` subito, e la richiesta ordinaria successiva impiegava circa un minuto perché il router caricava di nuovo il modello. Se il tuo `GET /models` chiama gli stati in modo diverso, cambia `IN_MEMORY` nello script.

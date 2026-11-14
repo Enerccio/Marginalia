@@ -5,31 +5,21 @@ order: 98
 
 # Ordner
 
-Ordner sortieren deine Bücher so, wie Ordner auf einer Festplatte Dateien sortieren. Ein Ordner enthält Bücher und andere Ordner, so tief du willst,
-und die Buchliste zeigt jeweils nur einen Ordner an. Ein Ordner kann außerdem **Einstellungen** enthalten (Sprache, Erzählperspektive, Zeitform, Stil,
-die Vorlagen und die Prompts): Die Bücher darin und in den Ordnern darunter schreiben mit diesen Einstellungen, sofern sie keine eigenen haben.
-Das ist der Hauptgrund, Ordner zu verwenden: Den Stil einer Reihe einmal festlegen, und jedes Buch der Reihe hat ihn.
+Ordner sortieren deine Bücher so, wie Ordner auf einer Festplatte Dateien sortieren. Ein Ordner enthält Bücher und andere Ordner, beliebig tief verschachtelt, und die Bücherliste zeigt jeweils nur einen Ordner an. Ein Ordner kann außerdem **Einstellungen** enthalten (Sprache, Erzählperspektive, Zeitform, Stil, die Vorlagen und die Prompts): Die Bücher darin und in den darunterliegenden Ordnern schreiben mit diesen Einstellungen, sofern sie nicht eigene haben. Genau dafür verwendet man Ordner hauptsächlich: Du legst den Stil einer Reihe einmal fest, und jedes Buch der Reihe hat ihn.
 
 ![Der Reiter Bücher mit Ordnern](../../images/books-folders.png)
 
 <a id="moving-around"></a>
 
-## Navigieren
+## Navigation
 
-Über den Büchern zeigt die Liste die Ordner des aktuellen Ordners, in der Reihenfolge der sortierten Spalten. Klicke auf den **Namen** eines
-Ordners, um ihn zu öffnen. Der Pfad aus Schaltflächen über der Liste (`Bücher / Sci-fi / Expanse`) zeigt, wo du dich befindest; klicke auf einen Teil davon,
-um dorthin zurückzukehren.
+Oberhalb der Bücher zeigt die Liste die Ordner des aktuellen Ordners, in der Reihenfolge der sortierten Spalten. Klicke auf den **Namen** eines Ordners, um ihn zu öffnen. Die Schaltflächenleiste über der Liste (`Books / Sci-fi / Expanse`) zeigt, wo du dich befindest; klicke auf einen Teil davon, um dorthin zurückzukehren.
 
-Das Kontrollkästchen **Unterordner einbeziehen** listet jedes Buch unterhalb des aktuellen Ordners auf, in beliebiger Tiefe (auf der obersten Ebene sind das
-alle deine Bücher), und fügt eine Spalte **Ordner** mit dem Ort jedes Buches hinzu. Der aktuelle Ordner und das Kontrollkästchen
-werden gemerkt, auch wenn du die Seite neu lädst.
+Das Kontrollkästchen **Unterordner einbeziehen** listet jedes Buch unterhalb des aktuellen Ordners auf, in beliebiger Tiefe (auf oberster Ebene sind das alle deine Bücher), und fügt eine Spalte **Ordner** mit dem Ort jedes Buches hinzu. Der aktuelle Ordner und das Kontrollkästchen bleiben erhalten, auch wenn du die Seite neu lädst.
 
-Eine Ordnerzeile zeigt an, wie viele Bücher darunter liegen, in beliebiger Tiefe. Eine Buchzeile zeigt die Wörter und Tokens seines
-[aktiven Zweigs](branches-and-story-tree.md). Die Filter **Name** und **Tags** funktionieren sowohl für Ordner als auch für Bücher
-(Ordner haben Tags, siehe [Ordner taggen](#tagging-folders)), im aktuellen Ordner oder darunter mit *Unterordner einbeziehen*.
+Eine Ordnerzeile zeigt an, wie viele Bücher darunter liegen, in beliebiger Tiefe. Eine Buchzeile zeigt die Wörter und Tokens seines [aktiven Zweigs](branches-and-story-tree.md). Die Filter **Name** und **Schlagwörter** wirken sowohl auf Ordner als auch auf Bücher (Ordner haben Schlagwörter, siehe [Ordner mit Schlagwörtern versehen](#tagging-folders)), im aktuellen Ordner oder darunter, wenn *Unterordner einbeziehen* aktiv ist.
 
-Das **Zuletzt geändert** eines Ordners richtet sich nach seinen Büchern: Wenn sich ein Buch darin oder in einem Ordner darunter ändert (oder einer seiner
-Abschnitte), wird auch der Ordner aktualisiert. Sortiere danach, um zu sehen, wo du zuletzt geschrieben hast. Das Öffnen eines Buches oder das Verschieben zählt nicht.
+Das Feld **Zuletzt geändert** eines Ordners folgt seinen Büchern: Wenn sich ein Buch darin oder in einem darunterliegenden Ordner ändert (oder einer seiner Abschnitte), wird auch der Ordner aktualisiert. Sortiere danach, um zu sehen, wo du zuletzt geschrieben hast. Das Öffnen eines Buches oder das Verschieben zählt nicht.
 
 <a id="what-the-buttons-do"></a>
 
@@ -37,13 +27,13 @@ Abschnitte), wird auch der Ordner aktualisiert. Sortiere danach, um zu sehen, wo
 
 | Schaltfläche | |
 |---|---|
-| **Neuer Ordner** (Kopfzeile) | Erstellt einen Ordner im aktuellen Ordner. Ein Name darf nicht leer sein, nicht länger als 255 Zeichen sein oder ein `/` enthalten und darf nicht der Name eines anderen Ordners am selben Ort sein (Groß- und Kleinschreibung spielt keine Rolle). |
+| **Neuer Ordner** (Kopfzeile) | Legt einen Ordner im aktuellen Ordner an. Ein Name darf nicht leer sein, nicht länger als 255 Zeichen sein und kein `/` enthalten. Er darf nicht der Name eines anderen Ordners am selben Ort sein (Groß- und Kleinschreibung spielt keine Rolle). |
 | das Zahnrad eines Ordners | Die [Einstellungen des Ordners](#folder-settings). |
 | der Stift eines Ordners | Benennt ihn um. |
-| der Papierkorb eines Ordners | Löscht ihn, siehe [Einen Ordner löschen](#deleting-a-folder). |
-| **In Ordner verschieben** (ein Buch) | Wählt den Ordner, in den das Buch gelegt werden soll. |
-| der Stern eines Buches | Macht es zu einem [Favoriten](#favorites). |
-| **Buch hinzufügen**, die Importe | Das neue Buch landet im **aktuellen Ordner**. Ein [Klon](managing-books.md#cloning-a-book) wird neben sein Original gelegt. |
+| der Papierkorb eines Ordners | Löscht ihn, siehe [Ordner löschen](#deleting-a-folder). |
+| **In Ordner verschieben** (bei einem Buch) | Wählt den Ordner aus, in den das Buch verschoben werden soll. |
+| der Stern eines Buches | Markiert es als [Favorit](#favorites). |
+| **Buch hinzufügen**, die Importe | Das neue Buch kommt in den **aktuellen Ordner**. Ein [Klon](managing-books.md#cloning-a-book) wird neben sein Original gelegt. |
 
 <a id="folder-settings"></a>
 
@@ -53,72 +43,63 @@ Das Zahnrad eines Ordners öffnet seine Einstellungen (das Fenster **Organisiere
 
 ![Die Einstellungen eines Ordners](../../images/folder-settings.png)
 
-- **Name**, **Beschreibung** und **Tags**.
-- **Sprache** sowie dieselben Felder wie der Reiter [Prompts](prompts.md) eines Buches: Hauptvorlage, Erzählperspektive, Zeitform,
-  Stil und die Prompts.
-- **Aufbewahrte Versionen je Abschnitt**: Wie viele frühere Versionen eines Abschnitts der [Verlauf](version-history.md#how-many-versions-are-kept)
-  für die Bücher im Ordner und die Ordner darunter behält. Von allen oben genannten Grenzen eines Buches gilt die strengste.
-- **Einstellungen der Erweiterung**, wenn eine geladene [Erweiterung](../extensions/index.md) Einstellungen hat, die Bücher erben, siehe
-  [Einstellungen von Erweiterungen](prompts.md#settings-of-extensions).
+- **Name**, **Beschreibung** und **Schlagwörter**.
+- **Sprache** sowie dieselben Felder wie der Reiter [Prompts](prompts.md) eines Buches: Hauptvorlage, Erzählperspektive, Zeitform, Stil und die Prompts.
+- **Aufbewahrte Versionen je Abschnitt**: wie viele frühere Versionen eines Abschnitts der [Verlauf](version-history.md#how-many-versions-are-kept) für die Bücher im Ordner und die darunterliegenden Ordner behält. Von allen oben genannten Grenzen eines Buches gilt die strengste.
+- **Einstellungen der Erweiterung**, wenn eine geladene [Erweiterung](../extensions/index.md) Einstellungen hat, die Bücher erben, siehe [Einstellungen von Erweiterungen](prompts.md#settings-of-extensions).
 
-Alles ist optional. Ein leeres Feld wird *geerbt*, und das wird angezeigt: Der graue Text im Feld ist der Wert, den es erbt, und die Zeile darunter
-sagt, woher er kommt. Drücke **Speichern**, um den Ordner zu speichern; Name und Beschreibung können jederzeit geändert werden, aber eine Änderung der Sprache oder einer Texteinstellung
-wird abgelehnt, solange ein Agent an einem Buch im Ordner oder darunter arbeitet: Die Meldung nennt das Buch, [pausiere oder stoppe zuerst seinen Lauf](../agents.md).
+Alles ist optional. Ein leeres Feld wird *geerbt*, und das wird angezeigt: Der graue Text im Feld ist der Wert, den es erbt, und die Zeile darunter sagt, woher er kommt. Drücke **Speichern**, um den Ordner zu sichern; Name und Beschreibung lassen sich jederzeit ändern, aber eine Änderung der Sprache oder einer Texteinstellung wird abgelehnt, solange ein Agent an einem Buch im Ordner oder darunter arbeitet: Die Meldung nennt das Buch, dessen Lauf du zuerst [anhalten oder beenden](../agents.md) musst.
 
 <a id="where-the-settings-of-a-book-come-from"></a>
 
 ### Woher die Einstellungen eines Buches stammen
 
-Ein Buch verwendet für jede dieser Einstellungen die erste davon, die nicht leer ist:
+Ein Buch verwendet bei jeder dieser Einstellungen den ersten der folgenden Werte, der nicht leer ist:
 
 1. das **Buch** selbst (seine Reiter *Info* und *Prompts*),
-2. der **Ordner**, in dem das Buch liegt,
-3. der Ordner darüber, und so weiter bis zur obersten Ebene,
+2. den **Ordner**, in dem das Buch liegt,
+3. den Ordner darüber, und so weiter bis zur obersten Ebene,
 4. deine **Benutzereinstellungen** (*Einstellungen → Vorlagen*, siehe [Konto & Einstellungen](../account.md)),
-5. der **eingebaute Standard**.
+5. den **eingebauten Standard**.
 
-Ein leerer Text gilt als nicht gesetzt. Das wird nachgeschlagen, wenn es benötigt wird (wenn ein Abschnitt erzeugt, eine Zusammenfassung erstellt, ein Abschnitt neu entworfen wird ...), und beim Verschieben in einen Ordner wird nichts ins Buch kopiert: **Ein Buch in einen anderen Ordner zu verschieben, ändert, wie es schreibt**, und eine Änderung einer Ordnereinstellung ändert jedes Buch darunter, das keine eigene setzt.
+Ein leerer Text gilt als nicht gesetzt. Das wird nachgeschlagen, wenn es gebraucht wird (wenn ein Abschnitt erzeugt, eine Zusammenfassung erstellt oder ein Abschnitt neu entworfen wird ...). Beim Einordnen eines Buches in einen Ordner wird nichts ins Buch kopiert: **Ein Buch in einen anderen Ordner zu verschieben, ändert, wie es geschrieben wird**, und eine Änderung der Einstellung eines Ordners ändert jedes Buch darunter, das nicht eigene Werte setzt.
 
-Der Reiter [Prompts](prompts.md#inherited-settings) eines Buches zeigt es: Unter jedem Feld steht, woher sein Wert stammt (*Vom Ordner „Sci-fi" geerbt*, *Aus deinen Einstellungen geerbt* oder *Eingebauter Standard*).
+Der Reiter [Prompts](prompts.md#inherited-settings) eines Buches zeigt das: Unter jedem Feld steht, woher sein Wert kommt (*Vom Ordner „Sci-fi“ geerbt*, *Aus deinen Einstellungen geerbt* oder *Eingebauter Standard*).
 
 <a id="language"></a>
 
 ### Sprache
 
-Das Feld **Sprache** eines Buches (der Reiter [Info](managing-books.md#the-about-tab)) und eines Ordners kann leer bleiben,
-was *erben* bedeutet: Das Buch übernimmt die Sprache des nächsten Ordners darüber, der eine setzt, sonst Englisch. Ein leeres
-Feld zeigt, welche Sprache das ist und woher sie kommt. Das Feld hat eine Schaltfläche zum Leeren; Leeren erbt wieder (früher wurde daraus Englisch).
-Alles, was die Sprache eines Buches anzeigt oder verwendet, nutzt die, die es mit seinen Ordnern hat: die
-Silbentrennung des Textes, den Export und die Tabelle [Massenänderung der Sprache](#mass-changes).
+Das Feld **Sprache** eines Buches (der Reiter [Info](managing-books.md#the-about-tab)) und eines Ordners kann leer bleiben, was *erben* bedeutet: Das Buch übernimmt die Sprache des nächsten Ordners darüber, der eine setzt, andernfalls Englisch. Ein leeres Feld zeigt an, welche Sprache das ist und woher sie stammt. Das Feld hat eine Schaltfläche zum Leeren; wenn du es leerst, wird wieder geerbt (früher wurde daraus Englisch). Alles, was die Sprache eines Buches anzeigt oder verwendet, nutzt die Sprache, die es mit seinen Ordnern hat: die Silbentrennung des Textes, den Export und die Tabelle [Sprache massenhaft ändern](#mass-changes).
 
 <a id="deleting-a-folder"></a>
 
-## Einen Ordner löschen
+## Ordner löschen
 
-Die Papierkorb-Schaltfläche eines Ordners fragt, was geschehen soll:
+Die Papierkorb-Schaltfläche eines Ordners fragt nach, was geschehen soll:
 
-- **ein leerer Ordner** wird nach einer Bestätigung gelöscht;
-- **ein Ordner mit Büchern oder Ordnern darin** bietet **Den Inhalt in den übergeordneten Ordner verschieben** (der Standard) oder **Alles darin ebenfalls löschen**. Die zweite Option fragt erneut, mit der Anzahl der Bücher und Ordner, und schickt die Bücher in den [Papierkorb](../trash.md), wo du sie wiederherstellen kannst. Der gelöschte Ordner selbst wird nicht im Papierkorb aufgeführt.
+- **Ein leerer Ordner** wird nach einer Bestätigung gelöscht;
+- **Ein Ordner mit Büchern oder Ordnern darin** bietet **Den Inhalt in den übergeordneten Ordner verschieben** (der Standard) oder **Alles darin ebenfalls löschen** an. Die zweite Option fragt erneut, mit der Anzahl der Bücher und Ordner, und schickt die Bücher in den [Papierkorb](../trash.md), wo du sie wiederherstellen kannst. Der gelöschte Ordner selbst erscheint nicht im Papierkorb.
 
-Wenn ein Ordner darin den Namen eines Ordners im übergeordneten Ordner trägt, wird das Hochverschieben des Inhalts abgelehnt (Namen sind eindeutig): Benenne zuerst einen von beiden um. Ein Ordner mit einem Buch, an dem ein Agent arbeitet, kann nicht gelöscht oder verschoben werden, da sich die Einstellungen dieses Buches sonst während des Laufs ändern würden.
+Wenn ein Ordner darin denselben Namen hat wie ein Ordner im übergeordneten Ordner, wird das Verschieben des Inhalts nach oben abgelehnt (Namen sind eindeutig): Benenne zuerst einen der beiden um. Ein Ordner mit einem Buch, an dem ein Agent arbeitet, kann nicht gelöscht oder verschoben werden, da sich sonst die Einstellungen dieses Buches während des Laufs ändern würden.
 <a id="organise"></a>
 
 ## Organisieren
 
-**Organisieren** (im Menü **Verwalten** in der Kopfzeile der Liste) öffnet ein Fenster mit zwei Bereichen, in denen jeweils ein Ordner angezeigt wird. Damit lassen sich Bücher und Ordner ohne Öffnen von einem Bereich in den anderen verschieben und kopieren. Es öffnet sich mit dem linken Bereich im Ordner, in dem Sie sich befanden, und dem rechten Bereich im Ordner, der beim letzten Mal angezeigt wurde.
+**Organisieren** (im Menü **Verwalten** der Kopfzeile der Liste) öffnet ein Fenster mit zwei Bereichen, in denen je ein Ordner angezeigt wird, um Bücher und Ordner von einem in den anderen zu verschieben und zu kopieren, ohne jeden einzeln zu öffnen. Es öffnet sich mit dem linken Bereich auf dem Ordner, in dem du dich gerade befandest, und dem rechten Bereich auf dem, den er zuletzt angezeigt hat.
 
 ![Das Fenster Organisieren](../../images/organise-dialog.png)
 
 | Taste | |
 |---|---|
 | Links / Rechts / Tab | Der andere Bereich. |
-| Hoch / Runter | Der Cursor. |
+| Oben / Unten | Der Cursor. |
 | Enter | Öffnet den Ordner unter dem Cursor. |
-| Rücktaste | Geht nach oben. |
-| Leertaste oder Einfg | Markiert den Eintrag unter dem Cursor; Umschalt + Hoch / Runter markiert beim Bewegen. |
+| Rücktaste | Geht eine Ebene nach oben. |
+| Leertaste oder Einfügen | Markiert den Eintrag unter dem Cursor; Umschalt + Oben / Unten markiert beim Bewegen. |
 | Klick auf ein Kontrollkästchen | Markiert oder hebt die Markierung des Eintrags auf; **Umschalt + Klick** markiert (oder hebt die Markierung auf) alle Einträge zwischen ihm und dem zuvor angeklickten Kästchen. |
 
-Eine Reihe von Schaltflächen am unteren Rand arbeitet mit dem, was **markiert** ist (oder, falls nichts markiert ist, mit dem Eintrag unter dem Cursor), und zeigt ihr Tastenkürzel in Klammern:
+Eine Reihe von Schaltflächen am unteren Rand arbeitet mit dem, was **markiert** ist (oder, wenn nichts markiert ist, mit dem, was unter dem Cursor liegt), und zeigt ihre Taste in Klammern an:
 
 | Schaltfläche | Taste | |
 |---|---|---|
@@ -128,19 +109,19 @@ Eine Reihe von Schaltflächen am unteren Rand arbeitet mit dem, was **markiert**
 | **Umbenennen** | `Shift+r` | Benennt den Ordner oder das Buch unter dem Cursor um. |
 | **Löschen** | `Delete` | Löscht es, wie in der Liste. |
 | **Ordnereinstellungen** | `i` | Die [Einstellungen](#folder-settings) des Ordners unter dem Cursor. |
-| **Modell/Protokoll für Massenänderungen**, **Sprache für Massenänderungen**, **Massenumbenennung**, **Bücher taggen** | `p`, `l`, `Shift+n`, `t` | Die [Massenänderungen](#mass-changes) für die markierten Bücher oder für die Bücher des Ordners des aktiven Bereichs (mit ihrer eigenen Option *Unterordner einbeziehen*). Die Bereiche zeigen nach einer Massenumbenennung die neuen Namen an. |
-| **Erweiterte Suche** | `f` | Die [Suche](managing-books.md#advanced-search) im Ordner des aktiven Bereichs, optional mit *Unterordner einbeziehen*. Ein Ergebnis hat **Im Ordner anzeigen**, das den Bereich dorthin bringt und das Buch markiert. |
+| **Modell/Protokoll für Massenänderungen**, **Sprache für Massenänderungen**, **Massenumbenennung**, **Bücher taggen** | `p`, `l`, `Shift+n`, `t` | Die [Massenänderungen](#mass-changes) für die markierten Bücher oder für die Bücher des Ordners des aktiven Bereichs (mit eigenem *Unterordner einbeziehen*). Die Bereiche zeigen nach einer Massenumbenennung die neuen Namen an. |
+| **Erweiterte Suche** | `f` | Die [Suche](managing-books.md#advanced-search) im Ordner des aktiven Bereichs, optional mit *Unterordner einbeziehen*. Ein Treffer hat **Im Ordner anzeigen**, das den Bereich dorthin bringt und das Buch markiert. |
 | **Ordner in der Liste anzeigen** | `o` | Schließt das Fenster und öffnet den Ordner des aktiven Bereichs in der Liste der Bücher. |
 
-Wenn Sie das Fenster schließen, wird die Liste der Bücher neu eingelesen, sodass alles, was Sie erstellt, verschoben, kopiert, umbenannt oder gelöscht haben, sofort sichtbar ist (wenn der Ordner, in dem sich die Liste befand, nicht mehr existiert, wird die oberste Ebene angezeigt).
+Wenn du das Fenster schließt, wird die Liste der Bücher neu eingelesen, sodass sich zeigt, was du erstellt, verschoben, kopiert, umbenannt oder gelöscht hast, sofort. (Ist der Ordner, in dem die Liste war, nicht mehr vorhanden, landet sie in der obersten Ebene.)
 
-Die Tasten sind Aktionen der [Tastenkürzel](../account.md#keyboard-shortcuts) in den *Einstellungen*: Ändern oder leeren Sie sie dort (standardmäßig gibt es keine Funktionstasten, denn Mac und Browser belegen sie). Die Schaltflächen zeigen die von Ihnen festgelegte Taste an.
+Die Tasten sind Aktionen der [Tastenkürzel](../account.md#keyboard-shortcuts) in den *Einstellungen*: Ändere oder entferne sie dort (standardmäßig gibt es keine Funktionstasten, denn ein Mac und die Browser belegen sie). Die Schaltflächen zeigen die Taste an, die du eingestellt hast.
 
 <a id="copying"></a>
 
 ### Kopieren
 
-Eine **Kopie** eines Buches ist ein [Klon](managing-books.md#cloning-a-book); das Fenster fragt, ob nur der aktuelle Zweig übernommen werden soll. Eine Kopie eines Ordners ist ein neuer Ordner mit den Einstellungen, der Beschreibung und den Tags des Originals sowie Kopien aller darin enthaltenen Bücher und Ordner. Ein Kopiervorgang kann lange dauern, daher läuft er hinter einer Fortschrittsanzeige, die nicht angehalten werden kann. Schlägt er auf halbem Weg fehl, bleiben die bis dahin erstellten Kopien erhalten, und zwar jede vollständig.
+Eine **Kopie** eines Buches ist ein [Klon](managing-books.md#cloning-a-book); das Fenster fragt, ob nur der aktuelle Zweig übernommen werden soll. Eine Kopie eines Ordners ist ein neuer Ordner mit den Einstellungen, der Beschreibung und den Tags des Originals sowie Kopien aller Bücher und Ordner darin. Ein Kopiervorgang kann lange dauern, daher läuft er hinter einem Fortschrittsbalken, der nicht angehalten werden kann. Schlägt er auf halbem Weg fehl, bleiben die bis dahin erstellten Kopien erhalten, und zwar jede vollständig.
 
 Ein **Verschieben** wird sofort ausgeführt und lässt sich durch Zurückverschieben rückgängig machen. Ein Ordner kann nicht in sich selbst oder in einen Ordner darunter verschoben werden.
 
@@ -148,40 +129,40 @@ Ein **Verschieben** wird sofort ausgeführt und lässt sich durch Zurückverschi
 
 ### Wenn ein Name bereits vergeben ist
 
-Hat das Ziel bereits einen Ordner mit demselben Namen, fragt das Fenster, was mit diesem Ordner geschehen soll; für die übrigen Fälle gibt es **Auf alle anwenden**:
+Hat das Ziel bereits einen Ordner mit demselben Namen, fragt das Fenster, was mit diesem Ordner geschehen soll; für die übrigen gilt **Auf alle anwenden**:
 
 | Auswahl | |
 |---|---|
 | **Umbenennen** | Der Ordner erhält einen anderen Namen. |
 | **Überspringen** | Er bleibt, wo er ist (und wird nicht kopiert). |
-| **Zusammenführen** | Was darin liegt, wird in den vorhandenen Ordner übernommen; gleichnamige Ordner darin werden ihrerseits zusammengeführt. |
+| **Zusammenführen** | Was darin liegt, wird in den vorhandenen Ordner gelegt; gleichnamige Ordner darin werden nacheinander ebenfalls zusammengeführt. |
 
-Bücher können nie kollidieren: Ihre Namen dürfen sich wiederholen.
+Bücher kollidieren nie: Ihre Namen dürfen sich wiederholen.
 
 <a id="mass-changes"></a>
 
 ## Massenänderungen
 
-Das Menü **Verwalten → Massenänderungen** der Liste (sowie die Schaltflächen von Organisieren) ändert viele Bücher auf einmal. **Modell/Protokoll für Massenänderungen** setzt ein Modell und/oder ein Protokoll für die Bücher, **Sprache für Massenänderungen** eine Sprache, **Massenumbenennung** fügt ihren Namen ein Präfix oder Suffix hinzu, ersetzt einen Text darin oder nummeriert sie, **Bücher taggen** und **Ordner taggen** fügen einen Tag hinzu oder entfernen ihn. Siehe [Bücher verwalten](managing-books.md#tagging-many-books-at-once). Aus der Liste heraus arbeiten sie mit den Büchern des aktuellen Ordners, mit ihrer eigenen Option **Unterordner einbeziehen**.
+Das Menü **Verwalten → Massenänderungen** der Liste (und die Schaltflächen von Organisieren) ändert viele Bücher auf einmal. **Modell/Protokoll für Massenänderungen** setzt ein Modell und/oder ein Protokoll für die Bücher, **Sprache für Massenänderungen** eine Sprache, **Massenumbenennung** fügt den Namen ein Präfix oder ein Suffix hinzu, ersetzt einen Text darin oder nummeriert sie, **Bücher taggen** und **Ordner taggen** fügen einen Tag hinzu oder entfernen ihn. Siehe [Bücher verwalten](managing-books.md#tagging-many-books-at-once). Aus der Liste heraus arbeiten sie mit den Büchern des aktuellen Ordners, mit eigenem **Unterordner einbeziehen**.
 
 <a id="favorites"></a>
 
 ## Favoriten
 
-Der Stern in der Zeile eines Buches macht es zu einem **Favoriten**. Solange Sie einen haben, zeigt die oberste Ebene den virtuellen Ordner **Favoriten** (mit einem Stern) mit den Favoriten-Büchern aus allen Ihren Ordnern. Er ist nur eine Ansicht: Sie können darin kein Buch und keinen Ordner anlegen, und wenn Sie den Stern entfernen, wird das Buch nur daraus entfernt, nicht aus seinem Ordner. Favoriten werden in Ihren Einstellungen gespeichert.
+Der Stern in einer Buchzeile macht es zu einem **Favoriten**. Solange du einen hast, zeigt die oberste Ebene den virtuellen Ordner **Favoriten** (mit einem Stern) mit den Favoritenbüchern aus all deinen Ordnern. Er ist nur eine Ansicht: Du kannst darin kein Buch und keinen Ordner anlegen, und das Entfernen des Sterns nimmt das Buch aus dieser Ansicht, nicht aus seinem Ordner. Favoriten werden in deinen Einstellungen gespeichert.
 
 <a id="tagging-folders"></a>
 
 ## Ordner taggen
 
-Ordner haben Tags wie Bücher. **Verwalten → Massenänderungen → Ordner taggen** versieht viele Ordner auf einmal mit Tags. Die Tags eines Ordners ändern nicht die Tags seiner Bücher, und sie sind nicht Teil eines [Backups](backups.md).
+Ordner haben Tags, so wie Bücher sie haben. **Verwalten → Massenänderungen → Ordner taggen** versieht viele Ordner auf einmal mit Tags. Die Tags eines Ordners ändern die Tags seiner Bücher nicht, und sie sind nicht Teil einer [Sicherung](backups.md).
 
 <a id="folders-and-other-features"></a>
 
 ## Ordner und andere Funktionen
 
-- **Backups.** Ein [Backup](backups.md#backups-and-folders) merkt sich die Ordner seines Buches, und eine exportierte Datei kann die Einstellungen enthalten, die das Buch erbt.
+- **Sicherungen.** Eine [Sicherung](backups.md#backups-and-folders) merkt sich die Ordner ihres Buches, und eine exportierte Datei kann die Einstellungen enthalten, die das Buch erbt.
 - **Agenten.** Ein [Agent](../agents.md#agents-and-folders) schreibt mit den Einstellungen der Ordner seines Buches.
-- **Hilfe-Assistent.** Wenn Sie es erlauben, kann der [Assistent](../administration/help-assistant.md#your-books) Ihre Bücher und Ordner nachschlagen.
-- **Telefon.** Die [Telefonansicht](../phone.md#books) zeigt dieselben Ordner als Karten und erstellt, benennt um, richtet ein und löscht sie; Organisieren und die Massenänderungen finden Sie im Menü **⋮** der Kopfzeile.
-- **Viewer.** Der [Viewer](publishing.md#folders-in-the-list) listet die Ordner ebenfalls auf und öffnet sich in dem Ordner, den Sie verlassen haben.
+- **Hilfe-Assistent.** Wenn du es erlaubst, kann der [Assistent](../administration/help-assistant.md#your-books) deine Bücher und Ordner nachschlagen.
+- **Telefon.** Das [Telefonlayout](../phone.md#books) zeigt dieselben Ordner als Karten und erstellt, benennt um, richtet ein und löscht sie; Organisieren und die Massenänderungen befinden sich im Menü **⋮** der Kopfzeile.
+- **Betrachter.** Der [Betrachter](publishing.md#folders-in-the-list) listet die Ordner ebenfalls auf und öffnet sich in dem, den du zuletzt verlassen hast.

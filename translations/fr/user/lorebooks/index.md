@@ -8,27 +8,27 @@ icon: archive
 
 !!!
 La [mise en page téléphone](../phone.md#lorebooks) propose le même éditeur sur une seule colonne : les boutons des livres de lore sont dans un menu, les réglages du
-livre de lore sont dans une section qui s'ouvre, et une entrée s'ouvre dans un formulaire. Seuls quelques éléments restent sur ordinateur, voir la liste à cet endroit.
+livre de lore se trouvent dans une section qui s'ouvre, et une entrée s'ouvre dans un formulaire. Seuls quelques éléments restent sur l'ordinateur, voir la liste ci-dessous.
 !!!
 
-Un livre de lore contient ce que le modèle doit savoir sur votre monde : personnages, lieux, histoire, règles, vocabulaire. Chaque
+Un livre de lore contient ce que le modèle doit savoir sur votre monde : personnages, lieux, histoire, règles, terminologie. Chaque
 élément de connaissance est une **entrée**. Avant chaque partie générée, Marginalia décide quelles entrées sont pertinentes et les place
 dans le prompt, si bien que le modèle sait qui est le capitaine Varro lorsqu'il entre dans la scène, sans que chaque entrée occupe de la place dans chaque prompt.
 
-![L'éditeur de livre de lore](../../images/lorebook.png)
+![L'éditeur de livres de lore](../../images/lorebook.png)
 
 <a id="how-it-fits-together"></a>
 
-## Comment les éléments s'articulent
+## Comment les pièces s'articulent
 
 ```
-Livre ──utilise──▶ Livre de lore « Saga » ──sous-livres de lore──▶ « Personnages », « Lieux », « Magie »
+Book ──uses──▶ Lorebook "Saga" ──sub lorebooks──▶ "Characters", "Places", "Magic"
                    │                                   │
-                 entrées                             entrées
+                 entries                             entries
 ```
 
 - Un **livre** utilise un livre de lore (dans son onglet *Lorebook*).
-- Un livre de lore peut inclure d'autres livres de lore comme **sous-livres de lore**. Leurs entrées participent elles aussi, si bien que vous pouvez garder les éléments communs (un monde utilisé par plusieurs livres, une distribution de personnages) dans leur propre livre de lore et l'inclure là où il faut.
+- Un livre de lore peut en inclure d'autres comme **sous-livres de lore**. Leurs entrées participent elles aussi, de sorte que vous pouvez garder les éléments communs (un monde utilisé par plusieurs livres, une distribution de personnages) dans leur propre livre de lore et l'inclure là où il faut.
 - Chaque **entrée** contient le texte qui va dans le prompt, ainsi que les conditions qui déterminent quand elle est utilisée.
 
 <a id="when-an-entry-is-used"></a>
@@ -39,7 +39,7 @@ Pour chaque partie générée, une entrée est **activée** lorsque toutes ces c
 
 1. l'entrée et son livre de lore sont activés ;
 2. ses **étiquettes** correspondent aux étiquettes du livre (si elle en a) ;
-3. son **filtre** correspond aux instructions de la partie (si elle en a un) ou, lorsque l'entrée regarde dans l'histoire, les parties les plus récentes de l'histoire également.
+3. son **filtre** correspond aux instructions de la partie (s'il en a un) ou, lorsque l'entrée regarde dans l'histoire, les parties les plus récentes de l'histoire également.
 
 Les entrées activées sont insérées selon leur **ordre** - dans le bloc de lore du prompt système, ou juste avant la demande de la partie. Voir [Entrées et activation](entries.md).
 
@@ -59,6 +59,6 @@ Les entrées sans étiquettes et sans filtre sont toujours actives : utilisez-le
 
 ## Dans cette section
 
-- [Créer des livres de lore](lorebooks.md) - l'éditeur de livre de lore, les sous-livres de lore, utiliser un livre de lore dans un livre
-- [Entrées et activation](entries.md) - champs d'entrée, étiquettes, filtres, ordre et insertion
-- [Import et export](import-export.md) - fichiers de livre de lore Marginalia et informations de monde SillyTavern
+- [Créer des livres de lore](lorebooks.md) - l'éditeur de livres de lore, les sous-livres de lore, utiliser un livre de lore dans un livre
+- [Entrées et activation](entries.md) - champs des entrées, étiquettes, filtres, ordre et insertion
+- [Import et export](import-export.md) - fichiers de livres de lore Marginalia et informations de monde SillyTavern

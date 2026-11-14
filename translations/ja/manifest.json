@@ -23,7 +23,7 @@
       "chunks": 1,
       "model": "haiku",
       "source_sha": "7cb31768ba0fee2394a1da2702c0fc290e3e094be37b36e09c82ea85f596eac5",
-      "translated_at": "2026-11-13T22:30:35Z"
+      "translated_at": "2026-11-13T23:39:23Z"
     },
     "user/administration/extensions.md": {
       "chunks": 1,
@@ -59,7 +59,7 @@
       "chunks": 1,
       "model": "haiku",
       "source_sha": "5e5b2551e915413625cbdd497b95fafe123c4597572e649f588066811cb88d7f",
-      "translated_at": "2026-11-13T22:31:31Z"
+      "translated_at": "2026-11-13T23:39:23Z"
     },
     "user/administration/statistics.md": {
       "chunks": 1,
@@ -80,10 +80,10 @@
       "translated_at": "2026-11-13T22:31:47Z"
     },
     "user/agents.md": {
-      "chunks": 14,
+      "chunks": 11,
       "model": "haiku",
       "source_sha": "d739bc6436382893e774abba7ae0596fa2f4890ed197a3b4cc7af665dc9e6382",
-      "translated_at": "2026-11-13T23:04:21Z"
+      "translated_at": "2026-11-13T23:40:30Z"
     },
     "user/books/annotations.md": {
       "chunks": 3,
@@ -101,13 +101,13 @@
       "chunks": 1,
       "model": "haiku",
       "source_sha": "3843f629830a15dd2af9a1a7acef6570309e410d4edcb76e61d1b28d62b19a9c",
-      "translated_at": "2026-11-13T22:33:23Z"
+      "translated_at": "2026-11-13T23:40:43Z"
     },
     "user/books/export.md": {
       "chunks": 3,
       "model": "haiku",
       "source_sha": "1fcf8708ea5f8a78c8181c2ac102fbd411bf178e59e2b2fec77245b78b530dfc",
-      "translated_at": "2026-11-13T22:33:35Z"
+      "translated_at": "2026-11-13T23:40:59Z"
     },
     "user/books/folders.md": {
       "chunks": 2,
@@ -125,13 +125,13 @@
       "chunks": 4,
       "model": "haiku",
       "source_sha": "ddd009c24763b5a9175827c69c70eedd285905f37fc0e3f80464e9cb5444b43d",
-      "translated_at": "2026-11-13T22:34:10Z"
+      "translated_at": "2026-11-13T23:41:22Z"
     },
     "user/books/prompts.md": {
       "chunks": 2,
       "model": "haiku",
       "source_sha": "b8be17d60dca4dc2189283002d9fb02d962fa53cd531326dc256454f22f09ec2",
-      "translated_at": "2026-11-13T22:34:36Z"
+      "translated_at": "2026-11-13T23:37:49Z"
     },
     "user/books/publishing.md": {
       "chunks": 1,
@@ -155,13 +155,13 @@
       "chunks": 2,
       "model": "haiku",
       "source_sha": "41062de501824580159e72b7998faae5eec9782896f9f704a1a661dd6ee94bb3",
-      "translated_at": "2026-11-13T22:35:53Z"
+      "translated_at": "2026-11-13T23:41:31Z"
     },
     "user/books/summaries.md": {
       "chunks": 3,
       "model": "haiku",
       "source_sha": "90355efe14c71222ea559410e136db2eb5dc9cb85b855139d1d7fb6722cb6355",
-      "translated_at": "2026-11-13T22:36:11Z"
+      "translated_at": "2026-11-13T23:41:42Z"
     },
     "user/books/version-history.md": {
       "chunks": 2,
@@ -191,7 +191,7 @@
       "chunks": 2,
       "model": "haiku",
       "source_sha": "eabdfb16ea7541e2c9eaa9de6bf4208f4292b2cd0bf436f768d1ee267ea2473f",
-      "translated_at": "2026-11-13T22:37:35Z"
+      "translated_at": "2026-11-13T23:42:07Z"
     },
     "user/extensions/audiobook.md": {
       "chunks": 5,
@@ -221,7 +221,7 @@
       "chunks": 1,
       "model": "haiku",
       "source_sha": "4591e0ad237c98892238a8806fbee5c52881da6774c425507256e9dcc39012fc",
-      "translated_at": "2026-11-13T22:38:07Z"
+      "translated_at": "2026-11-13T23:42:07Z"
     },
     "user/extensions/character-tracker.md": {
       "chunks": 1,
@@ -353,7 +353,7 @@
       "chunks": 1,
       "model": "haiku",
       "source_sha": "3794971110447905905cfff6f5fc86fe929a86510757b72493941a7fe56b5d53",
-      "translated_at": "2026-11-13T22:41:03Z"
+      "translated_at": "2026-11-13T23:42:07Z"
     },
     "user/extensions/tools.md": {
       "chunks": 1,
@@ -371,13 +371,13 @@
       "chunks": 1,
       "model": "haiku",
       "source_sha": "25ac6df0838c40ed7009d50fd2f141f08062bb6e546225ed654cef952181ac7d",
-      "translated_at": "2026-11-13T22:41:15Z"
+      "translated_at": "2026-11-13T23:42:07Z"
     },
     "user/getting-started/docker-server.md": {
       "chunks": 1,
       "model": "haiku",
       "source_sha": "6e169b18d08c349d544c057ad6cecd3137b7033aaa9c55fd7dab4937f1f64f67",
-      "translated_at": "2026-11-13T22:41:21Z"
+      "translated_at": "2026-11-13T23:42:49Z"
     },
     "user/getting-started/example-book.md": {
       "chunks": 1,
@@ -407,13 +407,13 @@
       "chunks": 1,
       "model": "haiku",
       "source_sha": "23fa436b2c225bb5a4d76fd21dd8d1df61054107ec0932ca2b9e60d80e2e26a6",
-      "translated_at": "2026-11-13T22:41:41Z"
+      "translated_at": "2026-11-13T23:42:49Z"
     },
     "user/inference-providers.md": {
       "chunks": 4,
       "model": "haiku",
       "source_sha": "e15206ee887b29f4159ebc7c244bb13f542c1c8bf2e26093c2f23d051a782888",
-      "translated_at": "2026-11-13T22:41:54Z"
+      "translated_at": "2026-11-13T23:42:49Z"
     },
     "user/lorebooks/entries.md": {
       "chunks": 3,
@@ -437,7 +437,7 @@
       "chunks": 4,
       "model": "haiku",
       "source_sha": "345bfb315ca60372d77fa2a2e5b689d49b2fa507404f718d65477da4336ca17d",
-      "translated_at": "2026-11-13T22:43:00Z"
+      "translated_at": "2026-11-13T23:43:05Z"
     },
     "user/phone.md": {
       "chunks": 2,
@@ -446,10 +446,10 @@
       "translated_at": "2026-11-13T22:43:10Z"
     },
     "user/prompt-cache.md": {
-      "chunks": 3,
+      "chunks": 4,
       "model": "haiku",
       "source_sha": "f56391018b2597def10dac0cfda2e176e08cf61eb41e78b02e9de60fc5a9a96f",
-      "translated_at": "2026-11-13T22:44:35Z"
+      "translated_at": "2026-11-14T00:29:06Z"
     },
     "user/protocols.md": {
       "chunks": 1,
@@ -479,7 +479,7 @@
       "chunks": 2,
       "model": "haiku",
       "source_sha": "a8122dd2f1582287b41724e654600fb19d6d9a4904807194877a9b3f16e57ee5",
-      "translated_at": "2026-11-13T22:44:35Z"
+      "translated_at": "2026-11-13T23:38:05Z"
     },
     "user/templates/templates.md": {
       "chunks": 1,
@@ -497,7 +497,7 @@
       "chunks": 2,
       "model": "haiku",
       "source_sha": "3515d13a204ebf28acda6ccd575284c90a2ff377f34c7b8d33539c97492db63f",
-      "translated_at": "2026-11-13T22:45:43Z"
+      "translated_at": "2026-11-13T23:45:56Z"
     }
   }
 }

@@ -1,12 +1,12 @@
 ---
-label: Caché de prompts e identificador de sesión
+label: Caché de prompt e id de sesión
 order: 975
 icon: database
 ---
 
-# Caché de prompts e identificador de sesión
+# Caché de prompt e id de sesión
 
-Los servidores de modelos conservan el prompt que acaban de leer (la *caché de prompts*), para que la siguiente petición que empiece con el mismo texto no tenga que leerlo de nuevo. En una historia larga, esa diferencia va de esperar unos segundos a esperar minutos. Una caché solo ayuda mientras el nuevo prompt empiece igual que el anterior (véase [Por qué una caché puede no ayudar](#why-a-cache-may-not-help)). Marginalia también puede indicar al servidor **qué tipo de trabajo es una petición**, de modo que un servidor, o un proxy delante de él, pueda mantener una caché para cada tipo.
+Los servidores de modelos conservan el prompt que acaban de leer (la *caché de prompt*), de modo que la siguiente petición que empiece con el mismo texto no tenga que leerlo otra vez. En una historia larga, la diferencia es entre esperar unos segundos o esperar minutos. Una caché solo ayuda mientras el nuevo prompt empiece igual que el anterior (véase [Por qué una caché puede no ayudar](#why-a-cache-may-not-help)). Marginalia también puede indicar al servidor **qué tipo de trabajo es una petición**, de modo que un servidor, o un proxy delante de él, pueda mantener una caché para cada tipo.
 
 <a id="what-is-sent"></a>
 
@@ -18,73 +18,81 @@ Cada petición que Marginalia hace para un tipo de trabajo lleva la cabecera HTT
 X-Session-ID: 3f9a0c1d5b7e4a2c8d6f1e0b9a7c5d3e
 ```
 
-El valor es el mismo para el mismo usuario haciendo el mismo tipo de trabajo, sea cual sea el libro, y es distinto entre usuarios y entre tipos:
+El valor es el mismo para el mismo usuario haciendo el mismo tipo de trabajo, sea cual sea el libro, y difiere entre usuarios y entre tipos:
 
 | Tipo | Peticiones |
 |---|---|
 | generación | Una parte nueva, *Regenerar* y *Variante*: sus prompts comparten la historia, así que comparten el valor. |
-| impersonate | *Impersonate*. |
+| suplantación | *Suplantar*. |
 | anotación | *Anotar con IA* y la anotación automática; el segundo modelo del modo de dos etapas tiene un valor propio. |
 | reescritura | *Reescribir* y la reescritura de la anotación automática. |
 | resumen | Resúmenes. |
-| agente | Las peticiones de un [agente](agents.md); cada ejecución tiene un valor propio, porque hace crecer su propia conversación. |
+| agente | Las peticiones de un [agente](agents.md); cada ejecución tiene un valor propio, ya que crece su propia conversación. |
 | ayuda | El asistente de ayuda. |
-| plugins | Cada plugin tiene el suyo: *Reviewer*, *Side Query* (sus títulos de pestaña tienen otro), *Lore Generator*, *Arc Outline*, *Converter* y *Manga Generator*. |
+| plugins | Cada plugin tiene el suyo: *Revisor*, *Consulta lateral* (sus títulos de pestaña son otros), *Generador de lore*, *Esquema de arco*, *Conversor* y *Generador de manga*. |
 
 Las peticiones que no pertenecen a ningún tipo (listar los modelos, probar la conexión, contar tokens) no envían la cabecera.
 
-El valor es un hash con clave del usuario y del tipo (la clave viene de `secret.key` en la [carpeta de datos](administration/index.md#the-data-folder)). No revela ni al usuario ni al libro, nadie puede deducir a quién pertenece, y otra instalación da un valor distinto para el mismo usuario. Hay un valor por usuario y tipo, no uno por libro, así que un servidor nunca necesita mantener más cachés que esas.
+El valor es un hash con clave del usuario y del tipo (la clave procede de `secret.key` en la
+[carpeta de datos](administration/index.md#the-data-folder)). No revela ni al usuario ni al libro, nadie puede averiguar
+a quién pertenece, y otra instalación da otro valor para el mismo usuario. Hay un valor por usuario y tipo,
+no uno por libro, de modo que un servidor nunca tiene que mantener más cachés que esas.
 
-Todos los proveedores la envían: los compatibles con OpenAI, y los proveedores [Anthropic Claude](extensions/anthropic.md) y [Google Gemini](extensions/google-genai.md). Un servidor que no use la cabecera la ignora. No hay ningún ajuste para desactivarla.
+Todos los proveedores lo envían: los compatibles con OpenAI, y los proveedores [Anthropic Claude](extensions/anthropic.md) y
+[Google Gemini](extensions/google-genai.md). Un servidor que no usa la cabecera la ignora. No hay ninguna opción para desactivarlo.
 
 <a id="why-a-cache-may-not-help"></a>
 
 ## Por qué una caché puede no ayudar
 
-Un servidor reutiliza la parte de la caché en la que el nuevo prompt es igual al anterior **desde el primer token**; la primera diferencia pone fin a ese tramo, y todo lo que viene después se vuelve a leer, aunque buena parte no haya cambiado. Mire la línea de `llama-server` que aparece al empezar una petición:
+Un servidor reutiliza la parte de la caché en la que el nuevo prompt es igual al anterior **desde el primer token**; la primera diferencia pone fin a ello, y todo lo que viene después se vuelve a leer, por mucho que no haya cambiado. Mire la línea `llama-server` que se imprime al empezar una petición:
 
 ```
 selected slot by LCP similarity, sim_best = 0.163, f_keep = 0.151
 ```
 
-`f_keep` es la proporción del prompt en caché que la nueva petición conserva. Cerca de 1, la caché se usa; aquí solo se usa el 15 %, así que el prompt difiere del almacenado desde muy pronto, tanto si la caché se restauró desde disco como si nunca salió del slot.
+`f_keep` es la proporción del prompt en caché que la nueva petición conserva. Cerca de 1, la caché se usa; aquí solo se usa el 15 %, así que el prompt difiere del almacenado desde muy pronto, tanto si la caché se restauró desde disco como si nunca salió de la ranura.
 
-Los modelos con **ventana deslizante** (Gemma, por ejemplo) y los modelos híbridos no pueden eliminar el final de su caché y continuar desde la mitad. Según el código fuente de `llama.cpp`, `llama-server` solo puede continuar desde un prompt en caché cuando el nuevo prompt lo extiende exactamente, o cuando existe un **punto de control de contexto** en el lugar donde ambos difieren o antes. Crea puntos de control solo al inicio de los mensajes del usuario (separados al menos 8192 tokens) y poco antes del final del prompt, y los guarda en el archivo del slot (las líneas INFO `appended N context checkpoint(s)` y `restored N context checkpoint(s)` indican cuándo lo hace). Sin un punto de control utilizable, vuelve a leer el prompt completo, sin importar lo que diga `f_keep`, y solo lo informa en el nivel de traza (`-lv 4`: `forcing full prompt re-processing due to lack of cache data`). Por eso la historia de una generación, de una anotación y de una reescritura se envía como una cadena de mensajes, cada parte como una respuesta del modelo tras un mensaje del usuario: el último mensaje del usuario tiene un punto de control, que es donde la siguiente petición empieza a diferir, y una parte nueva solo añade mensajes al final. Para leer un prefill en frío en el registro: la primera línea `prompt processing, n_tokens = 4096` aparece aquí tras unos 7 s; si se hubiera reutilizado un prefijo, aparecería tras uno o dos segundos.
+Los modelos con **ventana deslizante** (Gemma, por ejemplo) y los modelos híbridos no pueden descartar el final de su caché y continuar desde la mitad. Según el código fuente de `llama.cpp`, `llama-server` solo puede continuar desde un prompt en caché cuando el nuevo prompt lo extiende exactamente, o cuando existe un **punto de control de contexto** en o antes del lugar donde difieren los dos. Crea puntos de control solo al inicio de los mensajes del usuario (separados al menos 8192 tokens) y poco antes del final del prompt, y los guarda en el archivo de la ranura (las líneas INFO `appended N context checkpoint(s)` y `restored N context checkpoint(s)` indican cuándo lo hace). Sin un punto de control utilizable, vuelve a leer todo el prompt, sea cual sea el `f_keep`, y solo lo informa en el nivel trace (`-lv 4`: `forcing full prompt re-processing due to lack of cache data`). Por eso la historia de una generación, de una anotación y de una reescritura se envía como una cadena de mensajes, cada parte como una respuesta del modelo tras un mensaje del usuario: el último mensaje del usuario recibe un punto de control, que es donde la siguiente petición empieza a diferir, y una parte nueva solo añade mensajes al final. Para leer un prefill en frío en el registro: la primera línea `prompt processing, n_tokens = 4096` aparece tras unos 7 s aquí; si se hubiera reutilizado un prefijo, aparecería en uno o dos segundos.
 
-El [prompt](books/prompts.md#how-the-prompt-is-put-together) empieza por el **mensaje de sistema**, y la historia va después, así que lo que haya en el mensaje de sistema debe mantenerse igual de una petición a otra. En la plantilla maestra predeterminada, el mensaje de sistema contiene, en este orden, el bloque de lore, los resúmenes y las notas del autor (anotaciones). Cuando cualquiera de ellos cambia entre dos peticiones, lo cual es habitual (el texto nuevo activa otras entradas de lore, se añade un resumen, se añade o se resuelve una nota), la caché solo es válida hasta ese punto y toda la historia que hay detrás se vuelve a leer. Las partes más antiguas salen primero del prompt cuando la historia ya no cabe, lo que desplaza el inicio de la historia una parte en cada turno. Lo que ayuda:
+El [prompt](books/prompts.md#how-the-prompt-is-put-together) empieza por el **mensaje de sistema**, y la historia viene después, así que lo que hay en el mensaje de sistema debe mantenerse igual de una petición a otra. En la plantilla maestra por defecto, el mensaje de sistema contiene, en este orden, el bloque de lore, los resúmenes y las notas del autor (anotaciones). Cuando cualquiera de ellos cambia entre dos peticiones, lo que es habitual (el nuevo texto activa otras entradas de lore, se añade un resumen, se añade o se resuelve una nota), la caché solo vale hasta ese punto y toda la historia que hay detrás se vuelve a leer. Las partes más antiguas salen del prompt primero cuando la historia ya no cabe, lo que desplaza el inicio de la historia una parte en cada turno. Lo que ayuda:
 
-- Dé a las entradas que cambian de una parte a otra el modo de inserción **Antes del prompt de usuario** ([Orden e inserción](lorebooks/entries.md#order-and-insertion)): se colocan al final del prompt, detrás de la historia, y no alteran la caché. Deje en el bloque de lore lo que siempre es cierto.
-- Saque de la plantilla maestra los bloques que no use (las notas del autor, por ejemplo, si no da notas al modelo), para que el mensaje de sistema no cambie.
-- Abra **Comparar prompt** en el menú de una parte para ver dónde termina la caché: compara el prompt de la parte con el de una parte anterior (por defecto, la más cercana; el cuadro enumera las partes anteriores a ella y sus variantes) y marca el primer mensaje que difiere. Véase [Comparar prompt](#compare-prompt).
+- Dé a las entradas que cambian de una parte a otra el modo de inserción **Antes del prompt de usuario**
+  ([Orden e inserción](lorebooks/entries.md#order-and-insertion)): pasan al final del prompt, detrás de la
+  historia, y no alteran la caché. Mantenga en el bloque de lore lo que siempre es verdad.
+- Deje fuera de la plantilla maestra los bloques que no use (las notas del autor, por ejemplo, si no da notas al modelo), de modo que el mensaje de sistema siga siendo el mismo.
+- Abra **Comparar prompt** en el menú de una parte para ver dónde termina la caché: compara el prompt de la parte con el de una parte anterior (la más cercana por defecto; el cuadro enumera las partes anteriores a ella y sus variantes) y marca el primer mensaje que difiere. Véase [Comparar prompt](#compare-prompt).
 
 <a id="compare-prompt"></a>
 
 ### Comparar prompt
 
-**Comparar prompt** en el menú de una parte (escritorio y teléfono) responde a la pregunta *¿por qué no se usó la caché para esta parte?* Enumera los mensajes de los dos prompts (el mensaje de sistema, luego un mensaje del usuario y una respuesta del modelo por cada parte, y después el mensaje del usuario del turno), con un estado para cada uno: igual, cambiado, añadido o eliminado. El primer mensaje que difiere aparece resaltado, y los siguientes se marcan como *Leído de nuevo*, porque un servidor vuelve a leer todo lo que va después de la primera diferencia. Encima de la tabla:
+**Comparar prompt** en el menú de una parte (escritorio y teléfono) responde a *¿por qué no se usó la caché para esta parte?* Enumera los mensajes de los dos prompts (el mensaje de sistema, y luego un mensaje del usuario y una respuesta del modelo por cada parte, más el mensaje del usuario del turno) con un estado para cada uno: igual, cambiado, añadido o eliminado. El primer mensaje que difiere aparece resaltado y los siguientes se marcan como *Leído de nuevo*, porque un servidor vuelve a leer todo lo que va después de la primera diferencia. Encima de la tabla:
 
 - dónde está la primera diferencia (mensaje y carácter) y qué parte del prompt es igual desde el principio, en caracteres y aproximadamente en tokens;
-- una interpretación de la diferencia: el **mensaje de sistema** difiere (el jailbreak, la plantilla, el lore, los resúmenes o las notas cambiaron entre las dos peticiones: la causa habitual), una parte **en medio de la historia** difiere (se editó, se regeneró o se reemplazó por un resumen), el **inicio de la historia se movió** (las partes más antiguas se dejaron fuera o se resumieron), o la diferencia es solo el **último mensaje del prompt anterior**, el mensaje del usuario de ese turno, que la historia no repite. Este último caso es lo máximo que puede reutilizar una parte siguiente o una variante; si el servidor aun así no usó su caché, la causa no es el prompt (revise el slot, el modelo y el identificador de sesión).
+- una lectura de la diferencia: el **mensaje de sistema** difiere (el jailbreak, la plantilla, el lore, los resúmenes o las notas cambiaron entre las dos peticiones: la causa habitual), una parte **en medio de la historia** difiere (se editó, se regeneró o se sustituyó por un resumen), el **inicio de la historia se desplazó** (las partes más antiguas se dejaron fuera o se resumieron), o la diferencia es solo el **último mensaje del prompt anterior**, el mensaje del usuario de ese turno, que la historia no repite. Este último caso es lo máximo que puede reutilizar una parte siguiente o una variante; si el servidor aun así no usó su caché, la causa no es el prompt (revise la ranura, el modelo y el id de sesión).
 
-Al seleccionar un mensaje se muestran los dos textos uno al lado del otro, desde poco antes de la primera diferencia. Solo se comparan los mensajes: el modelo, las herramientas de la petición y el slot del servidor no forman parte del prompt guardado. La parte necesita un prompt guardado (las partes escritas por el autor y las generadas antes de que se guardaran los prompts no tienen).
+Al seleccionar un mensaje se muestran los dos textos uno al lado del otro, desde justo antes de la primera diferencia. Solo se comparan los mensajes: el modelo, las herramientas de la petición y la ranura del servidor no forman parte del prompt guardado. La parte necesita un prompt guardado (las partes escritas por el autor y las generadas antes de que se guardaran los prompts no lo tienen).
 
-Los tipos de petición que se indican a continuación importan para lo que se conserva al cambiar entre ellos; el prompt decide cuánto de ello se usa.
+Los tipos de petición que aparecen a continuación importan para lo que se conserva al cambiar entre ellos; el prompt decide cuánto de ello se usa.
 <a id="using-it-one-slot-on-disk-with-llamacpp"></a>
 
-## Uso: una sola ranura en disco con llama.cpp
+## Uso con una sola ranura en disco con llama.cpp
 
 El valor es para ti si el servidor se queda sin memoria para las cachés. Un `llama-server` local con memoria suficiente para varias
-ranuras puede mantener una caché para cada tipo de trabajo y no necesita nada más. Con memoria para **una** ranura, cualquier
-otro tipo de trabajo tira la caché de la historia: la anotación de una parte, la reescritura posterior y la siguiente generación
-vuelven a leer sus prompts cada vez.
+ranuras puede mantener una caché para cada tipo de trabajo y no necesita nada más. Con memoria para **una** sola ranura, cada
+otro tipo de trabajo descarta la caché de la historia: la anotación de una parte, la reescritura posterior y la siguiente
+generación vuelven a leer sus prompts cada vez.
 
-La salida consiste en guardar la caché de cada tipo en disco y cargarla en la única ranura cuando llega una petición de ese tipo.
-`llama-server` puede guardar una ranura en un archivo y restaurarla; un proxy delante de él sabe de qué tipo es una petición por la
-cabecera. El ejemplo de abajo es un enganche para [LiteLLM](https://docs.litellm.ai/).
+La solución consiste en guardar la caché de cada tipo en disco e intercambiarla en la única ranura cuando llega una petición de
+ese tipo. `llama-server` puede guardar una ranura en un archivo y restaurarla; un proxy delante de él sabe de qué tipo es cada
+petición por la cabecera. El ejemplo siguiente es un gancho para [LiteLLM](https://docs.litellm.ai/).
 
-**Requisito:** un `llama-server` de 2026-10-08 o posterior (llama.cpp PR #26004, *preserve context checkpoints across
-slot save/restore*). Uno anterior escribe y restaura la memoria de la ranura pero no sus [puntos de control de contexto](#why-a-cache-may-not-help), así que un modelo con ventana deslizante (Gemma, por ejemplo) o un modelo híbrido vuelve a leer el prompt entero después de cada restauración, por mucho que no haya cambiado. Comprueba la versión con `llama-server --version`;
-una imagen de contenedor con una etiqueta móvil (`full`, `server`...) no se actualiza hasta que la descargas.
+**Requisito:** un `llama-server` de 8 de octubre de 2026 o posterior (llama.cpp PR #26004, *preserve context checkpoints across
+slot save/restore*). Una versión anterior escribe y restaura la memoria de la ranura, pero no sus [puntos de control de
+contexto](#why-a-cache-may-not-help), de modo que un modelo con ventana deslizante (Gemma, por ejemplo) o híbrido vuelve a leer el prompt
+completo después de cada restauración, por mucho que no haya cambiado. Comprueba la versión con `llama-server --version`;
+una imagen de contenedor con una etiqueta móvil (`full`, `server`...) no se actualiza hasta que la descargues.
 
 Arranca `llama-server` con una ranura y una carpeta para los archivos:
 
@@ -489,9 +497,9 @@ class SlotCacheHook(CustomLogger):
 proxy_handler_instance = SlotCacheHook()
 ```
 
-y actívalo en el `config.yaml` de LiteLLM: el callback, y `slot_cache` en el `model_info` de la ruta que va al
-`llama-server`. Una entrada comodín basta; no hace falta listar ningún modelo en LiteLLM (el servidor los conoce y
-el cliente nombra el que quiere):
+y actívalo en LiteLLM `config.yaml`: el callback, y `slot_cache` en el `model_info` de la ruta que va
+al `llama-server`. Basta con una entrada comodín; no hace falta listar ningún modelo en LiteLLM (el servidor los conoce, y el cliente
+pide el que quiere):
 
 ```yaml
 model_list:
@@ -509,116 +517,114 @@ litellm_settings:
   callbacks: slot_cache.proxy_handler_instance
 ```
 
-El enganche no necesita dirección propia: usa el `api_base` y el `api_key` de la ruta a la que va la petición (las
-ranuras están en la raíz del servidor, así que se quita un `/v1` final). Solo se tocan las rutas con `slot_cache`; una petición
+El gancho no necesita dirección propia: usa la `api_base` y la `api_key` de la ruta a la que va la petición (las
+ranuras están en la raíz del servidor, así que se descarta una `/v1` final). Solo se tocan las rutas con `slot_cache`; una petición
 para cualquier otro modelo, uno en la nube por ejemplo, pasa sin cambios aunque lleve la cabecera. Varios servidores
-funcionan a la vez, cada uno con su propia ranura. Con el comodín, la ruta es el modelo que pidió el cliente, así que los archivos se
-guardan por modelo (`qwen3-32b`), y aun así puedes listar algunos modelos por nombre junto a él si necesitan otros ajustes. LiteLLM toma la parte de un nombre de modelo anterior a un `/` como proveedor, así que para nombres que contienen uno (`org/model`, como en un preset del router) usa la ruta
-`model_name: "openai/*"` y da a Marginalia el modelo como `openai/org/model`: el enganche quita el `openai/`, y los
-archivos y las llamadas a las ranuras usan el nombre que conoce el servidor. Las
-rutas y su `model_info` salen de `model_list`: un proxy arrancado sin una (solo con `litellm --model ...`) no tiene
-ninguna, y el enganche no hace nada allí. La entrada comodín única es el reemplazo.
+funcionan a la vez, cada uno con su propia ranura. Con el comodín, la ruta es el modelo que pidió el cliente, así que los archivos
+se guardan por modelo (`qwen3-32b`), y aun así puedes listar algunos modelos por nombre junto a él si necesitan otros ajustes. LiteLLM toma
+la parte de un nombre de modelo que va antes de una `/` como proveedor, así que para nombres que contienen una (`org/model`, como en un preset
+del router) usa la ruta `model_name: "openai/*"` y da a Marginalia el modelo como `openai/org/model`: el gancho quita la `openai/`, y los
+archivos y las llamadas a la ranura usan el nombre que conoce el servidor. Las rutas y su `model_info` vienen de la `model_list`: un proxy
+arrancado sin una (solo `litellm --model ...`) no tiene ninguna, y el gancho no hace nada allí. La entrada comodín única es el reemplazo.
 
-**`llama-server` en modo router** (muchos modelos tras una dirección, cargados bajo demanda) funciona: cada modelo es una instancia
-propia con sus propias ranuras, así que el enganche guarda el estado por servidor, modelo y ranura, y nombra el modelo en el cuerpo
-de sus llamadas a las ranuras (el nombre que usó el cliente, sin el `openai/` de LiteLLM; el ajuste `model` da otro, para una
-ruta cuyo nombre no es el modelo). Necesita un llama.cpp de febrero de 2026 o posterior, que reenvía `/slots` a la
+**`llama-server` en modo router** (muchos modelos detrás de una dirección, cargados bajo demanda) funciona: cada modelo es una instancia
+propia con sus propias ranuras, así que el gancho mantiene el estado por servidor, modelo y ranura, y nombra el modelo en el cuerpo
+de sus llamadas a la ranura (el nombre que usó el cliente, sin la `openai/` de LiteLLM; el ajuste `model` da otro, para una
+ruta cuyo nombre no es el del modelo). Necesita un llama.cpp de febrero de 2026 o posterior, que reenvía `/slots` a la
 instancia (antes respondía `400 Invalid action`).
 
 Cuando el router puede tener cargados solo algunos de sus modelos (`--models-max`, 4 por defecto), pedir otro hace que
-descargue el modelo usado hace más tiempo, y la ranura de ese modelo, con la caché dentro, desaparece. El enganche sigue el mismo
-orden (pon `models_max` en `slot_cache`, o `LLAMA_MODELS_MAX`, con el mismo número que `--models-max`; 0 para sin límite)
-y guarda esa ranura **antes** de la petición que hace que el router la descargue. Para eso el proxy debe ser el único cliente
-del router: una petición que llegue por otro camino no se ve. Un guardado nunca carga un modelo que el router ha descargado.
-Lo que hace: la caché de una historia se escribe en disco **cuando la ranura hace falta para otra** (una petición de
-otro tipo, otro modelo, o el router descargando el modelo), no después de cada petición: escribir 3 GB tras cada
-generación solo ralentizaría el servidor. Así, un archivo aparece tras el primer cambio; por ejemplo, generar, anotar,
-generar: la anotación guarda primero la generación. Con `save_idle_seconds` en `slot_cache` (o
-`LLAMA_SAVE_IDLE_SECONDS`) la caché también se escribe cuando no llega ninguna petición durante ese tiempo, así la carpeta la
-tiene poco después de que dejes de trabajar; una petición reinicia la espera, y una caché que ya está en disco no se vuelve a
-escribir en el siguiente cambio. El enganche envía un guardado, una restauración o un borrado solo cuando la ranura está libre (consulta
-`GET /slots`, `is_processing`; sin ese endpoint lo envía de inmediato): `llama-server` retiene una llamada de ese tipo mientras
-corre una petición y libera solo una retenida cada vez que termina una petición, así que una petición de otro cliente que llegó
-detrás podría esperar allí para siempre. El servidor no hace nada más mientras escribe un guardado.
+descargue el modelo usado hace más tiempo, y la ranura de ese modelo, con la caché dentro, desaparece. El gancho sigue el mismo
+orden (pon `models_max` en `slot_cache`, o `LLAMA_MODELS_MAX`, con el mismo número que `--models-max`; 0 para no poner límite)
+y guarda esa ranura **antes** de la petición que hace que el router la descargue. Para ello el proxy debe ser el único cliente
+del router: una petición que llegue por otro camino no se ve. Un guardado nunca carga un modelo que el router haya descargado.
+Lo que hace: la caché de una sesión se escribe en disco **cuando la ranura hace falta para otra** (una petición de
+otro tipo, otro modelo, o el router descargando el modelo), no después de cada petición: escribir 3 GB tras cada generación
+solo ralentizaría el servidor. Así que un archivo aparece tras el primer cambio, por ejemplo generar, anotar,
+generar: la anotación guarda primero la generación. Con `save_idle_seconds` en la `slot_cache` (o
+`LLAMA_SAVE_IDLE_SECONDS`) la caché también se escribe cuando no llega ninguna petición durante ese tiempo, de modo que la carpeta la tiene poco
+después de que dejes de trabajar; una petición reinicia la espera, y una caché que ya está en disco no se vuelve a escribir en el siguiente
+cambio. El gancho envía un guardado, una restauración o un borrado solo cuando la ranura está inactiva (pregunta `GET /slots`, `is_processing`; sin
+ese endpoint, envía de inmediato): `llama-server` aparca esa llamada mientras corre una petición y libera solo una llamada aparcada
+cada vez que termina una petición, así que una petición de otro cliente que llegara detrás podría esperar allí para siempre. El servidor
+no hace nada más mientras una escritura de guardado está en curso.
 
-Los detalles: cuando llega una petición de otra historia distinta a la que está en la ranura, el enganche guarda la ranura con el
-nombre de la historia que estaba dentro, restaura el archivo de la nueva (o vacía la ranura si todavía no hay archivo),
-y deja seguir la petición. Los archivos se guardan **por ruta** (el `model_name`): un estado guardado solo encaja con el modelo que
-lo escribió, así que el archivo lleva el nombre de la ruta y de la historia, y dos rutas nunca comparten uno, aunque usen el
-mismo servidor y carpeta. El servidor luego solo lee lo que difiere del prompt restaurado. Una caché que no se puede
-restaurar, un archivo que ya no está o un servidor que no responde solo significa que el prompt se vuelve a leer; la petición
-en sí nunca falla por culpa del enganche.
+Los detalles: cuando llega una petición de una sesión distinta a la que está en la ranura, el gancho guarda la ranura con el
+nombre de la sesión que estaba en ella, restaura el archivo de la nueva (o vacía la ranura si aún no hay archivo),
+y deja seguir la petición. Los archivos se guardan **por ruta** (la `model_name`): un estado guardado solo encaja con el modelo que
+lo escribió, así que el archivo lleva el nombre de la ruta y de la sesión, y dos rutas nunca comparten uno, aunque usen el mismo
+servidor y la misma carpeta. El servidor entonces solo lee lo que difiere del prompt restaurado. Una caché que no se puede
+restaurar, un archivo que ya no existe o un servidor que no responde solo significa que el prompt se vuelve a leer; la petición
+en sí nunca falla por culpa del gancho.
 
 Cosas que conviene saber:
 
-- **Tamaño.** Un archivo contiene la memoria de la ranura **y sus puntos de control de contexto**, así que ocupa lo que ambos
-  juntos: para una historia larga y un modelo grande, cientos de megabytes a varios gigabytes. Un ejemplo medido: un modelo de 31 B con un
-  prompt de 18.000 tokens generó archivos de 1,3 a 11 GB, el mayor con unos 18 puntos de control de unos 450 MB cada uno además de
-  unos 1,5 GB de caché. Un servidor guarda hasta 32 puntos de control por defecto, y cada cambio escribe y lee todos. 
-  `--ctx-checkpoints N` de `llama-server` lo limita, lo que hace los archivos más pequeños y los cambios más cortos, pero un punto de control
-  ayuda solo cuando el siguiente prompt difiere por primera vez de la caché en él o justo después. Una parte nueva o un swipe difieren
-  al inicio del último mensaje del usuario (el punto de control más reciente), mientras que una anotación o una reescritura puede
-  cambiar una parte varias partes atrás, así que conserva tantos puntos de control como alcance la historia (mira las líneas `prompt:`
-  del enganche, indican dónde difiere cada petición). Hay un archivo por ruta, usuario y tipo, y cada uno se sobrescribe en su sitio,
-  así que la carpeta se queda así de pequeña.
-- **Velocidad.** Comprueba que un cambio es más rápido que leer el prompt (el enganche registra el tamaño y el tiempo de cada guardado
-  y restauración). El ejemplo de arriba, en un disco NVMe con una AMD Radeon AI PRO R9700: guardar 11 GB tardó 6 s y restaurar
-  7,6 GB para 20.000 tokens, 8 s; unos 14 s por cambio, mientras que volver a leer un prompt de esa longitud tarda unos 45 s
-  a 440 tokens por segundo, y el prefill crece con el prompt. Sin puntos de control, esos mismos archivos ocupaban unos 1 GB y
-  un cambio tardaba 5 s.
+- **Tamaño.** Un archivo contiene la memoria de la ranura **y sus puntos de control de contexto**, así que ocupa lo que ambos juntos:
+  para una historia larga y un modelo grande, desde cientos de megabytes hasta varios gigabytes. Un ejemplo medido: un modelo de 31 B con un
+  prompt de 18.000 tokens generó archivos de 1,3 a 11 GB, el mayor con unos 18 puntos de control de unos 450 MB cada uno, además de
+  unos 1,5 GB de caché. Un servidor guarda hasta 32 puntos de control por defecto, y cada intercambio escribe y lee todos. `--ctx-checkpoints N` de `llama-server`
+  lo limita, lo que reduce los archivos y acorta los intercambios, pero un punto de control solo ayuda cuando el siguiente prompt
+  difiere por primera vez de la caché en él o justo después. Una parte nueva o un swipe difieren al inicio del último mensaje del usuario (el
+  punto de control más reciente), mientras que una anotación o una reescritura puede cambiar una parte varias atrás, así que conserva tantos
+  puntos de control como alcance la historia (mira las líneas `prompt:` del gancho, que indican dónde difiere cada petición). Hay un archivo por
+  ruta, usuario y tipo, y cada uno se sobrescribe en su sitio, así que la carpeta se mantiene igual de pequeña.
+- **Velocidad.** Comprueba que un intercambio es más rápido que leer el prompt (el gancho registra el tamaño y el tiempo de cada
+  guardado y restauración). El ejemplo anterior, en un disco NVMe con una AMD Radeon AI PRO R9700: un guardado de 11 GB tardó 6 s y una
+  restauración de 7,6 GB para 20.000 tokens 8 s, unos 14 s por intercambio, mientras que volver a leer un prompt de esa longitud tarda unos
+  45 s a 440 tokens por segundo, y el prefill crece con el prompt. Sin puntos de control, los mismos archivos ocupaban unos 1 GB y un
+  intercambio tardaba 5 s.
 - **Memoria.** Los puntos de control de la ranura se guardan en la **memoria del sistema** del servidor (no en la memoria de la GPU),
-  hasta `--ctx-checkpoints` de ellos (32 por defecto, cientos de megabytes cada uno para un modelo grande), y un guardado o una
-  restauración lee o escribe todos. `llama-server` también guarda los prompts de las ranuras que ha dejado en una caché de memoria
-  propia (`--cache-ram`, 8 GiB por defecto); los archivos del enganche hacen el mismo trabajo, así que puede ponerse a 0 en una máquina
-  con poca memoria. Cuando la máquina empieza a usar la swap, los guardados y restauraciones se vuelven varias veces más lentos, porque
-  los puntos de control hay que leerlos primero desde la swap: mira `free -h` antes que el disco.
+  hasta `--ctx-checkpoints` (32 por defecto, cientos de megabytes cada uno en un modelo grande), y un guardado o una
+  restauración lee o escribe todos. `llama-server` también conserva los prompts de las ranuras que ha liberado en una caché de memoria
+  propia (`--cache-ram`, 8 GiB por defecto); los archivos del gancho hacen el mismo trabajo, así que puede ponerse a 0 en una máquina
+  con poca memoria. Cuando la máquina empieza a usar el swap, los guardados y restauraciones se vuelven varias veces más lentos, porque
+  los puntos de control hay que leerlos primero desde el swap: mira `free -h` antes que el disco.
 - **Límites.** Sin límite, la carpeta crece con el número de rutas, usuarios y tipos. Pon `max_files` (un número de
-  archivos) y/o `max_gib` (su tamaño total) en el `slot_cache` de una ruta (o `LLAMA_CACHE_MAX_FILES` y
-  `LLAMA_CACHE_MAX_GIB` en el entorno del proxy para todas las rutas) y el enganche borra, tras cada guardado, las cachés **de esa ruta**
-  que hace más tiempo que se **usaron**: restaurar una caché cuenta como usarla. Nunca borra la caché que acaba de guardar ni la que
-  está a punto de restaurar (así que una ruta con dos historias alternas conserva al menos dos archivos, pase lo que pase con el límite),
-  y solo toca los archivos de la ruta, así que las otras rutas y los demás archivos de la carpeta están a salvo. Una sola caché mayor que
-  `max_gib` se conserva (con un aviso en el registro).
-  Borrar necesita la carpeta: pon `save_path` (o `LLAMA_SLOT_SAVE_PATH`) en la carpeta de `--slot-save-path` tal como la ve el proxy;
-  con `llama-server` en un contenedor, es un volumen que montan ambos contenedores. Sin eso no se borra nada. Una caché borrada solo
-  significa que su historia vuelve a leer su prompt una vez. Los límites son opcionales: un trabajo cron en el host
-  hace lo mismo si no necesitas un tope de tamaño, por ejemplo `find /srv/ai/slots -name '*.bin' -mtime +2 -delete`
-  (una caché en uso se vuelve a guardar cada vez que su historia sale de la ranura, así que su antigüedad empieza de nuevo). Los archivos
-  borrados desde fuera no afectan al enganche; uno que falte es un fallo de caché.
-- **Tras cambiar el modelo de una ruta**, borra sus archivos de la carpeta (sus nombres empiezan por la ruta): un estado guardado
-  con otros pesos no sirve para el modelo nuevo.
-- **Cada cambio cuesta un guardado y una restauración.** Con la [anotación automática](books/annotations.md) activada, a una parte le siguen una
-  anotación y una reescritura, así que un turno puede cambiar de ranura tres o cuatro veces. Mide un turno antes de confiar en él.
-- **Un reinicio del proxy** olvida qué historia está en la ranura: la primera petición después restaura su archivo sobre la ranura,
-  y lo que tenía la ranura se pierde.
-- **Un modelo que el router descargó sin que el enganche lo supiera** (un `models_max` incorrecto, otro cliente) deja la ranura
-  vacía mientras el enganche sigue creyendo que la última historia está dentro. Una petición de la misma historia simplemente vuelve
-  a leer su prompt; una petición de otra historia guarda antes la ranura vacía sobre el archivo de esa historia, así que también se pierde
-  su caché. Ambos casos solo cuestan un prefill.
-- **`llama-server` no registra un guardado o una restauración simples** (sí registra los puntos de control de contexto que añade o
-  restaura, y los errores). Lo que hizo está en su respuesta, y el registro del proxy (con `LITELLM_LOG=INFO`) lo tiene, con una línea por
-  cada llamada que hace el enganche, por ejemplo `slot_cache: https://… restore <file> (openai/model): ok (21920 tokens, 2580 MB,
-  3.1 s)`, `… save <file> …: ok (…)` o `… restore … miss (400)`; el fallo de la
-  primera petición de una historia es normal (llama-server lo registra como "Unable to restore slot, no available space in KV
-  cache or invalid slot save file"). Los problemas reales son avisos: un certificado que no coincide con la dirección, una clave de API
-  rechazada, un servidor que no responde.
-- **Dónde difiere el prompt.** Para cada petición posterior a la primera de una historia, el registro tiene una línea que dice hasta dónde
-  es igual el prompt al último de esa historia, por ejemplo `slot_cache: <route>_<session> prompt: 14 messages, the last
-  one had 12: the first 11 are the same, message 12 (user) is the same for its first 2150 of 9031 characters`. Un servidor solo puede
-  reutilizar su caché hasta ahí (un mensaje son unos tres o cuatro caracteres por token), así que esta es la línea que leer cuando una segunda
-  petición vuelve a leer casi todo: el mensaje que nombra es aquel cuyo inicio cambió. La línea también compara el último mensaje de
-  los dos prompts, que contiene lo que cambia (el lore, la parte, la tarea): cuando la historia creció en una parte, el antiguo último
-  mensaje ya no está en el mismo lugar, y el número de caracteres que comparten los dos últimos mensajes indica hasta qué punto el lore, por ejemplo, es igual en ambos.
-- **Si no pasa nada**, mira el registro del proxy (`docker logs litellm-proxy 2>&1 | grep slot_cache`): con el enganche en marcha hay una
-  línea por cada llamada, y una petición de Marginalia para una ruta sin `slot_cache` se informa una vez
-  (`not used for <route>: no model_info.slot_cache`). Si no hay ninguna línea `slot_cache`, el enganche no se ejecutó: el contenedor
-  todavía tiene un archivo o una configuración antiguos. Un único archivo montado en un contenedor (`./slot_cache.py:/app/slot_cache.py`)
+  archivos) y/o `max_gib` (su tamaño total) en la `slot_cache` de una ruta (o `LLAMA_CACHE_MAX_FILES` y
+  `LLAMA_CACHE_MAX_GIB` en el entorno del proxy para todas las rutas), y el gancho borra, tras cada guardado, las cachés **de esa ruta**
+  que se **usaron** hace más tiempo: restaurar una caché cuenta como usarla. Nunca borra la caché que acaba de guardar ni la que va a
+  restaurar (así que una ruta con dos sesiones alternas conserva al menos dos archivos, sea cual sea el límite), y solo toca los archivos
+  de la ruta, así que las demás rutas y los demás archivos de la carpeta están a salvo. Una caché única mayor que `max_gib` se conserva (con una advertencia en el registro).
+  Para borrar hace falta la carpeta: pon `save_path` (o `LLAMA_SLOT_SAVE_PATH`) con la carpeta `--slot-save-path` tal como la ve el proxy; con
+  `llama-server` en un contenedor, eso es un volumen que montan ambos contenedores. Sin ello no se borra nada. Una caché borrada
+  solo significa que su sesión vuelve a leer su prompt una vez. Los límites son opcionales: un trabajo cron en el host
+  sirve igual si no necesitas un tope de tamaño, por ejemplo `find /srv/ai/slots -name '*.bin' -mtime +2 -delete`
+  (una caché que está en uso se vuelve a guardar cada vez que su sesión sale de la ranura, así que su antigüedad empieza de nuevo). Los archivos
+  borrados desde fuera no afectan al gancho; uno que falta es un fallo de caché.
+- **Tras cambiar el modelo de una ruta**, borra sus archivos de la carpeta (sus nombres empiezan por la ruta): un estado guardado con otros
+  pesos no encaja con el modelo nuevo.
+- **Cada cambio cuesta un guardado y una restauración.** Con [anotación automática](books/annotations.md) activada, a una parte le siguen una anotación y una
+  reescritura, así que un turno puede hacer tres o cuatro intercambios. Mide un turno antes de confiar en él.
+- **Un reinicio del proxy** olvida qué sesión hay en la ranura: la primera petición tras él restaura su archivo sobre la ranura, y lo que
+  tenía la ranura se pierde.
+- **Un modelo que el router descargó sin que el gancho lo supiera** (un `models_max` erróneo, otro cliente) deja una ranura vacía
+  mientras el gancho sigue creyendo que la última sesión está en ella. Una petición de la misma sesión simplemente vuelve a leer su prompt;
+  una petición de otra sesión guarda antes la ranura vacía sobre el archivo de esa sesión, así que también se pierde su caché. Ambos casos solo
+  cuestan un prefill.
+- **`llama-server` no registra un guardado o una restauración simples** (registra los puntos de control de contexto que añade o restaura, y los
+  errores). Lo que hizo está en su respuesta, y el registro del proxy (con `LITELLM_LOG=INFO`) lo tiene, con una línea por cada
+  llamada que hace el gancho, por ejemplo `slot_cache: https://… restore <file> (openai/model): ok (21920 tokens, 2580 MB,
+  3.1 s)`, `… save <file> …: ok (…)` or `… restore … miss (400)`; el fallo de
+  la primera petición de una sesión es normal (llama-server lo registra como "Unable to restore slot, no available space in KV
+  cache or invalid slot save file"). Los problemas reales son advertencias: un certificado que no coincide con la dirección, una
+  clave de api rechazada, un servidor que no responde.
+- **Dónde difiere el prompt.** Para cada petición posterior a la primera de una sesión, el registro tiene una línea que indica hasta dónde es igual
+  el prompt que el último de esa sesión, por ejemplo `slot_cache: <route>_<session> prompt: 14 messages, the last
+  one had 12: the first 11 are the same, message 12 (user) is the same for its first 2150 of 9031 characters`. Un servidor solo puede reutilizar
+  su caché hasta ahí (un mensaje equivale a unos tres o cuatro caracteres por token), así que esta es la línea que hay que leer cuando una segunda
+  petición vuelve a leer casi todo: el mensaje que nombra es aquel cuyo inicio cambió. La línea también compara el último mensaje de los dos prompts,
+  que contiene lo que cambia (el lore, la parte, la tarea): cuando la historia creció una parte, el antiguo último mensaje ya no está en el mismo sitio, y
+  el número de caracteres que comparten los dos últimos mensajes indica hasta dónde, por ejemplo, el lore es igual en ambos.
+- **Si no pasa nada**, mira el registro del proxy (`docker logs litellm-proxy 2>&1 | grep slot_cache`): con el
+  gancho funcionando hay una línea por cada llamada, y una petición de Marginalia para una ruta sin `slot_cache` se informa
+  una vez (`not used for <route>: no model_info.slot_cache`). Si no aparece ninguna línea `slot_cache`, el gancho no se ejecutó: el
+  contenedor aún tiene un archivo o una configuración antiguos. Un único archivo montado en un contenedor (`./slot_cache.py:/app/slot_cache.py`)
   sigue mostrando la versión que tenía cuando se creó el contenedor si un editor reemplazó el archivo; `docker compose up -d
-  --force-recreate` carga el nuevo (un simple reinicio no). `docker exec litellm-proxy grep -c save_idle_seconds
+  --force-recreate` picks the new one up (a plain restart does not). `docker exec litellm-proxy grep -c save_idle_seconds
   /app/slot_cache.py` imprime 0 para un archivo demasiado antiguo.
 - **En Docker** el proxy y `llama-server` son dos contenedores, así que la carpeta de `--slot-save-path` es un directorio del
-  host que ambos montan (el proxy necesita escribir allí: borra los archivos viejos y renueva la antigüedad de los usados), el
-  archivo del enganche va junto a la configuración de LiteLLM, y `api_base` es una dirección que el proxy puede alcanzar, con el nombre de host
+  host que ambos montan (el proxy necesita escribir ahí: borra los archivos viejos y renueva la antigüedad de los usados), el
+  archivo del gancho va junto a la configuración de LiteLLM, y `api_base` es una dirección que el proxy puede alcanzar, con el nombre de host
   del certificado cuando el servidor usa TLS:
 
   ```yaml
@@ -631,16 +637,16 @@ Cosas que conviene saber:
   ```
 
   con `save_path: /slots` y `models_max: 1` en el `slot_cache` de la ruta.
-- El enganche usa `CustomLogger.async_pre_call_deployment_hook`, que LiteLLM llama después de elegir el despliegue y
-  antes de enviar la petición (la versión 1.106.5 se comprobó con un router real y un servidor de sustitución); compruébalo con la
-  versión que ejecutas. Un proxy que cambia de modelo tras una misma dirección reiniciando un único servidor (llama-swap) no
-  está soportado: las llamadas a las ranuras llegarían al modelo que esté cargado. Nada de esto se ejecutó contra un router `llama-server`
-  real; las pruebas usan un sustituto que comprueba las llamadas que hace el enganche.
+- El gancho usa `CustomLogger.async_pre_call_deployment_hook`, que LiteLLM llama después de elegir el despliegue y
+  antes de enviar la petición (la versión 1.106.5 se probó con un router real y un servidor de sustitución); compruébalo con la
+  versión que uses. Un proxy que cambia de modelo detrás de una dirección reiniciando un único servidor (llama-swap) no está
+  soportado: las llamadas a la ranura llegarían al modelo que esté cargado. Nada de esto se ha ejecutado contra un `llama-server`
+  real; las pruebas usan un sustituto que comprueba las llamadas que hace el gancho.
 <a id="freeing-the-gpu-for-another-model"></a>
 
 ## Liberar la GPU para otro modelo
 
-Una GPU que tiene cargado el modelo de lenguaje no tiene espacio para un modelo de imagen o de voz junto a él. Con `llama-server` en modo router, un segundo hook puede descargar los modelos cuando se le pide. Así, un plugin que necesita la GPU (el [Generador de imágenes](extensions/image-generator.md#one-gpu-for-the-model-and-the-images), el Audiobook) la pide con una petición al proxy, usando la misma clave que emplea para todo lo demás:
+Una GPU que aloja el modelo de lenguaje no tiene espacio para un modelo de imagen o de voz junto a él. Con `llama-server` en modo router, un segundo hook puede descargar los modelos bajo petición, así que un plugin que necesita la GPU (el [Image Generator](extensions/image-generator.md#one-gpu-for-the-model-and-the-images), el Audiobook) la solicita mediante una petición al proxy, con la misma clave que usa para todo lo demás:
 
 ```sh
 curl http://litellm:4000/v1/chat/completions \
@@ -650,9 +656,9 @@ curl http://litellm:4000/v1/chat/completions \
   -d '{"model": "qwen3-32b", "messages": [{"role": "user", "content": "unload"}]}'
 ```
 
-Una petición con la cabecera `X-Llama-Unload` la responde el propio hook (HTTP 200, con el texto `unloaded: <names>`) y nunca llega a un modelo. El hook lista los modelos del router (`GET /models`), descarga los que están cargados (`POST /models/unload` con el nombre) y espera hasta que el router informa de que ninguno ocupa ya memoria (`loaded`, `loading` y `unloading` retienen la memoria), como máximo `LLAMA_UNLOAD_WAIT_SECONDS` (120). Si no se puede contactar con el servidor, si responde con un error, o si los modelos siguen ahí tras la espera, la respuesta es un error (HTTP 502). Así, un plugin que envía esto como su petición *antes* no arranca el otro modelo en una GPU llena. El modelo vuelve solo: la siguiente petición normal hace que el router lo cargue, por lo que la petición *después* de un plugin puede estar vacía para el modelo de lenguaje. El nombre del modelo en el cuerpo solo tiene que ser uno que acepte alguna ruta (con la ruta `openai/*` empieza por `openai/`, por ejemplo `openai/unload`); lo que cuenta es la cabecera. Un nombre que ninguna ruta acepta recibe un 400 *después* de que los modelos se hayan descargado, porque el hook se ejecuta antes de que LiteLLM mire el nombre. La descarga llega a todos los servidores cuya ruta tenga `unload`, no a un solo modelo.
+Una petición con la cabecera `X-Llama-Unload` la responde el propio hook (HTTP 200, con el texto `unloaded: <names>`) y nunca llega a un modelo. El hook lista los modelos del router (`GET /models`), descarga los que están cargados (`POST /models/unload` con el nombre) y espera hasta que el router informa de que ninguno está ya en memoria (`loaded`, `loading` y `unloading` indican la memoria), como máximo `LLAMA_UNLOAD_WAIT_SECONDS` (120). Si no se puede contactar con el servidor, responde con un error, o si los modelos siguen ahí tras la espera, la respuesta es un error (HTTP 502), de modo que un plugin que envía esto como su petición *before* no arranca el otro modelo en una GPU llena. El modelo vuelve por sí solo: la siguiente petición normal hace que el router lo cargue de nuevo, así que la petición *after* de un plugin puede estar vacía para el modelo de lenguaje. El nombre del modelo en el cuerpo solo tiene que ser uno que acepte alguna ruta (con la ruta `openai/*` empieza por `openai/`, por ejemplo `openai/unload`); lo que cuenta es la cabecera. Un nombre que ninguna ruta acepta recibe un 400 *después* de que los modelos se hayan descargado, porque el hook se ejecuta antes de que LiteLLM revise el nombre. La descarga afecta a todos los servidores cuya ruta tiene `unload`, no a un solo modelo.
 
-El hook es un script propio, `gpu_unload.py`, junto a `slot_cache.py` y encadenado con él. Son independientes: `gpu_unload.py` funciona sin el hook de caché. Cuando están encadenados los dos, `gpu_unload.py` encuentra el hook de caché entre los callbacks de LiteLLM y llama a su `release_server`, que **guarda primero la caché de cada slot y olvida lo que había en ella**, de modo que la siguiente petición restaure en el modelo recargado la caché de su sesión. (Sin esa llamada, el hook de caché seguiría creyendo que la sesión está en el slot y no restauraría nada: todo el prompt se volvería a leer tras cada cambio.)
+El hook es un script propio, `gpu_unload.py`, junto a `slot_cache.py` y encadenado con él. Son independientes: `gpu_unload.py` funciona sin el hook de caché. Cuando ambos están encadenados, `gpu_unload.py` encuentra el hook de caché entre los callbacks de LiteLLM y llama a su `release_server`, que **guarda primero la caché de cada slot y olvida lo que había en ella**, de modo que la siguiente petición restaura la caché de su sesión en el modelo recargado. (Sin esa llamada, el hook de caché seguiría creyendo que la sesión está en el slot y no restauraría nada: todo el prompt se volvería a leer tras cada cambio.)
 
 ```python
 """LiteLLM hook: frees the GPU on request, so that another model (images, speech) can use it.
@@ -784,7 +790,7 @@ class GpuUnloadHook(CustomLogger):
 proxy_handler_instance = GpuUnloadHook()
 ```
 
-En Docker el archivo debe estar en el contenedor igual que `slot_cache.py`: añade `- ./gpu_unload.py:/app/gpu_unload.py:ro` a los `volumes` del proxy, junto a la línea de `slot_cache.py`. Un archivo que no está ahí aparece al arrancar como `ImportError: Could not import proxy_handler_instance from gpu_unload` (la causa real, `FileNotFoundError` o un error del propio script, está unas líneas más arriba en el log).
+En Docker el archivo debe estar en el contenedor tal como lo está `slot_cache.py`: añade `- ./gpu_unload.py:/app/gpu_unload.py:ro` a `volumes` del proxy, junto a la línea de `slot_cache.py`. Un archivo que no está aparece al arrancar como `ImportError: Could not import proxy_handler_instance from gpu_unload` (la causa real, `FileNotFoundError` o un error del propio script, aparece unas líneas más arriba en el log).
 
 Encadena los dos en `litellm_config.yml` y marca la ruta con `unload`:
 
@@ -800,9 +806,9 @@ litellm_settings:
   callbacks: [slot_cache.proxy_handler_instance, gpu_unload.proxy_handler_instance]
 ```
 
-En el Generador de imágenes (o en cualquier plugin que tenga las dos peticiones), configura la petición *antes* como `POST` a la dirección de arriba, con las cabeceras `Authorization: Bearer <key>` y `X-Llama-Unload: all`, y el cuerpo del ejemplo. Las cabeceras se guardan cifradas.
+En el Image Generator (o en cualquier plugin que tenga las dos peticiones), ajusta la petición *before* a `POST` con la dirección de arriba, las cabeceras `Authorization: Bearer <key>` y `X-Llama-Unload: all` y el cuerpo del ejemplo; las cabeceras se guardan cifradas.
 
-El servidor del otro modelo también se puede controlar a través del mismo proxy. LiteLLM retransmite una ruta a otra dirección (`general_settings: pass_through_endpoints`, `path`, `target` e `include_subpath: true`; la clave del proxy se comprueba, y la cabecera `Authorization` del cliente **no** se reenvía, así que el destino tiene su propio secreto en `headers`). Un pequeño servicio junto al servidor de voz o de imagen que detiene e inicia su contenedor es un destino de este tipo: [`tools/gpu-control`](https://github.com/Enerccio/Marginalia/tree/master/tools/gpu-control) (`POST /<container>/start` responde cuando el servicio que contiene está listo, y `stop` cuando ha terminado; su README tiene el ejemplo de compose y la ruta de LiteLLM para el servidor de voz, `/v1/audio/speech`).
+El servidor del otro modelo puede controlarse a través del mismo proxy. LiteLLM reenvía una ruta a otra dirección (`general_settings: pass_through_endpoints`, `path`, `target` y `include_subpath: true`; la clave del proxy se comprueba, y la cabecera `Authorization` del cliente **no** se reenvía, así que el destino tiene su propio secreto en `headers`). Un pequeño servicio junto al servidor de voz o de imagen que detiene y arranca su contenedor es un destino de este tipo: [`tools/gpu-control`](https://github.com/Enerccio/Marginalia/tree/master/tools/gpu-control) (`POST /<container>/start` responde cuando el servicio que contiene está listo, `stop` cuando ha terminado; su README tiene el ejemplo de compose y la ruta de LiteLLM para el servidor de voz, `/v1/audio/speech`).
 
 ```yaml
 general_settings:
@@ -813,4 +819,4 @@ general_settings:
       headers: {X-Control-Token: os.environ/GPU_CONTROL_TOKEN}
 ```
 
-Lo que se ha comprobado: LiteLLM 1.108.3 con un router de sustitución que informa de `loaded`, `unloading` y `unloaded` (la espera retuvo la respuesta hasta que el estado era `unloaded`; un servidor caído dio 502; con los dos hooks encadenados, el slot se guardó antes de la descarga y la siguiente petición lo restauró; con solo `gpu_unload.py` no se llamó a nada más; y el pass-through llegó a su destino, añadió su propio valor de `headers` en lugar del enviado por el cliente y rechazó una petición sin la clave). También se ejecutó contra un router `llama-server` real tras LiteLLM (un modelo de 31B): la petición devolvió `unloaded: <model>` tras 1 a 2 segundos; el router registró `stopping model instance` y `exited with status 0` (el proceso ya no existe, así que la memoria está libre); una segunda petición, sin nada cargado, devolvió `unloaded: nothing` al instante; y la siguiente petición normal tardó alrededor de un minuto porque el router volvió a cargar el modelo. Si tu `GET /models` nombra los estados de otra forma, cambia `IN_MEMORY` en el script.
+Lo que se comprobó: LiteLLM 1.108.3 con un router de sustitución que informa de `loaded`, `unloading` y `unloaded` (la espera retuvo la respuesta hasta que el estado era `unloaded`; un servidor caído dio 502; con ambos hooks encadenados, el slot se guardó antes de la descarga y lo restauró la siguiente petición; con solo `gpu_unload.py` no se llamó a nada más; y el reenvío llegó a su destino, añadió su propio valor de `headers` en lugar del enviado por el cliente, y rechazó una petición sin la clave). También se ejecutó contra un router `llama-server` real detrás de LiteLLM (un modelo de 31B): la petición devolvió `unloaded: <model>` tras 1 a 2 segundos, el router registró `stopping model instance` y `exited with status 0` (el proceso ha desaparecido, así que la memoria está libre), una segunda petición sin nada cargado devolvió `unloaded: nothing` de inmediato, y la siguiente petición normal tardó alrededor de un minuto porque el router volvió a cargar el modelo. Si tu `GET /models` nombra los estados de otra forma, cambia `IN_MEMORY` en el script.

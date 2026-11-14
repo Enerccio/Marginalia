@@ -23,13 +23,13 @@
       "chunks": 1,
       "model": "haiku",
       "source_sha": "7cb31768ba0fee2394a1da2702c0fc290e3e094be37b36e09c82ea85f596eac5",
-      "translated_at": "2026-11-13T22:28:26Z"
+      "translated_at": "2026-11-13T23:59:18Z"
     },
     "user/administration/extensions.md": {
       "chunks": 1,
       "model": "haiku",
       "source_sha": "e6ff20bb765376da657defc18f15de3644805564b793d280c3e00efd6eab33dd",
-      "translated_at": "2026-11-13T22:28:27Z"
+      "translated_at": "2026-11-13T23:59:18Z"
     },
     "user/administration/help-assistant.md": {
       "chunks": 2,
@@ -59,7 +59,7 @@
       "chunks": 1,
       "model": "haiku",
       "source_sha": "5e5b2551e915413625cbdd497b95fafe123c4597572e649f588066811cb88d7f",
-      "translated_at": "2026-11-13T22:28:51Z"
+      "translated_at": "2026-11-13T23:59:18Z"
     },
     "user/administration/statistics.md": {
       "chunks": 1,
@@ -71,7 +71,7 @@
       "chunks": 1,
       "model": "haiku",
       "source_sha": "5bc453bb03a8194b7a8a7b975929f2dfef1374b2b5b673ff803523efe46a6715",
-      "translated_at": "2026-11-13T22:28:58Z"
+      "translated_at": "2026-11-13T23:59:27Z"
     },
     "user/administration/users.md": {
       "chunks": 1,
@@ -83,7 +83,7 @@
       "chunks": 11,
       "model": "haiku",
       "source_sha": "d739bc6436382893e774abba7ae0596fa2f4890ed197a3b4cc7af665dc9e6382",
-      "translated_at": "2026-11-13T22:29:54Z"
+      "translated_at": "2026-11-14T00:00:28Z"
     },
     "user/books/annotations.md": {
       "chunks": 3,
@@ -95,19 +95,19 @@
       "chunks": 2,
       "model": "haiku",
       "source_sha": "05b980615455e68e3e5ad1e943cd10a313470cfbe7fb6e345192880c7307126b",
-      "translated_at": "2026-11-13T22:30:13Z"
+      "translated_at": "2026-11-14T00:00:29Z"
     },
     "user/books/branches-and-story-tree.md": {
       "chunks": 1,
       "model": "haiku",
       "source_sha": "3843f629830a15dd2af9a1a7acef6570309e410d4edcb76e61d1b28d62b19a9c",
-      "translated_at": "2026-11-13T22:30:18Z"
+      "translated_at": "2026-11-14T00:00:38Z"
     },
     "user/books/export.md": {
       "chunks": 3,
       "model": "haiku",
       "source_sha": "1fcf8708ea5f8a78c8181c2ac102fbd411bf178e59e2b2fec77245b78b530dfc",
-      "translated_at": "2026-11-13T22:30:27Z"
+      "translated_at": "2026-11-14T00:01:18Z"
     },
     "user/books/folders.md": {
       "chunks": 2,
@@ -125,19 +125,19 @@
       "chunks": 4,
       "model": "haiku",
       "source_sha": "ddd009c24763b5a9175827c69c70eedd285905f37fc0e3f80464e9cb5444b43d",
-      "translated_at": "2026-11-13T22:31:05Z"
+      "translated_at": "2026-11-14T00:01:47Z"
     },
     "user/books/prompts.md": {
       "chunks": 2,
       "model": "haiku",
       "source_sha": "b8be17d60dca4dc2189283002d9fb02d962fa53cd531326dc256454f22f09ec2",
-      "translated_at": "2026-11-13T22:31:12Z"
+      "translated_at": "2026-11-14T00:01:47Z"
     },
     "user/books/publishing.md": {
       "chunks": 1,
       "model": "haiku",
       "source_sha": "8b57388655f99ff8688371b8923824b72808ea615bfdb4ec021b4f9b9f281647",
-      "translated_at": "2026-11-13T22:31:18Z"
+      "translated_at": "2026-11-14T00:01:47Z"
     },
     "user/books/statistics.md": {
       "chunks": 2,
@@ -146,22 +146,22 @@
       "translated_at": "2026-11-13T22:31:23Z"
     },
     "user/books/story-editor.md": {
-      "chunks": 13,
+      "chunks": 9,
       "model": "haiku",
       "source_sha": "73db62fbbed3b43db8f01e73aa4429d5f7e2c268823ba6280b564993b750b36b",
-      "translated_at": "2026-11-13T22:41:40Z"
+      "translated_at": "2026-11-14T00:02:41Z"
     },
     "user/books/styling-guide.md": {
       "chunks": 2,
       "model": "haiku",
       "source_sha": "41062de501824580159e72b7998faae5eec9782896f9f704a1a661dd6ee94bb3",
-      "translated_at": "2026-11-13T22:32:38Z"
+      "translated_at": "2026-11-14T00:02:41Z"
     },
     "user/books/summaries.md": {
       "chunks": 3,
       "model": "haiku",
       "source_sha": "90355efe14c71222ea559410e136db2eb5dc9cb85b855139d1d7fb6722cb6355",
-      "translated_at": "2026-11-13T22:32:38Z"
+      "translated_at": "2026-11-14T00:03:17Z"
     },
     "user/books/version-history.md": {
       "chunks": 2,
@@ -173,7 +173,7 @@
       "chunks": 4,
       "model": "haiku",
       "source_sha": "f3b8f19758f71404a11a5d89c0b4edb6d3b2ce0bb4268af28fbb435604cf771f",
-      "translated_at": "2026-11-13T22:32:55Z"
+      "translated_at": "2026-11-14T00:03:34Z"
     },
     "user/extensions/anthropic.md": {
       "chunks": 1,
@@ -191,7 +191,7 @@
       "chunks": 2,
       "model": "haiku",
       "source_sha": "eabdfb16ea7541e2c9eaa9de6bf4208f4292b2cd0bf436f768d1ee267ea2473f",
-      "translated_at": "2026-11-13T22:33:28Z"
+      "translated_at": "2026-11-14T00:03:50Z"
     },
     "user/extensions/audiobook.md": {
       "chunks": 5,
@@ -257,7 +257,7 @@
       "chunks": 1,
       "model": "haiku",
       "source_sha": "9a66970617c44d2a900525f8821dbf98e1290706add4e7bf29bcfeb86e45eb93",
-      "translated_at": "2026-11-13T22:34:46Z"
+      "translated_at": "2026-11-14T00:03:50Z"
     },
     "user/extensions/index.md": {
       "chunks": 1,
@@ -275,7 +275,7 @@
       "chunks": 4,
       "model": "haiku",
       "source_sha": "dfc7a61cd27e3561302dd247a83a91cbc4ea60731a83e55f635e7ff635765e21",
-      "translated_at": "2026-11-13T22:35:16Z"
+      "translated_at": "2026-11-14T00:04:10Z"
     },
     "user/extensions/lore-generator.md": {
       "chunks": 2,
@@ -305,7 +305,7 @@
       "chunks": 1,
       "model": "haiku",
       "source_sha": "dbd7065ccd001083d1f5724f1678c1c12b0996940ebf60f252a69533d0c77aaf",
-      "translated_at": "2026-11-13T22:35:31Z"
+      "translated_at": "2026-11-14T00:04:15Z"
     },
     "user/extensions/place-provider.md": {
       "chunks": 1,
@@ -353,7 +353,7 @@
       "chunks": 1,
       "model": "haiku",
       "source_sha": "3794971110447905905cfff6f5fc86fe929a86510757b72493941a7fe56b5d53",
-      "translated_at": "2026-11-13T22:36:35Z"
+      "translated_at": "2026-11-14T00:04:17Z"
     },
     "user/extensions/tools.md": {
       "chunks": 1,
@@ -371,13 +371,13 @@
       "chunks": 1,
       "model": "haiku",
       "source_sha": "25ac6df0838c40ed7009d50fd2f141f08062bb6e546225ed654cef952181ac7d",
-      "translated_at": "2026-11-13T22:36:45Z"
+      "translated_at": "2026-11-14T00:04:20Z"
     },
     "user/getting-started/docker-server.md": {
       "chunks": 1,
       "model": "haiku",
       "source_sha": "6e169b18d08c349d544c057ad6cecd3137b7033aaa9c55fd7dab4937f1f64f67",
-      "translated_at": "2026-11-13T22:36:52Z"
+      "translated_at": "2026-11-14T00:05:06Z"
     },
     "user/getting-started/example-book.md": {
       "chunks": 1,
@@ -407,37 +407,37 @@
       "chunks": 1,
       "model": "haiku",
       "source_sha": "23fa436b2c225bb5a4d76fd21dd8d1df61054107ec0932ca2b9e60d80e2e26a6",
-      "translated_at": "2026-11-13T22:37:09Z"
+      "translated_at": "2026-11-14T00:05:06Z"
     },
     "user/inference-providers.md": {
       "chunks": 4,
       "model": "haiku",
       "source_sha": "e15206ee887b29f4159ebc7c244bb13f542c1c8bf2e26093c2f23d051a782888",
-      "translated_at": "2026-11-13T22:37:20Z"
+      "translated_at": "2026-11-14T00:05:06Z"
     },
     "user/lorebooks/entries.md": {
-      "chunks": 3,
+      "chunks": 4,
       "model": "haiku",
       "source_sha": "3d87e4c9ec496211a3652bd6a769fb11b480a4400cd76e9d01490e4cd1fd5581",
-      "translated_at": "2026-11-13T22:37:31Z"
+      "translated_at": "2026-11-14T00:13:33Z"
     },
     "user/lorebooks/import-export.md": {
       "chunks": 1,
       "model": "haiku",
       "source_sha": "e04e6abb562e8fe8fa29bc0493face91ad5a2c26a3a24ca63a05598d470026ee",
-      "translated_at": "2026-11-13T22:38:01Z"
+      "translated_at": "2026-11-14T00:06:25Z"
     },
     "user/lorebooks/index.md": {
       "chunks": 1,
       "model": "haiku",
       "source_sha": "562104b94aaeadf5ecb39e8663e9201f74fd7ef31cc220168f6199938b941b79",
-      "translated_at": "2026-11-13T22:38:01Z"
+      "translated_at": "2026-11-14T00:06:25Z"
     },
     "user/lorebooks/lorebooks.md": {
       "chunks": 4,
       "model": "haiku",
       "source_sha": "345bfb315ca60372d77fa2a2e5b689d49b2fa507404f718d65477da4336ca17d",
-      "translated_at": "2026-11-13T22:38:01Z"
+      "translated_at": "2026-11-14T00:06:25Z"
     },
     "user/phone.md": {
       "chunks": 2,
@@ -449,7 +449,7 @@
       "chunks": 3,
       "model": "haiku",
       "source_sha": "f56391018b2597def10dac0cfda2e176e08cf61eb41e78b02e9de60fc5a9a96f",
-      "translated_at": "2026-11-13T22:38:49Z"
+      "translated_at": "2026-11-14T00:06:25Z"
     },
     "user/protocols.md": {
       "chunks": 1,
@@ -461,7 +461,7 @@
       "chunks": 1,
       "model": "haiku",
       "source_sha": "f9662dc951318a037df2b51af8b5936f59f57e8eab8aa8fc32ed3bd63ddcb9ee",
-      "translated_at": "2026-11-13T22:38:49Z"
+      "translated_at": "2026-11-14T00:06:52Z"
     },
     "user/resources.md": {
       "chunks": 1,
@@ -479,7 +479,7 @@
       "chunks": 2,
       "model": "haiku",
       "source_sha": "a8122dd2f1582287b41724e654600fb19d6d9a4904807194877a9b3f16e57ee5",
-      "translated_at": "2026-11-13T22:39:00Z"
+      "translated_at": "2026-11-14T00:07:16Z"
     },
     "user/templates/templates.md": {
       "chunks": 1,
@@ -497,7 +497,7 @@
       "chunks": 2,
       "model": "haiku",
       "source_sha": "3515d13a204ebf28acda6ccd575284c90a2ff377f34c7b8d33539c97492db63f",
-      "translated_at": "2026-11-13T22:39:16Z"
+      "translated_at": "2026-11-14T00:07:16Z"
     }
   }
 }
