@@ -127,6 +127,91 @@ class ManualLanguageTest {
         }
     }
 
+    /**
+     * What a translation must not change (tools/manual_i18n.py takes it out of the text before the request and puts it back, and
+     * {@code verify} checks it): the code blocks and the inline code of the English page are in its translation as they are.
+     */
+    @ParameterizedTest
+    @ValueSource(strings = {"es", "fr", "de", "it", "ja", "ko", "zh"})
+    void aTranslationKeepsTheCodeOfTheEnglishPage(String language) {
+        for (ManualPage english : service.listPages()) {
+            ManualPage translated = service.getPage(language, english.path()).orElseThrow();
+
+            assertThat(codeBlocks(translated.text())).as("the code blocks of %s in %s", english.path(), language)
+                    .containsExactlyElementsOf(codeBlocks(english.text()));
+            java.util.Map<String, Long> wanted = inlineCode(english.text());
+            java.util.Map<String, Long> had = inlineCode(translated.text());
+            wanted.forEach((code, count) -> assertThat(had.getOrDefault(code, 0L))
+                    .as("`%s` in %s (%s)", code, english.path(), language).isGreaterThanOrEqualTo(count));
+        }
+    }
+
+    /** The fenced blocks of a text, whole, in order. */
+    private static List<String> codeBlocks(String text) {
+        List<String> blocks = new ArrayList<>();
+        StringBuilder current = null;
+        String fence = null;
+        for (String line : text.split("\n", -1)) {
+            String trimmed = line.stripLeading();
+            String mark = trimmed.startsWith("```") ? "```" : trimmed.startsWith("~~~") ? "~~~" : null;
+            if (fence == null) {
+                if (mark != null) {
+                    fence = mark;
+                    current = new StringBuilder(line);
+                }
+            } else {
+                current.append('\n').append(line);
+                if (mark != null && mark.equals(fence)) {
+                    blocks.add(current.toString());
+                    fence = null;
+                }
+            }
+        }
+        return blocks;
+    }
+
+    private static final java.util.regex.Pattern INLINE_CODE =
+            java.util.regex.Pattern.compile("(?<!`)(`+)(?!`)(.+?)(?<!`)\\1(?!`)", java.util.regex.Pattern.DOTALL);
+
+    /** Whether a backtick is left over when the spans of a piece of text are taken out: a span that is not closed. */
+    private static boolean dangling(String piece) {
+        return INLINE_CODE.matcher(piece).replaceAll("").contains("`");
+    }
+
+    /**
+     * The inline code spans outside the fenced blocks, with how many times each is there, found as tools/manual_i18n.py does: line by line,
+     * and a span that runs over the end of a line (CommonMark allows it) takes the next lines of its paragraph.
+     */
+    private static java.util.Map<String, Long> inlineCode(String text) {
+        String outside = text;
+        for (String block : codeBlocks(text)) {
+            outside = outside.replace(block, "");
+        }
+        String[] lines = outside.split("\\n", -1);
+        java.util.Map<String, Long> spans = new java.util.HashMap<>();
+        int i = 0;
+        while (i < lines.length) {
+            String piece = lines[i];
+            int used = 1;
+            if (dangling(piece)) {
+                for (int k = 1; k < 5 && i + k < lines.length && !lines[i + k].isBlank(); k++) {
+                    String candidate = String.join("\n", java.util.Arrays.copyOfRange(lines, i, i + k + 1));
+                    if (!dangling(candidate)) {
+                        piece = candidate;
+                        used = k + 1;
+                        break;
+                    }
+                }
+            }
+            var span = INLINE_CODE.matcher(piece);
+            while (span.find()) {
+                spans.merge(span.group(), 1L, Long::sum);
+            }
+            i += used;
+        }
+        return spans;
+    }
+
     @ParameterizedTest
     @ValueSource(strings = {"es", "fr", "de", "it", "ja", "ko", "zh"})
     void theLinksOfTheTranslatedPagesPointToExistingPages(String language) {
