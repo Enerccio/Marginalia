@@ -59,7 +59,8 @@ FROM jetty:12-jdk25-eclipse-temurin AS runtime
 
 # first, before anything that changes with the source (the WAR): this layer stays cached over normal deploys
 USER root
-# ffmpeg is optional: the Audiobook plugin offers the m4b export and the wav storage only when it finds the program. Build without it (about 200 MB
+# ffmpeg is optional: the Audiobook plugin offers the m4b export, the wav storage and the variations of voices for unnamed speakers (its rubberband
+# filter) only when it finds the program. Build without it (about 200 MB
 # smaller) with --build-arg WITH_FFMPEG=false
 ARG WITH_FFMPEG=true
 RUN if [ "$WITH_FFMPEG" = "true" ]; then \

@@ -4,9 +4,13 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.extensions.audiobook.AudiobookLog;
+import com.github.enerccio.marginalia.extensions.audiobook.label.Age;
+import com.github.enerccio.marginalia.extensions.audiobook.label.Gender;
 import com.github.enerccio.marginalia.extensions.audiobook.model.Actor;
 import com.github.enerccio.marginalia.extensions.audiobook.model.Cast;
+import com.github.enerccio.marginalia.extensions.audiobook.model.CastExtra;
 import com.github.enerccio.marginalia.extensions.audiobook.model.CastMember;
+import com.github.enerccio.marginalia.extensions.audiobook.script.VoiceRef;
 import com.github.enerccio.marginalia.extensions.audiobook.service.AudiobookService;
 import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
@@ -27,7 +31,8 @@ import static com.github.enerccio.marginalia.extensions.audiobook.AudiobookLocal
 
 /**
  * The cast of a book: the actor that reads the narration, the actor for a speaker nobody knows, and an actor for each character. The actors are the
- * voices of the user (settings); a new one can be made here. The cast is stored with the book by <i>Save</i>.
+ * voices of the user (settings); a new one can be made here. The base voices of unnamed speakers (men, women, children) give every speaker the cast
+ * does not name a variation of their own; the speakers met so far are listed with their gender and age. The cast is stored with the book by <i>Save</i>.
  */
 public class CastDialog extends Dialog {
 
@@ -38,8 +43,13 @@ public class CastDialog extends Dialog {
 
     private final Select<Actor> narrator = actorSelect(T.localized(NARRATOR));
     private final Select<Actor> fallback = actorSelect(T.localized(OTHER_SPEAKERS));
+    private final Select<Actor> men = actorSelect(T.localized(OTHER_MEN));
+    private final Select<Actor> women = actorSelect(T.localized(OTHER_WOMEN));
+    private final Select<Actor> children = actorSelect(T.localized(CHILDREN));
     private final VerticalLayout characters = new VerticalLayout();
     private final List<CharacterRow> rows = new ArrayList<>();
+    private final VerticalLayout extras = new VerticalLayout();
+    private final List<ExtraRow> extraRows = new ArrayList<>();
     private final Button save = new Button(T.localized(SAVE), e -> save());
 
     /** @param saved called after the cast is stored */
@@ -75,8 +85,36 @@ public class CastDialog extends Dialog {
         special.setAlignItems(FlexComponent.Alignment.END);
         special.setWrap(true);
 
+        men.setValue(service.getSettings().findActor(cast.getMenActorId()));
+        women.setValue(service.getSettings().findActor(cast.getWomenActorId()));
+        children.setValue(service.getSettings().findActor(cast.getChildrenActorId()));
+        // what an unnamed speaker gets depends on every base (and on the fallback)
+        for (Select<Actor> base : List.of(men, women, children, fallback, narrator)) {
+            base.addValueChangeListener(e -> extraRows.forEach(ExtraRow::showVariation));
+        }
+        HorizontalLayout bases = new HorizontalLayout(men, previewOf(men), women, previewOf(women), children, previewOf(children));
+        bases.setAlignItems(FlexComponent.Alignment.END);
+        bases.setWrap(true);
+        Span basesHelp = new Span(T.localized(THE_BASE_VOICES_HELP));
+        basesHelp.addClassName(CssStyles.HINT_TEXT);
+        VerticalLayout basesPart = new VerticalLayout(new H4(T.localized(UNNAMED_SPEAKERS)), basesHelp, bases);
+        basesPart.setPadding(false);
+        if (!AudiobookService.canMakeShiftedClips()) {
+            Span noFfmpeg = new Span(T.localized(SHIFTS_NEED_FFMPEG));
+            noFfmpeg.addClassName(CssStyles.HINT_TEXT);
+            basesPart.add(noFfmpeg);
+        }
+        extras.setPadding(false);
+        extras.setSpacing(false);
+        cast.getExtras().forEach(this::addExtra);
+        if (!cast.getExtras().isEmpty()) {
+            Span extrasHelp = new Span(T.localized(THE_UNNAMED_SPEAKERS_HELP));
+            extrasHelp.addClassName(CssStyles.HINT_TEXT);
+            basesPart.add(extrasHelp, extras);
+        }
+
         VerticalLayout content = new VerticalLayout(help, new HorizontalLayout(newActor), special, fallbackHelp, new H4(T.localized(CHARACTERS)),
-                characters, new HorizontalLayout(addCharacter, addFromBook));
+                characters, new HorizontalLayout(addCharacter, addFromBook), basesPart);
         content.setPadding(false);
         add(content);
 
@@ -100,7 +138,7 @@ public class CastDialog extends Dialog {
     }
 
     private List<Select<Actor>> selects() {
-        List<Select<Actor>> all = new ArrayList<>(List.of(narrator, fallback));
+        List<Select<Actor>> all = new ArrayList<>(List.of(narrator, fallback, men, women, children));
         rows.forEach(r -> all.add(r.actor));
         return all;
     }
@@ -156,6 +194,10 @@ public class CastDialog extends Dialog {
     private void save() {
         cast.setNarratorActorId(narrator.getValue() == null ? null : narrator.getValue().getId());
         cast.setFallbackActorId(fallback.getValue() == null ? null : fallback.getValue().getId());
+        cast.setMenActorId(men.getValue() == null ? null : men.getValue().getId());
+        cast.setWomenActorId(women.getValue() == null ? null : women.getValue().getId());
+        cast.setChildrenActorId(children.getValue() == null ? null : children.getValue().getId());
+        cast.setExtras(extraRows.stream().map(r -> r.extra).toList());
         List<CastMember> members = new ArrayList<>();
         for (CharacterRow row : rows) {
             if (!row.name.getValue().isBlank()) {
@@ -172,6 +214,110 @@ public class CastDialog extends Dialog {
         }
         saved.run();
         close();
+    }
+
+    private void addExtra(CastExtra extra) {
+        ExtraRow row = new ExtraRow(extra);
+        extraRows.add(row);
+        extras.add(row.layout);
+        // after it is in the list: the variation is that of the cast as shown (with this speaker's reroll)
+        row.showVariation();
+    }
+
+    /** The bases of the boxes as they are now (not yet saved): what an unnamed speaker sounds like with them. */
+    private Cast shownCast() {
+        Cast shown = new Cast();
+        shown.setNarratorActorId(narrator.getValue() == null ? null : narrator.getValue().getId());
+        shown.setFallbackActorId(fallback.getValue() == null ? null : fallback.getValue().getId());
+        shown.setMenActorId(men.getValue() == null ? null : men.getValue().getId());
+        shown.setWomenActorId(women.getValue() == null ? null : women.getValue().getId());
+        shown.setChildrenActorId(children.getValue() == null ? null : children.getValue().getId());
+        shown.setMembers(cast.getMembers());
+        shown.setExtras(extraRows.stream().map(r -> r.extra).toList());
+        return shown;
+    }
+
+    /** The voice of an unnamed speaker with the boxes as they are, null when nobody has a voice for them. */
+    private VoiceRef voiceOf(CastExtra extra) {
+        return service.extraVoice(manuscript, shownCast(), extra);
+    }
+
+    private static String labelOf(Gender gender) {
+        return switch (gender) {
+            case MALE -> T.localized(MALE);
+            case FEMALE -> T.localized(FEMALE);
+            case UNKNOWN -> T.localized(UNKNOWN);
+        };
+    }
+
+    private static String labelOf(Age age) {
+        return switch (age) {
+            case CHILD -> T.localized(CHILD);
+            case TEEN -> T.localized(TEENAGER);
+            case ADULT -> T.localized(ADULT);
+            case ELDERLY -> T.localized(ELDERLY);
+            case UNKNOWN -> T.localized(UNKNOWN);
+        };
+    }
+
+    /** An unnamed speaker: the name the model gave, the gender and age (changeable), the variation they get, a sample, another variation. */
+    private final class ExtraRow {
+        private final CastExtra extra;
+        private final Select<Gender> gender = new Select<>();
+        private final Select<Age> age = new Select<>();
+        private final Span variation = new Span();
+        private HorizontalLayout layout;
+
+        ExtraRow(CastExtra extra) {
+            this.extra = extra;
+            Span name = new Span(extra.getName());
+            name.setWidth("12em");
+            gender.setLabel(T.localized(GENDER));
+            gender.setItems(Gender.values());
+            gender.setItemLabelGenerator(CastDialog::labelOf);
+            gender.setValue(extra.getGender());
+            gender.setWidth("9em");
+            gender.addValueChangeListener(e -> {
+                extra.setGender(e.getValue());
+                showVariation();
+            });
+            age.setLabel(T.localized(AGE));
+            age.setItems(Age.values());
+            age.setItemLabelGenerator(CastDialog::labelOf);
+            age.setValue(extra.getAge());
+            age.setWidth("9em");
+            age.addValueChangeListener(e -> {
+                extra.setAge(e.getValue());
+                showVariation();
+            });
+            variation.addClassName(CssStyles.HINT_TEXT);
+            VoicePreview preview = new VoicePreview(service, () -> {
+                VoiceRef voice = voiceOf(extra);
+                return voice == null ? "" : voice.toString();
+            }, () -> null);
+            Button another = new Button(Solid.DICE.create(), e -> {
+                extra.setReroll(extra.getReroll() + 1);
+                showVariation();
+            });
+            another.setThemeName("tertiary icon");
+            another.setTooltipText(T.localized(ANOTHER_VARIATION));
+            Button remove = new Button(Solid.TRASH.create(), e -> {
+                extraRows.remove(this);
+                extras.remove(this.layout);
+            });
+            remove.setThemeName("tertiary icon");
+            remove.setTooltipText(T.localized(REMOVE));
+            layout = new HorizontalLayout(name, gender, age, preview, another, remove, variation);
+            layout.setAlignItems(FlexComponent.Alignment.CENTER);
+            layout.setWrap(true);
+        }
+
+        private void showVariation() {
+            VoiceRef voice = voiceOf(extra);
+            String text = voice == null || voice.shift() == null ? T.localized(THE_BASE_VOICE)
+                    : voice.shift().describe(T.localized(FORMANTS), T.localized(TEMPO), T.localized(DARKER), T.localized(BRIGHTER));
+            variation.setText(T.localized(VARIATION_OF).formatted(text));
+        }
     }
 
     /** One character: its name, other names, and the actor that plays it. */

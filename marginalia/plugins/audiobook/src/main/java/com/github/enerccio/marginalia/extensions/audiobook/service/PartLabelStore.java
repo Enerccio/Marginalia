@@ -2,9 +2,7 @@ package com.github.enerccio.marginalia.extensions.audiobook.service;
 
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
-import com.github.enerccio.marginalia.extensions.audiobook.label.Delivery;
-import com.github.enerccio.marginalia.extensions.audiobook.label.LabelStore;
-import com.github.enerccio.marginalia.extensions.audiobook.label.PieceLabel;
+import com.github.enerccio.marginalia.extensions.audiobook.label.*;
 import com.github.enerccio.marginalia.extensions.audiobook.script.Hashes;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -45,7 +43,9 @@ public class PartLabelStore implements LabelStore {
             for (var element : stored.getAsJsonArray("labels")) {
                 JsonObject l = element.getAsJsonObject();
                 labels.add(new PieceLabel(l.get("id").getAsInt(), l.get("speaker").getAsString(), Delivery.valueOf(l.get("delivery").getAsString()),
-                        l.get("intensity").getAsDouble(), l.has("taggedText") ? l.get("taggedText").getAsString() : ""));
+                        l.get("intensity").getAsDouble(), l.has("taggedText") ? l.get("taggedText").getAsString() : "",
+                        // labels stored before the gender and the age existed have neither
+                        l.has("gender") ? Gender.valueOf(l.get("gender").getAsString()) : null, l.has("age") ? Age.valueOf(l.get("age").getAsString()) : null));
             }
             return labels;
         } catch (RuntimeException e) {
@@ -130,6 +130,12 @@ public class PartLabelStore implements LabelStore {
                 l.addProperty("delivery", label.delivery() == null ? Delivery.NEUTRAL.name() : label.delivery().name());
                 l.addProperty("intensity", label.intensity());
                 l.addProperty("taggedText", label.taggedText() == null ? "" : label.taggedText());
+                if (label.gender() != null) {
+                    l.addProperty("gender", label.gender().name());
+                }
+                if (label.age() != null) {
+                    l.addProperty("age", label.age().name());
+                }
                 array.add(l);
             }
             JsonObject stored = new JsonObject();

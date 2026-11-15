@@ -55,6 +55,40 @@ class ClipLibraryTest {
     }
 
     @Test
+    void aShiftedCopyIsAHiddenVersionFoundByItsShiftAndGoesWithItsBase() {
+        AudiobookSettings settings = new AudiobookSettings();
+        settings.setClipText("men", "The words of the clip.");
+        settings.addShifted("men", "p-2.f+0.t100.eF", "men-low", "shift -2 st");
+
+        assertEquals("men-low", settings.shiftedClip("men", "p-2.f+0.t100.eF"));
+        assertNull(settings.shiftedClip("men", "p+1.f+0.t100.eF"));
+        assertTrue(settings.isShifted("men-low"));
+        assertFalse(settings.isShifted("men"));
+        assertEquals("The words of the clip.", settings.clipText("men-low"), "it says the words of its base");
+        assertEquals(java.util.List.of("men-low"), settings.shiftedOf("men"));
+
+        // a deleted copy is forgotten by its base (it is made again when needed)
+        settings.forgetClip("men-low");
+        assertNull(settings.shiftedClip("men", "p-2.f+0.t100.eF"));
+
+        // a deleted base takes its copies with it (they are deleted with it)
+        settings.addShifted("men", "p-1.f+0.t100.eF", "men-1", "shift -1 st");
+        settings.forgetClip("men");
+        assertNull(settings.clipInfo("men-1"));
+        assertTrue(settings.folders().isEmpty());
+    }
+
+    @Test
+    void theShiftedCopiesSurviveTheJsonOfTheSettings() {
+        AudiobookSettings settings = new AudiobookSettings();
+        settings.addShifted("men", "p-2.f+0.t100.eF", "men-low", "shift -2 st");
+        com.google.gson.Gson gson = new com.google.gson.Gson();
+        AudiobookSettings back = gson.fromJson(gson.toJson(settings), AudiobookSettings.class);
+        assertEquals("men-low", back.shiftedClip("men", "p-2.f+0.t100.eF"));
+        assertTrue(back.isShifted("men-low"));
+    }
+
+    @Test
     void aCircleOfParentsEnds() {
         AudiobookSettings settings = new AudiobookSettings();
         settings.addVersion("a", "b", "x", null);

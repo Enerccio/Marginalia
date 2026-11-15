@@ -1,6 +1,5 @@
 package com.github.enerccio.marginalia.extensions.audiobook.audio;
 
-import com.github.enerccio.marginalia.extensions.audiobook.export.AudiobookFiles;
 import com.github.enerccio.marginalia.extensions.audiobook.export.AudiobookFilesFixture;
 import org.junit.jupiter.api.Test;
 
@@ -8,10 +7,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 class FfmpegTest {
@@ -113,5 +109,20 @@ class FfmpegTest {
 
         assertNull(Ffmpeg.measure(silence, -18));
         assertSame(silence, Ffmpeg.normalizeLoudness(silence, -18));
+    }
+
+    @Test
+    void aVoiceShiftMakesAWavOfTheClipSlowerWhenTheTempoIsLower() throws Exception {
+        assumeTrue(Ffmpeg.hasFilter("rubberband"), "ffmpeg with rubberband is not installed");
+        byte[] clip = sine(2, 0.5);
+        com.github.enerccio.marginalia.extensions.audiobook.script.VoiceShift shift =
+                new com.github.enerccio.marginalia.extensions.audiobook.script.VoiceShift(-2, 1, 93, com.github.enerccio.marginalia.extensions.audiobook.script.VoiceShift.Eq.DARK);
+        byte[] shifted = Ffmpeg.filter(clip, shift.filter());
+        WavJoiner.Format format = WavJoiner.formatOf(shifted);
+        double seconds = WavJoiner.data(shifted).length / (double) format.byteRate();
+        // 2 s at 93 % speed: about 2.15 s
+        assertTrue(seconds > 2.08 && seconds < 2.25, "seconds: " + seconds);
+        assertTrue(Ffmpeg.hasFilter("anull"));
+        assertFalse(Ffmpeg.hasFilter("no-such-filter"));
     }
 }

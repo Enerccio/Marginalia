@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.extensions.audiobook.model.*;
 import com.github.enerccio.marginalia.extensions.audiobook.queue.ConversionJob;
 import com.github.enerccio.marginalia.extensions.audiobook.queue.ConversionQueue;
+import com.github.enerccio.marginalia.extensions.audiobook.script.VoiceRef;
 import com.github.enerccio.marginalia.extensions.audiobook.service.AudiobookService;
 import com.github.enerccio.marginalia.extensions.audiobook.service.AudiobookService.AudioState;
 import com.github.enerccio.marginalia.extensions.audiobook.studio.StudioScript;
@@ -129,8 +130,9 @@ public class AudiobookCommands {
 
     @Command(commandName = CAST, humanNameText = "Audiobook cast", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = "Lists who reads which character in the audiobook of the book.",
-            llmDescriptionText = "Returns JSON: the actor of the narrator, the fallback actor (who reads a character the cast does not name) and the members of the cast of the book "
-                    + "(character, aliases the text may use for it, actor). Read only; the cast is edited in the Convert to audio dialog.",
+            llmDescriptionText = "Returns JSON: the actor of the narrator, the fallback actor (who reads a character the cast does not name), the members of the cast of the book "
+                    + "(character, aliases the text may use for it, actor), the base actors of unnamed speakers (men, women, children) and the unnamed speakers met so far "
+                    + "(name, gender, age, the variation of the base voice they get). Read only; the cast is edited in the Convert to audio dialog.",
             returns = @CommandReturn(name = "result", type = String.class, descriptionText = "JSON: the cast"))
     public void cast(CommandContext context) throws Exception {
         Manuscript book = context.getScope().getManuscript();
@@ -151,6 +153,22 @@ public class AudiobookCommands {
             members.add(row);
         }
         result.add("members", members);
+        result.addProperty("men", actorName(settings, cast.getMenActorId()));
+        result.addProperty("women", actorName(settings, cast.getWomenActorId()));
+        result.addProperty("children", actorName(settings, cast.getChildrenActorId()));
+        JsonArray extras = new JsonArray();
+        if (cast.usesExtras()) {
+            for (CastExtra extra : cast.getExtras()) {
+                JsonObject row = new JsonObject();
+                row.addProperty("name", extra.getName());
+                row.addProperty("gender", extra.getGender().name().toLowerCase(Locale.ROOT));
+                row.addProperty("age", extra.getAge().name().toLowerCase(Locale.ROOT));
+                VoiceRef voice = service.extraVoice(book, cast, extra);
+                row.addProperty("variation", voice == null || voice.shift() == null ? "base voice" : voice.shift().describe());
+                extras.add(row);
+            }
+        }
+        result.add("unnamedSpeakers", extras);
         context.setReturn(GSON.toJson(result));
     }
 

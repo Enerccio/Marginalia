@@ -211,6 +211,45 @@ public final class Ffmpeg {
                 "-f", "wav"));
     }
 
+    /**
+     * A 16-bit wav of the audio with the audio filter applied (a voice shift: {@code VoiceShift.filter()}), at the rate and channels of the audio.
+     */
+    public static byte[] filter(byte[] audio, String filter) throws BackendException {
+        return run(audio, AudioKind.of(audio).extension(), "wav", null, List.of("-map", "0:a", "-map_metadata", "-1", "-af", filter, "-c:a", "pcm_s16le",
+                "-f", "wav"));
+    }
+
+    /** The filters this ffmpeg was found to have, asked once per program (a build without a library has not its filter). */
+    private static final java.util.Map<Path, java.util.Set<String>> FILTERS = new java.util.concurrent.ConcurrentHashMap<>();
+
+    /** Whether ffmpeg is there and has the audio filter ({@code rubberband} needs a build with librubberband). */
+    public static boolean hasFilter(String name) {
+        Path program = locate();
+        if (program == null) {
+            return false;
+        }
+        return FILTERS.computeIfAbsent(program, Ffmpeg::filtersOf).contains(name);
+    }
+
+    private static java.util.Set<String> filtersOf(Path program) {
+        java.util.Set<String> names = new java.util.HashSet<>();
+        try {
+            Process process = new ProcessBuilder(program.toString(), "-hide_banner", "-filters").redirectErrorStream(true).start();
+            try (var reader = new java.io.BufferedReader(new java.io.InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
+                // " ..C rubberband        A->A       Apply time-stretching and pitch-shifting."
+                reader.lines().map(String::strip).map(line -> line.split("\\s+")).filter(parts -> parts.length > 2).forEach(parts -> names.add(parts[1]));
+            }
+            if (!process.waitFor(1, TimeUnit.MINUTES)) {
+                process.destroyForcibly();
+            }
+        } catch (IOException e) {
+            return names;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        return names;
+    }
+
     /** A 16-bit wav of a flac, at its own sample rate and channels (ComfyUI writes no wav: a Higgs piece comes as flac when the storage is wav). */
     public static byte[] flacToWav(byte[] flac) throws BackendException {
         return run(flac, "flac", "wav", null, List.of("-map", "0:a", "-map_metadata", "-1", "-c:a", "pcm_s16le", "-f", "wav"));

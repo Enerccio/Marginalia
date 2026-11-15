@@ -14,7 +14,8 @@ import java.util.List;
  * already (as a name or an alias) gets the aliases and items it does not have, the others are added; an alias that another
  * tracked character is called by is left out. An imported item has no
  * part of the book behind it, so it is never dropped by a reprocess: an initial item stays initial, the others become
- * the user's (manual); an old item stays old, a retraction becomes one by hand.
+ * the user's (manual); an old item stays old, a retraction becomes one by hand. The same rules copy items from one character to
+ * another ({@link #copy}, {@link #paste}).
  */
 public final class KnowledgeTransfer {
 
@@ -47,17 +48,7 @@ public final class KnowledgeTransfer {
             c.add("aliases", aliases);
             JsonArray items = new JsonArray();
             for (KnowledgeItem item : character.getItems()) {
-                JsonObject i = new JsonObject();
-                i.addProperty("text", item.getText());
-                i.addProperty("kind", item.getKind().name());
-                i.addProperty("origin", item.getOrigin().name());
-                if (item.getOldReason() != null) {
-                    i.addProperty("old", item.getOldReason().name());
-                }
-                if (item.isLocked()) {
-                    i.addProperty("locked", true);
-                }
-                items.add(i);
+                items.add(itemJson(item));
             }
             c.add("items", items);
             JsonArray met = new JsonArray();
@@ -129,6 +120,54 @@ public final class KnowledgeTransfer {
             }
         }
         return new ImportResult(created, updated, added, skipped);
+    }
+
+    /** What a paste did: items added, and items the character had already. */
+    public record PasteResult(int added, int skipped) {
+    }
+
+    /**
+     * A copy of {@code item} as an export file has it, kept apart from the character it came from (for a later {@link #paste}): the kind,
+     * the text, the lock and whether it is old, nothing of the part it came from.
+     */
+    public static KnowledgeItem copy(KnowledgeItem item) {
+        return item(itemJson(item));
+    }
+
+    /**
+     * Adds copies of {@code items} (see {@link #copy}) to {@code character} as an import does: an initial item stays initial, the others
+     * become the user's (manual), an old one stays old; an item the character has already (same kind and text) is skipped.
+     */
+    public static PasteResult paste(TrackedCharacter character, List<KnowledgeItem> items) {
+        int added = 0;
+        int skipped = 0;
+        for (KnowledgeItem source : items) {
+            KnowledgeItem item = copy(source);
+            if (item == null) {
+                continue;
+            }
+            if (hasSame(character, item)) {
+                skipped++;
+            } else {
+                character.getItems().add(item);
+                added++;
+            }
+        }
+        return new PasteResult(added, skipped);
+    }
+
+    private static JsonObject itemJson(KnowledgeItem item) {
+        JsonObject i = new JsonObject();
+        i.addProperty("text", item.getText());
+        i.addProperty("kind", item.getKind().name());
+        i.addProperty("origin", item.getOrigin().name());
+        if (item.getOldReason() != null) {
+            i.addProperty("old", item.getOldReason().name());
+        }
+        if (item.isLocked()) {
+            i.addProperty("locked", true);
+        }
+        return i;
     }
 
     /** The characters of the file, checked before anything is changed. */

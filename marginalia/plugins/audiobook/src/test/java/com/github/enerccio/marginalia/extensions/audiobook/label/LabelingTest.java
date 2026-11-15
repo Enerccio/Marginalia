@@ -166,6 +166,27 @@ class LabelingTest {
     }
 
     @Test
+    void theGenderAndAgeAreAskedOnlyForACastWithBaseVoicesSoOtherBooksKeepTheirLabels() throws Exception {
+        String plain = LabelPrompt.system(TEMPLATES, null, List.of("Marta"), BackendConfig.MODEL_HIGGS);
+        String extras = LabelPrompt.system(TEMPLATES, null, List.of("Marta"), BackendConfig.MODEL_HIGGS, true);
+
+        assertFalse(plain.contains("\"gender\""), plain);
+        // the instruction without them is the one the stored labels were made under: no line, no blank line where the block is
+        assertTrue(plain.contains("has no tag.\nPieces marked \"context\""), plain);
+        assertEquals(plain, LabelPrompt.system(TEMPLATES, null, List.of("Marta"), BackendConfig.MODEL_HIGGS, false));
+        assertTrue(extras.contains("\"gender\" and \"age\"") && extras.contains("ELDERLY"), extras);
+        assertNotEquals(LabelService.cacheKey("text", plain), LabelService.cacheKey("text", extras));
+    }
+
+    @Test
+    void aStoredLabelWithoutGenderAndAgeHasNeither() {
+        PieceLabel old = new PieceLabel(1, "Guard", Delivery.ANGRY, 0.7, "");
+        assertNull(old.gender());
+        assertNull(old.age());
+        assertEquals(Gender.UNKNOWN, Gender.orUnknown(old.gender()));
+    }
+
+    @Test
     void theLabelsAreAskedOnceAndStoredWhenComplete() throws Exception {
         Map<String, List<PieceLabel>> stored = new HashMap<>();
         LabelStore store = new LabelStore() {
@@ -241,6 +262,15 @@ class LabelingTest {
         assertEquals("[sigh] Then you won't mind.", answer.labels().get(1).taggedText());
         assertTrue(StructuredOutputs.validate(schema, "{\"labels\": [{\"id\": 0, \"speaker\": \"Narrator\", \"delivery\": \"NEUTRAL\", \"intensity\": 0.5, \"tagged_text\": \"\"}]}").valid());
         assertFalse(StructuredOutputs.validate(schema, "{\"labels\": [{\"id\": 0, \"speaker\": \"Narrator\", \"delivery\": \"FURIOUS\", \"intensity\": 0.5, \"tagged_text\": \"\"}]}").valid());
+        // the gender and the age of an unnamed speaker: offered, not required, read back
+        assertTrue(text.contains("\"ELDERLY\"") && text.contains("\"FEMALE\""), text);
+        LabelAnswer guard = StructuredOutputs.parse("""
+                {"labels": [{"id": 3, "speaker": "The guard", "delivery": "ANGRY", "intensity": 0.6, "tagged_text": "", "gender": "MALE", "age": "ELDERLY"}]}""",
+                LabelAnswer.class);
+        assertEquals(Gender.MALE, guard.labels().getFirst().gender());
+        assertEquals(Age.ELDERLY, guard.labels().getFirst().age());
+        assertNull(answer.labels().get(1).gender(), "an answer without them");
+        assertFalse(StructuredOutputs.validate(schema, "{\"labels\": [{\"id\": 0, \"speaker\": \"A\", \"delivery\": \"NEUTRAL\", \"intensity\": 0.5, \"tagged_text\": \"\", \"age\": \"ANCIENT\"}]}").valid());
     }
 
     @Test

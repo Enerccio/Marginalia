@@ -97,6 +97,27 @@ class ScriptFromLabelsTest {
     }
 
     @Test
+    void theChooserGetsTheLabelOfThePieceWithTheGenderAndAgeOfAnUnnamedSpeaker() {
+        java.util.List<String> asked = new java.util.ArrayList<>();
+        ScriptFromLabels.VoiceChooser spy = new ScriptFromLabels.VoiceChooser() {
+            @Override
+            public VoiceRef choose(String speaker, Delivery delivery, String language) {
+                throw new AssertionError("the label is passed");
+            }
+
+            @Override
+            public VoiceRef choose(String speaker, Delivery delivery, String language, PieceLabel label) {
+                asked.add(speaker + "/" + (label == null ? "-" : label.gender() + "/" + label.age()));
+                return VoiceRef.predefined("x.wav");
+            }
+        };
+        String text = "She nodded. \"Halt.\"";
+        ScriptFromLabels.build(text, PieceSplitter.split(text), labels(new PieceLabel(1, "The guard", Delivery.ANGRY, 0.6, "", Gender.MALE, Age.ELDERLY)),
+                new BackendConfig(), spy, Set.of(), 1);
+        assertEquals(List.of("Narrator/-", "The guard/MALE/ELDERLY"), asked);
+    }
+
+    @Test
     void theStudioKeepsTheWordsOfThePieceTheDeliveryAndTheIntensityOfEverySegment() {
         List<Piece> pieces = PieceSplitter.split(TEXT);
         var studio = ScriptFromLabels.studio(TEXT, pieces, labels(label(2, "Marta", Delivery.WHISPER, 0.8, "")), new BackendConfig(), VOICE, Set.of(), 42);

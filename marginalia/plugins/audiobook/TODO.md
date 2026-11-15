@@ -452,6 +452,56 @@ another node pack); whether a separated clip clones better with Higgs; the de-ec
     by me (the author's run showed *Model not loaded* after the first piece: the server log has `/api/unload`, which Marginalia never sends: a startup wrapper of the container unloads the model once the server answers and its wait
     ended after the first request: the how-to says so); a `/v1/audio/speech` mode for a LiteLLM route that carries the speech without the pass-throughs of `/tts` (no exaggeration, no upload of clips); the sound effects (step 9b).
     (LiteLLM routes and pass-throughs, the two hook scripts, the controller and its socket proxy and the Chatterbox container with `pykakasi` are in the how-to; ComfyUI with the graph waits for the sound effects.)
+13. ✅/◐ **Voices for unnamed speakers: gender and age bases, variants of one clip** (planned and built 2026-11-16; **built and unit-tested, not tried in a running application or with a real labelling model yet**). Today every speaker the cast does not know gets the one
+    *Other speakers* actor (`Cast.fallbackActorId`), so the guard, the innkeeper and the girl at the window share a voice. Goal: one or two recordings voice all minor
+    characters distinctly, stable across chapters and re-runs.
+    *What was tested* (2026-11-16, the author's R9700, Higgs v3 fp32, seed 42, one 18-word line; the author listened, Granite read the first set back word-perfect):
+    Higgs clones a reference clip changed with ffmpeg `rubberband` without trouble. Pitch **down** is robust (male −1 with tempo 0.93, −2, −3 st, formants shifted: all fine,
+    −2 "radically different, but good"); **up** is fragile (male +2 "a bit weird"; from the female clip +3 fine, +5 tolerable, +7 "alien"). Formants only ±1 st (two passes:
+    shift with `formant=shifted`, back with `formant=preserved`), tempo 0.93 / 1.07 and an EQ tilt (treble ±4 dB at 3 kHz, bass ∓2 dB at 150 Hz) are all usable. Not tried:
+    Chatterbox with changed clips, other clips, more lines.
+    - **Labelling.** `PieceLabel` gets `gender` (male / female / unknown) and `age` (child / teen / adult / elderly / unknown), asked only for speakers that are not in
+      the cast list; a stored label without them reads as unknown. The sentence that asks for them is added to the instruction **only when the cast of the book uses
+      the bases** (`{{#if extras}}` in the template, `LabelPromptData.extras`): the label cache is keyed by the instruction (`LabelService.cacheKey`), so a changed
+      built-in prompt would re-label every part of every book. A user template without the sentence still gets the fields (they are in the JSON schema). The sentence
+      in all eight `AudiobookDefaults*`.
+    - **Cast.** Next to *Narrator* and *Other speakers*: **Other men**, **Other women**, optional **Children** (empty: the women's base, shifted up). New
+      `Cast.extras`: the unnamed speakers seen so far by normalised name (`Cast.normalize`) with the gender and age they got **first** (later labels do not flip them)
+      and an optional pinned variant. `Cast.voice` takes the label's gender and age: cast member → base of the gender (children: the children's base) → *Other speakers*
+      → narrator; with no bases set nothing changes. `CastDialog` lists the extras (name, gender, age, the variant, a preview, pin / reroll, delete).
+    - **Variants.** A small fixed grid, not continuous values: pitch with formants shifted −3 / −2 / −1 / 0 / +1 st, formants only −1 / 0 / +1, tempo 0.93 / 1 / 1.07,
+      EQ dark / flat / bright (135 per base). The variant of an extra = SHA-256 of book uuid + normalised name modulo the grid (pinned one wins); age and gender add
+      on top: girl = children's base +3..+4 st; boy = children's base +2..+3 st and formants −1 (darker); teen girl = women's base +1..+2; teen boy = **men's** base
+      0..+1 (+2 on the male clip was already weird); elderly = own base −1 st and tempo 0.93. The children's base is the women's clip; a Children actor, when set,
+      is used as it is instead: a girl not raised, a boy −1 st and formants −1. The sum is clamped to −4..+1 st for adults and teen boys, ≤ +2 for a teen
+      girl, ≤ +4 for children (≤ +1 from an own children's voice). The grid and the clamps are constants of
+      one class (`VoiceShift`: parse / print / the ffmpeg filter), so a change re-voices only what it changes.
+    - **Identity.** The variant is part of the voice: `VoiceRef` gets an optional variant, text form `clip:<uuid>~p-2.f+1.t107.eqD`, which is in the piece's cache key
+      (`ScriptEntry.key`), so a new variant or grid re-voices exactly the pieces it touches. Only a **clip** can have a variant; an actor whose voice is a voice of the
+      server (`predefined:`) is used as it is.
+    - **Storage.** A variant is made once, when a batch first resolves it (`ClipVoices.resolve`), and kept as a **hidden version of its base clip**: a resource with
+      `ClipInfo.parent` = the base and `madeWith` = "variant p-2 f+1 t1.07 eq dark", found through a new `ClipInfo.variants` (variant → resource uuid) on the base.
+      Hidden from the clip library and the voice pickers, deleted with the base, kept in backups and exports (a book voiced on the server keeps its voices on a machine
+      without ffmpeg). The upload to the speech server is unchanged (`ensureReference` names a clip by its SHA-256 and skips one the server has).
+    - **Without ffmpeg** (`Ffmpeg.available()`): a variant that is **stored** is used anyway; a missing one is not made, the **base clip** is sent and the variant is left
+      out of the `VoiceRef` (decided when the script is built), so the piece's key says "base" and the first run with ffmpeg re-voices those pieces. The cast dialog says
+      so ("ffmpeg not found: unnamed speakers share the base voice"); the gender bases work without it.
+    - **Also:** the commands (`audiobook-cast` shows the bases and the extras), plugin localization (new constants with ja, zh, fr, es, de, ko, it), the user manual
+      (`manual/user/extensions/audiobook.md`: the bases, the extras, what ffmpeg adds), README, CHANGELOG (one *Added* entry).
+    - **Tests.** `Cast.voice` with bases, gender, age and the fallback chain; first gender sticks; the hash is stable and spreads over the grid; clamps; `VoiceRef`
+      round trip with and without a variant (old texts still parse); the key changes with the variant; no ffmpeg → base and no suffix, stored variant → used; the
+      instruction has the sentence only with bases; old stored labels read as unknown; `VoiceVariant` filter strings.
+    - **As built:** `script.VoiceShift` (grid, hash, offsets, clamps, filter), `VoiceRef.shift`, `Cast` bases + `CastExtra`, `PieceLabel.gender/age` (**not required**
+      by the schema: an answer without them stays valid), `LabelPrompt.system(..., extras)` with the sentence in all eight `AudiobookDefaults*` (attached to
+      the tagged_text line, so without it the instruction is byte-identical to before), `ClipVoices.ShiftedClips` (stored copy → made and stored → base clip),
+      `ClipInfo.shift/shifted`, `Ffmpeg.filter/hasFilter` (`rubberband` must be in the build; checked once per program), `AudiobookService.shiftable()` /
+      `keepExtras` (the extras a script met are saved into the cast read again) / `extraVoice`, the cast window, `/audiobook-cast`. The pin of the plan
+      is the reroll (a speaker keeps their variation anyway). Tests: `VoiceShiftTest`, `CastTest`, `ClipVoicesTest`, `ClipLibraryTest`, `ScriptTest`,
+      `LabelingTest`, `PartLabelStoreTest`, `ScriptFromLabelsTest`, `FfmpegTest` (a real rubberband run).
+    - **Not done:** a run in the application (the cast window, a labelling with a real model that fills in gender and age, the made copies on Higgs);
+      the boy (+2 st, formants −1) and teen boy (men's clip, 0..+1) offsets were not heard; whether the Docker image's ffmpeg has rubberband was not checked.
+    - **Open:** the two passes of the formants-only shift are a guess at what rubberband does (sounded fine once); whether Higgs follows the tempo of the clip (the lengths
+      did not show it); a per-speaker Higgs style token (`<|style:..|>`) as another knob; two extras of one scene can still draw the same variant (reroll in the cast).
 
 ## Notes
 

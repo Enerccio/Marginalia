@@ -10,7 +10,7 @@ the closed world line, insertion and macro, processing of the active branch (who
 reprocess, changed-since-processed), the commands. Reading what the characters learn with the model (a setting): a run of N parts on a worker
 thread, the non-modal progress panel, the review of the proposed changes, `knowledge-process ask` and
 `apply-knowledge-changes` for agents. The Mass changes window (retract, restore or delete the items of
-all the characters at once; export and import of the tracked characters as JSON, `KnowledgeTransfer`). The tested prompt and the results of trying it on a real model are in
+all the characters at once, copy of the ticked items and paste to a character; export and import of the tracked characters as JSON, `KnowledgeTransfer`). Import of the characters of the Character Tracker of the book, read from its data in the book's attributes (`CharacterTrackerImport`, no dependency on that plugin). The tested prompt and the results of trying it on a real model are in
 [TODO.md](TODO.md).
 
 User manual: `manual/user/extensions/knowledge-tracker.md`.

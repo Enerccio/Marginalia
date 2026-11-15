@@ -2,7 +2,7 @@ package com.github.enerccio.marginalia.extensions.audiobook.model;
 
 /**
  * What the plugin keeps of a reference clip besides its audio (a resource of the user, named by its uuid): the name the user gave it, the folder it is
- * in, the clip it was made from (a cleaned version) and how, and the words spoken in it.
+ * in, the clip it was made from (a cleaned version) and how, the words spoken in it, and the shifted copies made of it for unnamed speakers.
  */
 public class ClipInfo {
 
@@ -16,6 +16,10 @@ public class ClipInfo {
     private String madeWith;
     /** The words spoken in the clip (typed or recognised); null: not known. */
     private String text;
+    /** For a shifted copy made for an unnamed speaker: the shift ({@code VoiceShift.spec()}); such a clip is hidden from the library and the pickers. */
+    private String shift;
+    /** The shifted copies made of this clip: shift → uuid of the resource; null: none. */
+    private java.util.Map<String, String> shifted;
 
     public String getName() {
         return name;
@@ -57,9 +61,29 @@ public class ClipInfo {
         this.text = blankToNull(text);
     }
 
+    public String getShift() {
+        return shift;
+    }
+
+    public void setShift(String shift) {
+        this.shift = blankToNull(shift);
+    }
+
+    /** The shifted copies of this clip (shift → uuid), never null. */
+    public java.util.Map<String, String> getShifted() {
+        if (shifted == null) {
+            shifted = new java.util.LinkedHashMap<>();
+        }
+        return shifted;
+    }
+
+    public void setShifted(java.util.Map<String, String> shifted) {
+        this.shifted = shifted == null || shifted.isEmpty() ? null : new java.util.LinkedHashMap<>(shifted);
+    }
+
     /** Whether nothing is kept (the entry can go). */
     public boolean isEmpty() {
-        return name == null && folder == null && parent == null && madeWith == null && text == null;
+        return name == null && folder == null && parent == null && madeWith == null && text == null && shift == null && (shifted == null || shifted.isEmpty());
     }
 
     private static String blankToNull(String value) {

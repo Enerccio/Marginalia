@@ -207,6 +207,21 @@ public class KnowledgeTrackerLocalization extends PluginLocalizationBundle {
     public static final String IMPORT_FROM_JSON = "Import from JSON";
     public static final String IMPORTED_SUMMARY = "Imported: %d new character(s), %d updated, %d item(s) added, %d already there";
     public static final String THE_FILE_IS_NOT_A_KNOWLEDGE_EXPORT = "The file is not a Knowledge Tracker export: %s";
+    public static final String IMPORT_FROM_THE_CHARACTER_TRACKER = "Import from the Character Tracker";
+    public static final String TAGLINE = "Tagline";
+    public static final String IMPORT = "Import";
+    public static final String IMPORT_D = "Import (%d)";
+    public static final String RELATIONSHIPS_ARE_MEETINGS = "Their relationships count as meetings";
+    public static final String AN_IMPORTED_CHARACTER_HAS_MET_THE_PEOPLE = "An imported character has met the people it is related to in the Character Tracker";
+    public static final String THE_CHARACTER_TRACKER_HAS_NO_CHARACTERS = "The Character Tracker has no characters in this book.";
+    public static final String EVERY_CHARACTER_OF_THE_CHARACTER_TRACKER_IS_TRACKED = "Every character of the Character Tracker is tracked already.";
+    public static final String N_CHARACTERS_NOW_TRACKED = "%d character(s) now tracked, %d meeting(s) recorded";
+    public static final String COPY_SELECTED = "Copy selected (%d)";
+    public static final String COPY_THE_ITEMS_TO_PASTE_THEM = "Copy the items to paste them to another character";
+    public static final String PASTE_N = "Paste (%d)";
+    public static final String ADD_THE_COPIED_ITEMS_TO_THIS_CHARACTER = "Add the copied items to this character";
+    public static final String N_ITEMS_COPIED = "%d item(s) copied";
+    public static final String N_ITEMS_PASTED = "%d item(s) pasted to %s, %d already there";
 
     @Override
     protected void loadKeys() {
@@ -1631,6 +1646,126 @@ public class KnowledgeTrackerLocalization extends PluginLocalizationBundle {
         de(THE_FILE_IS_NOT_A_KNOWLEDGE_EXPORT, "Die Datei ist kein Knowledge-Tracker-Export: %s");
         ko(THE_FILE_IS_NOT_A_KNOWLEDGE_EXPORT, "지식 추적기 내보내기 파일이 아닙니다: %s");
         it(THE_FILE_IS_NOT_A_KNOWLEDGE_EXPORT, "Il file non è un'esportazione del Tracciatore della conoscenza: %s");
+
+        ja(IMPORT_FROM_THE_CHARACTER_TRACKER, "キャラクタートラッカーからインポート");
+        zh(IMPORT_FROM_THE_CHARACTER_TRACKER, "从角色追踪器导入");
+        fr(IMPORT_FROM_THE_CHARACTER_TRACKER, "Importer depuis le suivi des personnages");
+        es(IMPORT_FROM_THE_CHARACTER_TRACKER, "Importar desde el Seguimiento de personajes");
+        de(IMPORT_FROM_THE_CHARACTER_TRACKER, "Aus dem Figuren-Tracker importieren");
+        ko(IMPORT_FROM_THE_CHARACTER_TRACKER, "캐릭터 추적기에서 가져오기");
+        it(IMPORT_FROM_THE_CHARACTER_TRACKER, "Importa dal Tracciatore dei personaggi");
+
+        ja(TAGLINE, "キャッチフレーズ");
+        zh(TAGLINE, "标语");
+        fr(TAGLINE, "Accroche");
+        es(TAGLINE, "Lema");
+        de(TAGLINE, "Kurzbeschreibung");
+        ko(TAGLINE, "한 줄 소개");
+        it(TAGLINE, "Slogan");
+
+        ja(IMPORT, "インポート");
+        zh(IMPORT, "导入");
+        fr(IMPORT, "Importer");
+        es(IMPORT, "Importar");
+        de(IMPORT, "Importieren");
+        ko(IMPORT, "가져오기");
+        it(IMPORT, "Importa");
+
+        ja(IMPORT_D, "インポート (%d)");
+        zh(IMPORT_D, "导入 (%d)");
+        fr(IMPORT_D, "Importer (%d)");
+        es(IMPORT_D, "Importar (%d)");
+        de(IMPORT_D, "Importieren (%d)");
+        ko(IMPORT_D, "가져오기 (%d)");
+        it(IMPORT_D, "Importa (%d)");
+
+        ja(RELATIONSHIPS_ARE_MEETINGS, "関係を出会いとして扱う");
+        zh(RELATIONSHIPS_ARE_MEETINGS, "将关系视为见过面");
+        fr(RELATIONSHIPS_ARE_MEETINGS, "Leurs relations comptent comme des rencontres");
+        es(RELATIONSHIPS_ARE_MEETINGS, "Sus relaciones cuentan como encuentros");
+        de(RELATIONSHIPS_ARE_MEETINGS, "Ihre Beziehungen gelten als Begegnungen");
+        ko(RELATIONSHIPS_ARE_MEETINGS, "관계를 만남으로 간주");
+        it(RELATIONSHIPS_ARE_MEETINGS, "Le loro relazioni contano come incontri");
+
+        ja(AN_IMPORTED_CHARACTER_HAS_MET_THE_PEOPLE, "インポートしたキャラクターは、キャラクタートラッカーで関係のある人物に会ったことになります");
+        zh(AN_IMPORTED_CHARACTER_HAS_MET_THE_PEOPLE, "导入的角色视为见过其在角色追踪器中有关系的人");
+        fr(AN_IMPORTED_CHARACTER_HAS_MET_THE_PEOPLE, "Un personnage importé a rencontré les personnes avec qui il a une relation dans le suivi des personnages");
+        es(AN_IMPORTED_CHARACTER_HAS_MET_THE_PEOPLE, "Un personaje importado ha conocido a las personas con las que tiene una relación en el Seguimiento de personajes");
+        de(AN_IMPORTED_CHARACTER_HAS_MET_THE_PEOPLE, "Eine importierte Figur ist den Personen begegnet, mit denen sie im Figuren-Tracker eine Beziehung hat");
+        ko(AN_IMPORTED_CHARACTER_HAS_MET_THE_PEOPLE, "가져온 캐릭터는 캐릭터 추적기에서 관계가 있는 사람들을 만난 것으로 기록됩니다");
+        it(AN_IMPORTED_CHARACTER_HAS_MET_THE_PEOPLE, "Un personaggio importato ha incontrato le persone con cui ha una relazione nel Tracciatore dei personaggi");
+
+        ja(THE_CHARACTER_TRACKER_HAS_NO_CHARACTERS, "この本のキャラクタートラッカーにはキャラクターがいません。");
+        zh(THE_CHARACTER_TRACKER_HAS_NO_CHARACTERS, "本书的角色追踪器中没有角色。");
+        fr(THE_CHARACTER_TRACKER_HAS_NO_CHARACTERS, "Le suivi des personnages n'a aucun personnage dans ce livre.");
+        es(THE_CHARACTER_TRACKER_HAS_NO_CHARACTERS, "El Seguimiento de personajes no tiene personajes en este libro.");
+        de(THE_CHARACTER_TRACKER_HAS_NO_CHARACTERS, "Der Figuren-Tracker hat in diesem Buch keine Figuren.");
+        ko(THE_CHARACTER_TRACKER_HAS_NO_CHARACTERS, "이 책의 캐릭터 추적기에는 캐릭터가 없습니다.");
+        it(THE_CHARACTER_TRACKER_HAS_NO_CHARACTERS, "Il Tracciatore dei personaggi non ha personaggi in questo libro.");
+
+        ja(EVERY_CHARACTER_OF_THE_CHARACTER_TRACKER_IS_TRACKED, "キャラクタートラッカーのキャラクターはすべて追跡済みです。");
+        zh(EVERY_CHARACTER_OF_THE_CHARACTER_TRACKER_IS_TRACKED, "角色追踪器中的所有角色都已在追踪。");
+        fr(EVERY_CHARACTER_OF_THE_CHARACTER_TRACKER_IS_TRACKED, "Tous les personnages du suivi des personnages sont déjà suivis.");
+        es(EVERY_CHARACTER_OF_THE_CHARACTER_TRACKER_IS_TRACKED, "Todos los personajes del Seguimiento de personajes ya se siguen.");
+        de(EVERY_CHARACTER_OF_THE_CHARACTER_TRACKER_IS_TRACKED, "Alle Figuren des Figuren-Trackers werden bereits verfolgt.");
+        ko(EVERY_CHARACTER_OF_THE_CHARACTER_TRACKER_IS_TRACKED, "캐릭터 추적기의 모든 캐릭터를 이미 추적하고 있습니다.");
+        it(EVERY_CHARACTER_OF_THE_CHARACTER_TRACKER_IS_TRACKED, "Tutti i personaggi del Tracciatore dei personaggi sono già tracciati.");
+
+        ja(N_CHARACTERS_NOW_TRACKED, "%d 人のキャラクターを追跡開始、出会い %d 件を記録");
+        zh(N_CHARACTERS_NOW_TRACKED, "已开始追踪 %d 个角色，记录了 %d 次见面");
+        fr(N_CHARACTERS_NOW_TRACKED, "%d personnage(s) désormais suivi(s), %d rencontre(s) enregistrée(s)");
+        es(N_CHARACTERS_NOW_TRACKED, "%d personaje(s) ahora seguido(s), %d encuentro(s) registrado(s)");
+        de(N_CHARACTERS_NOW_TRACKED, "%d Figur(en) werden jetzt verfolgt, %d Begegnung(en) erfasst");
+        ko(N_CHARACTERS_NOW_TRACKED, "%d명의 캐릭터를 추적합니다, 만남 %d건 기록");
+        it(N_CHARACTERS_NOW_TRACKED, "%d personaggio/i ora tracciato/i, %d incontro/i registrato/i");
+
+        ja(COPY_SELECTED, "選択をコピー (%d)");
+        zh(COPY_SELECTED, "复制所选 (%d)");
+        fr(COPY_SELECTED, "Copier la sélection (%d)");
+        es(COPY_SELECTED, "Copiar selección (%d)");
+        de(COPY_SELECTED, "Auswahl kopieren (%d)");
+        ko(COPY_SELECTED, "선택 항목 복사 (%d)");
+        it(COPY_SELECTED, "Copia selezionati (%d)");
+
+        ja(COPY_THE_ITEMS_TO_PASTE_THEM, "項目をコピーして別のキャラクターに貼り付けます");
+        zh(COPY_THE_ITEMS_TO_PASTE_THEM, "复制条目以粘贴到另一个角色");
+        fr(COPY_THE_ITEMS_TO_PASTE_THEM, "Copier les éléments pour les coller à un autre personnage");
+        es(COPY_THE_ITEMS_TO_PASTE_THEM, "Copiar los elementos para pegarlos en otro personaje");
+        de(COPY_THE_ITEMS_TO_PASTE_THEM, "Die Elemente kopieren, um sie bei einer anderen Figur einzufügen");
+        ko(COPY_THE_ITEMS_TO_PASTE_THEM, "항목을 복사해 다른 캐릭터에 붙여넣기");
+        it(COPY_THE_ITEMS_TO_PASTE_THEM, "Copia gli elementi per incollarli a un altro personaggio");
+
+        ja(PASTE_N, "貼り付け (%d)");
+        zh(PASTE_N, "粘贴 (%d)");
+        fr(PASTE_N, "Coller (%d)");
+        es(PASTE_N, "Pegar (%d)");
+        de(PASTE_N, "Einfügen (%d)");
+        ko(PASTE_N, "붙여넣기 (%d)");
+        it(PASTE_N, "Incolla (%d)");
+
+        ja(ADD_THE_COPIED_ITEMS_TO_THIS_CHARACTER, "コピーした項目をこのキャラクターに追加");
+        zh(ADD_THE_COPIED_ITEMS_TO_THIS_CHARACTER, "将复制的条目添加到此角色");
+        fr(ADD_THE_COPIED_ITEMS_TO_THIS_CHARACTER, "Ajouter les éléments copiés à ce personnage");
+        es(ADD_THE_COPIED_ITEMS_TO_THIS_CHARACTER, "Añadir los elementos copiados a este personaje");
+        de(ADD_THE_COPIED_ITEMS_TO_THIS_CHARACTER, "Die kopierten Elemente dieser Figur hinzufügen");
+        ko(ADD_THE_COPIED_ITEMS_TO_THIS_CHARACTER, "복사한 항목을 이 캐릭터에 추가");
+        it(ADD_THE_COPIED_ITEMS_TO_THIS_CHARACTER, "Aggiungi gli elementi copiati a questo personaggio");
+
+        ja(N_ITEMS_COPIED, "%d 件の項目をコピーしました");
+        zh(N_ITEMS_COPIED, "已复制 %d 个条目");
+        fr(N_ITEMS_COPIED, "%d élément(s) copié(s)");
+        es(N_ITEMS_COPIED, "%d elemento(s) copiado(s)");
+        de(N_ITEMS_COPIED, "%d Element(e) kopiert");
+        ko(N_ITEMS_COPIED, "항목 %d개 복사됨");
+        it(N_ITEMS_COPIED, "%d elemento/i copiato/i");
+
+        ja(N_ITEMS_PASTED, "%d 件の項目を %s に貼り付けました、既存 %d");
+        zh(N_ITEMS_PASTED, "已将 %d 个条目粘贴到 %s，已存在 %d 个");
+        fr(N_ITEMS_PASTED, "%d élément(s) collé(s) à %s, %d déjà présents");
+        es(N_ITEMS_PASTED, "%d elemento(s) pegado(s) en %s, %d ya estaban");
+        de(N_ITEMS_PASTED, "%d Element(e) bei %s eingefügt, %d bereits vorhanden");
+        ko(N_ITEMS_PASTED, "항목 %d개를 %s에 붙여넣음, 이미 있던 항목 %d개");
+        it(N_ITEMS_PASTED, "%d elemento/i incollato/i a %s, %d già presenti");
 
     }
 }

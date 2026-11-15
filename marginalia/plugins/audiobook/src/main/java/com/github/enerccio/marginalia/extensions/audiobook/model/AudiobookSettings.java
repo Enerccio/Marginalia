@@ -312,6 +312,37 @@ public class AudiobookSettings {
         }
     }
 
+    /** The resource of the clip shifted that way ({@code VoiceShift.spec()}), null when it was not made. */
+    public String shiftedClip(String baseUuid, String shift) {
+        ClipInfo info = clipInfo(baseUuid);
+        return info == null || shift == null ? null : info.getShifted().get(shift);
+    }
+
+    /** Marks the clip as the base clip shifted that way: a hidden copy, with the words of the base. */
+    public void addShifted(String baseUuid, String shift, String shiftedUuid, String madeWith) {
+        ClipInfo base = infoFor(baseUuid);
+        base.getShifted().put(shift, shiftedUuid);
+        ClipInfo info = infoFor(shiftedUuid);
+        info.setParent(baseUuid);
+        info.setShift(shift);
+        info.setMadeWith(madeWith);
+        if (info.getText() == null) {
+            info.setText(base.getText());
+        }
+    }
+
+    /** Whether the clip is a shifted copy (hidden from the library and the pickers). */
+    public boolean isShifted(String clipUuid) {
+        ClipInfo info = clipInfo(clipUuid);
+        return info != null && info.getShift() != null;
+    }
+
+    /** The shifted copies of the clip (their uuids). */
+    public List<String> shiftedOf(String baseUuid) {
+        ClipInfo info = clipInfo(baseUuid);
+        return info == null ? List.of() : List.copyOf(info.getShifted().values());
+    }
+
     /** The folders of the clips, by name (the case and the accents do not count). */
     public List<String> folders() {
         java.util.TreeSet<String> folders = new java.util.TreeSet<>(collator());
@@ -329,6 +360,14 @@ public class AudiobookSettings {
         ClipInfo gone = clips.remove(clipUuid);
         String parent = gone == null ? null : gone.getParent();
         String folder = gone == null ? null : gone.getFolder();
+        // a shifted copy is forgotten by its base too; the copies of a deleted clip go with it (they are deleted with it)
+        if (gone != null && gone.getShift() != null && parent != null && clipInfo(parent) != null) {
+            clipInfo(parent).getShifted().values().remove(clipUuid);
+            tidy(parent);
+        }
+        if (gone != null) {
+            gone.getShifted().values().forEach(clips::remove);
+        }
         for (var entry : clips.entrySet()) {
             if (clipUuid.equals(entry.getValue().getParent())) {
                 entry.getValue().setParent(parent);

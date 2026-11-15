@@ -37,7 +37,16 @@ public final class LabelPrompt {
      * @param model the speech model of the book: its sound tags are offered (a model without tags gets Turbo's, which it drops, as before)
      */
     public static LabelPromptData data(List<String> characters, String model) {
+        return data(characters, model, false);
+    }
+
+    /**
+     * @param extras the cast of the book has base voices for unnamed speakers: the instruction asks for their gender and age. Only then: the labels
+     *               are cached by the instruction, so a sentence added for every book would have every part labelled again.
+     */
+    public static LabelPromptData data(List<String> characters, String model, boolean extras) {
         LabelPromptData data = new LabelPromptData();
+        data.setExtras(extras);
         data.setCharacters(String.join(", ", characters));
         data.setDeliveries(deliveries());
         data.setTags(tags(model));
@@ -56,8 +65,13 @@ public final class LabelPrompt {
 
     /** The system message for a book spoken by the model (its sound tags are the ones offered). */
     public static String system(TemplateService templates, String template, List<String> characters, String model) throws Exception {
+        return system(templates, template, characters, model, false);
+    }
+
+    /** The system message, asking for the gender and the age of unnamed speakers when {@code extras} (see {@link #data(List, String, boolean)}). */
+    public static String system(TemplateService templates, String template, List<String> characters, String model, boolean extras) throws Exception {
         String text = template == null || template.isBlank() ? T.defaults().labelTemplate() : template;
-        return templates.processTemplate(text, "audiobookLabelPrompt", data(characters, model)).strip();
+        return templates.processTemplate(text, "audiobookLabelPrompt", data(characters, model, extras)).strip();
     }
 
     private static String deliveries() {

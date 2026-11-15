@@ -416,7 +416,8 @@ public class AudiobookService {
                 String lower = name.toLowerCase(java.util.Locale.ROOT);
                 boolean audio = (resource.getMimeType() != null && resource.getMimeType().startsWith("audio/")) || lower.endsWith(".wav")
                         || lower.endsWith(".mp3");
-                if (audio && !name.startsWith(ResourceAudioStore.FILE_PREFIX)) {
+                // the shifted copies made for unnamed speakers are not clips to pick
+                if (audio && !name.startsWith(ResourceAudioStore.FILE_PREFIX) && !settings.isShifted(resource.getUuid())) {
                     files.put(resource.getUuid(), name);
                 }
             }
@@ -756,7 +757,10 @@ public class AudiobookService {
             return false;
         }
         try {
-            boolean deleted = resourceService.softDelete(List.of(uuid)) > 0;
+            List<String> doomed = new ArrayList<>(List.of(uuid));
+            // its shifted copies (unnamed speakers) go with it; they are made again from another clip when needed
+            doomed.addAll(getSettings().shiftedOf(uuid));
+            boolean deleted = resourceService.softDelete(doomed) > 0;
             if (deleted) {
                 // its versions move up to its parent, its name and words go
                 changeSettings(settings -> settings.forgetClip(uuid));
@@ -765,6 +769,52 @@ public class AudiobookService {
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    /** Whether this installation can make shifted clips (ffmpeg with the {@code rubberband} filter). */
+    public static boolean canMakeShiftedClips() {
+        return Ffmpeg.hasFilter("rubberband");
+    }
+
+    /**
+     * Which voices a script may use shifted (an unnamed speaker): any when shifted clips can be made here, else only those whose shifted copy is
+     * stored (made on a machine with ffmpeg; the others are the base clip, and their cache key says so, so ffmpeg later makes them again).
+     */
+    public java.util.function.Predicate<VoiceRef> shiftable() {
+        if (canMakeShiftedClips()) {
+            return v -> true;
+        }
+        AudiobookSettings settings = getSettings();
+        return v -> v.shift() == null || settings.shiftedClip(v.id(), v.shift().spec()) != null;
+    }
+
+    /** The shifted copies of the clips of the user: hidden versions of the base clip, made with ffmpeg when first needed. */
+    ClipVoices.ShiftedClips shiftedClips() {
+        return new ClipVoices.ShiftedClips() {
+            @Override
+            public String find(String baseUuid, VoiceShift shift) {
+                return getSettings().shiftedClip(baseUuid, shift.spec());
+            }
+
+            @Override
+            public boolean canMake() {
+                return canMakeShiftedClips();
+            }
+
+            @Override
+            public byte[] make(byte[] base, VoiceShift shift) throws BackendException {
+                return Ffmpeg.filter(base, shift.filter());
+            }
+
+            @Override
+            public String store(String baseUuid, VoiceShift shift, byte[] audio, String baseFileName) {
+                String stem = (baseFileName == null ? "clip" : baseFileName).replaceFirst("(?i)\\.(wav|mp3)$", "");
+                Clip copy = uploadClip(stem + " (" + shift.spec() + ").wav", audio, "audio/wav");
+                changeSettings(settings -> settings.addShifted(baseUuid, shift.spec(), copy.uuid(), "shift " + shift.describe()));
+                AudiobookLog.get().info("Made the clip {} shifted {} (for an unnamed speaker) as {}", baseUuid, shift.spec(), copy.uuid());
+                return copy.uuid();
+            }
+        };
     }
 
     /** Puts a clip among the resources of the user; the result is what a voice names ({@code clip:<uuid>}). */
@@ -1051,7 +1101,7 @@ public class AudiobookService {
                 }
                 VoiceRef ref = VoiceRef.parse(voice);
                 String sentence = sampleText(backend.getModel(), code, sounds, mood);
-                ClipVoices clips = new ClipVoices(resourceService);
+                ClipVoices clips = new ClipVoices(resourceService, uuid -> null, shiftedClips());
                 byte[] audio = runBatch(backend, null, speaker -> {
                     Voices.Resolved resolved = clips.resolve(speaker, ref);
                     SpeechRequest request = new SpeechRequest(sentence, resolved.mode(), resolved.name(), code, 0.5, backend.getCfgWeight(),
@@ -1093,7 +1143,7 @@ public class AudiobookService {
                         return;
                     }
                     VoiceRef ref = VoiceRef.parse(voice);
-                    ClipVoices clips = new ClipVoices(resourceService, uuid -> getSettings().clipText(uuid));
+                    ClipVoices clips = new ClipVoices(resourceService, uuid -> getSettings().clipText(uuid), shiftedClips());
                     byte[] audio = runBatch(backend, null, speaker -> {
                         Voices.Resolved resolved = clips.resolve(speaker, ref);
                         SpeechRequest request = new SpeechRequest(text.strip(), resolved.mode(), resolved.name(), null, 0.5, backend.getCfgWeight(),
@@ -1172,7 +1222,7 @@ public class AudiobookService {
                 return thread;
             });
             ConversionQueue queue = new ConversionQueue(new ConversionQueue.Environment(new ResourceAudioStore(resourceService, chatMessageService),
-                    new ClipVoices(resourceService, uuid -> getSettings().clipText(uuid)), this::backendForModel, this::runBatch,
+                    new ClipVoices(resourceService, uuid -> getSettings().clipText(uuid), shiftedClips()), this::backendForModel, this::runBatch,
                     () -> tracker != null && tracker.isRunning(id), 1000, this::loudnessTarget, Ffmpeg::normalizeLoudness, this::withRecognizer), worker);
             queue.setRunWatch((titles, stop) -> watchRun(id, titles, stop));
             return queue;
@@ -1485,7 +1535,14 @@ public class AudiobookService {
     public VoiceRef voiceFor(Manuscript manuscript, BackendConfig backend, String speaker, String delivery, String language) {
         AudiobookSettings settings = getSettings();
         VoiceRef own = backend == null || backend.getNarratorVoice().isBlank() ? null : VoiceRef.parse(backend.getNarratorVoice().strip());
-        return castOf(manuscript).voice(speaker, delivery, language, settings::findActor, own);
+        // an unnamed speaker keeps the gender and the age the cast remembers of them
+        return castOf(manuscript).voice(speaker, delivery, language, null, null, manuscript.getUuid(), settings::findActor, own, shiftable());
+    }
+
+    /** The voice an unnamed speaker of the cast gets (for the cast window: hearing the speaker), null when no actor has a voice for them. */
+    public VoiceRef extraVoice(Manuscript manuscript, Cast cast, CastExtra extra) {
+        return cast.voice(extra.getName(), Delivery.NEUTRAL.name(), null, extra.getGender(), extra.getAge(), manuscript.getUuid(),
+                getSettings()::findActor, null, shiftable());
     }
 
     private StudioStore studioStore() {
@@ -1686,7 +1743,28 @@ public class AudiobookService {
     private String labelPrompt(String bookId, List<String> characters, String model) throws Exception {
         Manuscript book = manuscriptService.findForUser(bookId);
         String template = book == null ? null : manuscriptService.resolveExtension(book, LabelPrompt.SETTING).value();
-        return LabelPrompt.system(templateService, template, characters, model);
+        // the gender and the age of unnamed speakers are asked only for a cast that uses them (the labels are cached by this text)
+        boolean extras = book != null && castOf(book).usesExtras();
+        return LabelPrompt.system(templateService, template, characters, model, extras);
+    }
+
+    /**
+     * Keeps the unnamed speakers a script met in the cast of the book (the gender and the age they got first), so a later part does not give them
+     * another voice and the cast window lists them. The cast is read again: the user may have changed it while the job ran.
+     */
+    private void keepExtras(String bookId, Cast learned) throws Exception {
+        Manuscript book = manuscriptService.findForUser(bookId);
+        if (book == null) {
+            return;
+        }
+        Cast current = castOf(book);
+        boolean changed = false;
+        for (CastExtra extra : learned.getExtras()) {
+            changed |= current.learnExtra(extra.getName(), extra.getGender(), extra.getAge());
+        }
+        if (changed) {
+            saveCast(book, current);
+        }
     }
 
     /** The cast of the book as it is when a job runs. */
@@ -1754,8 +1832,29 @@ public class AudiobookService {
                 labels.putAll(asked.labels());
             }
             Set<String> models = backends().stream().map(BackendConfig::getModel).collect(Collectors.toSet());
-            fresh = ScriptFromLabels.studio(text, pieces, labels, backend,
-                    (speaker, delivery, language) -> cast.voice(speaker, delivery.name(), language, actors, narrator), models, SEED, form);
+            java.util.function.Predicate<VoiceRef> shiftable = shiftable();
+            boolean[] learned = {false};
+            ScriptFromLabels.VoiceChooser chooser = new ScriptFromLabels.VoiceChooser() {
+                @Override
+                public VoiceRef choose(String speaker, Delivery delivery, String language) {
+                    return choose(speaker, delivery, language, null);
+                }
+
+                @Override
+                public VoiceRef choose(String speaker, Delivery delivery, String language, PieceLabel label) {
+                    Gender gender = label == null ? null : label.gender();
+                    Age age = label == null ? null : label.age();
+                    // an unnamed speaker keeps what the first label said of them (also within this part)
+                    if (cast.usesExtras() && cast.learnExtra(speaker, gender, age)) {
+                        learned[0] = true;
+                    }
+                    return cast.voice(speaker, delivery.name(), language, gender, age, bookId, actors, narrator, shiftable);
+                }
+            };
+            fresh = ScriptFromLabels.studio(text, pieces, labels, backend, chooser, models, SEED, form);
+            if (learned[0]) {
+                keepExtras(bookId, cast);
+            }
         }
         StudioScript merged = StudioScript.merge(stored, fresh);
         store.put(partUuid, merged);

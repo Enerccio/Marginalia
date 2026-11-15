@@ -222,6 +222,23 @@ list from the point of view and present characters of the parts.
 
 ![The cast of a book](../../images/plugin-audiobook-cast.png)
 
+**Unnamed speakers** (the guard, the innkeeper, the girl at the window) can each get a voice of their own from one or two recordings.
+Give the cast base actors: **Other men**, **Other women** and, if you like, **Children** (empty: the women's voice, raised). The
+labelling then also tells the gender and age of every speaker the cast does not name, and each of them speaks with a *variation* of
+the base clip of their kind: a little higher or lower, other formants, faster or slower, darker or brighter. A teenage boy gets the
+men's voice, a teenage girl and a child the women's, an old speaker a lower and slower one. The variation comes from the name of the
+speaker and the book, so the same speaker sounds the same in every chapter and on every run. Leave all three empty and every unnamed
+speaker is read by **Other speakers**, as before.
+
+The speakers met so far are listed under the bases with the gender and age they got first (a later part does not change them). You can
+correct the gender or the age, hear the speaker, give them **another variation** (the dice), or remove them from the list. A changed
+speaker is made again the next time the parts are converted.
+
+A variation needs **ffmpeg** with the *rubberband* filter on the server (the Debian and Ubuntu packages, which the Docker image installs, are normally built with it; `ffmpeg -filters | grep rubberband` shows whether yours is). Each one is made once, when it is
+first needed, and kept as a hidden copy of its clip, so it travels with your backups. Without ffmpeg the cast says so: unnamed speakers
+share the base voice of their kind, and the variations already made are still used. A variation only changes a clip of yours; an
+actor whose voice is a voice of the speech server is used as it is.
+
 **Pronunciation** is how the text is spelled *for the voice*; the book itself is never changed. The **dictionary** replaces whole
 words (the case matters) with what is said for them: a respelling for a name or a word you made up, or a reading in kana for
 Japanese. For a book in English the rules also read the other things aloud: numbers, ordinals, years, times, money and
@@ -374,7 +391,7 @@ numbers them, or named by their handle.
 | `/audiobook-convert [from [to [labelling [what [wait]]]]]` | Puts the parts into the queue (the whole book without arguments, one part when only `from` is given). `labelling` `true` uses the model of the book; `what` is `audio` or `script` (only the script for the studio, nothing is spoken). With `wait` `true` the command stays until the jobs are over, shows how far they are and tells how each ended; stopping it cancels the jobs that have not started. |
 | `/audiobook-stop` | Cancels the waiting parts; the running one stops after its piece. |
 | `/audiobook-set-part-status part status` | `draft`, `reviewed` or `final` in the studio; the part needs a script. |
-| `/audiobook-cast` | The narrator, the fallback and the characters of the cast with their actors. |
+| `/audiobook-cast` | The narrator, the fallback and the characters of the cast with their actors, the base actors of unnamed speakers and the unnamed speakers met so far (gender, age, variation). |
 
 ![The result of a command](../../images/plugin-audiobook-command.png)
 

@@ -35,6 +35,11 @@ public final class ScriptFromLabels {
     @FunctionalInterface
     public interface VoiceChooser {
         VoiceRef choose(String speaker, Delivery delivery, String language);
+
+        /** The same with the label of the piece (its gender and age of an unnamed speaker, null when the piece has none). */
+        default VoiceRef choose(String speaker, Delivery delivery, String language, PieceLabel label) {
+            return choose(speaker, delivery, language);
+        }
     }
 
     /**
@@ -95,7 +100,7 @@ public final class ScriptFromLabels {
                 }
                 continue;
             }
-            entries.add(StudioSegment.made(new ScriptEntry(speaker, said, voice.choose(speaker, delivery, language), model, language,
+            entries.add(StudioSegment.made(new ScriptEntry(speaker, said, voice.choose(speaker, delivery, language, label), model, language,
                     // Turbo and Higgs have no exaggeration: a constant keeps the cache from missing for a value that changes nothing
                     turbo || higgs ? 0.5 : exaggeration(intensity), backend.getCfgWeight(), backend.getTemperature(),
                     backend.getSpeed(), seed, backend.getChunkSize(), backend.getFormat(), pause(pieces, i)), piece.text(), delivery.name(), intensity));

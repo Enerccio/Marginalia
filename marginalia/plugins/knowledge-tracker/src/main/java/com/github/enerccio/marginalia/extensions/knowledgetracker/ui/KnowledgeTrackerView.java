@@ -105,6 +105,8 @@ public class KnowledgeTrackerView extends VerticalLayout {
         refresh();
         reloadMassChanges();
     });
+    /** The items copied in the <b>Mass changes</b> window, kept while the tab is open so they can be pasted after it was closed. */
+    private final List<KnowledgeItem> clipboard = new ArrayList<>();
     /** The open <b>Mass changes</b> window, {@code null} when there is none. */
     private MassChangesDialog massChanges;
     /** Removes the listener that reads the state again when a command changes it, set while the view is attached. */
@@ -195,7 +197,12 @@ public class KnowledgeTrackerView extends VerticalLayout {
         mass.setAriaLabel(T.localized(MASS_CHANGES));
         mass.setTooltipText(T.localized(CHANGE_MANY_ITEMS_AT_ONCE));
 
-        HorizontalLayout buttons = new HorizontalLayout(add, mass, reload, settingsButton);
+        Button importCharacters = new Button(Solid.USER_PLUS.create(), _ -> openImportCharacters());
+        importCharacters.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ICON);
+        importCharacters.setAriaLabel(T.localized(IMPORT_FROM_THE_CHARACTER_TRACKER));
+        importCharacters.setTooltipText(T.localized(IMPORT_FROM_THE_CHARACTER_TRACKER));
+
+        HorizontalLayout buttons = new HorizontalLayout(add, importCharacters, mass, reload, settingsButton);
         buttons.setAlignItems(Alignment.CENTER);
         buttons.setPadding(true);
         buttons.setSpacing(false);
@@ -925,7 +932,7 @@ public class KnowledgeTrackerView extends VerticalLayout {
 
     /** <b>Mass changes</b>: the items of all the characters in grids with check boxes, export and import. */
     private void openMassChanges() {
-        massChanges = new MassChangesDialog(manuscript.getName(), () -> state, this::persist, positions::get);
+        massChanges = new MassChangesDialog(manuscript.getName(), () -> state, this::persist, positions::get, clipboard);
         massChanges.addOpenedChangeListener(e -> {
             if (!e.isOpened()) {
                 massChanges = null;
@@ -938,6 +945,19 @@ public class KnowledgeTrackerView extends VerticalLayout {
     private void reloadMassChanges() {
         if (massChanges != null) {
             massChanges.reload();
+        }
+    }
+
+    private void openImportCharacters() {
+        try {
+            List<CharacterTrackerImport.Candidate> all = service.characterTrackerCharacters(manuscript);
+            new ImportCharactersDialog(all, CharacterTrackerImport.untracked(state, all), (chosen, relationsAsMet) -> {
+                CharacterTrackerImport.ImportResult result = CharacterTrackerImport.importInto(state, chosen, relationsAsMet);
+                persist();
+                Notification.success(T.localized(N_CHARACTERS_NOW_TRACKED).formatted(result.added(), result.met()));
+            }).open();
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
         }
     }
 

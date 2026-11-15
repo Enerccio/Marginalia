@@ -32,7 +32,8 @@ import static com.github.enerccio.marginalia.extensions.knowledgetracker.Knowled
 /**
  * <b>Mass changes</b> of the Knowledge tab: every tracked character with all its items (old ones too) in a grid with check boxes, the
  * ticked items of all the grids are retracted, restored or deleted at once. The tracked characters are also exported to a JSON file
- * and imported from one ({@link KnowledgeTransfer}).
+ * and imported from one ({@link KnowledgeTransfer}). The ticked items can be copied and pasted to a character (the paste button of its
+ * group); the copies are kept by the tab, so they can be pasted after the dialog was closed and opened again.
  * <p>
  * The dialog does not keep a state of its own: every action reads the state the tab holds now ({@code state}), changes it and has the
  * tab store it ({@code persist}); the tab calls {@link #reload} when the state was read again (a run, a command). The ticks are kept by
@@ -56,6 +57,9 @@ public class MassChangesDialog extends Dialog {
     private final Button retract = new Button(Solid.BAN.create());
     private final Button restore = new Button(Solid.ROTATE_LEFT.create());
     private final Button delete = new Button(Solid.TRASH.create());
+    private final Button copy = new Button(Solid.COPY.create());
+    /** The copied items (detached copies, see {@link KnowledgeTransfer#copy}), owned by the tab. */
+    private final List<KnowledgeItem> clipboard;
     /** The part numbers of the active branch, by the uuid of the part, as the tab read them. */
     private final Function<String, Integer> positions;
     private boolean updatingSelection;
@@ -65,9 +69,12 @@ public class MassChangesDialog extends Dialog {
      * @param state     the state the tab holds now
      * @param persist   stores the state and shows it in the tab
      * @param positions the number of a part of the active branch by its uuid, {@code null} for a part that is not on it
+     * @param clipboard the copied items, a list the tab keeps; the dialog replaces its content on a copy
      */
-    public MassChangesDialog(String bookName, Supplier<KnowledgeState> state, Runnable persist, Function<String, Integer> positions) {
+    public MassChangesDialog(String bookName, Supplier<KnowledgeState> state, Runnable persist, Function<String, Integer> positions,
+                             List<KnowledgeItem> clipboard) {
         this.bookName = bookName;
+        this.clipboard = clipboard;
         this.state = state;
         this.persist = persist;
         this.positions = positions;
@@ -95,13 +102,16 @@ public class MassChangesDialog extends Dialog {
         restore.addClickListener(_ -> restoreSelected());
         delete.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_ERROR);
         delete.addClickListener(_ -> deleteSelected());
+        copy.addThemeVariants(ButtonVariant.LUMO_SMALL);
+        copy.setTooltipText(T.localized(COPY_THE_ITEMS_TO_PASTE_THEM));
+        copy.addClickListener(_ -> copySelected());
         Button selectAll = new Button(T.localized(SELECT_ALL), Solid.CHECK_DOUBLE.create(), _ -> selectAll(true));
         selectAll.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY);
         Button deselectAll = new Button(T.localized(DESELECT_ALL), _ -> selectAll(false));
         deselectAll.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY);
         Button close = new Button(T.localized(CLOSE), _ -> close());
         status.addClassName(KnowledgeTrackerStyles.COUNTS);
-        Div actions = new Div(status, selectAll, deselectAll, retract, restore, delete, close);
+        Div actions = new Div(status, selectAll, deselectAll, copy, retract, restore, delete, close);
         actions.addClassName(KnowledgeTrackerStyles.ITEM_BAR);
         getFooter().add(actions);
 
@@ -184,7 +194,13 @@ public class MassChangesDialog extends Dialog {
         counts.addClassName(KnowledgeTrackerStyles.COUNTS);
         Div title = new Div(name, counts);
         title.addClassName(KnowledgeTrackerStyles.CARD_TITLE);
-        Div header = new Div(title);
+        Button paste = new Button(T.localized(PASTE_N).formatted(clipboard.size()), Solid.PASTE.create(), _ -> paste(character));
+        paste.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY);
+        paste.setTooltipText(T.localized(ADD_THE_COPIED_ITEMS_TO_THIS_CHARACTER));
+        paste.setEnabled(!clipboard.isEmpty());
+        Div actions = new Div(paste);
+        actions.addClassName(KnowledgeTrackerStyles.ACTIONS);
+        Div header = new Div(title, actions);
         header.addClassName(KnowledgeTrackerStyles.CARD_HEADER);
         Div group = new Div(header);
         group.addClassName(KnowledgeTrackerStyles.REVIEW_GROUP);
@@ -272,6 +288,37 @@ public class MassChangesDialog extends Dialog {
         restore.setEnabled(old > 0);
         delete.setText(T.localized(DELETE_SELECTED).formatted(ticked));
         delete.setEnabled(ticked > 0);
+        copy.setText(T.localized(COPY_SELECTED).formatted(ticked));
+        copy.setEnabled(ticked > 0);
+    }
+
+    /** Puts copies of the ticked items (of all the characters, in the order of the state) into the clipboard, replacing what it had. */
+    private void copySelected() {
+        List<KnowledgeItem> copies = new ArrayList<>();
+        for (TrackedCharacter character : state.get().getCharacters()) {
+            Set<String> ids = selected.getOrDefault(character.getId(), Set.of());
+            character.getItems().stream().filter(item -> ids.contains(item.getId())).map(KnowledgeTransfer::copy)
+                    .filter(Objects::nonNull).forEach(copies::add);
+        }
+        clipboard.clear();
+        clipboard.addAll(copies);
+        // the paste buttons show the new count
+        reload();
+        Notification.success(T.localized(N_ITEMS_COPIED).formatted(copies.size()));
+    }
+
+    private void paste(TrackedCharacter character) {
+        TrackedCharacter target = state.get().findCharacter(character.getId());
+        if (target == null) {
+            reload();
+            return;
+        }
+        KnowledgeTransfer.PasteResult result = KnowledgeTransfer.paste(target, clipboard);
+        if (result.added() > 0) {
+            persist.run();
+        }
+        reload();
+        Notification.success(T.localized(N_ITEMS_PASTED).formatted(result.added(), target.getName(), result.skipped()));
     }
 
     private void retractSelected() {

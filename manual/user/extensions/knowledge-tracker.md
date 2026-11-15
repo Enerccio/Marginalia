@@ -24,6 +24,13 @@ The left sidebar of the [story editor](../books/story-editor.md) gets a **Knowle
 **Track a character** asks for a **name** and, optionally, **aliases**: the other names the character is written as in the
 *Present Characters* field of a part, separated by commas. A name or an alias can belong to one tracked character only.
 
+**Import from the Character Tracker** (the person icon next to **Track a character**) starts tracking characters of the
+[Character Tracker](character-tracker.md) of the same book. It lists the characters the book does not track yet (as a name
+or an alias) with their taglines, all of them ticked; untick the ones to leave out and press **Import**. Only the names are
+taken: the tagline and the note describe a character, they are not something it knows. With **Their relationships count as
+meetings** an imported character has met the people it is related to in the Character Tracker (they are written into its
+**Has met** list as if you had written them, so processing keeps them).
+
 Open a character with the arrow on its card to see what it knows:
 
 | | |
@@ -51,6 +58,8 @@ the part it was learned in. Tick items in as many grids as you like (the box in 
 | **Retract selected (n)** | The ticked active items become old knowledge, as **Retract** does for one. |
 | **Restore selected (n)** | The ticked old items are active again, from now on. |
 | **Delete selected (n)** | Removes the ticked items for good, after one question. |
+| **Copy selected (n)** | Copies the ticked items, of all the characters, to paste them to another character. |
+| **Paste (n)** (in the header of every character) | Adds the copied items to that character. A pasted item counts as written by hand (an initial one stays initial) and keeps its kind, its lock and whether it is old; one the character has already (the same kind and text) is skipped. The copied items stay until the next copy, also after the window is closed, so they can be pasted to several characters. |
 
 The counts on the buttons say how many of the ticked items each one changes. The ticks stay after a change, so retracted
 items can be deleted next.

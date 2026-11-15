@@ -414,6 +414,29 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
     public static final String THE_TAGS_OF = "%s reads these (click one to add it to the text):";
     public static final String THE_MODEL_READS_NO_TAGS = "The model of %s reads no tags: they would be spoken as words.";
     public static final String GPU_LOCK_HELP = "The GPU lock the administrator set up for the GPU of this server: every batch and sample waits for its turn on the GPU, and the lock's steps load the server first (freeing the language model or another server when needed). Empty: no lock.";
+    public static final String OTHER_MEN = "Other men";
+    public static final String OTHER_WOMEN = "Other women";
+    public static final String CHILDREN = "Children";
+    public static final String UNNAMED_SPEAKERS = "Unnamed speakers";
+    public static final String THE_BASE_VOICES_HELP = "Base voices for the speakers the cast does not name. The model tells their gender and age, and each of them gets a variation of their own made from the base clip (higher, lower, faster, brighter), the same in every chapter. Children not set: the women's voice, raised. All three empty: every unnamed speaker is read by Other speakers.";
+    public static final String SHIFTS_NEED_FFMPEG = "ffmpeg with rubberband was not found on the server: unnamed speakers share the base voice of their kind (variations made before are still used).";
+    public static final String THE_UNNAMED_SPEAKERS_HELP = "The speakers the model met that the cast does not name, with the gender and age they got first. Change them, hear them, or give one another variation.";
+    public static final String GENDER = "Gender";
+    public static final String AGE = "Age";
+    public static final String MALE = "Male";
+    public static final String FEMALE = "Female";
+    public static final String UNKNOWN = "Unknown";
+    public static final String CHILD = "Child";
+    public static final String TEENAGER = "Teenager";
+    public static final String ADULT = "Adult";
+    public static final String ELDERLY = "Elderly";
+    public static final String ANOTHER_VARIATION = "Another variation";
+    public static final String THE_BASE_VOICE = "the base voice";
+    public static final String VARIATION_OF = "Variation: %s";
+    public static final String FORMANTS = "formants";
+    public static final String TEMPO = "tempo";
+    public static final String DARKER = "darker";
+    public static final String BRIGHTER = "brighter";
 
     @Override
     protected void loadKeys() {
@@ -3407,5 +3430,189 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
         de(THE_MODEL_READS_NO_TAGS, "Das Modell von %s liest keine Tags: Sie würden als Wörter gesprochen.");
         ko(THE_MODEL_READS_NO_TAGS, "%s의 모델은 태그를 읽지 않습니다: 단어로 읽힙니다.");
         it(THE_MODEL_READS_NO_TAGS, "Il modello di %s non legge tag: verrebbero pronunciati come parole.");
+
+        ja(OTHER_MEN, "その他の男性");
+        zh(OTHER_MEN, "其他男性");
+        fr(OTHER_MEN, "Autres hommes");
+        es(OTHER_MEN, "Otros hombres");
+        de(OTHER_MEN, "Andere Männer");
+        ko(OTHER_MEN, "기타 남성");
+        it(OTHER_MEN, "Altri uomini");
+
+        ja(OTHER_WOMEN, "その他の女性");
+        zh(OTHER_WOMEN, "其他女性");
+        fr(OTHER_WOMEN, "Autres femmes");
+        es(OTHER_WOMEN, "Otras mujeres");
+        de(OTHER_WOMEN, "Andere Frauen");
+        ko(OTHER_WOMEN, "기타 여성");
+        it(OTHER_WOMEN, "Altre donne");
+
+        ja(CHILDREN, "子ども");
+        zh(CHILDREN, "儿童");
+        fr(CHILDREN, "Enfants");
+        es(CHILDREN, "Niños");
+        de(CHILDREN, "Kinder");
+        ko(CHILDREN, "어린이");
+        it(CHILDREN, "Bambini");
+
+        ja(UNNAMED_SPEAKERS, "名前のない話者");
+        zh(UNNAMED_SPEAKERS, "未命名的说话者");
+        fr(UNNAMED_SPEAKERS, "Locuteurs sans nom");
+        es(UNNAMED_SPEAKERS, "Hablantes sin nombre");
+        de(UNNAMED_SPEAKERS, "Unbenannte Sprecher");
+        ko(UNNAMED_SPEAKERS, "이름 없는 화자");
+        it(UNNAMED_SPEAKERS, "Parlanti senza nome");
+
+        ja(THE_BASE_VOICES_HELP, "キャストに名前のない話者のための基本の声です。モデルが性別と年齢を判断し、話者ごとに基本のクリップから作った専用のバリエーション（高め、低め、速め、明るめ）が付きます。どの章でも同じ声です。子どもが未設定の場合は女性の声を高くして使います。三つとも空の場合、名前のない話者はすべて「その他の話者」が読みます。");
+        zh(THE_BASE_VOICES_HELP, "为演员表中没有名字的说话者设置的基础声音。模型会判断他们的性别和年龄，每个人都会得到一个由基础片段生成的专属变体（更高、更低、更快、更明亮），在每一章中都相同。未设置儿童时：使用升高音调的女性声音。三者都为空时：所有未命名的说话者都由“其他说话者”朗读。");
+        fr(THE_BASE_VOICES_HELP, "Voix de base pour les locuteurs que la distribution ne nomme pas. Le modèle indique leur genre et leur âge, et chacun reçoit une variation propre tirée de l'extrait de base (plus aiguë, plus grave, plus rapide, plus claire), la même dans chaque chapitre. Enfants non défini : la voix des femmes, rehaussée. Les trois vides : chaque locuteur sans nom est lu par Autres locuteurs.");
+        es(THE_BASE_VOICES_HELP, "Voces base para los hablantes que el reparto no nombra. El modelo indica su género y edad, y cada uno recibe una variación propia hecha del clip base (más aguda, más grave, más rápida, más brillante), la misma en cada capítulo. Niños sin definir: la voz de las mujeres, más aguda. Los tres vacíos: cada hablante sin nombre lo lee Otros hablantes.");
+        de(THE_BASE_VOICES_HELP, "Grundstimmen für die Sprecher, die die Besetzung nicht nennt. Das Modell gibt ihr Geschlecht und Alter an, und jeder bekommt eine eigene Variante des Grundclips (höher, tiefer, schneller, heller), in jedem Kapitel dieselbe. Kinder nicht gesetzt: die Frauenstimme, angehoben. Alle drei leer: jeden unbenannten Sprecher liest Andere Sprecher.");
+        ko(THE_BASE_VOICES_HELP, "캐스트에 이름이 없는 화자를 위한 기본 목소리입니다. 모델이 성별과 나이를 알려 주고, 화자마다 기본 클립으로 만든 고유한 변형(더 높게, 더 낮게, 더 빠르게, 더 밝게)이 붙으며 모든 장에서 같습니다. 어린이를 지정하지 않으면 여성 목소리를 높여 씁니다. 셋 다 비어 있으면 이름 없는 화자는 모두 '기타 화자'가 읽습니다.");
+        it(THE_BASE_VOICES_HELP, "Voci base per i parlanti che il cast non nomina. Il modello ne indica genere ed età, e ognuno riceve una variazione propria ricavata dalla clip base (più acuta, più grave, più veloce, più brillante), la stessa in ogni capitolo. Bambini non impostato: la voce delle donne, alzata. Tutti e tre vuoti: ogni parlante senza nome è letto da Altri parlanti.");
+
+        ja(SHIFTS_NEED_FFMPEG, "サーバーに rubberband 付きの ffmpeg が見つかりません。名前のない話者は種類ごとの基本の声を共有します（以前に作ったバリエーションは引き続き使われます）。");
+        zh(SHIFTS_NEED_FFMPEG, "服务器上没有找到带 rubberband 的 ffmpeg：未命名的说话者共用同类的基础声音（之前生成的变体仍会使用）。");
+        fr(SHIFTS_NEED_FFMPEG, "ffmpeg avec rubberband est introuvable sur le serveur : les locuteurs sans nom partagent la voix de base de leur catégorie (les variations déjà faites restent utilisées).");
+        es(SHIFTS_NEED_FFMPEG, "No se encontró ffmpeg con rubberband en el servidor: los hablantes sin nombre comparten la voz base de su tipo (las variaciones ya hechas se siguen usando).");
+        de(SHIFTS_NEED_FFMPEG, "ffmpeg mit rubberband wurde auf dem Server nicht gefunden: Unbenannte Sprecher teilen sich die Grundstimme ihrer Art (bereits erstellte Varianten werden weiter verwendet).");
+        ko(SHIFTS_NEED_FFMPEG, "서버에서 rubberband가 포함된 ffmpeg를 찾지 못했습니다. 이름 없는 화자는 종류별 기본 목소리를 함께 씁니다(이전에 만든 변형은 계속 사용됩니다).");
+        it(SHIFTS_NEED_FFMPEG, "ffmpeg con rubberband non è stato trovato sul server: i parlanti senza nome condividono la voce base del loro tipo (le variazioni già fatte restano in uso).");
+
+        ja(THE_UNNAMED_SPEAKERS_HELP, "モデルが出会った、キャストに名前のない話者です。最初に付いた性別と年齢が表示されます。変更したり、試聴したり、別のバリエーションにしたりできます。");
+        zh(THE_UNNAMED_SPEAKERS_HELP, "模型遇到的、演员表中没有名字的说话者，以及他们最初得到的性别和年龄。可以修改、试听，或换一个变体。");
+        fr(THE_UNNAMED_SPEAKERS_HELP, "Les locuteurs rencontrés par le modèle que la distribution ne nomme pas, avec le genre et l'âge qu'ils ont reçus en premier. Modifiez-les, écoutez-les ou donnez-leur une autre variation.");
+        es(THE_UNNAMED_SPEAKERS_HELP, "Los hablantes que el modelo encontró y que el reparto no nombra, con el género y la edad que recibieron primero. Cámbialos, escúchalos o dales otra variación.");
+        de(THE_UNNAMED_SPEAKERS_HELP, "Die Sprecher, auf die das Modell stieß und die die Besetzung nicht nennt, mit dem Geschlecht und Alter, das sie zuerst bekamen. Ändere sie, hör sie an oder gib einem eine andere Variante.");
+        ko(THE_UNNAMED_SPEAKERS_HELP, "모델이 만난, 캐스트에 이름이 없는 화자들과 처음 받은 성별과 나이입니다. 바꾸거나, 들어 보거나, 다른 변형을 줄 수 있습니다.");
+        it(THE_UNNAMED_SPEAKERS_HELP, "I parlanti incontrati dal modello che il cast non nomina, con il genere e l'età ricevuti per primi. Modificali, ascoltali o dai a uno un'altra variazione.");
+
+        ja(GENDER, "性別");
+        zh(GENDER, "性别");
+        fr(GENDER, "Genre");
+        es(GENDER, "Género");
+        de(GENDER, "Geschlecht");
+        ko(GENDER, "성별");
+        it(GENDER, "Genere");
+
+        ja(AGE, "年齢");
+        zh(AGE, "年龄");
+        fr(AGE, "Âge");
+        es(AGE, "Edad");
+        de(AGE, "Alter");
+        ko(AGE, "나이");
+        it(AGE, "Età");
+
+        ja(MALE, "男性");
+        zh(MALE, "男");
+        fr(MALE, "Homme");
+        es(MALE, "Hombre");
+        de(MALE, "Männlich");
+        ko(MALE, "남성");
+        it(MALE, "Uomo");
+
+        ja(FEMALE, "女性");
+        zh(FEMALE, "女");
+        fr(FEMALE, "Femme");
+        es(FEMALE, "Mujer");
+        de(FEMALE, "Weiblich");
+        ko(FEMALE, "여성");
+        it(FEMALE, "Donna");
+
+        ja(UNKNOWN, "不明");
+        zh(UNKNOWN, "未知");
+        fr(UNKNOWN, "Inconnu");
+        es(UNKNOWN, "Desconocido");
+        de(UNKNOWN, "Unbekannt");
+        ko(UNKNOWN, "알 수 없음");
+        it(UNKNOWN, "Sconosciuto");
+
+        ja(CHILD, "子ども");
+        zh(CHILD, "儿童");
+        fr(CHILD, "Enfant");
+        es(CHILD, "Niño");
+        de(CHILD, "Kind");
+        ko(CHILD, "어린이");
+        it(CHILD, "Bambino");
+
+        ja(TEENAGER, "十代");
+        zh(TEENAGER, "青少年");
+        fr(TEENAGER, "Adolescent");
+        es(TEENAGER, "Adolescente");
+        de(TEENAGER, "Jugendlich");
+        ko(TEENAGER, "청소년");
+        it(TEENAGER, "Adolescente");
+
+        ja(ADULT, "大人");
+        zh(ADULT, "成人");
+        fr(ADULT, "Adulte");
+        es(ADULT, "Adulto");
+        de(ADULT, "Erwachsen");
+        ko(ADULT, "성인");
+        it(ADULT, "Adulto");
+
+        ja(ELDERLY, "高齢");
+        zh(ELDERLY, "老年");
+        fr(ELDERLY, "Âgé");
+        es(ELDERLY, "Mayor");
+        de(ELDERLY, "Älter");
+        ko(ELDERLY, "노인");
+        it(ELDERLY, "Anziano");
+
+        ja(ANOTHER_VARIATION, "別のバリエーション");
+        zh(ANOTHER_VARIATION, "换一个变体");
+        fr(ANOTHER_VARIATION, "Une autre variation");
+        es(ANOTHER_VARIATION, "Otra variación");
+        de(ANOTHER_VARIATION, "Eine andere Variante");
+        ko(ANOTHER_VARIATION, "다른 변형");
+        it(ANOTHER_VARIATION, "Un'altra variazione");
+
+        ja(THE_BASE_VOICE, "基本の声");
+        zh(THE_BASE_VOICE, "基础声音");
+        fr(THE_BASE_VOICE, "la voix de base");
+        es(THE_BASE_VOICE, "la voz base");
+        de(THE_BASE_VOICE, "die Grundstimme");
+        ko(THE_BASE_VOICE, "기본 목소리");
+        it(THE_BASE_VOICE, "la voce base");
+
+        ja(VARIATION_OF, "バリエーション: %s");
+        zh(VARIATION_OF, "变体：%s");
+        fr(VARIATION_OF, "Variation : %s");
+        es(VARIATION_OF, "Variación: %s");
+        de(VARIATION_OF, "Variante: %s");
+        ko(VARIATION_OF, "변형: %s");
+        it(VARIATION_OF, "Variazione: %s");
+
+        ja(FORMANTS, "フォルマント");
+        zh(FORMANTS, "共振峰");
+        fr(FORMANTS, "formants");
+        es(FORMANTS, "formantes");
+        de(FORMANTS, "Formanten");
+        ko(FORMANTS, "포먼트");
+        it(FORMANTS, "formanti");
+
+        ja(TEMPO, "テンポ");
+        zh(TEMPO, "语速");
+        fr(TEMPO, "tempo");
+        es(TEMPO, "tempo");
+        de(TEMPO, "Tempo");
+        ko(TEMPO, "템포");
+        it(TEMPO, "tempo");
+
+        ja(DARKER, "暗め");
+        zh(DARKER, "更暗");
+        fr(DARKER, "plus sombre");
+        es(DARKER, "más oscura");
+        de(DARKER, "dunkler");
+        ko(DARKER, "더 어둡게");
+        it(DARKER, "più scura");
+
+        ja(BRIGHTER, "明るめ");
+        zh(BRIGHTER, "更明亮");
+        fr(BRIGHTER, "plus claire");
+        es(BRIGHTER, "más brillante");
+        de(BRIGHTER, "heller");
+        ko(BRIGHTER, "더 밝게");
+        it(BRIGHTER, "più brillante");
     }
 }
