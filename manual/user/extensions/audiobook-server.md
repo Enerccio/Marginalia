@@ -62,6 +62,11 @@ from `/view`: with ffmpeg on the Marginalia side as flac, which it trims after t
 emptying the memory between pieces keeps the model loaded and avoids it, for about 3 seconds a piece. ComfyUI is started and stopped around a batch with the
 same kind of requests as the speech server ([the requests](#the-requests)).
 
+**Use fp32 on an AMD card.** With the precision `auto` (bf16 on the R9700 with ROCm 7.2) many pieces came out as gibberish, as sound effects (a line about
+banging became eleven knocks) or in a wrong voice, and changing the seed only moved the luck. The same pieces in fp32 were word-perfect. The backend's
+**Precision** is fp32 by default; it needs about 16 GB of the card. The Granite speech recognition of the suite has the same problem in bf16 (gibberish from
+the second recognition on), so the extension runs it in float32 as well.
+
 The **Fish Audio S2 Pro** engine of the suite did not work on that card: its audio came out as invalid numbers (NaN). The Higgs Audio v3 weights are under a
 research and non-commercial licence.
 

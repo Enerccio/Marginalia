@@ -1,7 +1,9 @@
 package com.github.enerccio.marginalia.extensions.audiobook.model;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /** What the user keeps for the plugin, in the attributes of the user settings. */
 public class AudiobookSettings {
@@ -20,6 +22,10 @@ public class AudiobookSettings {
     private Double targetLufs;
     /** The voices of the user; the cast of a book names them by id. */
     private List<Actor> actors = new ArrayList<>();
+    /** The speech recognition (checks the pieces, recognises the text of a clip); null: none. */
+    private RecognizerConfig recognizer;
+    /** The words spoken in a reference clip, by the uuid of its resource (typed by the user or recognised). */
+    private Map<String, String> clipTexts = new LinkedHashMap<>();
 
     public List<BackendConfig> getBackends() {
         if (backends == null) {
@@ -172,6 +178,48 @@ public class AudiobookSettings {
             }
         }
         return changed;
+    }
+
+    public RecognizerConfig getRecognizer() {
+        return recognizer;
+    }
+
+    public void setRecognizer(RecognizerConfig recognizer) {
+        this.recognizer = recognizer;
+    }
+
+    /** The speech recognition when it is set up, else null. */
+    public RecognizerConfig recognizer() {
+        return recognizer != null && recognizer.isConfigured() ? recognizer : null;
+    }
+
+    /** The words spoken in the clip, null when they are not known. */
+    public String clipText(String clipUuid) {
+        if (clipUuid == null || clipTexts == null) {
+            return null;
+        }
+        String text = clipTexts.get(clipUuid);
+        return text == null || text.isBlank() ? null : text;
+    }
+
+    /** Sets (or with a blank text removes) the words spoken in the clip. */
+    public void setClipText(String clipUuid, String text) {
+        if (clipTexts == null) {
+            clipTexts = new LinkedHashMap<>();
+        }
+        if (text == null || text.isBlank()) {
+            clipTexts.remove(clipUuid);
+        } else {
+            clipTexts.put(clipUuid, text.strip());
+        }
+    }
+
+    /** The text of a clip goes with its replacement (a cleaned copy says the same words). */
+    public void moveClipText(String fromUuid, String toUuid) {
+        String text = clipText(fromUuid);
+        if (text != null && clipText(toUuid) == null) {
+            setClipText(toUuid, text);
+        }
     }
 
     public BackendConfig find(String id) {

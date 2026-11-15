@@ -51,7 +51,6 @@ public class CastDialog extends Dialog {
 
         setHeaderTitle(T.localized(CAST));
         // the speech server stays up for the samples while the window is open, from the first sample
-        VoicePreview.holdWhileOpen(this, service, false);
         setWidth("min(64em, 95vw)");
         // the characters make it long: the content scrolls between the header and the buttons
         setMaxHeight("92vh");

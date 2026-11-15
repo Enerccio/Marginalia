@@ -33,7 +33,6 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
     public static final String THE_JOINED_AUDIO_OF_EACH_PART_IS_LEVELLED = "The joined audio of each part is levelled to this loudness with ffmpeg (EBU R128), so the parts sit at the same level. A part made before is levelled the next time you convert it; its pieces are kept, so the speech server is not asked.";
     public static final String FFMPEG_WAS_NOT_FOUND_THE_AUDIO_IS_NOT_LEVELLED = "ffmpeg was not found: the audio is not levelled.";
     public static final String THE_INSTRUCTION_THAT_TELLS_THE_MODEL_WHO_SPEAKS_EACH_PIECE = "The instruction that tells the language model who speaks each piece of a part and how it is read (a template). Empty: the built-in one.";
-    public static final String SPEECH_SERVERS_HELP = "The speech servers the audiobook is made by. The requests around a batch make room for the server on the GPU and stop it again.";
     public static final String BACKENDS = "Backends";
     public static final String ADD_A_BACKEND = "Add a backend";
     public static final String DELETE_THE_BACKEND = "Delete the backend";
@@ -65,7 +64,6 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
     public static final String CHUNK_SIZE = "Chunk size (characters)";
     public static final String BEFORE_A_BATCH = "Before a batch";
     public static final String AFTER_A_BATCH = "After a batch";
-    public static final String REQUESTS_MADE_AROUND_A_BATCH = "Requests made around a batch of parts, one after the other. Before: free the GPU and start the speech server (unload the language model, start the container, load the model). After: stop it. None does nothing.";
     public static final String ADD_A_REQUEST = "Add a request";
     public static final String REMOVE_THE_REQUEST = "Remove the request";
     public static final String REQUEST = "Request";
@@ -322,11 +320,35 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
 
     public static final String READ_THIS_PART_WITH_THE_BROWSER_VOICE = "Read this part (and the next ones without audio) with the voice of the browser";
 
-    public static final String GPU_NAME = "GPU (name)";
-    public static final String GPU_NAME_HELP = "Optional. Name the GPU when this server shares it with other servers (an image server, another speech server), and give the same name there: they then wait for each other instead of unloading each other's model. Empty: only requests to this address wait for each other.";
     public static final String OTHER_SAMPLES = "Other samples: with sounds, in a mood";
     public static final String READ_PLAINLY = "Read plainly";
     public static final String WITH_SOUNDS = "With sounds (sigh, laugh, gasp)";
+    public static final String SPEECH_SERVERS_HELP = "The speech servers the audiobook is made by. A server on a GPU shared with the language model names the GPU lock that loads it.";
+    public static final String REQUESTS_MADE_AROUND_EACH_BATCH = "Requests made before and after each batch of parts (and each sample), one after the other, inside the GPU lock. Freeing the GPU and loading the speech server is the job of the GPU lock; use these for anything else. None does nothing.";
+    public static final String PRECISION = "Precision";
+    public static final String PRECISION_HELP = "The precision Higgs computes in. fp32 is the safe choice: bf16 gave gibberish and wrong voices on an AMD card. bf16 needs about half the memory.";
+    public static final String CHECK_THE_LENGTH_OF_PIECES = "Check the length of the pieces";
+    public static final String CHECK_THE_LENGTH_HELP = "A piece far longer than its text (the model went on talking, or made a sound instead of the words) is made again with another seed.";
+    public static final String CHECK_THE_WORDS = "Check the words with speech recognition";
+    public static final String CHECK_THE_WORDS_HELP = "After each batch every piece is transcribed and compared with its text; the pieces that differ are made again with another seed. Needs the speech recognition of the settings.";
+    public static final String MAX_WORD_ERRORS = "Max. word errors (%)";
+    public static final String RETRIES = "Retries";
+    public static final String SEND_THE_CLIP_TEXT = "Send the text of the clip to Higgs";
+    public static final String SEND_THE_CLIP_TEXT_HELP = "Experimental, keep it off: Higgs gets the words spoken in the voice clip with it. In tests it changed the voice.";
+    public static final String SPEECH_RECOGNITION = "Speech recognition";
+    public static final String SPEECH_RECOGNITION_HELP = "Writes down what a piece of speech says: it checks the pieces of a batch and recognises the text of a voice clip. ComfyUI with the TTS Audio Suite (Granite ASR), or an OpenAI-compatible transcription server such as a whisper server.";
+    public static final String RECOGNIZER_COMFYUI = "ComfyUI (Granite ASR)";
+    public static final String RECOGNIZER_OPENAI = "OpenAI-compatible (whisper)";
+    public static final String RECOGNITION_MODEL = "Model of the recognition";
+    public static final String TEXT_OF_THE_CLIP = "Text of the clip";
+    public static final String TEXT_OF_THE_CLIP_HELP = "The words spoken in the clip, typed or recognised.";
+    public static final String RECOGNIZE = "Recognize";
+    public static final String RECOGNIZING = "Recognizing ...";
+    public static final String NO_SPEECH_RECOGNITION = "Set up the speech recognition in the Audiobook settings first.";
+    public static final String THE_SPEECH_RECOGNITION_WORKS = "The speech recognition works.";
+    public static final String RECOGNITION_FAILED = "Recognizing failed: %s";
+    public static final String THE_TEXT_OF_THE_CLIP_IS_SAVED = "The text of the clip is saved.";
+    public static final String GPU_LOCK_HELP = "The GPU lock the administrator set up for the GPU of this server: every batch and sample waits for its turn on the GPU, and the lock's steps load the server first (freeing the language model or another server when needed). Empty: no lock.";
 
     @Override
     protected void loadKeys() {
@@ -345,14 +367,6 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
         de(AUDIOBOOK_SETTINGS, "Hörbuch-Einstellungen");
         ko(AUDIOBOOK_SETTINGS, "오디오북 설정");
         it(AUDIOBOOK_SETTINGS, "Impostazioni dell'audiolibro");
-
-        ja(SPEECH_SERVERS_HELP, "オーディオブックを作る音声合成サーバー。バッチの前後のリクエストで GPU にサーバーの場所を空け、終わったら停止します。");
-        zh(SPEECH_SERVERS_HELP, "制作有声书所用的语音合成服务器。批处理前后的请求会为服务器腾出 GPU，并在结束后将其停止。");
-        fr(SPEECH_SERVERS_HELP, "Les serveurs de synthèse vocale qui fabriquent le livre audio. Les requêtes autour d'un lot font de la place pour le serveur sur le GPU puis l'arrêtent.");
-        es(SPEECH_SERVERS_HELP, "Los servidores de voz con los que se crea el audiolibro. Las solicitudes alrededor de un lote hacen sitio al servidor en la GPU y lo detienen de nuevo.");
-        de(SPEECH_SERVERS_HELP, "Die Sprachserver, mit denen das Hörbuch erstellt wird. Die Anfragen rund um einen Stapel schaffen Platz für den Server auf der GPU und stoppen ihn wieder.");
-        ko(SPEECH_SERVERS_HELP, "오디오북을 만드는 음성 서버. 배치 전후의 요청은 GPU에서 서버를 위한 공간을 확보하고 다시 중지합니다.");
-        it(SPEECH_SERVERS_HELP, "I server vocali con cui viene creato l'audiolibro. Le richieste attorno a un batch fanno spazio al server sulla GPU e lo fermano di nuovo.");
 
         ja(BACKENDS, "バックエンド");
         zh(BACKENDS, "后端");
@@ -599,14 +613,6 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
         de(AFTER_A_BATCH, "Nach einem Stapel");
         ko(AFTER_A_BATCH, "배치 후");
         it(AFTER_A_BATCH, "Dopo un batch");
-
-        ja(REQUESTS_MADE_AROUND_A_BATCH, "パートのバッチの前後に順番に行うリクエスト。前: GPU を空けて音声サーバーを起動 (言語モデルのアンロード、コンテナの起動、モデルの読み込み)。後: 停止。なければ何もしません。");
-        zh(REQUESTS_MADE_AROUND_A_BATCH, "在一批章节前后按顺序发出的请求。之前：释放 GPU 并启动语音服务器（卸载语言模型、启动容器、加载模型）。之后：将其停止。没有则不执行任何操作。");
-        fr(REQUESTS_MADE_AROUND_A_BATCH, "Requêtes faites autour d'un lot de parties, l'une après l'autre. Avant : libérer le GPU et démarrer le serveur de synthèse vocale (décharger le modèle de langage, démarrer le conteneur, charger le modèle). Après : l'arrêter. Aucune : ne fait rien.");
-        es(REQUESTS_MADE_AROUND_A_BATCH, "Solicitudes que se hacen alrededor de un lote de partes, una tras otra. Antes: liberar la GPU e iniciar el servidor de voz (descargar el modelo de lenguaje, iniciar el contenedor, cargar el modelo). Después: detenerlo. Ninguna no hace nada.");
-        de(REQUESTS_MADE_AROUND_A_BATCH, "Anfragen rund um einen Stapel von Abschnitten, nacheinander. Davor: die GPU freigeben und den Sprachserver starten (das Sprachmodell entladen, den Container starten, das Modell laden). Danach: ihn stoppen. „Keine“ tut nichts.");
-        ko(REQUESTS_MADE_AROUND_A_BATCH, "파트 배치의 앞뒤에 차례로 실행하는 요청. 전: GPU를 비우고 음성 서버를 시작 (언어 모델 언로드, 컨테이너 시작, 모델 로드). 후: 중지. 없음은 아무것도 하지 않습니다.");
-        it(REQUESTS_MADE_AROUND_A_BATCH, "Richieste fatte attorno a un batch di parti, una dopo l'altra. Prima: libera la GPU e avvia il server vocale (scarica il modello linguistico, avvia il container, carica il modello). Dopo: fermalo. Nessuna non fa nulla.");
 
         ja(ADD_A_REQUEST, "リクエストを追加");
         zh(ADD_A_REQUEST, "添加请求");
@@ -1168,10 +1174,6 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
         ko(CAST, "배역");
         it(CAST, "Cast");
 
-
-
-
-
         ja(CHARACTERS, "登場人物");
         zh(CHARACTERS, "人物");
         fr(CHARACTERS, "Personnages");
@@ -1540,8 +1542,6 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
         ko(SEPARATED_BY_COMMAS, "쉼표로 구분");
         it(SEPARATED_BY_COMMAS, "Separati da virgole");
 
-
-
         ja(THE_CAST_COULD_NOT_BE_STORED, "キャストを保存できませんでした: %s");
         zh(THE_CAST_COULD_NOT_BE_STORED, "无法保存角色分配：%s");
         fr(THE_CAST_COULD_NOT_BE_STORED, "La distribution n'a pas pu être enregistrée : %s");
@@ -1557,12 +1557,6 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
         de(THE_CAST_IS_STORED, "Die Besetzung ist gespeichert");
         ko(THE_CAST_IS_STORED, "배역을 저장했습니다");
         it(THE_CAST_IS_STORED, "Il cast è memorizzato");
-
-
-
-
-
-
 
         ja(ACTOR, "声優");
         zh(ACTOR, "配役の声");
@@ -2597,22 +2591,6 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
         ko(THE_INSTRUCTION_THAT_TELLS_THE_MODEL_WHO_SPEAKS_EACH_PIECE, "언어 모델에게 파트의 각 조각을 누가 말하는지와 어떻게 읽는지를 알려 주는 지시문 (템플릿). 비워 두면 내장된 것.");
         it(THE_INSTRUCTION_THAT_TELLS_THE_MODEL_WHO_SPEAKS_EACH_PIECE, "L'istruzione che dice al modello linguistico chi pronuncia ogni pezzo di una parte e come viene letto (un template). Vuoto: quello integrato.");
 
-        ja(GPU_NAME, "GPU（名前）");
-        zh(GPU_NAME, "GPU（名称）");
-        fr(GPU_NAME, "GPU (nom)");
-        es(GPU_NAME, "GPU (nombre)");
-        de(GPU_NAME, "GPU (Name)");
-        ko(GPU_NAME, "GPU (이름)");
-        it(GPU_NAME, "GPU (nome)");
-
-        ja(GPU_NAME_HELP, "任意。このサーバーが他のサーバー (画像サーバーなど) とGPUを共有している場合に名前を付け、他にも同じ名前を指定します。互いのモデルを解放せず、順番に待ちます。空の場合は、このアドレスへのリクエスト同士だけが待ち合います。");
-        zh(GPU_NAME_HELP, "可选。如果此服务器与其他服务器（如图像服务器）共用一块 GPU，请给它起个名字，并在其他服务器上填写相同的名字：它们会互相等待，而不是卸载对方的模型。留空：只有发往此地址的请求会互相等待。");
-        fr(GPU_NAME_HELP, "Facultatif. Nommez le GPU quand ce serveur le partage avec d'autres serveurs (un serveur d'images, un autre serveur de synthèse vocale), et donnez-y le même nom : ils s'attendent alors au lieu de décharger le modèle des autres. Vide : seules les requêtes vers cette adresse s'attendent.");
-        es(GPU_NAME_HELP, "Opcional. Indica el nombre de la GPU cuando este servidor la comparte con otros servidores (un servidor de imágenes, otro servidor de voz) y da allí el mismo nombre: entonces esperan unos a otros en lugar de descargarse mutuamente el modelo. Vacío: solo esperan entre sí las solicitudes a esta dirección.");
-        de(GPU_NAME_HELP, "Optional. Gib der GPU einen Namen, wenn dieser Server sie mit anderen Servern teilt (einem Bildserver, einem anderen Sprachserver), und gib dort denselben Namen an: Sie warten dann aufeinander, statt gegenseitig ihr Modell zu entladen. Leer: Nur Anfragen an diese Adresse warten aufeinander.");
-        ko(GPU_NAME_HELP, "선택 사항. 이 서버가 GPU를 다른 서버(이미지 서버, 다른 음성 서버)와 공유할 때 GPU 이름을 지정하고 그쪽에도 같은 이름을 지정하세요: 그러면 서로의 모델을 언로드하는 대신 서로를 기다립니다. 비워 두면 이 주소로의 요청끼리만 서로 기다립니다.");
-        it(GPU_NAME_HELP, "Facoltativo. Indica il nome della GPU quando questo server la condivide con altri server (un server di immagini, un altro server vocale), e indica lì lo stesso nome: si aspettano allora a vicenda invece di scaricare il modello l'uno dell'altro. Vuoto: si aspettano solo le richieste a questo indirizzo.");
-
         ja(OTHER_SAMPLES, "他のサンプル: 効果音付き、感情付き");
         zh(OTHER_SAMPLES, "其他试听：带声音、带语气");
         fr(OTHER_SAMPLES, "Autres échantillons : avec des sons, dans une humeur");
@@ -2636,5 +2614,213 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
         de(WITH_SOUNDS, "Mit Lauten (Seufzen, Lachen, Keuchen)");
         ko(WITH_SOUNDS, "소리 포함 (한숨, 웃음, 헉)");
         it(WITH_SOUNDS, "Con suoni (sospiro, risata, sussulto)");
+
+        ja(SPEECH_SERVERS_HELP, "オーディオブックを作る音声サーバーです。言語モデルと共有する GPU 上のサーバーには、それをロードする GPU ロックを指定します。");
+        zh(SPEECH_SERVERS_HELP, "制作有声书的语音服务器。与语言模型共用 GPU 的服务器要指定加载它的 GPU 锁。");
+        fr(SPEECH_SERVERS_HELP, "Les serveurs de synthèse vocale qui font le livre audio. Un serveur sur un GPU partagé avec le modèle de langage indique le verrou GPU qui le charge.");
+        es(SPEECH_SERVERS_HELP, "Los servidores de voz que hacen el audiolibro. Un servidor en una GPU compartida con el modelo de lenguaje indica el bloqueo de GPU que lo carga.");
+        de(SPEECH_SERVERS_HELP, "Die Sprachserver, die das Hörbuch machen. Ein Server auf einer GPU, die er mit dem Sprachmodell teilt, nennt die GPU-Sperre, die ihn lädt.");
+        ko(SPEECH_SERVERS_HELP, "오디오북을 만드는 음성 서버입니다. 언어 모델과 GPU를 공유하는 서버는 그것을 로드하는 GPU 잠금을 지정합니다.");
+        it(SPEECH_SERVERS_HELP, "I server vocali che fanno l'audiolibro. Un server su una GPU condivisa con il modello linguistico indica il blocco GPU che lo carica.");
+
+        ja(REQUESTS_MADE_AROUND_EACH_BATCH, "各パートのバッチ (と各サンプル) の前後に、GPU ロックの中で順番に行うリクエスト。GPU を空けて音声サーバーをロードするのは GPU ロックの役目です。それ以外の用途に使います。なければ何もしません。");
+        zh(REQUESTS_MADE_AROUND_EACH_BATCH, "在每批部分（以及每个试听）前后、在 GPU 锁内按顺序发出的请求。腾出 GPU 并加载语音服务器由 GPU 锁负责；这些请求用于其他用途。没有则不执行任何操作。");
+        fr(REQUESTS_MADE_AROUND_EACH_BATCH, "Requêtes faites avant et après chaque lot de parties (et chaque échantillon), l'une après l'autre, dans le verrou GPU. Libérer le GPU et charger le serveur de voix est le rôle du verrou GPU ; utilisez-les pour le reste. Aucune : ne fait rien.");
+        es(REQUESTS_MADE_AROUND_EACH_BATCH, "Solicitudes que se hacen antes y después de cada lote de partes (y de cada muestra), una tras otra, dentro del bloqueo de GPU. Liberar la GPU y cargar el servidor de voz es tarea del bloqueo de GPU; úsalas para lo demás. Ninguna no hace nada.");
+        de(REQUESTS_MADE_AROUND_EACH_BATCH, "Anfragen vor und nach jedem Stapel von Teilen (und jeder Hörprobe), nacheinander, innerhalb der GPU-Sperre. Die GPU freizugeben und den Sprachserver zu laden ist Aufgabe der GPU-Sperre; diese Anfragen sind für alles andere. „Keine“ tut nichts.");
+        ko(REQUESTS_MADE_AROUND_EACH_BATCH, "각 파트 배치(와 각 샘플) 전후에 GPU 잠금 안에서 차례로 실행하는 요청. GPU를 비우고 음성 서버를 로드하는 것은 GPU 잠금이 맡습니다. 그 밖의 용도에 쓰세요. 없음은 아무것도 하지 않습니다.");
+        it(REQUESTS_MADE_AROUND_EACH_BATCH, "Richieste fatte prima e dopo ogni batch di parti (e ogni campione), una dopo l'altra, dentro il blocco GPU. Liberare la GPU e caricare il server vocale è compito del blocco GPU; usale per il resto. Nessuna non fa nulla.");
+
+        ja(GPU_LOCK_HELP, "このサーバーの GPU 用に管理者が設定した GPU ロックです。各バッチとサンプルは GPU の順番を待ち、ロックのステップが先にサーバーをロードします (必要なら言語モデルや他のサーバーを解放します)。空: ロックなし。");
+        zh(GPU_LOCK_HELP, "管理员为此服务器所在 GPU 设置的 GPU 锁：每批任务和每个试听都会等待轮到自己使用 GPU，锁的步骤会先加载服务器（需要时释放语言模型或其他服务器）。留空：无锁。");
+        fr(GPU_LOCK_HELP, "Le verrou GPU que l'administrateur a configuré pour le GPU de ce serveur : chaque lot et chaque échantillon attend son tour sur le GPU, et les étapes du verrou chargent d'abord le serveur (en libérant le modèle de langage ou un autre serveur si besoin). Vide : aucun verrou.");
+        es(GPU_LOCK_HELP, "El bloqueo de GPU que el administrador configuró para la GPU de este servidor: cada lote y cada muestra esperan su turno en la GPU y los pasos del bloqueo cargan primero el servidor (liberando el modelo de lenguaje u otro servidor si hace falta). Vacío: sin bloqueo.");
+        de(GPU_LOCK_HELP, "Die GPU-Sperre, die der Administrator für die GPU dieses Servers eingerichtet hat: Jeder Stapel und jede Hörprobe wartet, bis sie an der Reihe ist, und die Schritte der Sperre laden zuerst den Server (und geben bei Bedarf das Sprachmodell oder einen anderen Server frei). Leer: keine Sperre.");
+        ko(GPU_LOCK_HELP, "관리자가 이 서버의 GPU에 설정한 GPU 잠금입니다. 각 배치와 샘플은 GPU 차례를 기다리고, 잠금의 단계가 먼저 서버를 로드합니다(필요하면 언어 모델이나 다른 서버를 해제합니다). 비워 두면 잠금 없음.");
+        it(GPU_LOCK_HELP, "Il blocco GPU che l'amministratore ha configurato per la GPU di questo server: ogni batch e ogni campione attende il suo turno sulla GPU e i passi del blocco caricano prima il server (liberando il modello linguistico o un altro server se serve). Vuoto: nessun blocco.");
+
+        ja(PRECISION, "精度");
+        zh(PRECISION, "精度");
+        fr(PRECISION, "Précision");
+        es(PRECISION, "Precisión");
+        de(PRECISION, "Genauigkeit");
+        ko(PRECISION, "정밀도");
+        it(PRECISION, "Precisione");
+
+        ja(PRECISION_HELP, "Higgs が計算に使う精度です。fp32 が安全です。AMD カードでは bf16 で意味不明な音声や別の声になりました。bf16 はメモリが約半分で済みます。");
+        zh(PRECISION_HELP, "Higgs 计算时使用的精度。fp32 最稳妥：在一块 AMD 显卡上，bf16 产生了乱语和错误的声音。bf16 只需约一半的显存。");
+        fr(PRECISION_HELP, "La précision de calcul de Higgs. fp32 est le choix sûr : sur une carte AMD, bf16 a donné du charabia et de mauvaises voix. bf16 demande environ moitié moins de mémoire.");
+        es(PRECISION_HELP, "La precisión con la que calcula Higgs. fp32 es la opción segura: en una tarjeta AMD, bf16 dio galimatías y voces equivocadas. bf16 necesita aproximadamente la mitad de memoria.");
+        de(PRECISION_HELP, "Die Genauigkeit, mit der Higgs rechnet. fp32 ist die sichere Wahl: Auf einer AMD-Karte ergab bf16 Kauderwelsch und falsche Stimmen. bf16 braucht etwa halb so viel Speicher.");
+        ko(PRECISION_HELP, "Higgs가 계산하는 정밀도입니다. fp32가 안전합니다. AMD 카드에서 bf16은 알아들을 수 없는 소리와 다른 목소리를 냈습니다. bf16은 메모리를 약 절반만 씁니다.");
+        it(PRECISION_HELP, "La precisione con cui calcola Higgs. fp32 è la scelta sicura: su una scheda AMD bf16 ha dato parole senza senso e voci sbagliate. bf16 richiede circa metà della memoria.");
+
+        ja(CHECK_THE_LENGTH_OF_PIECES, "ピースの長さを確認する");
+        zh(CHECK_THE_LENGTH_OF_PIECES, "检查片段长度");
+        fr(CHECK_THE_LENGTH_OF_PIECES, "Vérifier la durée des morceaux");
+        es(CHECK_THE_LENGTH_OF_PIECES, "Comprobar la duración de los fragmentos");
+        de(CHECK_THE_LENGTH_OF_PIECES, "Länge der Stücke prüfen");
+        ko(CHECK_THE_LENGTH_OF_PIECES, "조각의 길이 확인");
+        it(CHECK_THE_LENGTH_OF_PIECES, "Controlla la durata dei pezzi");
+
+        ja(CHECK_THE_LENGTH_HELP, "テキストよりずっと長いピース (モデルが話し続けた、または言葉の代わりに音を出した) は、別のシードで作り直します。");
+        zh(CHECK_THE_LENGTH_HELP, "比文本长得多的片段（模型一直说下去，或者发出了声音而不是说出文字）会用另一个种子重新生成。");
+        fr(CHECK_THE_LENGTH_HELP, "Un morceau bien plus long que son texte (le modèle a continué à parler, ou a fait un bruit au lieu des mots) est refait avec une autre graine.");
+        es(CHECK_THE_LENGTH_HELP, "Un fragmento mucho más largo que su texto (el modelo siguió hablando o hizo un sonido en lugar de las palabras) se vuelve a hacer con otra semilla.");
+        de(CHECK_THE_LENGTH_HELP, "Ein Stück, das viel länger ist als sein Text (das Modell hat weitergeredet oder ein Geräusch statt der Wörter gemacht), wird mit einem anderen Seed neu gemacht.");
+        ko(CHECK_THE_LENGTH_HELP, "텍스트보다 훨씬 긴 조각(모델이 계속 말했거나 단어 대신 소리를 냄)은 다른 시드로 다시 만듭니다.");
+        it(CHECK_THE_LENGTH_HELP, "Un pezzo molto più lungo del suo testo (il modello ha continuato a parlare o ha fatto un suono al posto delle parole) viene rifatto con un altro seed.");
+
+        ja(CHECK_THE_WORDS, "音声認識で言葉を確認する");
+        zh(CHECK_THE_WORDS, "用语音识别检查文字");
+        fr(CHECK_THE_WORDS, "Vérifier les mots par reconnaissance vocale");
+        es(CHECK_THE_WORDS, "Comprobar las palabras con reconocimiento de voz");
+        de(CHECK_THE_WORDS, "Wörter per Spracherkennung prüfen");
+        ko(CHECK_THE_WORDS, "음성 인식으로 단어 확인");
+        it(CHECK_THE_WORDS, "Controlla le parole con il riconoscimento vocale");
+
+        ja(CHECK_THE_WORDS_HELP, "各バッチの後、すべてのピースを文字起こししてテキストと比べ、違うものは別のシードで作り直します。設定の音声認識が必要です。");
+        zh(CHECK_THE_WORDS_HELP, "每批完成后，每个片段都会被转写并与其文本比较；不一致的片段会用另一个种子重新生成。需要设置中的语音识别。");
+        fr(CHECK_THE_WORDS_HELP, "Après chaque lot, chaque morceau est transcrit et comparé à son texte ; ceux qui diffèrent sont refaits avec une autre graine. Nécessite la reconnaissance vocale des réglages.");
+        es(CHECK_THE_WORDS_HELP, "Tras cada lote, cada fragmento se transcribe y se compara con su texto; los que difieren se vuelven a hacer con otra semilla. Necesita el reconocimiento de voz de los ajustes.");
+        de(CHECK_THE_WORDS_HELP, "Nach jedem Stapel wird jedes Stück transkribiert und mit seinem Text verglichen; abweichende Stücke werden mit einem anderen Seed neu gemacht. Braucht die Spracherkennung der Einstellungen.");
+        ko(CHECK_THE_WORDS_HELP, "각 배치 후 모든 조각을 받아쓰고 텍스트와 비교하며, 다른 조각은 다른 시드로 다시 만듭니다. 설정의 음성 인식이 필요합니다.");
+        it(CHECK_THE_WORDS_HELP, "Dopo ogni batch ogni pezzo viene trascritto e confrontato con il suo testo; i pezzi diversi vengono rifatti con un altro seed. Richiede il riconoscimento vocale delle impostazioni.");
+
+        ja(MAX_WORD_ERRORS, "最大単語誤り率 (%)");
+        zh(MAX_WORD_ERRORS, "最大词错误率（%）");
+        fr(MAX_WORD_ERRORS, "Erreurs de mots max. (%)");
+        es(MAX_WORD_ERRORS, "Errores de palabras máx. (%)");
+        de(MAX_WORD_ERRORS, "Max. Wortfehler (%)");
+        ko(MAX_WORD_ERRORS, "최대 단어 오류율(%)");
+        it(MAX_WORD_ERRORS, "Errori di parola max. (%)");
+
+        ja(RETRIES, "再試行回数");
+        zh(RETRIES, "重试次数");
+        fr(RETRIES, "Nouvelles tentatives");
+        es(RETRIES, "Reintentos");
+        de(RETRIES, "Wiederholungen");
+        ko(RETRIES, "재시도 횟수");
+        it(RETRIES, "Tentativi");
+
+        ja(SEND_THE_CLIP_TEXT, "クリップのテキストを Higgs に送る");
+        zh(SEND_THE_CLIP_TEXT, "将片段文本发送给 Higgs");
+        fr(SEND_THE_CLIP_TEXT, "Envoyer le texte de l'extrait à Higgs");
+        es(SEND_THE_CLIP_TEXT, "Enviar el texto del clip a Higgs");
+        de(SEND_THE_CLIP_TEXT, "Text des Clips an Higgs senden");
+        ko(SEND_THE_CLIP_TEXT, "클립의 텍스트를 Higgs에 보내기");
+        it(SEND_THE_CLIP_TEXT, "Invia il testo della clip a Higgs");
+
+        ja(SEND_THE_CLIP_TEXT_HELP, "試験的、オフのままにしてください: 声のクリップで話されている言葉を Higgs に一緒に渡します。テストでは声が変わりました。");
+        zh(SEND_THE_CLIP_TEXT_HELP, "实验性，建议保持关闭：Higgs 会同时得到声音片段中所说的文字。在测试中它改变了声音。");
+        fr(SEND_THE_CLIP_TEXT_HELP, "Expérimental, à laisser désactivé : Higgs reçoit avec l'extrait de voix les mots qui y sont dits. Lors des tests, cela a changé la voix.");
+        es(SEND_THE_CLIP_TEXT_HELP, "Experimental, mejor desactivado: Higgs recibe junto con el clip de voz las palabras que se dicen en él. En las pruebas cambió la voz.");
+        de(SEND_THE_CLIP_TEXT_HELP, "Experimentell, besser aus lassen: Higgs bekommt mit dem Stimmclip die darin gesprochenen Wörter. In Tests veränderte das die Stimme.");
+        ko(SEND_THE_CLIP_TEXT_HELP, "실험적, 꺼 두세요: Higgs가 목소리 클립과 함께 그 안에서 말한 단어를 받습니다. 테스트에서는 목소리가 바뀌었습니다.");
+        it(SEND_THE_CLIP_TEXT_HELP, "Sperimentale, meglio lasciarlo spento: Higgs riceve con la clip di voce le parole dette al suo interno. Nei test ha cambiato la voce.");
+
+        ja(SPEECH_RECOGNITION, "音声認識");
+        zh(SPEECH_RECOGNITION, "语音识别");
+        fr(SPEECH_RECOGNITION, "Reconnaissance vocale");
+        es(SPEECH_RECOGNITION, "Reconocimiento de voz");
+        de(SPEECH_RECOGNITION, "Spracherkennung");
+        ko(SPEECH_RECOGNITION, "음성 인식");
+        it(SPEECH_RECOGNITION, "Riconoscimento vocale");
+
+        ja(SPEECH_RECOGNITION_HELP, "音声が何を言っているかを書き起こします。バッチのピースの確認と、声のクリップのテキストの認識に使います。TTS Audio Suite 入りの ComfyUI (Granite ASR)、または whisper サーバーなどの OpenAI 互換の文字起こしサーバー。");
+        zh(SPEECH_RECOGNITION_HELP, "写下一段语音说了什么：用于检查一批中的片段，以及识别声音片段的文本。可以是带 TTS Audio Suite 的 ComfyUI（Granite ASR），或 whisper 服务器等兼容 OpenAI 的转写服务器。");
+        fr(SPEECH_RECOGNITION_HELP, "Écrit ce que dit un morceau de parole : vérifie les morceaux d'un lot et reconnaît le texte d'un extrait de voix. ComfyUI avec TTS Audio Suite (Granite ASR), ou un serveur de transcription compatible OpenAI comme un serveur whisper.");
+        es(SPEECH_RECOGNITION_HELP, "Escribe lo que dice un fragmento de voz: comprueba los fragmentos de un lote y reconoce el texto de un clip de voz. ComfyUI con TTS Audio Suite (Granite ASR) o un servidor de transcripción compatible con OpenAI, como un servidor whisper.");
+        de(SPEECH_RECOGNITION_HELP, "Schreibt auf, was ein Stück Sprache sagt: prüft die Stücke eines Stapels und erkennt den Text eines Stimmclips. ComfyUI mit der TTS Audio Suite (Granite ASR) oder ein OpenAI-kompatibler Transkriptionsserver wie ein whisper-Server.");
+        ko(SPEECH_RECOGNITION_HELP, "음성이 무엇을 말하는지 받아씁니다. 배치의 조각을 확인하고 목소리 클립의 텍스트를 인식합니다. TTS Audio Suite가 있는 ComfyUI(Granite ASR) 또는 whisper 서버 같은 OpenAI 호환 받아쓰기 서버.");
+        it(SPEECH_RECOGNITION_HELP, "Scrive ciò che dice un pezzo di parlato: controlla i pezzi di un batch e riconosce il testo di una clip di voce. ComfyUI con TTS Audio Suite (Granite ASR) o un server di trascrizione compatibile con OpenAI, come un server whisper.");
+
+        ja(RECOGNIZER_COMFYUI, "ComfyUI (Granite ASR)");
+        zh(RECOGNIZER_COMFYUI, "ComfyUI（Granite ASR）");
+        fr(RECOGNIZER_COMFYUI, "ComfyUI (Granite ASR)");
+        es(RECOGNIZER_COMFYUI, "ComfyUI (Granite ASR)");
+        de(RECOGNIZER_COMFYUI, "ComfyUI (Granite ASR)");
+        ko(RECOGNIZER_COMFYUI, "ComfyUI (Granite ASR)");
+        it(RECOGNIZER_COMFYUI, "ComfyUI (Granite ASR)");
+
+        ja(RECOGNIZER_OPENAI, "OpenAI 互換 (whisper)");
+        zh(RECOGNIZER_OPENAI, "兼容 OpenAI（whisper）");
+        fr(RECOGNIZER_OPENAI, "Compatible OpenAI (whisper)");
+        es(RECOGNIZER_OPENAI, "Compatible con OpenAI (whisper)");
+        de(RECOGNIZER_OPENAI, "OpenAI-kompatibel (whisper)");
+        ko(RECOGNIZER_OPENAI, "OpenAI 호환(whisper)");
+        it(RECOGNIZER_OPENAI, "Compatibile OpenAI (whisper)");
+
+        ja(RECOGNITION_MODEL, "認識のモデル");
+        zh(RECOGNITION_MODEL, "识别模型");
+        fr(RECOGNITION_MODEL, "Modèle de reconnaissance");
+        es(RECOGNITION_MODEL, "Modelo de reconocimiento");
+        de(RECOGNITION_MODEL, "Modell der Erkennung");
+        ko(RECOGNITION_MODEL, "인식 모델");
+        it(RECOGNITION_MODEL, "Modello del riconoscimento");
+
+        ja(TEXT_OF_THE_CLIP, "クリップのテキスト");
+        zh(TEXT_OF_THE_CLIP, "片段文本");
+        fr(TEXT_OF_THE_CLIP, "Texte de l'extrait");
+        es(TEXT_OF_THE_CLIP, "Texto del clip");
+        de(TEXT_OF_THE_CLIP, "Text des Clips");
+        ko(TEXT_OF_THE_CLIP, "클립의 텍스트");
+        it(TEXT_OF_THE_CLIP, "Testo della clip");
+
+        ja(TEXT_OF_THE_CLIP_HELP, "クリップで話されている言葉。入力するか認識させます。");
+        zh(TEXT_OF_THE_CLIP_HELP, "片段中所说的话，可手动输入或自动识别。");
+        fr(TEXT_OF_THE_CLIP_HELP, "Les mots dits dans l'extrait, saisis ou reconnus.");
+        es(TEXT_OF_THE_CLIP_HELP, "Las palabras dichas en el clip, escritas o reconocidas.");
+        de(TEXT_OF_THE_CLIP_HELP, "Die im Clip gesprochenen Wörter, getippt oder erkannt.");
+        ko(TEXT_OF_THE_CLIP_HELP, "클립에서 말한 단어로, 입력하거나 인식시킵니다.");
+        it(TEXT_OF_THE_CLIP_HELP, "Le parole dette nella clip, digitate o riconosciute.");
+
+        ja(RECOGNIZE, "認識");
+        zh(RECOGNIZE, "识别");
+        fr(RECOGNIZE, "Reconnaître");
+        es(RECOGNIZE, "Reconocer");
+        de(RECOGNIZE, "Erkennen");
+        ko(RECOGNIZE, "인식");
+        it(RECOGNIZE, "Riconosci");
+
+        ja(RECOGNIZING, "認識中 ...");
+        zh(RECOGNIZING, "识别中 ...");
+        fr(RECOGNIZING, "Reconnaissance ...");
+        es(RECOGNIZING, "Reconociendo ...");
+        de(RECOGNIZING, "Wird erkannt ...");
+        ko(RECOGNIZING, "인식 중 ...");
+        it(RECOGNIZING, "Riconoscimento ...");
+
+        ja(NO_SPEECH_RECOGNITION, "先にオーディオブックの設定で音声認識を設定してください。");
+        zh(NO_SPEECH_RECOGNITION, "请先在有声书设置中设置语音识别。");
+        fr(NO_SPEECH_RECOGNITION, "Configurez d'abord la reconnaissance vocale dans les réglages du livre audio.");
+        es(NO_SPEECH_RECOGNITION, "Configura primero el reconocimiento de voz en los ajustes del audiolibro.");
+        de(NO_SPEECH_RECOGNITION, "Richte zuerst die Spracherkennung in den Hörbuch-Einstellungen ein.");
+        ko(NO_SPEECH_RECOGNITION, "먼저 오디오북 설정에서 음성 인식을 설정하세요.");
+        it(NO_SPEECH_RECOGNITION, "Configura prima il riconoscimento vocale nelle impostazioni dell'audiolibro.");
+
+        ja(THE_SPEECH_RECOGNITION_WORKS, "音声認識は動作しています。");
+        zh(THE_SPEECH_RECOGNITION_WORKS, "语音识别可以使用。");
+        fr(THE_SPEECH_RECOGNITION_WORKS, "La reconnaissance vocale fonctionne.");
+        es(THE_SPEECH_RECOGNITION_WORKS, "El reconocimiento de voz funciona.");
+        de(THE_SPEECH_RECOGNITION_WORKS, "Die Spracherkennung funktioniert.");
+        ko(THE_SPEECH_RECOGNITION_WORKS, "음성 인식이 작동합니다.");
+        it(THE_SPEECH_RECOGNITION_WORKS, "Il riconoscimento vocale funziona.");
+
+        ja(RECOGNITION_FAILED, "認識に失敗しました: %s");
+        zh(RECOGNITION_FAILED, "识别失败：%s");
+        fr(RECOGNITION_FAILED, "La reconnaissance a échoué : %s");
+        es(RECOGNITION_FAILED, "El reconocimiento falló: %s");
+        de(RECOGNITION_FAILED, "Die Erkennung ist fehlgeschlagen: %s");
+        ko(RECOGNITION_FAILED, "인식에 실패했습니다: %s");
+        it(RECOGNITION_FAILED, "Riconoscimento non riuscito: %s");
+
+        ja(THE_TEXT_OF_THE_CLIP_IS_SAVED, "クリップのテキストを保存しました。");
+        zh(THE_TEXT_OF_THE_CLIP_IS_SAVED, "片段文本已保存。");
+        fr(THE_TEXT_OF_THE_CLIP_IS_SAVED, "Le texte de l'extrait est enregistré.");
+        es(THE_TEXT_OF_THE_CLIP_IS_SAVED, "El texto del clip se ha guardado.");
+        de(THE_TEXT_OF_THE_CLIP_IS_SAVED, "Der Text des Clips ist gespeichert.");
+        ko(THE_TEXT_OF_THE_CLIP_IS_SAVED, "클립의 텍스트를 저장했습니다.");
+        it(THE_TEXT_OF_THE_CLIP_IS_SAVED, "Il testo della clip è salvato.");
     }
 }

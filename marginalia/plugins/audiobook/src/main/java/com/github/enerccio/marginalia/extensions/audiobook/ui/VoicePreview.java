@@ -27,9 +27,8 @@ import static com.github.enerccio.marginalia.extensions.audiobook.AudiobookLocal
 
 /**
  * A button that has a sample spoken with a voice and plays it, so a voice is heard before it is used, and a menu of other samples: with sounds
- * (for the models that voice them) and in a mood (Higgs Audio v3). The speech server is started for it when the requests before a batch do that, so
- * the first sample takes a while; a window that holds the server ({@link #holdWhileOpen}) makes the next ones quick. The button is off until the
- * sample is there.
+ * (for the models that voice them) and in a mood (Higgs Audio v3). The first sample takes a while when the GPU holds something else (the GPU lock
+ * loads the speech server first); the next ones are quick. The button is off until the sample is there.
  */
 public class VoicePreview extends Composite<HorizontalLayout> {
 
@@ -62,22 +61,14 @@ public class VoicePreview extends Composite<HorizontalLayout> {
     }
 
     /**
-     * Keeps the speech server up for the samples while the dialog is open (see {@link AudiobookService#holdForSamples}); the requests after a
-     * batch run when it is closed.
-     *
-     * @param warmUp start the server when the dialog opens, not with the first sample
+     * Loads the speech server on its GPU when the dialog opens (see {@link AudiobookService#warmUp}), so the first sample does not wait for it.
      */
-    public static void holdWhileOpen(Dialog dialog, AudiobookService service, boolean warmUp) {
-        Runnable[] release = new Runnable[1];
+    public static void warmUpOnOpen(Dialog dialog, AudiobookService service) {
+        boolean[] done = new boolean[1];
         dialog.addAttachListener(e -> {
-            if (release[0] == null) {
-                release[0] = service.holdForSamples(warmUp);
-            }
-        });
-        dialog.addDetachListener(e -> {
-            if (release[0] != null) {
-                release[0].run();
-                release[0] = null;
+            if (!done[0]) {
+                done[0] = true;
+                service.warmUp();
             }
         });
     }

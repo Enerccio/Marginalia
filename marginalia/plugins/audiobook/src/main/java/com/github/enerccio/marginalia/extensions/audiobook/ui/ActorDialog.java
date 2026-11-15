@@ -27,6 +27,7 @@ public class ActorDialog extends Dialog {
 
     private final TextField name = new TextField(T.localized(NAME));
     private final RoleEditor role;
+    private final ClipTextField clipText;
 
     /**
      * @param actor the actor to edit (a copy is edited; the one given is not changed)
@@ -39,8 +40,6 @@ public class ActorDialog extends Dialog {
         this.saved = saved;
 
         setHeaderTitle(T.localized(ACTOR));
-        // the speech server stays up for the samples while the window is open, from the first sample
-        VoicePreview.holdWhileOpen(this, service, false);
         setWidth("min(50em, 95vw)");
         setCloseOnOutsideClick(false);
 
@@ -50,7 +49,12 @@ public class ActorDialog extends Dialog {
         Span help = new Span(T.localized(THE_ACTOR_HELP));
         help.addClassName(CssStyles.HINT_TEXT);
 
-        VerticalLayout content = new VerticalLayout(name, help, role);
+        // the words of the clip of the actor's voice (Higgs can be given them with the clip)
+        clipText = new ClipTextField(service);
+        clipText.show(this.actor.getVoice());
+        role.onVoiceChange(clipText::show);
+
+        VerticalLayout content = new VerticalLayout(name, help, role, clipText);
         content.setPadding(false);
         add(content);
 
@@ -58,7 +62,7 @@ public class ActorDialog extends Dialog {
         save.addThemeName("primary");
         getFooter().add(new Button(T.localized(CANCEL), e -> close()), save);
         DialogFocus.onOpen(this, name);
-        DialogShortcuts.submitWith(save, name);
+        DialogShortcuts.submitWith(save, name, clipText.textArea());
     }
 
     private void save() {
@@ -66,6 +70,7 @@ public class ActorDialog extends Dialog {
         role.read(actor);
         try {
             service.saveActor(actor);
+            clipText.saveIfChanged();
         } catch (RuntimeException e) {
             AudiobookLog.get().warn("The actor could not be stored: {}", e.getMessage(), e);
             Notification.error(T.localized(THE_ACTOR_COULD_NOT_BE_STORED).formatted(e.getMessage()));

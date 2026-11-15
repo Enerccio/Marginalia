@@ -5,231 +5,287 @@ order: 27
 
 # オーディオブック
 
-音声合成サーバーを使って、本をパートごとにオーディオブックに変換します。ナレーター用の声と、登場人物ごとの声を設定し、それらは本のパートと一緒に保存され、リーダーで再生できます。ラフ版を作るなら自動で走らせられます（モデルが誰がどのように話すかをラベル付けし、音声サーバーが読み上げます）。パートを一つずつ **オーディオブック・スタジオ** で仕上げることもできます。スタジオでは音声サーバーに送られる内容を正確に確認し、手で変更でき、結果をチャプター付きの mp3 ファイルとして書き出せます。
+本をパートごとに、テキスト読み上げ（TTS）サーバーを使ってオーディオブックに変換します。ナレーターと登場人物ごとに声を割り当て、その設定はパートとともに保存され、リーダーで再生されます。粗い下書き用には全体を自動で実行できます（モデルが話者と話し方を指定し、音声サーバーが読み上げます）。また、**Audiobook studio** でパートを一つずつ扱い、音声サーバーへ送られる内容を正確に確認して手で変更したり、章マーク付きのmp3ファイルとして書き出したりすることもできます。
 
-この拡張機能は音声の生成そのものは行いません。あなたが用意する **Chatterbox-TTS-Server** と通信します（[音声サーバーのセットアップ](audiobook-server.md)を参照）。本の本文は変更されず、指定したサーバー以外には送信されません。音声はあなた自身のインストール環境に、パートに紐づくリソースとして保存されます。
+この拡張機能は音声そのものを生成しません。実行する **Chatterbox-TTS-Server** と通信します（[音声サーバーの設定](audiobook-server.md)を参照）。本文が変更されることはなく、指定したサーバー以外には送信されません。音声は自分のインストール内に、パートに紐付くリソースとして保存されます。
 
 <a id="what-you-need"></a>
 
 ## 必要なもの
 
-- 音声サーバー。言語モデルと同じグラフィックカードを使う場合は、音声サーバーのために場所を空け、終わったら停止するリクエストも必要です（[音声サーバーのセットアップ](audiobook-server.md)）。
-- 声：クローンしたい声ごとに、短い **参照クリップ**（一人の人物の 12〜30 秒の音声、音楽なし）、またはサーバーが持っている声ファイルのどれか。ナレーターには落ち着いた、安定した朗読の声が必要です。
-- 複数の声がある本では、テキストにラベルを付けられる言語モデル。既定では本のモデルを使います。
-- **ffmpeg** は任意です。なくても mp3 で全て動作します。サーバーにあれば（Docker イメージには含まれています。デスクトップでは `PATH` や `/opt/homebrew/bin` などの一般的なフォルダで見つかります。別の場所にある場合は環境変数 `MARGINALIA_FFMPEG` で指定します）、書き出しで **m4b** 形式が使えるようになり、管理者は音声を wav で保存することもできます。
+- 音声サーバー。それが言語モデルとグラフィックカードを共有している場合は、音声サーバーのためにメモリを空け、その後停止させるリクエストも必要です（[音声サーバーの設定](audiobook-server.md)）。
+- 声。クローンしたい声ごとに、一人分の短い**参照クリップ**（12〜30秒、音楽なし）、またはサーバーが持っている声ファイルのいずれか。ナレーターには、落ち着いた安定した朗読の声が必要です。
+- 複数の声がある本には、テキストにラベルを付けられる言語モデル。既定では、本のモデルを使います。
+- **ffmpeg** は任意です。なくてもすべてmp3で動作します。サーバーにあれば（Dockerイメージに含まれています。デスクトップでは `PATH` や `/opt/homebrew/bin` のような一般的なフォルダで見つかります。別の場所にある場合は、変数 `MARGINALIA_FFMPEG` で場所を指定します）、書き出しは **m4b** 形式になります。管理者は音声をwavとして保存することもできます。
 
 <a id="the-settings"></a>
 
 ## 設定
 
-*設定 → 拡張機能の設定 → オーディオブックの設定* がアカウントごとのパネルです。変更したら *設定* ページを保存してください。
+*設定 → Extension Settings → Audiobook Settings* がアカウントのパネルです。変更後は *設定* ページを保存してください。
 
-![バックエンドとアクターが並んだパネル](../../images/plugin-audiobook-settings.png)
+![バックエンドとキャストが並ぶパネル](../../images/plugin-audiobook-settings.png)
 
 <a id="backends"></a>
 
 ### バックエンド
 
-バックエンドは、音声サーバーとそれが使うモデルの組み合わせです。**+** で追加します。
+バックエンドは、音声サーバーとそれが話すモデルの組み合わせです。**+** で追加します。**Duplicate** は、選択したバックエンド（アドレス、キー、GPUロック、声、既定値、バッチの前後のリクエスト）を新しい名前でコピーします。同じマシン上で別のモデルのバックエンドを素早く作るための方法です。例えば、Chatterboxの隣にHiggsを置く場合に使います。その後、モデル、アドレス、開始と停止のリクエストを変更します。
 
-| 設定 | 役割 |
+| 項目 | 内容 |
 |---|---|
-| 名前 | 変換ダイアログに表示される名前。 |
-| アドレス | 音声サーバー、またはそこへ転送するものの基本アドレス。例：`http://localhost:8004`。 |
-| APIキー | サーバー（またはプロキシ）が要求する場合にベアラートークンとして送られます。暗号化して保存され、再表示されません。新しいキーを入力して置き換えるか、**キーを削除** を使います。 |
-| 音声モデル | **Chatterbox Turbo**（英語、`[sigh]` などの音声タグに対応。最も速く、既定）、**Chatterbox**（英語、話し方の *exaggeration* を調整可能）、**Chatterbox Multilingual**（23言語）。バッチの前に送るリクエストで、このモデルを読み込んでおく必要があります。別のモデルが必要な本は、別のバックエンドを使います。 |
-| GPU（名前） | 任意。一つの GPU を共有するサーバー（[画像ジェネレーター](image-generator.md)のものも含む）には同じ名前を入れます。すると、それらの処理が互いを待ち、別のモデルのバックエンドは他の処理が終わるまで待ちます。空欄の場合は、同じアドレスへのバッチ同士だけが互いを待ちます。 |
-| サーバーはこのマシンまたは自分のネットワーク上にある | ローカルネットワーク内のアドレスを許可します。クラウド上のサーバーの場合はオフのままにしてください。そうすれば、自分のマシンを呼び出させられることはありません。 |
-| リクエストのタイムアウト | 音声の一片を待つ時間。 |
-| 次の数のピース後にサーバーを再起動 | メモリをリークし、長いバッチの途中でシステムに強制終了される音声サーバー向けの設定です。この数のピースを処理したあと、バッチ後のリクエスト、続けてバッチ前のリクエストが、バッチの途中で再び送られます（停止、起動、読み込み）。作業は新しいサーバーで続行されます。0（既定）では再起動しません。落ちたサーバーはこの設定に関係なく再起動されます。[トラブルシューティング](audiobook-server.md#troubleshooting)を参照してください。 |
-| バッチ前後のリクエストのキー | バッチの前後に送るリクエストが `Authorization: Bearer` として付けるキーです。暗号化して保存され、再表示されません（**キーを削除** で消去されます）。そのため、読める状態で各リクエストのヘッダーに書き込む必要がありません。空欄の場合は上の *APIキー* が使われます。LiteLLM のような一つのプロキシがすべてを提供している場合はこちらが適切です。自前の `Authorization` ヘッダーを持つリクエストはそのまま保持されます。 |
-| ナレーターの声 | 出演者の登録がない本のナレーターの声。サーバーの声ファイルは `predefined:Henry.wav` のように書きます。 |
-| セグメントの既定値 | ピースが最初に使う温度、CFG 重み、速度、チャンクサイズ（スタジオでは一つのピースごとに変更できます）。 |
-| バッチ前、バッチ後 | パートのバッチの前後に行うリクエスト。*前* はグラフィックカードを空けて音声サーバーを起動し、*後* は停止します。[1 つの GPU でモデルと音声を使う](audiobook-server.md#one-gpu-for-the-model-and-the-speech)を参照してください。空欄の場合は何もしません。 |
+| Name | 変換ダイアログに表示される名前。 |
+| Address | 音声サーバー、またはそれに転送するものの基本アドレス（例: `http://localhost:8004`）。 |
+| Api key | サーバー（またはプロキシ）が要求する場合に、ベアラートークンとして送信されます。暗号化されて保存され、再表示されません。置き換えるには新しいキーを入力するか、**Remove the key** を使います。 |
+| Speech model | **Chatterbox Turbo**（英語。`[sigh]` などのサウンドタグに対応。最速で既定値）、**Chatterbox**（英語。話し方の *exaggeration* を指定可能）、**Chatterbox Multilingual**（23言語）、または **Higgs Audio v3 in ComfyUI**（多言語。台詞の感情や、泣き声、息切れ、うめき声などの音を表現。[下記](#higgs-audio-v3-emotions-and-sounds)参照）。バックエンドの[GPUロック](../administration/gpus.md)（またはバッチ前のリクエスト）は、このモデルを読み込んだ状態に保たなければなりません。別のモデルが必要な本は、別のバックエンドを使います。 |
+| GPU lock | 音声サーバーが動作するGPUの[GPUロック](../administration/gpus.md)。サーバーが言語モデルや他のサーバー（[Image Generator](image-generator.md)のものも含む）とGPUを共有している場合に使います。すべてのバッチとサンプルはGPUを順番に使い、ロックによって音声サーバーが先に読み込まれます。管理者がGPUロックを設定している場合にのみ表示されます。 |
+| The server is on this machine or on my network | ローカルネットワークのアドレスを許可します。クラウド上のサーバーの場合はオフのままにしてください。オフであれば、自分のマシンを呼び出させられることはありません。 |
+| Timeout of a request | 一つの音声の応答を待つ時間。 |
+| Restart the server after (pieces) | 長いバッチの途中でメモリがリークし、システムによって強制終了される音声サーバー向けの設定です。この回数の断片を処理した後、バッチの後のリクエスト、続いてバッチの前のリクエストが、バッチの途中で再度実行されます（停止、開始、読み込み）。その後、新しいサーバーで作業が続けられます。0（既定値）の場合は行いません。停止したサーバーは、この設定にかかわらず再起動されます。[トラブルシューティング](audiobook-server.md#troubleshooting)を参照してください。 |
+| Key of the requests around a batch | バッチの前後のリクエストが `Authorization: Bearer` として送るキーです。暗号化されて保存され、再表示されません（**Remove the key** でクリアされます）。そのため、各リクエストのヘッダーに書き込む必要がなく、読める状態になりません。空の場合は上の *Api key* が使われます。これは、LiteLLMのような一つのプロキシがすべてを提供している場合に望ましい動作です。独自の `Authorization` ヘッダーを持つリクエストは、そのヘッダーを維持します。 |
+| Narrator voice | 登場人物のいない本のナレーター。サーバーの声ファイルは `predefined:Henry.wav` と書きます。 |
+| Precision | Higgsのみ。モデルが計算する精度です。**fp32**（既定値）が安全な選択です。AMDのカードでは、**bf16** を使うと断片がめちゃくちゃな音、効果音の誤り、声の誤りになりました。bf16はグラフィックメモリの約半分（16 GBではなく約8 GB）を必要とし、動作する環境では高速です。 |
+| Send the text of the clip to Higgs | Higgsのみ、実験的な機能です。[クリップのテキスト](#voices-and-clips)も一緒に送られます。オフのままにしてください。テストでは声が変わってしまいました。 |
+| Check the length of the pieces | 既定でオンです。テキストよりはるかに長い断片（4秒に加えて1単語あたり0.6秒。モデルが話し続けたり、言葉の代わりに音を出したりした場合）は、次のシードで作り直されます。作り直しは **再試行回数** まで行われます。正しい長さの最初のテイクが残され、そうでなければ最も短いものが残されます。 |
+| Check the words with speech recognition | 既定ではオフです。[音声認識](#speech-recognition)が必要です。バッチの後、すべての断片が文字起こしされ、テキストと比較されます。単語の誤りが **Max. word errors (%)** を超える断片は、次のシードで作り直され、再度確認されます。作り直しは **再試行回数** ラウンドまで行われ、誤りの最も少ないテイクが残されます。変換では、作り直された断片の数と、まだ違っている断片の数が表示されます。 |
+| Defaults of a segment | 断片が最初に使う温度、CFG重み、速度、チャンクサイズ（スタジオで一つの断片について変更できます）。Higgsは温度のみを使います。 |
+| Before a batch, After a batch | 各バッチ（およびサンプル）の前後に行われるリクエストです。GPUロックの内側で実行されます。グラフィックカードの解放と音声サーバーの起動はGPUロックの役割です。[モデルと音声で1つのGPU](audiobook-server.md#one-gpu-for-the-model-and-the-speech)を参照してください。空の場合は何もしません。 |
 
-**接続テスト** はバッチ実行時と同じ処理を行います。バッチ前のリクエストを送り（停止していた音声サーバーを起動する）、サーバーが応答するか、モデルが読み込まれているかを確認し、バッチ後のリクエストを送ります。リクエストを設定していなければ、確認だけを行います。
+**Test connection** は、バッチと同じ処理を行います。GPUロックを取得し（停止していた音声サーバーは起動されます）、バッチの前のリクエストを実行し、サーバーが存在していてモデルが読み込まれているかを確認し、バッチの後のリクエストを実行します。ロックもリクエストもない場合は、確認のみを行います。
 
-本に別の文字体系のピースがある場合（英語の本の中の日本語など）、対応するバックエンドがあれば、それらの言語で多言語モデルに送られます。対応するバックエンドがなければ、本のモデルのままです。
+別の文字体系の断片を含む本（英語の本の日本語など）は、そのための多言語モデルのバックエンドがあれば、その言語とともにそのモデルに送られます。バックエンドがない場合は、本のモデルのまま処理されます。Higgsの本では、Higgs自身が同じ声で読み上げるため、そのまま処理されます。
+<a id="higgs-audio-v3-emotions-and-sounds"></a>
+
+### Higgs Audio v3: 感情と音
+
+**Higgs Audio v3 in ComfyUI** のバックエンドでは、言語モデルのラベルが声として聞こえます。接続先のアドレスはお使いのComfyUIです（TTS Audio Suiteのノードを含む。[音声サーバーの設定](audiobook-server.md#higgs-audio-v3-in-comfyui)を参照）。
+
+- 音声の**話し方**は、悲しげ、怒り、喜び、楽しげ、緊張、恐怖、驚き、優しさ、皮肉、懇願、絶望、嫌悪、官能、ささやき、叫びのように話されます。強い話し方（強度0.8以上）はより表現豊かに、弱い話し方（0.2未満）は淡々と読まれます。
+  ナレーターは淡々と読みます。
+- 言語モデルは、Chatterbox Turboより多くの**音**を音声に入れることがあります。笑い声、含み笑い、くすくす笑い、ため息、息をのむ声、咳、咳払い、鼻をすする音、くしゃみ、うめき声、泣き声、すすり泣き、悲鳴、息切れ、うめき、ハミング、シーッという音です。
+- プログラムは、各音声の前後にある**地の文**（英語）も読み取り、モデルが音を入れていない場合でも、その文が示す音を音声に加えます。
+  *"You look funny," she giggled.* にはくすくす笑い、*She burst out laughing. "Careful!"* には笑い声、*a soft moan escaped her lips. "Yes..."* にはうめき、*panting* や *out of breath* には息切れ、*cried quietly* や *burst into tears* には泣き声が加わります。音に見えるだけのものは加えません。たとえば *"Stop!" she cried.*（感嘆）、*moaned about the weather*、*the wind moaned*、*the floorboards groaned*、*stifled a giggle*、*didn't laugh*、そして別の登場人物が出す音を示す地の文は対象外です。*"You look funny," he mocked her.* には、音は加わらず皮肉または楽しげな話し方が付きます。地の文そのものは書かれたとおりに読まれます。
+- **ナレーターは常に淡々と読まれます**。音も感情もつきません。モデルがナレーターに任せた音声も同様です。
+- Higgsは感情ごとのクリップを必要としません。声ごとに1つのクリップがあれば足ります。Higgsはクリップの録音を再現するため、Chatterboxの場合より、きれいなクリップであることが重要です（[良いクリップ](#a-good-clip)）。
+- 各音声はComfyUIで生成され、生成後にメモリが解放されます（1つあたり数秒）。これにより、一部のグラフィックカードがクラッシュするのを防ぎます。
+- Higgsは音声の最後の単語の後も続けることがよくあります（息や別の音の始まり）。そのためクリップが途中で終わり、一時停止の前に短い「フッ」という音が聞こえることがあります。**ffmpeg** を使うと、拡張機能がこの余分な部分を切り取り、各音声をフェードアウトさせます。ffmpegがない場合、音声はHiggsが生成したままになります。
+- Higgs Audio v3モデルは**研究および非商用ライセンス**のもとにあります。販売するオーディオブックには、Boson AIからのライセンスが必要です。
+
+<a id="speech-recognition"></a>
+
+### 音声認識
+
+**音声認識**は、音声が何を言っているかを書き起こします。バッチの各音声を確認し（バックエンドで **Check the words with speech recognition** が有効な場合）、[音声クリップのテキスト](#voices-and-clips)を認識します。実行場所を選びます。
+
+| 設定 | 働き |
+|---|---|
+| Speech recognition | **ComfyUI (Granite ASR)**: お使いのComfyUIにあるTTS Audio SuiteのGraniteスピーチモデル（アドレスはComfyUIのもの）。**OpenAI-compatible (whisper)**: `/v1/audio/transcriptions` を備えたサーバー（faster-whisper、speachesなどのwhisperサーバーや、OpenAI API）。 |
+| Address, Api key | ComfyUIのアドレス、またはAPIのベース（`/v1` の有無は問わない）。キーは暗号化して保存されます。アドレスが空の場合、音声認識は行われません。 |
+| GPU lock | 認識が使用する[GPUロック](../administration/gpus.md)。1枚のカードでfp32のHiggsを使う場合は、その専用のロックを設定し、その手順でComfyUIを再起動するようにしてください。ComfyUIはサーバーのメモリに音声モデルを保持しており、認識用のモデルを並べて読み込むとサーバーのメモリが不足したためです。 |
+| Model of the recognition | 空欄の場合、ComfyUIでは `granite-speech-4.1-2b`、OpenAI-compatibleでは `whisper-1` が使われます。 |
+| Timeout, The server is on this machine or on my network | バックエンドの場合と同じです。 |
+
+**Test connection** は、ComfyUIにノードがあるか、またはサーバーが応答するかを確認します。バッチの音声は、バッチの後、音声サーバーが解放されたときに確認されます。そのため、認識と音声モデルが同時にカードを必要とすることはありません。
 
 <a id="shared-speech-servers"></a>
 
-### 共有の音声サーバー
+### 共有音声サーバー
 
-複数のユーザーがいる環境では、管理者がすべてのユーザー向けに音声サーバーを用意できます。それにより、GPU マシンを一度設定するだけでよく、誰もアドレスやキーを用意する必要がありません。管理者は同じパネルの最後のセクション（管理者にだけ表示されます）で設定します。**共有の音声サーバー** を開くと、自分用のバックエンドと同じ項目のウィンドウが開き、利用できるユーザーを指定できます。**すべてのユーザー**、またはリストから選んだユーザーです。そこにあるスイッチ **ユーザーが自分の音声サーバーを追加できる** で、下のバックエンドを引き続き使えるかどうかを決めます。
+複数のユーザーがいる環境では、管理者はすべてのユーザーのために音声サーバーを用意できます。これにより、GPUマシンを一度設定すれば、各ユーザーがアドレスやキーを用意する必要はなくなります。管理者は同じパネル（最後のセクション。管理者だけに表示されます）で設定します。**Shared speech servers** を開くと、自分のバックエンドと同じ項目に加えて、誰が使えるかを指定するウィンドウが開きます。選択肢は **all users**、またはリストで選んだユーザーです。そこにあるスイッチ **Users may add speech servers of their own** は、下にあるバックエンドを引き続き許可するかどうかを決めます。
 
 使えるようになること：
 
-- パネルの上部にある **使用中のバックエンド** には、利用できる共有サーバー（*(共有)* と表示）と自分のサーバーが並びます。*音声に変換* ウィンドウとスタジオは、選んだものを使います。コマンドも同じものを使います。
-- 共有サーバーは名前だけが表示され、アドレス、キー、リクエストは見えません。同じサーバーアドレスへの全ユーザーのバッチは互いを待つので、二人のユーザーが同じ GPU を二重に使うことはありません。
-- 管理者があなたからサーバーの利用権を取り上げると、そのサーバーを指定したままのジョブは拒否されます。別のサーバーを選び直してください。
-- 管理者があなた自身のサーバーを無効にすると、パネルにその旨が表示されます。追加したサーバーは残され、スイッチを戻せば再び使われます。
-- 共有サーバーの *ナレーターの声* は、サーバーの声ファイル（`predefined:Henry.wav`）にしてください。参照クリップは一人のユーザーのリソースなので、他のユーザーは読めません。あなたのアクターの声はこれまで通り使えます。
+- パネルの上部にある **Backend in use** には、使用できる共有サーバー（*(shared)* と表示）と自分のサーバーが一覧されます。*Convert to audio* ウィンドウとスタジオは、選んだサーバーを使います。コマンドもそれを使います。
+- 共有サーバーについて見えるのは名前だけで、アドレス、キー、リクエストは見えません。同じサーバーアドレスを使うすべてのユーザーのバッチは互いに順番を待つため、2人のユーザーが同じGPUを同時に起動することはありません。
+- 管理者があなたから共有サーバーの使用を取り消した場合、そのサーバーを指定したままのジョブは拒否されます。別のサーバーを選んでください。
+- 管理者が自分のサーバーを無効にした場合、パネルにその旨が表示されます。追加したサーバーは保持され、スイッチを再びオンにすると再び使えます。
+- 共有サーバーの *Narrator voice* は、サーバーの音声ファイル（`predefined:Henry.wav`）である必要があります。参照クリップは1人のユーザーのリソースであり、他のユーザーは読めません。自分のアクターの声は従来どおり使えます。
 
 <a id="actors"></a>
 
 ### アクター
 
-**アクター** は、あなたの声です。参照クリップ（あなたの音声 [リソース](../resources.md) のどれか、またはここでアップロードした新しいもの）か、サーバーの声ファイルのどちらかを指定します。アクターには、**ムード**（ささやき、叫び）または**言語**（日本語を話すクリップ）ごとに別の声を持たせることもできます。言語が優先され、それに対応する声がなければ、アクターの通常の声が読み上げます。アクターはあなたのアカウントに保存され、どの本でも、そのナレーターや登場人物にアクターを割り当てられます。
+**アクター**は、あなたの声です。参照クリップ（自分の音声[リソース](../resources.md)の1つ、またはここでアップロードした新しいもの）か、サーバーの音声ファイルのいずれかを使い、**感情**（ささやき、叫びなど）や**言語**（日本語を話すクリップなど）ごとに専用の声を持つこともできます。言語は感情より優先されます。対応する声がない場合は、アクターの通常の声が読み上げます。アクターはあなたのアカウントに保存されます。どの本でも、アクターをナレーターや登場人物に割り当てられます。
 
-声の横にある **プレビュー**（アクター、設定、出演者の各画面）は、その声で話す短い文を再生します（言語の声の場合はその言語で）。バッチ前のリクエストが音声サーバーの起動を必要とする場合は、サーバーを起動します。アクターは名前順に並びます。
+声の横にある**プレビュー**（アクター、設定、キャストにあります）は、その声で数文を読み上げて再生します（言語の場合は、その言語での短い文）。GPUが他の処理で使用中の場合は、GPUロックがまず音声サーバーを読み込みます。その横の矢印は、別のサンプルを選べます。音声モデルが対応している場合は **with sounds**（ため息、笑い声、息をのむ声）が使えます（Chatterbox Turbo、Higgs Audio v3）。Higgsの場合は、ラベルのすべての**感情**（悲しげ、ささやき、皮肉など）を選べます。アクターは名前順に並びます。
 
-![ムード用の声を持つアクター](../../images/plugin-audiobook-actor.png)
+各サンプルはGPUを単独で使用します。サンプルの後もGPUは音声サーバーに読み込まれたままなので、次のサンプルはすぐに再生されます。言語モデルの要求（または別のサーバー）がGPUを必要とするまで、この状態は続きます。**Voices and clips** を開くと音声サーバーがすでに読み込まれるため、最初のサンプルを待つ必要はありません。
+
+![感情ごとの声を持つアクター](../../images/plugin-audiobook-actor.png)
+<a id="voices-and-clips"></a>
+
+### 声と音声クリップ
+
+**声と音声クリップ**（俳優の隣）は、俳優とその声の元になっている音声クリップをまとめて扱う一つのウィンドウです。
+
+- **俳優**: それぞれに声があり、ほかの声（ムード、言語）がいくつあるか、そしてそのクリップの最低品質が表示されます。追加、編集、削除ができます。
+- **クリップ**: それぞれに長さ、**品質**、使用場所（俳優とそのムードまたは言語、そしてバックエンドのナレーター）が表示されます。
+  クリップを選択すると、何が問題かを確認でき、**再生**、**置き換え...**、**ffmpegでクリーンアップ**（ffmpegが必要）、または削除（どこにも使われていない場合のみ）ができます。
+- **置き換え...** では、自分の別のクリップ、またはアップロードしたクリップを、そのクリップが使われているすべての場所に置き換えます。パーツは新しい声で作り直されます。
+  古いクリップは削除するまで残ります。
+- **クリップの文字起こし**: 選択したクリップで話されている言葉です。直接入力するか、**認識**を押して[音声認識](#speech-recognition)に書き起こさせ、修正して**保存**します。俳優のダイアログにも、その俳優の声のクリップについて同じ欄が表示されます。クリーンアップしたコピーや置き換えたクリップは、文字起こしを引き継ぎます。Higgsには、バックエンドが送ってきた場合にのみ渡されます（既定ではオフ）。
+- **ffmpegでクリーンアップ**は、クリップの横にクリーンアップ済みのコピーを作成し（ヒスノイズやハムを低減）、再度測定します。再生して比較し、より良く聞こえればそのクリップを置き換えてください。音楽、効果音、ほかの声は除去されません。
+
+<a id="a-good-clip"></a>
+
+#### 良いクリップ
+
+音声モデルは声だけでなく**録音そのもの**をコピーします。部屋の反響、ヒスノイズ、映画の場面の背景音楽も、どの行にも戻ってきて、多くの場合は言葉の下に柔らかい「シュー」という音として残り、結果にどのフィルターをかけても取れません。そのため次のようにしてください。
+
+- 一人の話者による、きれいな録音で、実際に間があるものを使ってください（声優のサンプル、静かな部屋で自宅で読んだ録音など）。長さは12〜30秒です。映画やドラマから切り出したクリップは最悪の例です。
+- 品質の目安はクリップから測定されます。**きれい**（間の音量が音声より少なくとも45 dB低い）、**まずまず**（35〜45 dB、または30秒より長い。Chatterboxは30秒で切り取ります）、**悪い**（背景音がある、35 dB未満、歪んでいる、8秒より短い）です。きれいでないクリップは、追加したときに報告されます。
+- 最良の結果を得るには、手作業でクリップを整えてください。クリップの間の部分からノイズプロファイルを取り、[Audacity](https://www.audacityteam.org/)のノイズ除去を使うか、音楽を含むクリップには[Ultimate Vocal Remover](https://github.com/Anjok07/ultimatevocalremovergui)のようなボーカル除去ツールを使ってください。ffmpegのクリーンアップは、一定のノイズを下げるだけです。映画のクリップでは、テストで約3 dB改善しましたが、クリップは*悪い*のままでした。
 
 <a id="converting-new-parts-by-itself"></a>
 
-### 新しいパートを自動で変換する
+### 新しいパーツを自動で変換する
 
-*新しいパートを自動で音声に変換* は、すべての本に対する既定値です。[自動変換](#automatic-conversion)を参照してください。
+*新しいパーツを自動で音声に変換する*は、すべての本の既定の設定です。[自動変換](#automatic-conversion)を参照してください。
+
 <a id="the-cast-and-the-pronunciation-of-a-book"></a>
 
-## キャストと本の発音
+## 本のキャストと発音
 
 どちらも本とともに保存され（バックアップにも含まれます）、**音声に変換**ダイアログから編集します。
 
-**キャスト**は誰が読むかを指定します。**ナレーター**用の声優、**その他の話者**（キャストにない人物としてモデルが指定した話者）用の声優、そして**キャラクター**ごとの声優を割り当てます。キャラクターには名前と、本文がそのキャラクターを指すために使うほかの名前（*Tomáš Novák* に対する *Tom* など）があり、カンマで区切って並べます。発話は、その名前、ほかの名前、または他のキャラクターと共有されていない名前の一語が、大文字小文字とアクセント記号を無視して一致したとき、そのキャラクターに割り当てられます。**本のキャラクターを追加**を選ぶと、パートの視点人物と登場人物からリストが埋まります。
+**キャスト**では、誰が読むかを指定します。**ナレーター**用の俳優、**その他の話者**用の俳優（キャストにないモデルが指定した話者。空の場合はナレーターが読みます）、そして**キャラクター**ごとに一人ずつ俳優を割り当てます。キャラクターには名前と、テキストがそのキャラクターを指すために使うほかの名前（*Tomáš Novák*に対する*Tom*など）があり、カンマで区切ります。ある発話は、その名前、ほかの名前のいずれか、またはほかのキャラクターと共有されていない名前の一語が、大文字小文字とアクセントを無視して一致したときに、そのキャラクターに割り当てられます。**本のキャラクターを追加**を押すと、パーツの視点人物と登場人物でリストが埋められます。
 
 ![本のキャスト](../../images/plugin-audiobook-cast.png)
 
-**発音**は、音声のためにテキストをどう綴るかを指定するものです。本文そのものが変更されることはありません。**辞書**は単語全体を（大文字小文字を区別して）読み上げ用の表記に置き換えます。名前や作った言葉の読み方の綴り直し、日本語の読み仮名（かな）の指定に使います。英語の本では、規則によって数字、序数、年、時刻、金額、略語も単語として読み上げられます。数字だけの見出しは *Chapter four. The Arch* のように読まれます（数字の前の語はあなたが決めます）。また、`*` などのマークダウンの記号は読み上げられず、場面転換（`***`、`---`）は読まれませんが、少し長い間になります。英語以外の言語の本では規則をオフにしてください。辞書は引き続き適用されます。**テキストを試す**では、ある文章がどのように読まれるかを確認できます。読み上げ用のテキストが変わった部分だけが作り直され、それ以外は保持されます。
+**発音**は、テキストを*声のために*どう綴るかを指定するものです。本そのものは決して変更されません。**辞書**は単語全体（大文字小文字は区別されます）を、読まれ方に置き換えます。名前や作った単語の読み替え、または日本語の仮名での読みに使えます。英語の本では、ルールにより数字、序数、年、時刻、金額、略語も単語として読み上げられます。「Chapter four」のような数字だけの見出しは*Chapter four. The Arch*のように読まれます（数字の前の単語はあなたが決めます）。`*`のようなMarkdownの記号は読み上げられません。場面の区切り（`***`、`---`）は読まれず、やや長い間になります。ほかの言語の本ではこのルールをオフにしてください。辞書は引き続き適用されます。**テキストを試す**では、一つの文章がどのように読まれるかを確認できます。読み上げられるテキストが変わったパーツは作り直され、そのほかのパーツはそのまま残されます。
 
 ![本の発音](../../images/plugin-audiobook-pronunciation.png)
 <a id="converting-a-book"></a>
 
-## 書籍を変換する
+## 本を変換する
 
-*ストーリーエディタの「ツール」メニュー（歯車ボタン）→ **音声に変換***。
+*ストーリーエディターのツールメニュー（歯車ボタン）→ **Convert to audio***。
 
 ![開始前のダイアログ](../../images/plugin-audiobook-convert.png)
 
-1. **バックエンド**を選び、**読み込み**を押します。現在のブランチにあるテキストの各パートが、その状態とともに一覧に表示されます（最初のパートは1）。状態は次のとおりです。
-   *未生成*、*ラベル付け済み*（モデルのラベルは保存されているが、まだ音声はない）、*生成済み*（再生ボタンとダウンロードがある）、または
-   *生成済み（テキストが変更されている）*（音声は古いテキストから作られたため、作り直されます）。スタジオで確定済みにされたパートには *(final)* が付きます。
-2. 単純な版にする場合は**言語モデルでパートにラベルを付ける**をオフのままにします。ナレーターがすべての段落を読みます。オンにすると、モデルが各セリフの話者と話し方（落ち着いて、ささやく、叫ぶ…）を決め、効果音タグを入れる位置を決め、キャストが声を割り当てます。書籍のモデルが選ばれていますが、別のモデルを選ぶこともできます。パートはまずラベル付けされ、その後で読み上げられます。テキストに対するラベルがすでにあるパートは、ボックスがオフのときもそのラベルを使って読まれます（モデルには問い合わせません）。そのため、ラベル付け済みの書籍をボックスをオフにして再実行しても、セリフが普通の地の文になることはありません。普通の地の文にしたい場合や新しくラベルを付けたい場合は、**ラベルを削除**を使います。
-3. パートにチェックを入れ（ヘッダーのボックスですべてにチェックが入ります）、それぞれに何をするかを**計画**します。**計画**列にその内容が表示されますが、まだ何も実行されません。
-   **生成**（不足しているものを作る。最新の状態のパートは作り直さない）、**再生成**（音声を削除し、ラベルを削除してから生成する）、**音声を削除**（そのパートの音声の断片と結合された音声を削除する。ラベルは残る）、**ラベルを削除**（次回そのパートを作るときにモデルに改めて問い合わせる）、**計画をクリア**。手順はパート単位で積み重なります（生成を伴わない音声の削除やラベルの削除は、後始末だけを行う）。確定済みのパートはどの計画からも外されます。
-4. **開始**を押すと計画が実行されます。音声やラベルを取り除く場合は、先に確認が出ます。生成するものは**キュー**に入ります。キューはウィンドウを閉じても、ページを離れても進みます。待機中または実行中のパートは計画から外されます。各パートの状態、それまでに作られた断片、ジョブのメッセージは、そのパートの行に表示されます。
-   モデルがパートにラベルを付けている間、その行には *17-32 / 120 個の断片にラベル付け中* と表示されます（モデルへの問い合わせは一度に約16個の断片ずつ）。ラベル付けが済んだパートの**状態をクリック**すると、リクエストごとのモデルの推論過程と回答を、届いた順に読めます。これらは完了したジョブをクリア（*完了したものを消去*）するか、アプリケーションを再起動するまで、ジョブとともにメモリに保持されます。
+1. **backend** を選んで **Load** を押すと、アクティブなブランチの本文を持つパートが一覧表示されます（最初のパートは 1）。各パートの状態は次のとおりです。
+   *未生成*、*ラベル付き*（モデルのラベルは保存済みで、音声はまだありません）、*生成済み*（再生ボタンとダウンロードがあります）、または
+   *生成済み（テキストが変更された）*（音声は古いテキストから作られたため、作り直されます）。スタジオで最終と設定されたパートには *（最終）* が付きます。
+2. 単純な版にする場合は **Label the parts with a language model** をオフのままにします。ナレーターがすべての段落を読みます。オンにすると、モデルが各発話の話者と話し方（落ち着いて、ささやく、叫ぶ…など）を決め、効果音タグを入れる位置を決めます。キャストが声を割り当てます。本のモデルが選ばれていますが、別のモデルを選ぶこともできます。まずパートにラベルが付けられ、そのあと読み上げられます。本文に対するラベルがすでにあるパートは、ボックスがオフでも（モデルには問い合わせずに）そのラベルを使って読まれます。そのため、ラベル付きの本をボックスをオフにして再度実行しても、会話が単なるナレーションに変わることはありません。単なるナレーションにしたい場合や新しいラベルを付けたい場合は、**Remove labels** を使います。
+3. パートにチェックを入れ（ヘッダーのボックスですべてにチェックが入ります）、それぞれに何をするかを **計画** します。**計画** 列に表示されますが、まだ何も実行されません。
+   **生成**（不足しているものを作成します。最新の状態のパートは再度作られません）、**再生成**（音声を削除し、ラベルを取り除いて、生成します）、
+   **Delete audio**（パートの断片と結合された音声を削除します。ラベルは残ります）、**Remove labels**（次回パートを作るときにモデルへ改めて問い合わせます）、
+   **Clear the plan**。手順はパートごとに積み重なります（**生成** を伴わない **Delete audio** と **Remove labels** は後片付けだけを行います）。最終と設定されたパートはどの計画からも除外されます。
+4. **開始** を押すと計画が実行されます。音声やラベルを削除する場合は、先に確認を求められます。生成すべきものはキューに入ります。キューはウィンドウを閉じても、ページを離れても処理を続けます。キューで待機中または実行中のパートは、計画から除外されます。パートの状態、これまでに作られた断片、ジョブのメッセージは、そのパートの行に表示されます。
+   モデルがパートにラベルを付けている間、その行には *Labelling pieces 17-32 of 120* と表示されます（モデルには一度に16個の断片について問い合わせます）。ラベルが付けられたパートの**状態をクリック**すると、各リクエストについて、モデルの推論と回答が届くたびに読めます。これらはジョブとともにメモリに保持され、完了したジョブが消去される（*Clear finished*）かアプリケーションが再起動されるまで残ります。
 
-![キュー：それまでに作られた断片、パートが完了するとダウンロードができる](../../images/plugin-audiobook-queue.png)
+![キュー：これまでに作られた断片と、パートが完了したときのダウンロード](../../images/plugin-audiobook-queue.png)
 
-パートがどのように作られるかは次のとおりです。
+パートがどのように作られるか、期待すべきことを把握できるように説明します。
 
-- テキストは**プログラムが分割します**。モデルが分割することはありません。分割先は地の文の断片と直接話法の断片で、直接話法は半角または全角の二重引用符、または日本語のかぎ括弧で囲まれたものです（見出しは地の文になります）。モデルがするのは、番号付きの断片に*ラベルを付ける*ことだけです。効果音タグ付きのテキストは、タグを加えただけで他に何も変わっていない場合にのみ使われるので、モデルが書籍を変えてしまうことはありません。
-- **断片の話者を決めるのは、セリフの場合はモデルの判断であり、地の文の場合はナレーターです。** 手紙、メモ、メッセージ、登場人物の内面の思考には引用符がないため、プログラムはそれを地の文として扱います。そのような断片は、**斜体で始まっている**（`*...*` または `_..._`）場合にのみ、キャストの声でその登場人物が読みます。そしてモデルが文脈（署名や「筆跡は見間違えようがなかった」といった記述）から登場人物の名前を示した場合に限ります。三人称の地の文は、「パーシーが部屋を横切るのを、彼女は見つめていた」のように登場人物の視点で語られていても、常にナレーターです。斜体のない断片にモデルが登場人物を割り当てても、プログラムはそれを無視します。強調、音、外国語のための斜体も地の文として扱われます。言葉は常にあなたのものです。
-- **モデルへの指示は、変更できるテンプレートです。** *設定 → 拡張機能の設定 → Audiobook Settings → Labelling prompt* があなたの既定値になります。書籍（*Prompts* タブ → *Extension Settings* → *Audiobook*）やフォルダにも独自の指示を持たせることができます。空欄にすると、上位のフォルダの指示、次にあなたの既定値、最後に組み込みの指示が使われます。書き方は他の[プロンプト](../books/prompts.md)と同じです。変数は `{{characters}}`、`{{deliveries}}`、`{{tags}}`、`{{wordsPerTag}}` で、ヒントのポップオーバーには**既定のテンプレートを挿入**があります。指示を変更すると、次に作るときに、対象パートのラベルがモデルに改めて問い合わせられます。
-- **パートの音量は揃えられます。** プログラムの ffmpeg（`.m4b` を作るものと同じ）がインストールされていれば、各パートの結合音声が一つの音量に揃えられます（EBU R128、リニア。ダイナミクスは保たれます）。目標は **-18 LUFS** です。*設定 → 拡張機能の設定 → Audiobook Settings* で変更でき、オフにすることもできます。断片はサーバーが作ったままの状態で保存され、揃えられるのは結合されたパートだけです。そのため、パートごとに音量が飛ぶことはありません。**以前に作られたパート**は、もう一度変換するまで触れられません。もう一度変換すると、保存された断片から結合し直して音量を揃えますが、音声サーバーへの要求は一切行いません（言語モデルのアンロードも行いません）。音量揃えをオフにしても、すでに揃えられたパートはそのままです。パートで ffmpeg が失敗した場合は、そのパートの音声は元のまま残り、結果にその旨が表示されます。
-- 一度のクリックで作られるパートはすべて、**音声モデルごとに一つのバッチ**にまとめられます。バッチの前の要求が一度実行され、次にすべての断片が読み上げられ、最後にバッチの後の要求が一度実行されます。これによって、パートごとにグラフィックカードがモデルを入れ替えることを防ぎます。
-- すべての断片は**内容によって保存されます**（テキスト、声、モデル、言語、設定、シード）。最新の状態のパートは何のコストもかからず、変更された段落だけが作り直されます。失敗したパートは、**再試行**を押したときに、すでに作られた断片を保持します。
-- 断片は、その位置（見出しの後、段落の間、「と彼は言った」の前など）に応じた間を置いて結合され、パートごとに一つの mp3 になり、そのパートとともに保存されます。
-- あなたが行っている生成が実行されている間、音声の生成は待機するため、その下で言語モデルがアンロードされることはありません。
-- スタジオで**確定**にしたパートは変更されず、ダイアログにはその数が表示されます。
-- **オーディオブック全体**は、最新の音声があるすべてのパートを一つの mp3 に結合し、各パートごとにチャプターマークを付けます。一覧の下には、ダウンロードリンクが表示されます（除外されたパートは名前が示されます）。同じファイルが、エクスポート形式の*チャプターマーク付きの mp3 一つ*にもなります。
-- **すべて停止**は、待機中のパートをキャンセルし、実行中のパートを直ちに停止します。言語モデルへの要求（ラベル付け）や音声サーバーへの要求（読み上げ中の断片）は、完了を待たずに打ち切られます。開始前に停止されたバッチは、その前の要求を送らないため、言語モデルは読み込まれたままになります。**ダウンロード**を押すと、完了したパートの mp3 が得られます。
+- 本文は、モデルではなく**プログラムが**、地の文と直接話法の断片に分割します（ストレートまたはカーリーの二重引用符、もしくは日本語のかぎ括弧で囲まれた部分が直接話法です。見出しは地の文になります）。モデルは番号付きの断片に*ラベルを付ける*だけです。効果音タグ付きの本文は、タグが追加されたこと以外に何も変わっていない場合にのみ使われます。そのため、モデルが本の内容を変えることは決してありません。
+- **直接話法の話者はモデルが判断し、地の文はナレーターが担当します。** 手紙、メモ、メッセージ、登場人物の心の声には引用符がないため、プログラムはそれらを地の文として扱います。そのような断片は、**斜体で始まり**（`*...*` または `_..._`）、かつモデルが文脈（署名、「筆跡は間違いなく…だった」など）からその登場人物を指定した場合にのみ、キャストの声でその登場人物が読みます。三人称の地の文は、登場人物の視点から語られている場合（「パーシーが部屋を横切るのを、彼女は見ていた」など）でも、常にナレーターが読みます。斜体なしの断片にモデルが登場人物を割り当てても、プログラムはそれを無視します。強調、効果音、外国語のための斜体も、やはり地の文です。言葉は常にあなたのものです。
+- **モデルへの指示は変更できるテンプレートです。** *Settings → 拡張機能の設定 → Audiobook Settings → Labelling prompt* があなたの既定の設定です。本（*Prompts* タブ → *拡張機能の設定* → *Audiobook*）やフォルダには独自の設定を持たせることができます。空欄の場合は、上位フォルダのもの、次にあなたのもの、最後に組み込みのものが使われます。これは他の[プロンプト](../books/prompts.md)と同じように書かれています。変数は `{{characters}}`、`{{deliveries}}`、`{{tags}}`、`{{wordsPerTag}}` で、ヒントのポップオーバーには **既定のテンプレートを挿入** があります。指示を変更すると、次回そのパートが作られるときに、対象パートのラベルが改めて問い合わせられます。
+- **パートの音量はそろえられます。** `.m4b` を作るのと同じ ffmpeg がインストールされている場合、すべてのパートの結合された音声は、ひとつの音量（EBU R128、リニア。ダイナミクスは保たれます）に揃えられます。既定値は **-18 LUFS** ですが、*Settings → 拡張機能の設定 → Audiobook Settings* で変更できます。同じ場所で、この機能をオフにすることもできます。断片はサーバーが作ったままの状態で保持され、音量が揃えられるのは結合されたパートだけです。そのため、オーディオブックがパートごとに音量が飛ぶことはありません。**以前に作られたパート**は、もう一度変換するまで変更されません。もう一度変換すると、保存された断片から結合し直して音量を揃えます。その際、音声サーバーへの要求は一切行われません（言語モデルのアンロードも行われません）。音量そろえをオフにしても、すでに揃えられたパートはそのまま残ります。パートに対して ffmpeg が失敗した場合、そのパートの音声は元のまま保持され、結果にその旨が表示されます。
+- 一度のクリックで作られるすべてのパートは、**音声モデルごとにひとつのバッチ**にまとめて作られます。バッチの前の要求は一度だけ実行され、次にすべての断片が読み上げられ、バッチの後の要求が一度だけ実行されます。これにより、パートごとにグラフィックスカードがモデルを入れ替えることを防ぎます。
+- 断片はすべて**その内容によって保持されます**（テキスト、声、モデル、言語、設定、シード）。最新の状態のパートは費用がかからず、変更された段落だけが作り直されます。失敗したパートは、**Retry** を押したときに、すでに作られた断片を保持します。
+- 断片は、その位置に応じた間（見出しの後、段落の間、*he said* の前）を置いて結合され、パートごとにひとつの mp3 となり、そのパートとともに保存されます。
+- あなたの生成処理が実行されている間は、音声の処理が待機するので、その下で言語モデルがアンロードされることはありません。
+- スタジオで **最終** と設定したパートはそのまま残され、ダイアログにその数が表示されます。
+- **オーディオブック全体**は、最新の音声を持つすべてのパートを、パートごとに章マークを付けたひとつの mp3 に結合し、一覧の下にダウンロードリンクを表示します（除外されたパートは名前が示されます）。同じファイルは、エクスポート形式 *one mp3 with chapter marks* にもなります。
+- **Stop all** は、待機中のパートをキャンセルし、実行中のパートもただちに停止します。言語モデルへの要求（ラベル付け）や音声サーバーへの要求（読み上げ中の断片）は、待たずに破棄されます。開始される前に停止されたバッチは、その前の要求を送りません。そのため、言語モデルはロードされたままになります。**Download** は、完了したパートの mp3 を取得します。
 <a id="the-audiobook-studio"></a>
 
-## Audiobook studio
+## オーディオブック・スタジオ
 
-*Tools menu → **Audiobook studio*** (the voice of the selected piece, with a preview, is beside its speaker) is where the final audiobook is made, a part at a time: you see the script, change it, listen to a
-piece and make the part.
+*Tools menu → **Audiobook studio*** （選択した断片の声とプレビューは話者の横に表示されます）は、完成したオーディオブックを一部ずつ作るための場所です。台本を見て、変更し、断片を聴き、パートを作成します。
 
-![The studio with a speech selected](../../images/plugin-audiobook-studio.png)
+![話者を選択したスタジオ](../../images/plugin-audiobook-studio.png)
 
-- While the part is being annotated or made, a bar shows that something is going on and the buttons that would start more work wait.
-- **Annotate** makes the script of the part (with the language model if you ask for it, else with the narrator) and shows the pieces in a
-  table: speaker, delivery, intensity, the spoken text and a mark for a piece you changed. While it runs a **Stop** button appears beside it and ends the request to the language model.
-- Select a piece to edit its **speaker**, the **spoken text**, the **delivery**, the **intensity** (the exaggeration of the voice, for the models
-  that have one), the **language**, the **seed**, the **pause after** it. **Apply** keeps the change and **locks** the piece: a new annotation leaves a locked piece as it is.
-  **Unlock** gives it back to the annotation. *The request the speech server gets* shows the exact request.
-- **Hear** makes the audio of a piece (only that piece, the speech server is started for it); **Another take** makes it again with a new
-  seed, and the **takes** are kept so you can choose the one you like (*Use this take and hear it*). A good voice is often a matter of
-  the seed.
-- **Make the part from this script** joins the pieces as they are, with no new annotation.
-- The **status** of the part is *draft*, *reviewed* or *final*. A final part is not annotated or converted again, and the export can be
-  limited to the parts that are final.
+- パートに**注釈を付けている**間、または作成している間は、何かが処理中であることを示すバーが表示され、さらに作業を開始するボタンは待機状態になります。
+- **注釈を付ける**は、パートの台本を作成し（依頼した場合は言語モデルを使い、そうでなければ語り手が担当します）、断片を表にして表示します。表の列は、話者、話し方、強度、話すテキスト、変更した断片の印です。実行中は、その横に**停止**ボタンが表示され、言語モデルへのリクエストを終了します。
+- 断片を選択すると、その**speaker**（話者）、**spoken text**（話すテキスト）、**delivery**（話し方）、**intensity**（強度：音声の誇張。これを持つモデルの場合。Higgsでは話し方と強度は、話すテキストの先頭にある `<|emotion:sadness|>` などの印で、変更するとそれに従って変わります）、**language**（言語）、**seed**（シード）、**pause after**（後の間）を編集できます。**適用**で変更を保存し、断片を**locks**（ロック）します。新しい注釈付けではロックされた断片はそのまま残ります。**Unlock** で注釈に戻します。*The request the speech server gets* で、音声サーバーが受け取る正確なリクエストが表示されます。
+- **Hear** は断片の音声を作ります（その断片だけで、そのために音声サーバーが起動されます）。**Another take** は新しいシードで作り直し、**takes** は保存されるので、好みのものを選べます（*Use this take and hear it*）。良い声は、多くの場合シードしだいです。
+- **Make the part from this script** は、新たな注釈付けをせず、断片をそのまま連結します。
+- パートの**status**（状態）は *draft*、*reviewed*、*final* のいずれかです。*final* のパートは、再度注釈付けや変換は行われず、エクスポートは *final* のパートだけに限定することができます。
 
-## Exporting
+<a id="exporting"></a>
 
-The audiobook is a format of the book's *Export story*: **Audiobook (one mp3 per chapter, in a zip)**, **Audiobook (one mp3 with chapter marks)** and, when ffmpeg is installed, **Audiobook (one m4b with chapters)**. They are made of the audio of the parts that
-are up to date: a part that has no audio, or audio older than its text or than its script in the studio, is left out and the window
-says which. The mp3 files carry ID3 tags (the title of the book, the chapter, the track), and the single file has
-chapter marks that players such as VLC and most audiobook apps show; the zip has a playlist. The check box **Audiobook: only the parts marked final**
-limits the export to the parts you finished in the studio.
+## エクスポート
 
-The **m4b** is the format Apple Books and most phone audiobook apps want: AAC audio (64 kbit/s, enough for speech) in an MP4 container with the chapters, the title, the author and the genre. ffmpeg makes it, so the format is
-offered only on a server that has ffmpeg. Audio stored as mp3 is encoded a second time for it; audio stored as wav is encoded once.
+オーディオブックは、本の *ストーリーをエクスポート* の一つの形式です：**Audiobook (one mp3 per chapter, in a zip)**、**Audiobook (one mp3 with chapter marks)**、そして ffmpeg がインストールされている場合は **Audiobook (one m4b with chapters)** です。これらは最新の状態にあるパートの音声から作られます。音声がないパート、またはその本文やスタジオの台本より古い音声のパートは除外され、どれが除外されたかはウィンドウに表示されます。mp3 ファイルには ID3 タグ（本のタイトル、章、トラック）が付き、単一ファイルには VLC やほとんどのオーディオブックアプリで表示される章マークがあります。zip にはプレイリストが含まれます。チェックボックス **Audiobook: only the parts marked final** をオンにすると、スタジオで完成させたパートだけにエクスポートが限定されます。
 
-### How the audio is stored
+**m4b** は、Apple Books やほとんどのスマートフォン向けオーディオブックアプリが求める形式です。AAC 音声（64 kbit/s、音声には十分）を、章、タイトル、著者、ジャンルを含む MP4 コンテナに格納します。m4b は ffmpeg で作られるため、この形式は ffmpeg があるサーバーでのみ提供されます。mp3 で保存された音声は、この形式のために二度目のエンコードが行われます。wav で保存された音声は一度だけエンコードされます。
 
-An administrator chooses it for the whole installation in *Settings → Extension Settings → Audiobook Settings* (the last section, seen only by administrators):
+<a id="how-the-audio-is-stored"></a>
 
-- **mp3** (default): small, joined without a decoder, no ffmpeg needed. The m4b is a second lossy step.
-- **wav**: lossless, about ten times the size (an hour of speech is about 170 MB), needs ffmpeg. The pieces are asked from the speech server as wav and joined as wav; the browser plays it as it is;
-  the mp3 and zip exports are encoded by ffmpeg (96 kbit/s) and the m4b is encoded once.
+### 音声の保存方法
 
-The choice applies to what is made from then on. Parts made before keep their audio and are understood as they are; a part of both kinds (a locked piece of the studio from before) is joined as wav, and an export of
-parts of both kinds works, but needs ffmpeg.
+管理者は、インストール全体について *Settings → Extension Settings → Audiobook Settings*（最後のセクション。管理者だけに表示されます）でこれを選びます：
 
-![The export dialog with the audiobook formats](../../images/plugin-audiobook-export.png)
+- **mp3**（既定）：サイズが小さく、デコーダーなしで連結でき、ffmpeg は不要です。m4b は二度目の非可逆変換になります。
+- **wav**：可逆で、サイズは約10倍（1時間分の音声で約170 MB）、ffmpeg が必要です。断片は音声サーバーから wav として取得され、wav として連結されます。ブラウザはそのまま再生します。mp3 と zip のエクスポートは ffmpeg（96 kbit/s）でエンコードされ、m4b は一度だけエンコードされます。
 
-## Automatic conversion
+この選択は、それ以降に作られるものに適用されます。それ以前に作られたパートは音声をそのまま保持し、そのままのものとして扱われます。両方の種類を含むパート（以前にスタジオでロックされた断片）は wav として連結され、両方の種類のパートのエクスポートも動作しますが、ffmpeg が必要です。
 
-A book can make the audio of a new part by itself, as soon as the part is final: after the automatic annotation, redraft and
-translations if the book has them, as the last step of [what follows the part](../books/story-editor.md#what-follows-a-generated-part)
-(in the panel of the runs until the audio is made; its **Stop** takes the part out of the queue). It is **off** by default. Choose it in the book's *Prompts* tab under extension
-settings, for a folder of books, or for all your books in the audiobook settings; the nearest one wins:
+本全体のエクスポートは、パートの保存済みファイルから、サーバーの一時ファイルへ作られ、そこからダウンロードされます。そのため、長さはアプリケーションのメモリによって制限されませんが、作成中は一時フォルダに本の音声の約2倍の空き容量が必要です（wav の場合は1時間あたり約350 MB）。
 
-- **No**,
-- **Yes: the narrator reads the part**,
-- **Yes: labelled by the model of the book, the cast gives the voices**; a book without a model gets the plain narration, and you are told.
+![オーディオブック形式を含むエクスポートダイアログ](../../images/plugin-audiobook-export.png)
 
-![The setting in a book](../../images/plugin-audiobook-auto.png)
+<a id="automatic-conversion"></a>
 
-The part goes into your queue, with the cast and the pronunciation of the book. A notice tells you that it is queued and another that its
-audio is ready or failed; they show only in the page that started the generation, the job is in the *Convert to audio* window in any case.
+## 自動変換
 
-## Listening
+本は、パートが最終版になり次第、そのパートの新しい音声を自動的に作成できます。これは、自動注釈付け、再下書き、翻訳（本にそれがある場合）の後、[パートの後に続くもの](../books/story-editor.md#what-follows-a-generated-part)の最後のステップとして行われます（音声が作られるまでのジョブのパネルに表示されます。その**停止**でパートはキューから外れます）。既定では**オフ**です。拡張機能の設定の下にある、本の *プロンプト* タブで選ぶか、本のフォルダーに対して、またはオーディオブックの設定ですべての本に対して選びます。最も近い設定が優先されます：
 
-A published book (or the reader) that has parts with audio gets a player bar: play, pause, stop, the speed, the part that is heard marked in the text. It starts from the selection or
-from the first part in view, plays the parts in order and fetches the next one while the current plays, and the device's media controls know the book. Audio made from an older text of a part is
-not offered. The audio is served to the owner of the book and, while the book is published, to everybody who can open it; a book that is taken back from publication stops being served at once (at the next part the player loads).
+- **いいえ**、
+- **はい：語り手がパートを読み上げる**、
+- **はい：本のモデルによってラベル付けされ、キャストが声を割り当てる**。モデルのない本は、ただの語り（ナレーション）になり、その旨が通知されます。
 
-![The player in the reader](../../images/plugin-audiobook-player.png)
+![本の中の設定](../../images/plugin-audiobook-auto.png)
 
-### A part without audio
+パートは、本のキャストと発音とともに、あなたのキューに入ります。キューに入ったことを知らせる通知と、音声が準備できたか失敗したかを知らせる別の通知が表示されます。これらの通知は、生成を開始したページにだけ表示されます。ただし、ジョブはいずれの場合も *Convert to audio* ウィンドウにあります。
 
-The player stops at a part that has no audio, so that a part of the story is not skipped, and says so. When the extension [Read Aloud](tts-reader.md) is installed the bar also shows a speaker button, **Read this part (and the next ones without audio) with the voice of the browser**. Nothing is read with a machine voice unless you press it. It then reads that part and the following parts that have no audio with the voice of your device, and when it reaches a part that has audio the player takes over again. Later parts without audio in the same listening are read the same way without asking again; **Stop** silences it, and starting the player anew asks again. The voice, speed and pitch are those of Read Aloud.
+<a id="listening"></a>
 
-## Commands
+## 再生
 
-The same things as [commands](../commands/index.md) (the command line of the story editor, the `command` macro of a template, an agent). Parts are numbered as the Convert dialog
-numbers them, or named by their handle.
+音声付きのパートがある公開された本（または閲覧者）には、プレーヤーバーが表示されます。再生、一時停止、**停止**、速度の操作があり、聞いている部分は本文中で印が付きます。選択した部分、または表示中の最初のパートから始まり、パートを順番に再生し、現在のパートを再生中に次のパートを取得します。デバイスのメディアコントロールも本を認識します。パートの古い本文から作られた音声は提供されません。音声は本の所有者に提供され、本が公開されている間は、それを開ける全員に提供されます。公開から取り下げられた本は、直ちに提供されなくなります（プレーヤーが次のパートを読み込むときに）。
 
-| Command | What it does |
+![閲覧画面のプレーヤー](../../images/plugin-audiobook-player.png)
+
+<a id="a-part-without-audio"></a>
+
+### 音声のないパート
+
+プレーヤーは音声のないパートで止まり、話の一部が飛ばされないようにし、その旨を表示します。拡張機能 [Read Aloud](tts-reader.md) がインストールされている場合は、バーに話者ボタンも表示され、**Read this part (and the next ones without audio) with the voice of the browser**（このパートと、その後の音声のないパートを、ブラウザの声で読み上げる）が使えます。ボタンを押さない限り、機械音声で読み上げられることはありません。その場合、そのパートと、その後の音声のないパートを、お使いのデバイスの声で読み上げ、音声のあるパートに達すると、プレーヤーが再び引き継ぎます。同じ再生内で後に続く音声のないパートも、再び確認せずに同じように読み上げられます。**停止** で読み上げを止め、プレーヤーを改めて開始すると再び確認されます。声、速度、ピッチは Read Aloud のものになります。
+<a id="commands"></a>
+
+## コマンド
+
+[コマンド](../commands/index.md)(ストーリーエディタのコマンドライン、テンプレートの `command` マクロ、エージェント)と同じものです。パートは、変換ダイアログが付ける番号、またはハンドル名で指定します。
+
+| コマンド | 内容 |
 |---|---|
-| `/audiobook-status [from [to]]` | The speech server in use, the way the book converts by itself, how many parts have audio (none, ready, older than the text, older than the script), the status of each listed part in the studio, and the queue. Slow only when the book is long. |
-| `/audiobook-convert [from [to [labelling [what [wait]]]]]` | Puts the parts into the queue (the whole book without arguments, one part when only `from` is given). `labelling` `true` uses the model of the book; `what` is `audio` or `script` (only the script for the studio, nothing is spoken). With `wait` `true` the command stays until the jobs are over, shows how far they are and tells how each ended; stopping it cancels the jobs that have not started. |
-| `/audiobook-stop` | Cancels the waiting parts; the running one stops after its piece. |
-| `/audiobook-set-part-status part status` | `draft`, `reviewed` or `final` in the studio; the part needs a script. |
-| `/audiobook-cast` | The narrator, the fallback and the characters of the cast with their actors. |
+| `/audiobook-status [from [to]]` | 使用中の音声サーバー、本が自動的に変換される方法、音声が付いているパートの数(なし、準備完了、テキストより古い、スクリプトより古い)、スタジオでの各パートの状態、そしてキュー。本が長いときだけ遅くなります。 |
+| `/audiobook-convert [from [to [labelling [what [wait]]]]]` | パートをキューに入れます(引数なしで本全体、`from` だけを指定すると1つのパート)。`labelling` `true` は本のモデルを使います。`what` は `audio` または `script` です(スタジオ用のスクリプトだけを作り、何も読み上げません)。`wait` `true` を付けると、ジョブが終わるまでコマンドは残り、進捗を表示し、それぞれの結果を伝えます。中断すると、まだ開始していないジョブはキャンセルされます。 |
+| `/audiobook-stop` | 待機中のパートをキャンセルします。実行中のパートは、その一区切りが終わった後に停止します。 |
+| `/audiobook-set-part-status part status` | スタジオで `draft`、`reviewed` または `final` を行います。パートにはスクリプトが必要です。 |
+| `/audiobook-cast` | ナレーター、フォールバック、そして俳優を割り当てたキャストのキャラクター。 |
 
-![The result of a command](../../images/plugin-audiobook-command.png)
+![コマンドの実行結果](../../images/plugin-audiobook-command.png)
 
-The audio is made for **your** book, not for the hidden working copy of an [agent](../agents.md): an agent can read the cast, and gets a refusal from the other commands, saying that
-you have to run them. Run them from the command line, or give an agent the task of preparing the book (annotate, review) and convert it yourself.
+音声は**あなたの**本のために作られ、[エージェント](../agents.md)が内部で使う非公開の作業用コピーのためではありません。エージェントはキャストを読むことはできますが、他のコマンドは実行を拒否し、自分で実行するよう伝えます。コマンドラインから実行するか、エージェントに本の準備(注釈、校閲)を任せたうえで、自分で変換してください。
+
 <a id="notifications"></a>
 
 ## 通知
 
-一連の変換が終わると、ブラウザーで知らせることができます（[通知](../account.md#notifications)を設定すると、音声サーバーの処理中もタブを開いたままにしなくて済みます）。*設定*ページの通知一覧には二つの項目があります。**Convert to audio**（ダイアログまたはコマンドで開始した一括変換）と**Convert to audio (automatic)**（自動で音声に変換された新しいパート）です。途中で停止した一括変換は通知されず、失敗したパートを含む一括変換は失敗したと表示されます。
+変換の一括処理が終わると、ブラウザが知らせてくれます([通知](../account.md#notifications)。音声サーバーが動いている間も、タブを開いたままにせず離れられます)。*設定*ページの通知リストには2行あります。**Convert to audio**(ダイアログまたはコマンドで開始した一括処理)と**Convert to audio (automatic)**(自動的に音声化された新しいパート)です。途中で停止した一括処理は通知されず、失敗したパートを含む一括処理は失敗したと知らせます。
 
-![通知一覧](../../images/plugin-audiobook-notifications.png)
+![通知リスト](../../images/plugin-audiobook-notifications.png)
 
 <a id="what-it-does-not-do-yet"></a>
 
-## まだできないこと
+## まだできないこと(現時点)
 
-- mp3 と wav のみ対応（opus は非対応）。音量は音声そのものの大きさに従います。
-- 効果音や環境音は入れられません。
-- 音声エンジンは Chatterbox の一つだけです。他のエンジンは今後の予定です。
-- セグメントの外での声の試聴。
-- キャストは本の *actors* のバックアップに含まれません。復元した本はキャストを保持しますが、アカウントに既に存在している俳優の名前を指定する必要があります。
+- MP3 と WAV のみ(opus は不可)。各区切りの音量は音声が出すままです。
+- 効果音や環境音はありません。
+- 音声エンジンは2つ、Chatterbox と Higgs Audio v3 (ComfyUI 内)です。
+- 区切りの外での声のオーディションはできません。
+- キャストは、本のバックアップに含まれるあなたの*俳優*の一部ではありません。復元した本はキャストを保持しますが、そこで名前を挙げた俳優はあなたのアカウントに存在している必要があります。

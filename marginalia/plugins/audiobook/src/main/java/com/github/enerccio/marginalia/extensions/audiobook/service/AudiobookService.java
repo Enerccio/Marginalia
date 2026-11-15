@@ -20,7 +20,10 @@ import com.github.enerccio.marginalia.extensions.audiobook.queue.Voices;
 import com.github.enerccio.marginalia.extensions.audiobook.script.*;
 import com.github.enerccio.marginalia.extensions.audiobook.studio.StudioScript;
 import com.github.enerccio.marginalia.extensions.audiobook.studio.StudioStore;
-import com.github.enerccio.marginalia.extensions.httphooks.*;
+import com.github.enerccio.marginalia.extensions.httphooks.BackendException;
+import com.github.enerccio.marginalia.extensions.httphooks.HookKeys;
+import com.github.enerccio.marginalia.extensions.httphooks.HookRunner;
+import com.github.enerccio.marginalia.extensions.httphooks.HttpHook;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -43,6 +46,9 @@ import static com.github.enerccio.marginalia.extensions.audiobook.AudiobookLocal
 /** What the audiobook plugin does with the data of the user: keeps the backends in the user settings, protects the secrets. */
 @Configurable
 public class AudiobookService {
+
+    @Autowired
+    private GpuService gpuService;
 
     @Autowired
     private SettingService settingService;
@@ -87,12 +93,6 @@ public class AudiobookService {
     public static final int SEED = 42;
 
     private final Map<Long, ConversionQueue> queues = new ConcurrentHashMap<>();
-    /** The speech server kept up for the samples of the windows a user has open, see {@link #holdForSamples}. */
-    private final Map<Long, PreviewWarmth> warmths = new ConcurrentHashMap<>();
-    /** A server kept for samples is given back after this long without one. */
-    static final long SAMPLE_IDLE_MILLIS = 5 * 60 * 1000;
-    private static final long SAMPLE_IDLE_CHECK_SECONDS = 30;
-    private java.util.concurrent.ScheduledExecutorService idleWatch;
     private GenerationTracker tracker;
 
     private final Gson gson = new Gson();
@@ -403,6 +403,93 @@ public class AudiobookService {
         }
     }
 
+    // --- the speech recognition ---
+
+    /**
+     * Runs the work with the speech recognition of the user while its GPU lock is held (the lock's steps make room for it, for example by restarting a
+     * ComfyUI that still holds the speech model).
+     *
+     * @return false when the user has no speech recognition
+     */
+    public boolean withRecognizer(java.util.function.BooleanSupplier cancelled, ConversionQueue.WordChecker.Work work) throws BackendException {
+        com.github.enerccio.marginalia.extensions.audiobook.model.RecognizerConfig config = getSettings().recognizer();
+        if (config == null) {
+            return false;
+        }
+        com.github.enerccio.marginalia.extensions.audiobook.recognize.SpeechRecognizer recognizer =
+                com.github.enerccio.marginalia.extensions.audiobook.recognize.SpeechRecognizer.of(config,
+                        config.getProtectedApiKey() == null ? null : reveal(config.getProtectedApiKey()));
+        try (SpeechBatch.Lease _ = takeGpu(config.getGpuLock(), cancelled)) {
+            work.run(recognizer);
+        }
+        return true;
+    }
+
+    /**
+     * Recognises the words spoken in a clip with the speech recognition of the user, from a thread of its own.
+     *
+     * @param done called with the text, or with the message of what failed
+     */
+    public void recognizeClip(String clipUuid, java.util.function.BiConsumer<String, String> done) {
+        inBackground("audiobook-recognize", () -> {
+            try {
+                byte[] bytes = clipBytes(clipUuid);
+                if (bytes == null) {
+                    done.accept(null, "The clip is gone");
+                    return;
+                }
+                String name = clips().stream().filter(c -> c.uuid().equals(clipUuid)).map(Clip::name).findFirst().orElse("");
+                String ext = name.toLowerCase(java.util.Locale.ROOT).endsWith(".mp3") ? "mp3" : "wav";
+                String[] text = new String[1];
+                boolean ran = withRecognizer(() -> false, recognizer -> text[0] = recognizer.transcribe(bytes, ext, null, () -> false));
+                if (!ran) {
+                    done.accept(null, T.localized(NO_SPEECH_RECOGNITION));
+                    return;
+                }
+                done.accept(text[0], null);
+            } catch (BackendException | RuntimeException e) {
+                AudiobookLog.get().warn("Recognising a clip failed: {}", e.getMessage(), e);
+                done.accept(null, com.github.enerccio.marginalia.extensions.httphooks.Http.describe(e));
+            }
+        });
+    }
+
+    /**
+     * Tries the speech recognition as it is in the form (under its GPU lock), from a thread of its own.
+     *
+     * @param done called with null when it works, else with the message of what failed
+     */
+    public void testRecognizer(com.github.enerccio.marginalia.extensions.audiobook.model.RecognizerConfig config, java.util.function.Consumer<String> done) {
+        inBackground("audiobook-recognizer-test", () -> {
+            try (SpeechBatch.Lease _ = takeGpu(config.getGpuLock(), null)) {
+                com.github.enerccio.marginalia.extensions.audiobook.recognize.SpeechRecognizer.of(config,
+                        config.getProtectedApiKey() == null ? null : reveal(config.getProtectedApiKey())).test();
+                done.accept(null);
+            } catch (BackendException | RuntimeException e) {
+                AudiobookLog.get().warn("Testing the speech recognition failed: {}", e.getMessage(), e);
+                done.accept(com.github.enerccio.marginalia.extensions.httphooks.Http.describe(e));
+            }
+        });
+    }
+
+    /** The words spoken in the clip, null when they are not known. */
+    public String clipText(String clipUuid) {
+        return getSettings().clipText(clipUuid);
+    }
+
+    /** Stores (or with a blank text removes) the words spoken in the clip, at once. */
+    public void saveClipText(String clipUuid, String text) {
+        try {
+            UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
+            AudiobookSettings settings = getSettings();
+            settings.setClipText(clipUuid, text);
+            saveSettings(settings, userSetting);
+            settingService.save(userSetting);
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
     /** The bytes of a clip of the user, null when it is gone. */
     public byte[] clipBytes(String uuid) {
         try {
@@ -443,7 +530,12 @@ public class AudiobookService {
         byte[] cleaned = com.github.enerccio.marginalia.extensions.audiobook.audio.Ffmpeg.cleanVoice(bytes, quality.floorDb());
         String name = clips().stream().filter(c -> c.uuid().equals(uuid)).map(Clip::name).findFirst().orElse("clip");
         String base = name.replaceFirst("(?i)\\.(wav|mp3)$", "");
-        return uploadClip(base + " (cleaned).wav", cleaned, "audio/wav");
+        Clip copy = uploadClip(base + " (cleaned).wav", cleaned, "audio/wav");
+        String text = clipText(uuid);
+        if (text != null) {
+            saveClipText(copy.uuid(), text);
+        }
+        return copy;
     }
 
     /** The places of the actors and own backends that use the clip. */
@@ -462,7 +554,10 @@ public class AudiobookService {
             UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
             AudiobookSettings settings = getSettings();
             int changed = settings.replaceVoice("clip:" + from, "clip:" + to);
-            if (changed > 0) {
+            boolean hadText = settings.clipText(to) == null && settings.clipText(from) != null;
+            // the replacement says the same words (a cleaned copy) unless it has a text of its own
+            settings.moveClipText(from, to);
+            if (changed > 0 || hadText) {
                 saveSettings(settings, userSetting);
                 settingService.save(userSetting);
             }
@@ -482,6 +577,9 @@ public class AudiobookService {
             return false;
         }
         try {
+            if (clipText(uuid) != null) {
+                saveClipText(uuid, null);
+            }
             return resourceService.softDelete(List.of(uuid)) > 0;
         } catch (Exception e) {
             throw new IllegalStateException(e);
@@ -508,29 +606,81 @@ public class AudiobookService {
 
     /**
      * Runs a batch of pieces on the server of the backend: the requests before it, the work, the requests after it. Batches on one server
-     * address (or GPU name, whatever extension) go through one {@link GpuGate}, whoever's they are.
+     * GPU take turns through the GPU lock of the backend (see {@code GpuService}), whoever's and whatever extension's they are.
      */
     public <T> SpeechBatch.Outcome<T> runBatch(BackendConfig config, BooleanSupplier cancelled, SpeechBatch.Work<T> work) throws BackendException {
-        SpeechBackend backend = new RecoveringBackend(createBackend(config), () -> restart(config), config.getRestartEveryPieces());
-        return SpeechBatch.run(backend, config.gate(), config.gateMode(), before(config), after(config), cancelled, work);
+        // the lease of the batch, for a restart in the middle of it (the steps of the GPU lock stop and start the server)
+        java.util.concurrent.atomic.AtomicReference<SpeechBatch.Lease> held = new java.util.concurrent.atomic.AtomicReference<>();
+        SpeechBatch.Gpu gpu = gpu(config);
+        SpeechBatch.Gpu remembering = c -> {
+            SpeechBatch.Lease lease = gpu.take(c);
+            held.set(lease);
+            return lease;
+        };
+        SpeechBackend backend = new RecoveringBackend(createBackend(config), () -> restart(config, held.get()), config.getRestartEveryPieces());
+        return SpeechBatch.run(backend, remembering, before(config), after(config), cancelled, work);
+    }
+
+    /** The GPU lock of the backend, taken for a batch (or a test). */
+    private SpeechBatch.Gpu gpu(BackendConfig config) {
+        return gpu(config.getGpuLock());
+    }
+
+    /** Takes the GPU lock (blank or null: none), blocking. */
+    private SpeechBatch.Lease takeGpu(String lock, java.util.function.BooleanSupplier cancelled) throws BackendException {
+        return gpu(lock).take(cancelled);
+    }
+
+    /** The GPU lock of the uuid, taken for a batch, a test or a recognition. */
+    private SpeechBatch.Gpu gpu(String lock) {
+        if (gpuService == null || lock == null || lock.isBlank()) {
+            return SpeechBatch.NO_GPU;
+        }
+        return cancelled -> {
+            com.github.enerccio.marginalia.domain.service.gpu.GpuLease lease;
+            try {
+                lease = gpuService.acquire(lock, cancelled);
+            } catch (com.github.enerccio.marginalia.domain.service.gpu.GpuException e) {
+                throw new BackendException(e.getMessage(), e);
+            }
+            return new SpeechBatch.Lease() {
+                @Override
+                public void close() {
+                    lease.close();
+                }
+
+                @Override
+                public void reload() throws BackendException {
+                    try {
+                        lease.reload();
+                    } catch (com.github.enerccio.marginalia.domain.service.gpu.GpuException e) {
+                        throw new BackendException(e.getMessage(), e);
+                    }
+                }
+            };
+        };
     }
 
     /**
      * Stops the server and starts it again in the middle of a batch (the batch keeps its place on the GPU): the requests after a batch, all of
-     * them and whatever they answer (a dead server answers nothing), then the requests before it, the first failure of which fails the restart.
+     * them and whatever they answer (a dead server answers nothing), the release and acquire steps of the GPU lock (which stop and start the
+     * server), then the requests before it; a failure of the acquire steps or of the requests before fails the restart.
      */
-    private void restart(BackendConfig config) throws BackendException {
+    private void restart(BackendConfig config, SpeechBatch.Lease lease) throws BackendException {
         AudiobookLog.get().info("Restarting the speech server in the middle of a batch");
         try {
             after(config).run();
         } catch (BackendException e) {
             AudiobookLog.get().warn("The request after the batch failed, the server is started anyway: {}", e.getMessage());
         }
+        if (lease != null) {
+            lease.reload();
+        }
         before(config).run();
     }
 
     /** The requests before a batch: in order, the first failure stops the batch. */
-    private GpuGate.Step before(BackendConfig config) {
+    private SpeechBatch.Hooks before(BackendConfig config) {
         return () -> {
             String error = runHooks("before a batch", withKey(config.getBeforeHooks(), config), config.isLocal(), true);
             if (error != null) {
@@ -540,7 +690,7 @@ public class AudiobookService {
     }
 
     /** The requests after a batch: every request is made, also when one failed (every container must be stopped); the first failure is reported. */
-    private GpuGate.Step after(BackendConfig config) {
+    private SpeechBatch.Hooks after(BackendConfig config) {
         return () -> {
             String error = runHooks("after a batch", withKey(config.getAfterHooks(), config), config.isLocal(), false);
             if (error != null) {
@@ -613,13 +763,17 @@ public class AudiobookService {
         inBackground("audiobook-test", () -> {
             ServerCheck.Result result = null;
             String error = null;
-            GpuGate gate = config.gate();
-            try {
-                gate.acquire(config.gateMode(), null, before(config));
+            try (SpeechBatch.Lease _ = gpu(config).take(null)) {
+                before(config).run();
                 try {
-                    result = gate.exclusive(null, () -> ServerCheck.check(config, this::reveal));
+                    result = ServerCheck.check(config, this::reveal);
                 } finally {
-                    String afterError = gate.release(after(config));
+                    String afterError = null;
+                    try {
+                        after(config).run();
+                    } catch (BackendException e) {
+                        afterError = e.getMessage();
+                    }
                     if (afterError != null) {
                         AudiobookLog.get().warn("The request after the test failed: {}", afterError);
                         if (result != null) {
@@ -695,8 +849,8 @@ public class AudiobookService {
     }
 
     /**
-     * Speaks a sample with a voice so the user can hear it before using it. The requests around a batch start and stop the server, so it takes a
-     * while when the server is stopped, unless a window keeps it up ({@link #holdForSamples}). A voice for a language speaks a sentence in it, with
+     * Speaks a sample with a voice so the user can hear it before using it. Each sample is a batch: when the GPU holds something else, the
+     * steps of the GPU lock load the speech server first, so the first sample takes a while and the next ones (the GPU stays loaded) do not. A voice for a language speaks a sentence in it, with
      * the multilingual backend when there is one.
      *
      * @param voice    {@code clip:<uuid>} or {@code predefined:<file>}
@@ -706,7 +860,6 @@ public class AudiobookService {
      * @param done     called from a thread of its own with the mp3, or with the message of what failed
      */
     public void preview(String voice, String language, boolean sounds, Delivery mood, BiConsumer<byte[], String> done) {
-        PreviewWarmth warmth = warmths.get(currentUserId());
         inBackground("audiobook-preview", () -> {
             try {
                 BackendConfig backend = sampleBackend(language);
@@ -717,9 +870,6 @@ public class AudiobookService {
                 }
                 VoiceRef ref = VoiceRef.parse(voice);
                 String sentence = sampleText(backend.getModel(), code, sounds, mood);
-                if (warmth != null) {
-                    warmth.ensure(backend);
-                }
                 ClipVoices clips = new ClipVoices(resourceService);
                 byte[] audio = runBatch(backend, null, speaker -> {
                     Voices.Resolved resolved = clips.resolve(speaker, ref);
@@ -738,57 +888,22 @@ public class AudiobookService {
     }
 
     /**
-     * Keeps the speech server up for the samples while a window is open ({@link PreviewWarmth}): the first sample (or the opening, with
-     * {@code warmUp}) runs the requests before a batch, the next ones are made at once, and the requests after it run when the returned action is
-     * called (the window closes) or after {@link #SAMPLE_IDLE_MILLIS} without a sample. Call from the page (it reads the user); the returned action
-     * may be called more than once and from any thread.
-     *
-     * @param warmUp start the server of the selected backend at once, not with the first sample
+     * Loads the speech server of the selected backend on its GPU now (a window of samples opens), so the first sample does not wait for it: the GPU
+     * lock of the backend is taken and given back at once. The GPU stays loaded until a job of another lock needs it. Call from the page (it
+     * reads the user); the work runs on a thread of its own.
      */
-    public Runnable holdForSamples(boolean warmUp) {
-        Long userId = currentUserId();
-        PreviewWarmth warmth = warmths.computeIfAbsent(userId, id -> new PreviewWarmth(c -> before(c), c -> after(c), SAMPLE_IDLE_MILLIS,
-                System::currentTimeMillis));
-        warmth.open();
+    public void warmUp() {
         RequestAttributes scope = ThreadCopyRequestAttributes.create();
-        watchIdle(warmth, scope);
-        if (warmUp) {
-            inScope(scope, "audiobook-warm-up", () -> {
-                try {
-                    warmth.ensure(selectedBackend());
-                } catch (BackendException | RuntimeException e) {
-                    AudiobookLog.get().warn("The speech server could not be started for the samples: {}", e.getMessage());
+        inScope(scope, "audiobook-warm-up", () -> {
+            try {
+                BackendConfig backend = selectedBackend();
+                if (backend != null) {
+                    gpu(backend).take(null).close();
                 }
-            });
-        }
-        java.util.concurrent.atomic.AtomicBoolean closed = new java.util.concurrent.atomic.AtomicBoolean();
-        return () -> {
-            if (closed.compareAndSet(false, true)) {
-                inScope(scope, "audiobook-warm-end", warmth::close);
+            } catch (BackendException | RuntimeException e) {
+                AudiobookLog.get().warn("The speech server could not be loaded for the samples: {}", e.getMessage());
             }
-        };
-    }
-
-    /** Gives a held server back once no sample came for a while; the watch ends when no window is open. */
-    private synchronized void watchIdle(PreviewWarmth warmth, RequestAttributes scope) {
-        if (idleWatch == null) {
-            idleWatch = Executors.newSingleThreadScheduledExecutor(r -> {
-                Thread thread = new Thread(r, "audiobook-sample-idle");
-                thread.setDaemon(true);
-                return thread;
-            });
-        }
-        java.util.concurrent.atomic.AtomicReference<java.util.concurrent.ScheduledFuture<?>> self = new java.util.concurrent.atomic.AtomicReference<>();
-        self.set(idleWatch.scheduleWithFixedDelay(() -> {
-            try (ThreadCopyRequestAttributes.InRequestScope ignored = new ThreadCopyRequestAttributes.InRequestScope(scope)) {
-                warmth.releaseIfIdle();
-                if (!warmth.inUse() && self.get() != null) {
-                    self.get().cancel(false);
-                }
-            } catch (RuntimeException e) {
-                AudiobookLog.get().warn("Giving the speech server back after the samples failed: {}", e.getMessage(), e);
-            }
-        }, SAMPLE_IDLE_CHECK_SECONDS, SAMPLE_IDLE_CHECK_SECONDS, java.util.concurrent.TimeUnit.SECONDS));
+        });
     }
 
     // --- the conversion ---
@@ -804,17 +919,6 @@ public class AudiobookService {
     public synchronized void shutdown() {
         queues.values().forEach(ConversionQueue::close);
         queues.clear();
-        if (idleWatch != null) {
-            idleWatch.shutdownNow();
-            idleWatch = null;
-        }
-        // a server kept up for samples is given back (its requests after a batch run), not left on the GPU
-        for (PreviewWarmth warmth : warmths.values()) {
-            while (warmth.inUse()) {
-                warmth.close();
-            }
-        }
-        warmths.clear();
         if (tracker != null) {
             tracker.close();
             tracker = null;
@@ -839,8 +943,8 @@ public class AudiobookService {
                 return thread;
             });
             ConversionQueue queue = new ConversionQueue(new ConversionQueue.Environment(new ResourceAudioStore(resourceService, chatMessageService),
-                    new ClipVoices(resourceService), this::backendForModel, this::runBatch, () -> tracker != null && tracker.isRunning(id), 1000,
-                    this::loudnessTarget), worker);
+                    new ClipVoices(resourceService, uuid -> getSettings().clipText(uuid)), this::backendForModel, this::runBatch,
+                    () -> tracker != null && tracker.isRunning(id), 1000, this::loudnessTarget, Ffmpeg::normalizeLoudness, this::withRecognizer), worker);
             queue.setRunWatch((titles, stop) -> watchRun(id, titles, stop));
             return queue;
         });

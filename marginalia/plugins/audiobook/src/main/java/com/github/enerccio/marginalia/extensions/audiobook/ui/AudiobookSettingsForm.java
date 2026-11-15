@@ -66,12 +66,14 @@ public class AudiobookSettingsForm extends VerticalLayout {
 
     private final BackendEditor editor;
     private final VerticalLayout ownSection = new VerticalLayout();
+    private final RecognizerEditor recognizer;
     private final Select<BackendConfig> inUse = new Select<>();
     private final Span ownDisabled = new Span(T.localized(OWN_SPEECH_SERVERS_ARE_OFF));
 
     public AudiobookSettingsForm(AudiobookService service) {
         this.service = service;
         this.editor = new BackendEditor(service);
+        this.recognizer = new RecognizerEditor(service);
 
         setWidthFull();
         setPadding(true);
@@ -174,7 +176,7 @@ public class AudiobookSettingsForm extends VerticalLayout {
         ownSection.setSpacing(true);
         ownSection.add(bar, editor);
 
-        add(help, inUse, ownSection, ownDisabled, actorSection, autoSection, normalizeSection, labelSection);
+        add(help, inUse, ownSection, ownDisabled, actorSection, recognizer, autoSection, normalizeSection, labelSection);
         if (service.isAdmin()) {
             add(sharedSection(), storageSection());
         }
@@ -243,6 +245,7 @@ public class AudiobookSettingsForm extends VerticalLayout {
         labelPrompt.setValue(StringUtils.defaultString(settings.getLabelPrompt()));
         normalize.setValue(settings.isNormalizeLoudness());
         targetLufs.setValue(settings.getTargetLufs());
+        recognizer.show(settings.getRecognizer());
     }
 
     /** Fills the box of the backend in use: the shared ones the user may use and their own (those on the form, saved or not). */
@@ -310,6 +313,7 @@ public class AudiobookSettingsForm extends VerticalLayout {
         stored.setNormalizeLoudness(normalize.getValue());
         stored.setTargetLufs(targetLufs.getValue());
         stored.setSelectedBackendId(inUse.getValue() == null ? null : inUse.getValue().getId());
+        stored.setRecognizer(recognizer.commit());
         return stored;
     }
 

@@ -3,9 +3,11 @@ package com.github.enerccio.marginalia.extensions.audiobook.ui;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.extensions.audiobook.model.BackendConfig;
+import com.github.enerccio.marginalia.extensions.audiobook.model.HiggsPrecision;
 import com.github.enerccio.marginalia.extensions.audiobook.service.AudiobookService;
 import com.github.enerccio.marginalia.extensions.httphooks.ui.HookListEditor;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.widgets.GpuLockSelect;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.widgets.SettingsChanges;
 import com.vaadin.flow.component.UI;
@@ -50,7 +52,7 @@ public class BackendEditor extends VerticalLayout {
     private final PasswordField hooksKey = new PasswordField(T.localized(KEY_OF_THE_REQUESTS));
     private final Button removeHooksKey = new Button(T.localized(REMOVE_THE_KEY), e -> removeHooksKey());
     private final Select<String> model = new Select<>();
-    private final TextField gpu = new TextField(T.localized(GPU_NAME));
+    private final GpuLockSelect gpuLock = new GpuLockSelect();
     private final Checkbox local = new Checkbox(T.localized(THE_SERVER_IS_LOCAL));
     private final VoiceChoices voiceChoices;
     private final VoiceField narratorVoice;
@@ -60,6 +62,12 @@ public class BackendEditor extends VerticalLayout {
     private final NumberField cfgWeight = new NumberField(T.localized(CFG_WEIGHT));
     private final NumberField speed = new NumberField(T.localized(SPEED));
     private final IntegerField chunkSize = new IntegerField(T.localized(CHUNK_SIZE));
+    private final Select<HiggsPrecision> precision = new Select<>();
+    private final Checkbox checkLength = new Checkbox(T.localized(CHECK_THE_LENGTH_OF_PIECES));
+    private final Checkbox checkWords = new Checkbox(T.localized(CHECK_THE_WORDS));
+    private final IntegerField maxWordErrors = new IntegerField(T.localized(MAX_WORD_ERRORS));
+    private final IntegerField retries = new IntegerField(T.localized(RETRIES));
+    private final Checkbox sendClipText = new Checkbox(T.localized(SEND_THE_CLIP_TEXT));
     private final HookListEditor before;
     private final HookListEditor after;
     private final Button test = new Button(T.localized(TEST_CONNECTION), Solid.PLUG.create(), e -> testConnection());
@@ -107,6 +115,20 @@ public class BackendEditor extends VerticalLayout {
             f.setStepButtonsVisible(true);
             f.setWidth("9em");
         }
+        precision.setLabel(T.localized(PRECISION));
+        precision.setItems(HiggsPrecision.values());
+        precision.setItemLabelGenerator(HiggsPrecision::wire);
+        precision.setHelperText(T.localized(PRECISION_HELP));
+        precision.setWidth("22em");
+        checkLength.setHelperText(T.localized(CHECK_THE_LENGTH_HELP));
+        checkWords.setHelperText(T.localized(CHECK_THE_WORDS_HELP));
+        maxWordErrors.setMin(1);
+        maxWordErrors.setMax(100);
+        maxWordErrors.setStepButtonsVisible(true);
+        retries.setMin(0);
+        retries.setMax(BackendConfig.MAX_RETRIES);
+        retries.setStepButtonsVisible(true);
+        sendClipText.setHelperText(T.localized(SEND_THE_CLIP_TEXT_HELP));
         chunkSize.setMin(BackendConfig.MIN_CHUNK_SIZE);
         chunkSize.setMax(BackendConfig.MAX_CHUNK_SIZE);
         chunkSize.setStepButtonsVisible(true);
@@ -119,21 +141,23 @@ public class BackendEditor extends VerticalLayout {
         credentials.setAlignItems(FlexComponent.Alignment.END);
         HorizontalLayout requestOptions = new HorizontalLayout(timeout, restartEvery);
         requestOptions.setWrap(true);
+        HorizontalLayout checkNumbers = new HorizontalLayout(maxWordErrors, retries);
+        checkNumbers.setWrap(true);
         HorizontalLayout defaults = new HorizontalLayout(temperature, cfgWeight, speed, chunkSize);
         defaults.setWrap(true);
         Details defaultsDetails = new Details(T.localized(DEFAULTS_OF_A_SEGMENT), defaults);
 
         Details beforeDetails = new Details(T.localized(BEFORE_A_BATCH), before);
         Details afterDetails = new Details(T.localized(AFTER_A_BATCH), after);
-        Span hookHint = new Span(T.localized(REQUESTS_MADE_AROUND_A_BATCH));
+        Span hookHint = new Span(T.localized(REQUESTS_MADE_AROUND_EACH_BATCH));
         hookHint.addClassName(CssStyles.HINT_TEXT);
         HorizontalLayout hooksCredentials = new HorizontalLayout(hooksKey, removeHooksKey);
         hooksCredentials.setWrap(true);
         hooksCredentials.setAlignItems(FlexComponent.Alignment.START);
 
-        gpu.setWidth("14em");
-        gpu.setHelperText(T.localized(GPU_NAME_HELP));
-        add(identity, baseUrl, gpu, credentials, narratorVoice, local, requestOptions, defaultsDetails, hookHint, hooksCredentials, beforeDetails, afterDetails, test);
+        gpuLock.setHelperText(T.localized(GPU_LOCK_HELP));
+        add(identity, baseUrl, gpuLock, credentials, narratorVoice, local, requestOptions, precision, sendClipText, checkLength, checkWords, checkNumbers,
+                defaultsDetails, hookHint, hooksCredentials, beforeDetails, afterDetails, test);
         addClassName(AudiobookStyles.SECTION);
     }
 
@@ -143,6 +167,8 @@ public class BackendEditor extends VerticalLayout {
         cfgWeight.setVisible(!higgs);
         speed.setVisible(!higgs);
         chunkSize.setVisible(!higgs);
+        precision.setVisible(higgs);
+        sendClipText.setVisible(higgs);
         baseUrl.setHelperText(T.localized(higgs ? COMFYUI_ADDRESS_HELP : BASE_ADDRESS_OF_THE_SPEECH_SERVER));
     }
 
@@ -221,7 +247,7 @@ public class BackendEditor extends VerticalLayout {
         hooksKey.clear();
         model.setValue(config.getModel());
         narratorVoice.setValue(config.getNarratorVoice());
-        gpu.setValue(config.getGpu());
+        gpuLock.setLockUuid(config.getGpuLock());
         local.setValue(config.isLocal());
         timeout.setValue(config.getTimeoutSeconds());
         restartEvery.setValue(config.getRestartEveryPieces());
@@ -229,6 +255,12 @@ public class BackendEditor extends VerticalLayout {
         cfgWeight.setValue(config.getCfgWeight());
         speed.setValue(config.getSpeed());
         chunkSize.setValue(config.getChunkSize());
+        precision.setValue(config.getPrecision());
+        checkLength.setValue(config.isCheckLength());
+        checkWords.setValue(config.isCheckWords());
+        maxWordErrors.setValue(config.getMaxWordErrorPercent());
+        retries.setValue(config.getRetries());
+        sendClipText.setValue(config.isSendClipText());
         before.show(config.getBeforeHooks(), service::reveal);
         after.show(config.getAfterHooks(), service::reveal);
         updateKeyState();
@@ -251,7 +283,10 @@ public class BackendEditor extends VerticalLayout {
         }
         current.setModel(model.getValue() == null ? BackendConfig.MODEL_TURBO : model.getValue());
         current.setNarratorVoice(narratorVoice.getValue().strip());
-        current.setGpu(gpu.getValue().strip());
+        // a lock the administrator removed (the box is hidden then) stays as it was
+        if (gpuLock.isVisible()) {
+            current.setGpuLock(gpuLock.getLockUuid());
+        }
         current.setLocal(local.getValue());
         current.setTimeoutSeconds(positive(timeout, BackendConfig.DEFAULT_TIMEOUT_SECONDS));
         current.setRestartEveryPieces(restartEvery.getValue() == null ? 0 : Math.max(0, restartEvery.getValue()));
@@ -259,6 +294,12 @@ public class BackendEditor extends VerticalLayout {
         current.setCfgWeight(positive(cfgWeight, BackendConfig.DEFAULT_CFG_WEIGHT));
         current.setSpeed(positive(speed, BackendConfig.DEFAULT_SPEED));
         current.setChunkSize(positive(chunkSize, BackendConfig.DEFAULT_CHUNK_SIZE));
+        current.setPrecision(precision.getValue() == null ? HiggsPrecision.FP32 : precision.getValue());
+        current.setCheckLength(checkLength.getValue());
+        current.setCheckWords(checkWords.getValue());
+        current.setMaxWordErrorPercent(positive(maxWordErrors, BackendConfig.DEFAULT_MAX_WORD_ERROR_PERCENT));
+        current.setRetries(retries.getValue() == null ? BackendConfig.DEFAULT_RETRIES : Math.max(0, retries.getValue()));
+        current.setSendClipText(sendClipText.getValue());
         current.setBeforeHooks(before.read(service::protect));
         current.setAfterHooks(after.read(service::protect));
         updateKeyState();

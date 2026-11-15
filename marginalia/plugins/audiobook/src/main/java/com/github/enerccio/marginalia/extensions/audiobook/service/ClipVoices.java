@@ -13,9 +13,16 @@ import java.util.Locale;
 public class ClipVoices implements Voices {
 
     private final ResourceService resources;
+    private final java.util.function.UnaryOperator<String> clipText;
 
     public ClipVoices(ResourceService resources) {
+        this(resources, uuid -> null);
+    }
+
+    /** @param clipText the words spoken in a clip by its uuid, null when they are not known */
+    public ClipVoices(ResourceService resources, java.util.function.UnaryOperator<String> clipText) {
         this.resources = resources;
+        this.clipText = clipText;
     }
 
     @Override
@@ -35,6 +42,6 @@ public class ClipVoices implements Voices {
             throw new BackendException("The reference clip " + voice.id() + " is not among your resources any more");
         }
         String name = clip.getOriginalName() == null ? "" : clip.getOriginalName().toLowerCase(Locale.ROOT);
-        return new Resolved(VoiceMode.CLONE, backend.ensureReference(bytes, name.endsWith(".mp3") ? "mp3" : "wav"));
+        return new Resolved(VoiceMode.CLONE, backend.ensureReference(bytes, name.endsWith(".mp3") ? "mp3" : "wav"), clipText.apply(voice.id()));
     }
 }

@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.extensions.audiobook.audio.BreathTrim;
 import com.github.enerccio.marginalia.extensions.audiobook.audio.Ffmpeg;
 import com.github.enerccio.marginalia.extensions.audiobook.audio.WavJoiner;
 import com.github.enerccio.marginalia.extensions.audiobook.model.BackendConfig;
+import com.github.enerccio.marginalia.extensions.audiobook.model.HiggsPrecision;
 import com.github.enerccio.marginalia.extensions.httphooks.BackendException;
 import com.github.enerccio.marginalia.extensions.httphooks.Http;
 import com.github.enerccio.marginalia.extensions.httphooks.UrlGuard;
@@ -129,7 +130,7 @@ public class HiggsComfyBackend implements SpeechBackend {
             throw new BackendException("ComfyUI writes no wav: the audio is stored as wav here, which needs ffmpeg on the server of Marginalia to convert it");
         }
         try {
-            byte[] audio = run(workflow(request, model, ffmpeg), cancel);
+            byte[] audio = run(workflow(request, model, ffmpeg, config.getPrecision()), cancel);
             return ffmpeg ? trimmed(audio, wav) : audio;
         } finally {
             free();
@@ -204,10 +205,17 @@ public class HiggsComfyBackend implements SpeechBackend {
 
     /** @param flac the audio comes as flac (to be trimmed and converted here) instead of mp3 */
     static JsonObject workflow(SpeechRequest request, String model, boolean flac) {
+        return workflow(request, model, flac, HiggsPrecision.FP32);
+    }
+
+    /**
+     * @param precision the {@code dtype} of the engine: bf16 gave gibberish on an AMD R9700 with ROCm, fp32 the right words
+     */
+    static JsonObject workflow(SpeechRequest request, String model, boolean flac, HiggsPrecision precision) {
         JsonObject engine = new JsonObject();
         engine.addProperty("model", model);
         engine.addProperty("device", "auto");
-        engine.addProperty("dtype", "auto");
+        engine.addProperty("dtype", (precision == null ? HiggsPrecision.FP32 : precision).wire());
         engine.addProperty("attention", "auto");
         engine.addProperty("temperature", request.temperature());
         engine.addProperty("top_p", 0.95);
@@ -239,7 +247,8 @@ public class HiggsComfyBackend implements SpeechBackend {
             load.addProperty("audio", request.voice());
             JsonObject voice = new JsonObject();
             voice.addProperty("voice_name", "none");
-            voice.addProperty("reference_text", "");
+            // the words spoken in the clip, when the backend sends them (the request has them only then)
+            voice.addProperty("reference_text", request.referenceText() == null ? "" : request.referenceText().strip());
             voice.addProperty("trim_start", 0.0);
             voice.addProperty("trim_end", 0.0);
             voice.addProperty("customized", false);
@@ -260,7 +269,7 @@ public class HiggsComfyBackend implements SpeechBackend {
 
     /** The workflow of a request as the studio shows it (the model as the backend would name it without asking the server). */
     public static String workflowOf(SpeechRequest request) {
-        return workflow(request, MODEL, Ffmpeg.available()).toString();
+        return workflow(request, MODEL, Ffmpeg.available(), HiggsPrecision.FP32).toString();
     }
 
     /**
@@ -332,7 +341,7 @@ public class HiggsComfyBackend implements SpeechBackend {
         return temp;
     }
 
-    private static boolean isFinished(JsonObject entry) {
+    static boolean isFinished(JsonObject entry) {
         if (!entry.has("status") || !entry.get("status").isJsonObject()) {
             return false;
         }
@@ -341,7 +350,7 @@ public class HiggsComfyBackend implements SpeechBackend {
                 || status.has("status_str") && "error".equals(status.get("status_str").getAsString());
     }
 
-    private static String errorOf(JsonObject entry) {
+    static String errorOf(JsonObject entry) {
         try {
             for (JsonElement message : entry.getAsJsonObject("status").getAsJsonArray("messages")) {
                 JsonArray pair = message.getAsJsonArray();

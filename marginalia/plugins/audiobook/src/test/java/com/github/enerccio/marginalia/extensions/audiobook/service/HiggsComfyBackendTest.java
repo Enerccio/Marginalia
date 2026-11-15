@@ -263,4 +263,25 @@ class HiggsComfyBackendTest {
             assertEquals(List.of("voices_examples/male/male_01.wav"), new HiggsComfyBackend(config(server), null, 1, false).predefinedVoices());
         }
     }
+
+    @Test
+    void theEngineComputesInThePrecisionOfTheBackendFp32ByDefault() {
+        SpeechRequest request = new SpeechRequest("Hello.", SpeechRequest.VoiceMode.CLONE, "m-x.wav", null, 0.5, 0.5, 0.8, 1.0, 42, "mp3", 240);
+        assertEquals("fp32", HiggsComfyBackend.workflow(request, "m", false).getAsJsonObject("engine").getAsJsonObject("inputs").get("dtype").getAsString());
+        for (var precision : com.github.enerccio.marginalia.extensions.audiobook.model.HiggsPrecision.values()) {
+            assertEquals(precision.wire(), HiggsComfyBackend.workflow(request, "m", false, precision).getAsJsonObject("engine")
+                    .getAsJsonObject("inputs").get("dtype").getAsString());
+        }
+        assertEquals(com.github.enerccio.marginalia.extensions.audiobook.model.HiggsPrecision.FP32, new BackendConfig().getPrecision(),
+                "a backend saved before the setting computes in fp32");
+    }
+
+    @Test
+    void theTextOfTheClipGoesWithTheClipOnlyWhenTheRequestHasIt() {
+        SpeechRequest request = new SpeechRequest("Hello.", SpeechRequest.VoiceMode.CLONE, "m-x.wav", null, 0.5, 0.5, 0.8, 1.0, 42, "mp3", 240);
+        assertEquals("", HiggsComfyBackend.workflow(request, "m", false).getAsJsonObject("voice").getAsJsonObject("inputs")
+                .get("reference_text").getAsString());
+        assertEquals("I stalked toward her.", HiggsComfyBackend.workflow(request.withReferenceText(" I stalked toward her. "), "m", false)
+                .getAsJsonObject("voice").getAsJsonObject("inputs").get("reference_text").getAsString());
+    }
 }

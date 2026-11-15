@@ -109,7 +109,7 @@ class BackendConfigTest {
         chatterbox.setName("Chatterbox");
         chatterbox.setBaseUrl("http://litellm:4000");
         chatterbox.setProtectedApiKey("protected-key");
-        chatterbox.setGpu("r9700");
+        chatterbox.setGpuLock("lock-uuid");
         chatterbox.setNarratorVoice("clip:abc");
         chatterbox.setTemperature(0.6);
         HttpHook unload = new HttpHook();
@@ -126,7 +126,7 @@ class BackendConfigTest {
         assertEquals("Chatterbox (copy)", higgs.getName());
         assertEquals("http://litellm:4000", higgs.getBaseUrl());
         assertEquals("protected-key", higgs.getProtectedApiKey(), "the key as it is stored: nothing to type again");
-        assertEquals("r9700", higgs.getGpu());
+        assertEquals("lock-uuid", higgs.getGpuLock());
         assertEquals("clip:abc", higgs.getNarratorVoice());
         assertEquals(0.6, higgs.getTemperature());
         assertEquals("X-Llama-Unload: all", higgs.getBeforeHooks().getFirst().getHeaders());
@@ -136,5 +136,43 @@ class BackendConfigTest {
         higgs.setModel(BackendConfig.MODEL_HIGGS);
         assertEquals("http://litellm:4000/gpu/tts/stop", chatterbox.getAfterHooks().getFirst().getUrl(), "the requests are not shared");
         assertEquals(BackendConfig.MODEL_TURBO, chatterbox.getModel());
+    }
+
+    @Test
+    void theChecksHaveDefaultsAndLimits() {
+        BackendConfig config = new BackendConfig();
+        assertTrue(config.isCheckLength(), "the length is checked unless turned off");
+        assertFalse(config.isCheckWords());
+        assertFalse(config.isSendClipText());
+        assertEquals(BackendConfig.DEFAULT_MAX_WORD_ERROR_PERCENT, config.getMaxWordErrorPercent());
+        assertEquals(BackendConfig.DEFAULT_RETRIES, config.getRetries());
+        config.setRetries(99);
+        assertEquals(BackendConfig.MAX_RETRIES, config.getRetries());
+        // 6 words: 11.4 s of babble is too long, 6.6 s is not
+        assertTrue(BackendConfig.maxSecondsFor(6) < 11.4);
+        assertTrue(BackendConfig.maxSecondsFor(6) > 6.6);
+        BackendConfig saved = new com.google.gson.Gson().fromJson("{\"model\": \"higgs-audio-v3\"}", BackendConfig.class);
+        assertTrue(saved.isCheckLength());
+        assertEquals(com.github.enerccio.marginalia.extensions.audiobook.model.HiggsPrecision.FP32, saved.getPrecision());
+    }
+
+    @Test
+    void theTextOfAClipGoesWithItsReplacement() {
+        AudiobookSettings settings = new AudiobookSettings();
+        assertNull(settings.clipText("a"));
+        settings.setClipText("a", "  the words  ");
+        assertEquals("the words", settings.clipText("a"));
+        settings.moveClipText("a", "b");
+        assertEquals("the words", settings.clipText("b"));
+        settings.setClipText("b", " ");
+        assertNull(settings.clipText("b"));
+        assertNull(settings.recognizer(), "a recogniser without an address is none");
+        RecognizerConfig recognizer = new RecognizerConfig();
+        recognizer.setBaseUrl("http://comfy:8188");
+        settings.setRecognizer(recognizer);
+        assertSame(recognizer, settings.recognizer());
+        assertEquals(RecognizerConfig.DEFAULT_GRANITE_MODEL, recognizer.getModel());
+        recognizer.setType(RecognizerConfig.Type.OPENAI);
+        assertEquals(RecognizerConfig.DEFAULT_OPENAI_MODEL, recognizer.getModel());
     }
 }

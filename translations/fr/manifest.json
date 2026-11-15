@@ -31,6 +31,12 @@
       "source_sha": "e6ff20bb765376da657defc18f15de3644805564b793d280c3e00efd6eab33dd",
       "translated_at": "2026-11-13T21:58:46Z"
     },
+    "user/administration/gpus.md": {
+      "chunks": 1,
+      "model": "haiku",
+      "source_sha": "a15fc5c5ce1c1cd1c91aad5a8281545cadd77c4a5654998c7ac1e28204f6126c",
+      "translated_at": "2026-11-15T09:46:56Z"
+    },
     "user/administration/help-assistant.md": {
       "chunks": 2,
       "model": "haiku",
@@ -40,8 +46,8 @@
     "user/administration/index.md": {
       "chunks": 1,
       "model": "haiku",
-      "source_sha": "5c5128a59f3e24d2709afe739445190eccf2f09578911bf7455f4ea8f2d46e69",
-      "translated_at": "2026-11-13T21:58:56Z"
+      "source_sha": "5a3c6aa1ef000aae1fa154f935f0d1944b85df4edf08a5621199d88f5eff1f1d",
+      "translated_at": "2026-11-15T09:46:56Z"
     },
     "user/administration/jobs.md": {
       "chunks": 1,
@@ -188,16 +194,16 @@
       "translated_at": "2026-11-13T22:03:28Z"
     },
     "user/extensions/audiobook-server.md": {
-      "chunks": 2,
+      "chunks": 3,
       "model": "haiku",
-      "source_sha": "eabdfb16ea7541e2c9eaa9de6bf4208f4292b2cd0bf436f768d1ee267ea2473f",
-      "translated_at": "2026-11-13T23:50:47Z"
+      "source_sha": "e9bbe83d3e9ddbe2301ee4e7b14ee02a7274585f9f357f88ce66bd96a8e7a6a2",
+      "translated_at": "2026-11-15T11:24:33Z"
     },
     "user/extensions/audiobook.md": {
-      "chunks": 5,
+      "chunks": 6,
       "model": "haiku",
-      "source_sha": "518615c73506730a71ca07772e5323f51c2f93150d8102820f55bb48c356c05b",
-      "translated_at": "2026-11-13T22:03:56Z"
+      "source_sha": "2b8635b42b9b84d307ca4dd259044958b720730717676f126b5e464763f3c68c",
+      "translated_at": "2026-11-15T11:25:54Z"
     },
     "user/extensions/authors-note.md": {
       "chunks": 1,
@@ -254,10 +260,10 @@
       "translated_at": "2026-11-13T22:04:48Z"
     },
     "user/extensions/image-generator.md": {
-      "chunks": 1,
+      "chunks": 2,
       "model": "haiku",
-      "source_sha": "9a66970617c44d2a900525f8821dbf98e1290706add4e7bf29bcfeb86e45eb93",
-      "translated_at": "2026-11-13T23:50:47Z"
+      "source_sha": "79795103cdb5988aae097cab24ef547effdf92806ba15cec522f9e6b9f548b7f",
+      "translated_at": "2026-11-15T09:48:44Z"
     },
     "user/extensions/index.md": {
       "chunks": 1,
@@ -412,8 +418,8 @@
     "user/inference-providers.md": {
       "chunks": 4,
       "model": "haiku",
-      "source_sha": "e15206ee887b29f4159ebc7c244bb13f542c1c8bf2e26093c2f23d051a782888",
-      "translated_at": "2026-11-13T22:07:08Z"
+      "source_sha": "dd101839ca733a7ff6d7cf679c96b8911d7ed38581311de6cdf56443fbe6db51",
+      "translated_at": "2026-11-15T09:49:07Z"
     },
     "user/lorebooks/entries.md": {
       "chunks": 3,
@@ -448,8 +454,8 @@
     "user/prompt-cache.md": {
       "chunks": 3,
       "model": "haiku",
-      "source_sha": "f56391018b2597def10dac0cfda2e176e08cf61eb41e78b02e9de60fc5a9a96f",
-      "translated_at": "2026-11-14T00:17:25Z"
+      "source_sha": "0d015db7fe0c84d035b0b2e57700f2ec15abcd3e22c12d6de6bdbfc604a3c469",
+      "translated_at": "2026-11-15T09:50:10Z"
     },
     "user/protocols.md": {
       "chunks": 1,

@@ -48,6 +48,10 @@ for example Higgs next to Chatterbox, where you then change the model, the addre
 | Restart the server after (pieces) | For a speech server that leaks memory and is killed by the system in a long batch: after this many pieces the requests after the batch and then the requests before it are made again in the middle of the batch (stop, start, load), and the work goes on with a fresh server. 0 (the default) never does it. A server that dies is started again whatever this says, see [Troubleshooting](audiobook-server.md#troubleshooting). |
 | Key of the requests around a batch | The key the requests before and after a batch carry as `Authorization: Bearer`. It is stored encrypted and not shown again (**Remove the key** clears it), so it does not have to be written into the headers of each request, where it would be readable. Empty: the *Api key* above is used, which is what you want when one proxy such as LiteLLM serves everything. A request that has an `Authorization` header of its own keeps it. |
 | Narrator voice | The narrator of a book that has no cast. A voice file of the server is written `predefined:Henry.wav`. |
+| Precision | Higgs only: the precision the model computes in. **fp32** (the default) is the safe choice: on an AMD card **bf16** turned pieces into gibberish, sound effects and wrong voices. bf16 needs about half the graphics memory (about 8 GB instead of 16) and is quicker where it works. |
+| Send the text of the clip to Higgs | Higgs only, experimental: the [text of the clip](#voices-and-clips) goes with it. Leave it off: in tests it changed the voice. |
+| Check the length of the pieces | On by default. A piece far longer than its text (4 s plus 0.6 s per word: the model went on talking, or made a sound instead of the words) is made again with the next seed, up to **Retries** times; the first take of a right length is kept, else the shortest. |
+| Check the words with speech recognition | Off by default; needs the [speech recognition](#speech-recognition). After each batch every piece is transcribed and compared with its text. A piece off by more than **Max. word errors (%)** of its words is made again with the next seed and checked again, up to **Retries** rounds; the take with the fewest wrong words is kept. The conversion says how many pieces were made again and how many still differ. |
 | Defaults of a segment | Temperature, CFG weight, speed and chunk size that a piece starts with (the studio can change them for one piece). Higgs uses only the temperature. |
 | Before a batch, After a batch | Requests made around each batch of parts (and each sample), inside the GPU lock. Freeing the graphics card and starting the speech server is the job of the GPU lock; see [One GPU for the model and the speech](audiobook-server.md#one-gpu-for-the-model-and-the-speech). Empty does nothing. |
 
@@ -79,6 +83,22 @@ With a **Higgs Audio v3 in ComfyUI** backend the labels of the language model ar
 - Higgs often goes on after the last word of a piece (a breath, the start of another sound) and the clip ends in the middle of it, which is heard as
   a short "whoosh" before the pause. With **ffmpeg** the extension cuts that tail and fades each piece out; without it the pieces stay as Higgs made them.
 - The Higgs Audio v3 model is under a **research and non-commercial licence**: an audiobook you sell needs a licence from Boson AI.
+
+### Speech recognition
+
+**Speech recognition** writes down what a piece of speech says. It checks the pieces of a batch (when a backend has **Check the words with speech
+recognition**) and recognises the [text of a voice clip](#voices-and-clips). Choose where it runs:
+
+| Setting | What it does |
+|---|---|
+| Speech recognition | **ComfyUI (Granite ASR)**: the Granite speech model of the TTS Audio Suite in your ComfyUI (the address is that of ComfyUI). **OpenAI-compatible (whisper)**: any server with `/v1/audio/transcriptions`, such as a whisper server (faster-whisper, speaches) or the OpenAI API. |
+| Address, Api key | The address of ComfyUI, or the base of the API (with or without `/v1`); the key is stored encrypted. Empty address: no speech recognition. |
+| GPU lock | The [GPU lock](../administration/gpus.md) the recognition takes. On one card with fp32 Higgs, give it a lock of its own whose steps restart ComfyUI: ComfyUI keeps the speech model in the server's memory, and loading the recognition next to it ran the server out of memory. |
+| Model of the recognition | Empty: `granite-speech-4.1-2b` for ComfyUI, `whisper-1` for the OpenAI-compatible one. |
+| Timeout, The server is on this machine or on my network | As for a backend. |
+
+**Test connection** checks that ComfyUI has the nodes, or that the server answers. The pieces of a batch are checked after the batch, when the speech
+server is given back, so the recognition and the speech model never need the card at the same time.
 
 ### Shared speech servers
 
@@ -114,6 +134,9 @@ Each sample takes the GPU for itself only. The GPU stays loaded with the speech 
   Select a clip to read what is wrong with it, **Play** it, **Replace...** it, **Clean with ffmpeg** (with ffmpeg) or delete it (only when nothing uses it).
 - **Replace...** puts another clip, one of yours or one you upload there, everywhere the clip is used. The parts are made again with the new voice;
   the old clip stays until you delete it.
+- **Text of the clip**: the words spoken in the selected clip. Type them, or press **Recognize** to have the [speech recognition](#speech-recognition)
+  write them down, correct them and **Save**. The actor dialog shows the same field for the clip of the actor's voice. A cleaned copy and a replacement
+  take the text over. Higgs is given it only when the backend sends it (off by default).
 - **Clean with ffmpeg** makes a cleaned copy beside the clip (less steady hiss and hum), measured again, to play and compare; replace the clip with it if
   it sounds better. It does not remove music, effects or other voices.
 

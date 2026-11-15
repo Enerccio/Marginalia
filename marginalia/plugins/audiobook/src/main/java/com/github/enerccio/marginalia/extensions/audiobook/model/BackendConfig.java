@@ -34,6 +34,12 @@ public class BackendConfig implements Cloneable {
     public static final int DEFAULT_CHUNK_SIZE = 240;
     public static final int MIN_CHUNK_SIZE = 50;
     public static final int MAX_CHUNK_SIZE = 500;
+    public static final int DEFAULT_MAX_WORD_ERROR_PERCENT = 30;
+    public static final int DEFAULT_RETRIES = 2;
+    public static final int MAX_RETRIES = 5;
+    /** The longest a piece may be: {@link #BASE_SECONDS} plus {@link #SECONDS_PER_WORD} for every word (normal reading is about 0.4 s a word). */
+    public static final double BASE_SECONDS = 4.0;
+    public static final double SECONDS_PER_WORD = 0.6;
 
     private String id = UUID.randomUUID().toString();
     private String name = "";
@@ -45,10 +51,22 @@ public class BackendConfig implements Cloneable {
     /** One of {@link #MODELS}: the model the server is asked to have loaded. */
     private String model = MODEL_TURBO;
     /**
-     * The name of the GPU the server runs on, when other servers (of this or another extension) use the same one: backends with the same name wait
-     * for each other. Empty: the address of the server says it.
+     * The uuid of the GPU lock of the application every batch takes (see {@code GpuService}): the server runs on a GPU shared with the language
+     * model or other servers. Null: no lock.
      */
-    private String gpu = "";
+    private String gpuLock;
+    /** Higgs only: the precision of the engine; null (a backend saved before) is {@link HiggsPrecision#FP32}. */
+    private HiggsPrecision precision;
+    /** Remake a piece that is far longer than its text (the model went on babbling): see {@link #maxSecondsFor}. Null: on. */
+    private Boolean checkLength;
+    /** After the batch, transcribe every piece with the speech recognition of the settings and remake the ones whose words are off. */
+    private boolean checkWords;
+    /** The share of words a transcription may get wrong before the piece is made again, in percent. */
+    private int maxWordErrorPercent = DEFAULT_MAX_WORD_ERROR_PERCENT;
+    /** How often a piece that failed a check is made again, each time with the next seed. */
+    private int retries = DEFAULT_RETRIES;
+    /** Higgs only: send the text of the clip (the words spoken in it) with the clip. Experimental. */
+    private boolean sendClipText;
     /** True when the server is on this machine or the local network: the private addresses are allowed. */
     private boolean local = true;
     /** How long one speech request may take, in seconds. */
@@ -128,25 +146,13 @@ public class BackendConfig implements Cloneable {
         return MODEL_HIGGS.equals(getModel());
     }
 
-    public String getGpu() {
-        return gpu == null ? "" : gpu;
+    /** The uuid of the GPU lock, null for none. */
+    public String getGpuLock() {
+        return gpuLock == null || gpuLock.isBlank() ? null : gpuLock;
     }
 
-    public void setGpu(String gpu) {
-        this.gpu = gpu;
-    }
-
-    /** The gate of the GPU the server uses, see {@link #getGpu()}. */
-    public com.github.enerccio.marginalia.extensions.httphooks.GpuGate gate() {
-        return com.github.enerccio.marginalia.extensions.httphooks.GpuGate.forBackend(getGpu(), getBaseUrl());
-    }
-
-    /**
-     * What the requests before a batch leave loaded on the GPU: this extension's speech model of this server. Batches with the same mode share the
-     * load, a batch with another one (another model, or another extension's) waits for them.
-     */
-    public String gateMode() {
-        return "audiobook:" + com.github.enerccio.marginalia.extensions.httphooks.UrlGuard.origin(getBaseUrl()) + "|" + getModel();
+    public void setGpuLock(String gpuLock) {
+        this.gpuLock = gpuLock;
     }
 
     public boolean isLocal() {
@@ -262,6 +268,59 @@ public class BackendConfig implements Cloneable {
 
     public void setAfterHooks(List<HttpHook> hooks) {
         this.afterHooks = new ArrayList<>(hooks);
+    }
+
+    public HiggsPrecision getPrecision() {
+        return precision == null ? HiggsPrecision.FP32 : precision;
+    }
+
+    public void setPrecision(HiggsPrecision precision) {
+        this.precision = precision;
+    }
+
+    public boolean isCheckLength() {
+        return checkLength == null || checkLength;
+    }
+
+    public void setCheckLength(boolean checkLength) {
+        this.checkLength = checkLength;
+    }
+
+    public boolean isCheckWords() {
+        return checkWords;
+    }
+
+    public void setCheckWords(boolean checkWords) {
+        this.checkWords = checkWords;
+    }
+
+    public int getMaxWordErrorPercent() {
+        return maxWordErrorPercent <= 0 ? DEFAULT_MAX_WORD_ERROR_PERCENT : Math.min(100, maxWordErrorPercent);
+    }
+
+    public void setMaxWordErrorPercent(int maxWordErrorPercent) {
+        this.maxWordErrorPercent = maxWordErrorPercent;
+    }
+
+    public int getRetries() {
+        return Math.max(0, Math.min(MAX_RETRIES, retries));
+    }
+
+    public void setRetries(int retries) {
+        this.retries = retries;
+    }
+
+    public boolean isSendClipText() {
+        return sendClipText;
+    }
+
+    public void setSendClipText(boolean sendClipText) {
+        this.sendClipText = sendClipText;
+    }
+
+    /** The longest a piece of this many words may be, in seconds. */
+    public static double maxSecondsFor(int words) {
+        return BASE_SECONDS + SECONDS_PER_WORD * Math.max(0, words);
     }
 
     @Override

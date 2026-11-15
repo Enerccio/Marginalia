@@ -172,6 +172,26 @@ section (the lexicon has a `script` field per word, no pronunciation): a `pronun
 spoken-form step substitutes it. Engines that take phonemes (Piper, Kokoro through espeak-ng) could be exact but cannot clone voices and sound worse; training a voice on a conlang is not realistic. The
 audiobook can also read the English source of a speech (dubbing) as a per-language choice. **Not tried:** a pronunciation field, other candidate languages (Turkish, Japanese kana).
 
+## Higgs on the R9700: precision and checks (2026-11-15)
+
+Tested on the author's ComfyUI (R9700, ROCm 7.2, TTS Audio Suite), seed 42 unless noted, checked by ear and by Granite ASR:
+
+- **bf16 is broken there.** With `dtype: auto` (bf16) short narrator lines came out as gibberish or as the sound they describe ("The banging continued,
+  rhythmic and aggressive." gave 11 knocks, 11.4 s), longer ones half hallucinated in a wrong voice; other seeds sometimes worked (luck). The same three
+  pieces in fp32 were word-perfect (3 of 3). bf16 + `attention: eager` was still noise, so it is not the attention kernel. Default: fp32.
+- **The clip's transcript (`reference_text`) does not help**: in bf16 it leaked words of the transcript into the piece and once said "show!"; in fp32 the
+  words were right but the user heard the voice change (2 of 2 pieces). `sendClipText` stays, off by default.
+- **Granite ASR in bf16** gave gibberish from the second recognition on in a container session; in float32 5 of 6 pieces were read right (0-9 % word
+  error). The 6th looped ("peterS. 2 2 2 ...") at the same point with and without a repetition penalty: not a glitch: the user heard that piece
+  fine (and the same as the take with the transcript), so it was a Granite loop; the word check makes such a piece again for nothing (a false
+  positive costs one take, the best take is kept). The `albus` piece with the transcript had the wrong voice (3rd confirmation for keeping
+  `sendClipText` off). Possible later: when a transcript repeats one token many times, recognise it once more before counting it as a failure.
+- **Length is not enough**: bf16 noise had normal lengths. The length check catches babbling, the word check the rest.
+- **RAM**: fp32 Higgs is ~16 GB and ComfyUI's `/free {"unload_models": true}` only parks it in host RAM; loading Granite next to it OOM-killed the
+  container (21.7 GB RSS). The word check runs after the batch under the recogniser's own GPU lock; with lock steps that restart ComfyUI, the two never
+  share the RAM.
+- The suite caches identical requests even with `enable_audio_cache: false` ("Using cached Higgs Audio v3 audio"): vary the text or seed when testing.
+
 ## Open
 
 - **The audio as a `Resource` (done):** `ResourceAudioStore` stores every piece and every joined part as a `Resource` linked to its part; the index (cache key -> resource uuid) is in the part's `attributes` under the plugin's key, so the audio travels with the book; a replaced audio is soft deleted (the files stay until the *Resource Files* garbage collection); wav is stored as well as mp3. The readers of a published book are served by `ResourceService.readForReader` (the book is viewable by the user at every request, the resource is the owner's and linked to a part of that book; the content type is told from the bytes). Still to check by hand: how the Resources tab shows a non-image file and how a backup of a long audiobook behaves (size).

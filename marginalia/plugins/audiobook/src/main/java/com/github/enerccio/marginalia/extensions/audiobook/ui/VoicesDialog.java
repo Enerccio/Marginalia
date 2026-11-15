@@ -50,6 +50,7 @@ public class VoicesDialog extends Dialog {
     private final Button clean = new Button(T.localized(CLEAN_WITH_FFMPEG), Solid.WAND_MAGIC_SPARKLES.create(), e -> clean());
     private final Button deleteClip = new Button(Solid.TRASH.create(), e -> deleteClip());
     private final Span detail = new Span();
+    private final ClipTextField clipText;
     private final Element audio = new Element("audio");
     private AudiobookSettings settings;
 
@@ -61,9 +62,10 @@ public class VoicesDialog extends Dialog {
         this.service = service;
         this.actorsChanged = actorsChanged;
         this.voiceReplaced = voiceReplaced;
+        this.clipText = new ClipTextField(service);
         setHeaderTitle(T.localized(VOICES_AND_CLIPS));
-        // the speech server stays up for the samples while the window is open, started when it opens
-        VoicePreview.holdWhileOpen(this, service, true);
+        // the speech server is loaded on its GPU when the window opens, so the first sample does not wait
+        VoicePreview.warmUpOnOpen(this, service);
         setWidth("min(70em, 96vw)");
         setCloseOnOutsideClick(false);
 
@@ -109,7 +111,7 @@ public class VoicesDialog extends Dialog {
         detail.addClassName(com.github.enerccio.marginalia.CssStyles.HINT_TEXT);
         play.getElement().appendChild(audio);
 
-        VerticalLayout content = new VerticalLayout(help, actorBar, actors, clipBar, clips, detail);
+        VerticalLayout content = new VerticalLayout(help, actorBar, actors, clipBar, clips, detail, clipText);
         content.setPadding(false);
         add(content);
         getFooter().add(new Button(T.localized(CLOSE), e -> close()));
@@ -213,6 +215,7 @@ public class VoicesDialog extends Dialog {
     }
 
     private void showDetail(AudiobookService.Clip clip) {
+        clipText.show(clip == null ? null : clip.uuid());
         if (clip == null) {
             detail.setText("");
             return;
