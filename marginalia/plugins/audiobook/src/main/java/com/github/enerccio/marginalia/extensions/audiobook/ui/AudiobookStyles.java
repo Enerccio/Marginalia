@@ -21,7 +21,10 @@ public final class AudiobookStyles {
     public static final String PLAYER_SPEED = "audiobook-player-speed";
     public static final String PLAYER_OFFER = "audiobook-player-offer";
     public static final String CONVERT_AUDIO = "audiobook-convert-audio";
-    public static final String CLIP_PLAYER = "audiobook-clip-player";
+    public static final String WAVE = "audiobook-wave";
+    public static final String WAVE_DRAWING = "audiobook-wave-drawing";
+    public static final String WAVE_SELECTION = "audiobook-wave-selection";
+    public static final String WAVE_CURSOR = "audiobook-wave-cursor";
 
     private static final String RESOURCE = "/audiobook.css";
 

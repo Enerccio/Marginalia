@@ -509,25 +509,37 @@ public class AudiobookService {
      */
     public void recognizeClip(String clipUuid, java.util.function.BiConsumer<String, String> done) {
         inBackground("audiobook-recognize", () -> {
-            try {
-                byte[] bytes = clipBytes(clipUuid);
-                if (bytes == null) {
-                    done.accept(null, "The clip is gone");
-                    return;
-                }
-                String ext = AudioKind.of(bytes).extension();
-                String[] text = new String[1];
-                boolean ran = withRecognizer(() -> false, recognizer -> text[0] = recognizer.transcribe(bytes, ext, null, () -> false));
-                if (!ran) {
-                    done.accept(null, T.localized(NO_SPEECH_RECOGNITION));
-                    return;
-                }
-                done.accept(text[0], null);
-            } catch (BackendException | RuntimeException e) {
-                AudiobookLog.get().warn("Recognising a clip failed: {}", e.getMessage(), e);
-                done.accept(null, com.github.enerccio.marginalia.extensions.httphooks.Http.describe(e));
+            // one job of the live list (/jobs) and the log, the wait for the GPU included
+            try (com.github.enerccio.marginalia.domain.service.job.Jobs.Handle logged = com.github.enerccio.marginalia.domain.service.job.Jobs.open(
+                    "audiobook", "Recognition of a clip", com.github.enerccio.marginalia.domain.service.job.JobCallType.AUDIO)) {
+                recognizeClipJob(clipUuid, done, logged);
             }
         });
+    }
+
+    private void recognizeClipJob(String clipUuid, java.util.function.BiConsumer<String, String> done,
+                                  com.github.enerccio.marginalia.domain.service.job.Jobs.Handle logged) {
+        try {
+            byte[] bytes = clipBytes(clipUuid);
+            if (bytes == null) {
+                logged.fail();
+                done.accept(null, "The clip is gone");
+                return;
+            }
+            String ext = AudioKind.of(bytes).extension();
+            String[] text = new String[1];
+            boolean ran = withRecognizer(() -> false, recognizer -> text[0] = recognizer.transcribe(bytes, ext, null, () -> false));
+            if (!ran) {
+                logged.fail();
+                done.accept(null, T.localized(NO_SPEECH_RECOGNITION));
+                return;
+            }
+            done.accept(text[0], null);
+        } catch (BackendException | RuntimeException e) {
+            logged.fail();
+            AudiobookLog.get().warn("Recognising a clip failed: {}", e.getMessage(), e);
+            done.accept(null, com.github.enerccio.marginalia.extensions.httphooks.Http.describe(e));
+        }
     }
 
     /**
@@ -565,6 +577,17 @@ public class AudiobookService {
             return resource == null ? null : resourceService.getResourceData(resource);
         } catch (Exception e) {
             throw new IllegalStateException(e);
+        }
+    }
+
+    /** The samples of a clip to draw; null when it is gone or can't be read here (an mp3 without ffmpeg). */
+    public com.github.enerccio.marginalia.extensions.audiobook.audio.Waveform clipWaveform(String uuid) {
+        byte[] bytes = clipBytes(uuid);
+        try {
+            return bytes == null ? null : com.github.enerccio.marginalia.extensions.audiobook.audio.Waveform.of(bytes);
+        } catch (BackendException e) {
+            AudiobookLog.get().warn("The waveform of the clip {} could not be read: {}", uuid, e.getMessage());
+            return null;
         }
     }
 
@@ -616,33 +639,36 @@ public class AudiobookService {
      */
     public void cleanClipWith(String uuid, String presetName, java.util.function.BiConsumer<Clip, String> done) {
         inBackground("audiobook-clean", () -> {
-            try {
-                com.github.enerccio.marginalia.extensions.audiobook.model.CleanupConfig config = getSettings().cleanup();
-                if (config == null) {
-                    done.accept(null, T.localized(NO_CLEANUP));
-                    return;
+            // one job of the live list (/jobs) and the log, for the user of the page, the wait for the GPU included; the cleanup on ComfyUI is its call
+            try (com.github.enerccio.marginalia.domain.service.job.Jobs.Handle logged = com.github.enerccio.marginalia.domain.service.job.Jobs.open(
+                    "audiobook", "Cleanup of a clip (" + presetName + ")", com.github.enerccio.marginalia.domain.service.job.JobCallType.AUDIO)) {
+                try {
+                    com.github.enerccio.marginalia.extensions.audiobook.model.CleanupConfig config = getSettings().cleanup();
+                    if (config == null) {
+                        logged.fail();
+                        done.accept(null, T.localized(NO_CLEANUP));
+                        return;
+                    }
+                    com.github.enerccio.marginalia.extensions.audiobook.model.CleanupPreset preset = config.preset(presetName);
+                    byte[] bytes = clipBytes(uuid);
+                    if (preset == null || bytes == null) {
+                        logged.fail();
+                        done.accept(null, preset == null ? "No cleanup " + presetName : "The clip is gone");
+                        return;
+                    }
+                    com.github.enerccio.marginalia.extensions.audiobook.clean.ComfyCleaner.Result result;
+                    // its own lock: the cleanup models must not be loaded next to the speech or the recognition models
+                    try (SpeechBatch.Lease _ = takeGpu(config.getGpuLock(), null)) {
+                        result = new com.github.enerccio.marginalia.extensions.audiobook.clean.ComfyCleaner(config,
+                                config.getProtectedApiKey() == null ? null : reveal(config.getProtectedApiKey()))
+                                .clean(bytes, AudioKind.of(bytes).extension(), preset, null);
+                    }
+                    done.accept(storeVersion(uuid, result.audio(), result.extension(), preset.getName(), preset.describe()), null);
+                } catch (BackendException | RuntimeException e) {
+                    logged.fail();
+                    AudiobookLog.get().warn("Cleaning a clip failed: {}", e.getMessage(), e);
+                    done.accept(null, com.github.enerccio.marginalia.extensions.httphooks.Http.describe(e));
                 }
-                com.github.enerccio.marginalia.extensions.audiobook.model.CleanupPreset preset = config.preset(presetName);
-                if (preset == null) {
-                    done.accept(null, "No cleanup " + presetName);
-                    return;
-                }
-                byte[] bytes = clipBytes(uuid);
-                if (bytes == null) {
-                    done.accept(null, "The clip is gone");
-                    return;
-                }
-                com.github.enerccio.marginalia.extensions.audiobook.clean.ComfyCleaner.Result result;
-                // its own lock: the cleanup models must not be loaded next to the speech or the recognition models
-                try (SpeechBatch.Lease _ = takeGpu(config.getGpuLock(), null)) {
-                    result = new com.github.enerccio.marginalia.extensions.audiobook.clean.ComfyCleaner(config,
-                            config.getProtectedApiKey() == null ? null : reveal(config.getProtectedApiKey()))
-                            .clean(bytes, AudioKind.of(bytes).extension(), preset, null);
-                }
-                done.accept(storeVersion(uuid, result.audio(), result.extension(), preset.getName(), preset.describe()), null);
-            } catch (BackendException | RuntimeException e) {
-                AudiobookLog.get().warn("Cleaning a clip failed: {}", e.getMessage(), e);
-                done.accept(null, com.github.enerccio.marginalia.extensions.httphooks.Http.describe(e));
             }
         });
     }
@@ -1037,6 +1063,54 @@ public class AudiobookService {
             } catch (RuntimeException e) {
                 AudiobookLog.get().warn("A voice could not be heard: {}", e.getMessage(), e);
                 done.accept(null, String.valueOf(e.getMessage()));
+            }
+        });
+    }
+
+    /**
+     * Speaks a text with a voice as it is typed, for a test: no labelling, no sound cues, no splitting (the tags of the model, such as Higgs'
+     * {@code <|...|>}, reach it as they are). The backend in use speaks it under its GPU lock, as a job of its own; the words of a clip go with it when
+     * the backend sends them.
+     *
+     * @param seed null: the seed of the conversions (the same take as a part would get)
+     * @param done called with the audio and its extension, or with the message of what failed
+     */
+    public void speakTest(String voice, String text, Integer seed, java.util.function.BiConsumer<byte[], String> done) {
+        inBackground("audiobook-try", () -> {
+            try (com.github.enerccio.marginalia.domain.service.job.Jobs.Handle logged = com.github.enerccio.marginalia.domain.service.job.Jobs.open(
+                    "audiobook", "Test of a voice", com.github.enerccio.marginalia.domain.service.job.JobCallType.AUDIO)) {
+                try {
+                    BackendConfig backend = selectedBackend();
+                    if (backend == null) {
+                        logged.fail();
+                        done.accept(null, T.localized(NO_BACKEND_YET));
+                        return;
+                    }
+                    if (text == null || text.isBlank()) {
+                        logged.fail();
+                        done.accept(null, T.localized(TYPE_A_TEXT));
+                        return;
+                    }
+                    VoiceRef ref = VoiceRef.parse(voice);
+                    ClipVoices clips = new ClipVoices(resourceService, uuid -> getSettings().clipText(uuid));
+                    byte[] audio = runBatch(backend, null, speaker -> {
+                        Voices.Resolved resolved = clips.resolve(speaker, ref);
+                        SpeechRequest request = new SpeechRequest(text.strip(), resolved.mode(), resolved.name(), null, 0.5, backend.getCfgWeight(),
+                                backend.getTemperature(), backend.getSpeed(), seed == null ? SEED : seed, "mp3", backend.getChunkSize());
+                        if (backend.isSendClipText() && resolved.text() != null) {
+                            request = request.withReferenceText(resolved.text());
+                        }
+                        return speaker.synthesize(request, () -> false);
+                    }).value();
+                    done.accept(audio, null);
+                } catch (IllegalArgumentException | BackendException e) {
+                    logged.fail();
+                    done.accept(null, e.getMessage());
+                } catch (RuntimeException e) {
+                    logged.fail();
+                    AudiobookLog.get().warn("A test of a voice failed: {}", e.getMessage(), e);
+                    done.accept(null, String.valueOf(e.getMessage()));
+                }
             }
         });
     }

@@ -115,13 +115,14 @@ one as for Higgs works). The result is a new **version** of the clip in [Voices 
 A step is one of:
 
 - **Separation model**: a model of the suite that splits the audio in two, the *extracted* part and the *remaining* part, and keeps one of them. Which
-  part holds the voice depends on the model: a vocals model (`MelBandRoformer`) extracts the voice, a denoise model extracts the noise, so keep the
-  remaining. **Aggressiveness** (0 to 20) decides how much is taken away.
+  part holds the voice depends on the model: a vocals model (`MelBandRoformer`) extracts the voice, a denoise or de-reverb model extracts the noise or the
+  room, so keep the remaining. **Aggressiveness** (0 to 20) decides how much is taken away.
 - **Voice fixer**: restores a degraded voice (a phone, an old recording). It changes the sound of the voice more than a separation does.
 - **ffmpeg (here)**: the filter of **Clean with ffmpeg**, run by the application between the steps on ComfyUI.
 
-The cleanups it comes with: *Voice from music* (the voice out of a film or a song), *Remove noise*, *Restore the voice* and *Film or game clip* (the
-voice out of the music, then the noise removed). **Test connection** checks that ComfyUI has the nodes and fills the list of models with those of your
+The cleanups it comes with: *Voice from music* (the voice out of a film or a song), *Remove noise*, *Remove echo* (the room and the echo),
+*Restore the voice* and *Film or game clip* (the voice out of the music, then the room, then the noise: removing the noise first made the room
+of a film clip stand out). *Remove echo* needs a fix in some ComfyUI setups, see [the speech server](audiobook-server.md#higgs-audio-v3-in-comfyui). **Test connection** checks that ComfyUI has the nodes and fills the list of models with those of your
 server. The models are downloaded by ComfyUI the first time a cleanup uses them.
 
 ### Shared speech servers
@@ -145,7 +146,7 @@ your account; any book can give an actor to its narrator and its characters.
 
 **Preview** next to a voice (in the actor, the settings and the cast) has a few sentences spoken with it (a short one in the language of the voice for a language) and plays it; when the GPU holds something else, the GPU lock loads the speech server first. The arrow beside it offers other samples: **with sounds** (a sigh, a laugh, a gasp) for the models that voice them (Chatterbox Turbo, Higgs Audio v3), and for Higgs every **mood** of the labelling (sad, whispered, sarcastic...). The actors are listed by name.
 
-Each sample takes the GPU for itself only. The GPU stays loaded with the speech server after a sample, so the next samples come at once, until a request of the language model (or another server) needs the GPU. Opening **Voices and clips** loads the speech server already, so its first sample does not wait.
+Each sample takes the GPU for itself only. The GPU stays loaded with the speech server after a sample, so the next samples come at once, until a request of the language model (or another server) needs the GPU.
 
 ![An actor with a voice for a mood](../../images/plugin-audiobook-actor.png)
 
@@ -161,13 +162,23 @@ you left it.
 - **Clip**: the selected clip.
   - **Name** and **Folder**: rename the clip (the file keeps its name) and put it into a folder, a new one by typing its name. A version stays in the
     folder of the clip it was made from, and says what it was made from and how.
-  - **Play** it, read what is wrong with it, **Replace...** it, or **Delete** it (only when nothing uses it; its versions move up to the clip it was
+  - Its **waveform**: click to put the playhead there and **Play**, or drag over it to select a range (the **From** and **To** fields follow, to the
+    hundredth of a second, and the selection follows them). The magnifier zooms into the selection for a precise edge, the other one shows the whole
+    clip again. **Play the selection** plays the range, **Play around the cut** plays the second and a half on each side of it without it: how the
+    clip sounds when the range is cut out.
+  - **Download** it (named after the clip and its version), read what is wrong with it, **Replace...** it, or **Delete** it (only when nothing uses it; its versions move up to the clip it was
     made from).
   - **Clean with ffmpeg** makes a version that is less steady hiss and hum. It does not remove music, effects or other voices.
   - **Clean with AI** makes a version with the chosen [cleanup](#cleanup-of-clips) on ComfyUI. It runs in the background: you can go on working,
     and a message says when the version is ready.
+  - **Trim** makes a version with only the selected range of the clip (**Keep this part**) or without it (**Cut this part out**), for a sound no
+    cleanup removes: an animal, a cough, a door. The joins are faded so that they do not click. A wav clip is trimmed without ffmpeg, an mp3 needs it.
   - **Use this version** puts a version wherever the clip it was made from is used. The parts are made again with the new voice, and the old clip stays
     until you delete it.
+  - **Try the voice**: type a text and **Speak**: the backend in use says it with this clip exactly as typed (no labelling, no sounds added), with
+    the **Seed** you give (empty: 42, the one of the conversions), and plays it. The ⓘ lists the tags the backend's model reads, in its own syntax
+    (`[cough]` for Chatterbox Turbo, `<|sfx:cough|>` or `<|emotion:sadness|>` for Higgs); a click puts one into the text. It takes the backend's
+    GPU lock and shows in the jobs like a conversion. Cleanup and recognition of a clip are jobs too.
   - **Text of the clip**: the words spoken in the clip. Type them, or press **Recognize** to have the [speech recognition](#speech-recognition) write
     them down, correct them and **Save**. The actor dialog shows the same field for the clip of the actor's voice. A version and a replacement take the
     text over. Higgs is given it only when the backend sends it (off by default).
@@ -184,6 +195,8 @@ A voice model copies the **recording**, not only the voice: the room, a hiss, th
   from a film or a series is the worst case.
 - The quality marks are measured from the clip: **Clean** (the pauses are at least 45 dB under the speech), **Fair** (35 to 45 dB, or longer than 30 s,
   which Chatterbox cuts), **Poor** (background sound, under 35 dB; distorted; shorter than 8 s). A clip that is not clean is reported when you add it.
+- A separation model keeps what sounds like a voice: an owl's hoot or a bird's song stays (in the test with several models). Cut such a sound out
+  with **Trim**.
 - Clean a clip with AI ([Cleanup of clips](#cleanup-of-clips)): in the test the *Film or game clip* cleanup took a clip with hiss, hum and an echo from
   *Poor* to *Clean* (the pauses went from 38 to 89 dB under the speech). Listen to the version before you use it: a separation model can also take
   away a breath or the end of a soft word. The ffmpeg cleanup only lowers a steady noise: on a film clip it gained about 3 dB and the clip stayed *Poor*.

@@ -394,6 +394,24 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
     public static final String THE_CLIP_COULD_NOT_BE_TRIMMED = "The clip could not be trimmed: %s";
     public static final String VERSION_PART = "part %s";
     public static final String VERSION_WITHOUT = "without %s";
+    public static final String PLAY_THE_SELECTION = "Play the selection";
+    public static final String PLAY_AROUND_THE_CUT = "Play around the cut";
+    public static final String PLAY_AROUND_THE_CUT_HELP = "Plays the second and a half before the selection, skips it and plays the second and a half after: how the clip sounds with the selection cut out";
+    public static final String ZOOM_TO_THE_SELECTION = "Zoom into the selection";
+    public static final String SHOW_THE_WHOLE_CLIP = "Show the whole clip";
+    public static final String SELECTED_SECONDS = "%s – %s (%s)";
+    public static final String PAUSE = "Pause";
+    public static final String SPEAK = "Speak";
+    public static final String SPEAKING = "Speaking…";
+    public static final String TEXT_TO_SPEAK = "Text to speak";
+    public static final String TRY_THE_VOICE = "Try the voice";
+    public static final String TRY_THE_VOICE_HELP = "The backend in use speaks the text with this clip exactly as you type it: no labelling and no sound cues, so the tags of the model (Higgs: <|...|>) can be tried. It takes the GPU lock of the backend.";
+    public static final String SEED_HELP = "Empty: 42, the seed of the conversions";
+    public static final String TYPE_A_TEXT = "Type a text to speak.";
+    public static final String THE_VOICE_COULD_NOT_SPEAK = "The text could not be spoken: %s";
+    public static final String TAGS_OF_THE_MODEL = "The tags the model reads";
+    public static final String THE_TAGS_OF = "%s reads these (click one to add it to the text):";
+    public static final String THE_MODEL_READS_NO_TAGS = "The model of %s reads no tags: they would be spoken as words.";
     public static final String GPU_LOCK_HELP = "The GPU lock the administrator set up for the GPU of this server: every batch and sample waits for its turn on the GPU, and the lock's steps load the server first (freeing the language model or another server when needed). Empty: no lock.";
 
     @Override
@@ -3236,5 +3254,149 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
         de(VERSION_WITHOUT, "ohne %s");
         ko(VERSION_WITHOUT, "%s 제외");
         it(VERSION_WITHOUT, "senza %s");
+
+        ja(PLAY_THE_SELECTION, "選択範囲を再生");
+        zh(PLAY_THE_SELECTION, "播放选区");
+        fr(PLAY_THE_SELECTION, "Écouter la sélection");
+        es(PLAY_THE_SELECTION, "Reproducir la selección");
+        de(PLAY_THE_SELECTION, "Auswahl abspielen");
+        ko(PLAY_THE_SELECTION, "선택 범위 재생");
+        it(PLAY_THE_SELECTION, "Riproduci la selezione");
+
+        ja(PLAY_AROUND_THE_CUT, "カット前後を再生");
+        zh(PLAY_AROUND_THE_CUT, "试听剪切处");
+        fr(PLAY_AROUND_THE_CUT, "Écouter autour de la coupe");
+        es(PLAY_AROUND_THE_CUT, "Escuchar alrededor del corte");
+        de(PLAY_AROUND_THE_CUT, "Um den Schnitt herum abspielen");
+        ko(PLAY_AROUND_THE_CUT, "잘라낸 곳 앞뒤 재생");
+        it(PLAY_AROUND_THE_CUT, "Ascolta intorno al taglio");
+
+        ja(PLAY_AROUND_THE_CUT_HELP, "選択範囲の前 1.5 秒を再生し、選択範囲を飛ばして後の 1.5 秒を再生します: 選択範囲を切り取ったときの聞こえ方です");
+        zh(PLAY_AROUND_THE_CUT_HELP, "播放选区前 1.5 秒，跳过选区，再播放其后 1.5 秒：剪掉选区后的效果");
+        fr(PLAY_AROUND_THE_CUT_HELP, "Joue la seconde et demie avant la sélection, la saute et joue la seconde et demie après : le son de l'extrait sans la sélection");
+        es(PLAY_AROUND_THE_CUT_HELP, "Reproduce el segundo y medio antes de la selección, la salta y reproduce el segundo y medio después: cómo suena el clip sin la selección");
+        de(PLAY_AROUND_THE_CUT_HELP, "Spielt die anderthalb Sekunden vor der Auswahl, überspringt sie und spielt die anderthalb Sekunden danach: so klingt der Clip ohne die Auswahl");
+        ko(PLAY_AROUND_THE_CUT_HELP, "선택 범위 앞 1.5초를 재생하고 선택 범위를 건너뛴 뒤 뒤의 1.5초를 재생합니다: 선택 범위를 잘라냈을 때의 소리입니다");
+        it(PLAY_AROUND_THE_CUT_HELP, "Riproduce il secondo e mezzo prima della selezione, la salta e riproduce il secondo e mezzo dopo: come suona la clip senza la selezione");
+
+        ja(ZOOM_TO_THE_SELECTION, "選択範囲を拡大");
+        zh(ZOOM_TO_THE_SELECTION, "放大选区");
+        fr(ZOOM_TO_THE_SELECTION, "Zoomer sur la sélection");
+        es(ZOOM_TO_THE_SELECTION, "Ampliar la selección");
+        de(ZOOM_TO_THE_SELECTION, "Auf die Auswahl zoomen");
+        ko(ZOOM_TO_THE_SELECTION, "선택 범위 확대");
+        it(ZOOM_TO_THE_SELECTION, "Ingrandisci la selezione");
+
+        ja(SHOW_THE_WHOLE_CLIP, "クリップ全体を表示");
+        zh(SHOW_THE_WHOLE_CLIP, "显示整个片段");
+        fr(SHOW_THE_WHOLE_CLIP, "Afficher tout l'extrait");
+        es(SHOW_THE_WHOLE_CLIP, "Mostrar todo el clip");
+        de(SHOW_THE_WHOLE_CLIP, "Ganzen Clip zeigen");
+        ko(SHOW_THE_WHOLE_CLIP, "클립 전체 보기");
+        it(SHOW_THE_WHOLE_CLIP, "Mostra tutta la clip");
+
+        ja(SELECTED_SECONDS, "%s – %s (%s)");
+        zh(SELECTED_SECONDS, "%s – %s（%s）");
+        fr(SELECTED_SECONDS, "%s – %s (%s)");
+        es(SELECTED_SECONDS, "%s – %s (%s)");
+        de(SELECTED_SECONDS, "%s – %s (%s)");
+        ko(SELECTED_SECONDS, "%s – %s (%s)");
+        it(SELECTED_SECONDS, "%s – %s (%s)");
+
+        ja(PAUSE, "一時停止");
+        zh(PAUSE, "暂停");
+        fr(PAUSE, "Pause");
+        es(PAUSE, "Pausa");
+        de(PAUSE, "Pause");
+        ko(PAUSE, "일시 정지");
+        it(PAUSE, "Pausa");
+
+        ja(SPEAK, "話させる");
+        zh(SPEAK, "朗读");
+        fr(SPEAK, "Faire parler");
+        es(SPEAK, "Hablar");
+        de(SPEAK, "Sprechen");
+        ko(SPEAK, "말하기");
+        it(SPEAK, "Pronuncia");
+
+        ja(SPEAKING, "生成中…");
+        zh(SPEAKING, "正在生成…");
+        fr(SPEAKING, "Synthèse…");
+        es(SPEAKING, "Generando…");
+        de(SPEAKING, "Wird gesprochen…");
+        ko(SPEAKING, "생성 중…");
+        it(SPEAKING, "Sintesi…");
+
+        ja(TEXT_TO_SPEAK, "読み上げるテキスト");
+        zh(TEXT_TO_SPEAK, "要朗读的文本");
+        fr(TEXT_TO_SPEAK, "Texte à dire");
+        es(TEXT_TO_SPEAK, "Texto que decir");
+        de(TEXT_TO_SPEAK, "Zu sprechender Text");
+        ko(TEXT_TO_SPEAK, "말할 텍스트");
+        it(TEXT_TO_SPEAK, "Testo da pronunciare");
+
+        ja(TRY_THE_VOICE, "声を試す");
+        zh(TRY_THE_VOICE, "试听声音");
+        fr(TRY_THE_VOICE, "Essayer la voix");
+        es(TRY_THE_VOICE, "Probar la voz");
+        de(TRY_THE_VOICE, "Stimme ausprobieren");
+        ko(TRY_THE_VOICE, "목소리 시험");
+        it(TRY_THE_VOICE, "Prova la voce");
+
+        ja(TRY_THE_VOICE_HELP, "使用中のバックエンドが、入力したとおりのテキストをこのクリップの声で話します。ラベル付けも効果音の追加もないため、モデルのタグ (Higgs: <|...|>) を試せます。バックエンドの GPU ロックを使います。");
+        zh(TRY_THE_VOICE_HELP, "当前后端会用此片段的声音按您输入的原样朗读文本：不做标注、不加音效提示，因此可以试用模型的标签（Higgs：<|...|>）。它会占用后端的 GPU 锁。");
+        fr(TRY_THE_VOICE_HELP, "Le backend utilisé dit le texte avec cet extrait exactement comme vous l'écrivez : sans étiquetage ni effets sonores, pour essayer les balises du modèle (Higgs : <|...|>). Il prend le verrou GPU du backend.");
+        es(TRY_THE_VOICE_HELP, "El backend en uso dice el texto con este clip tal como lo escribes: sin etiquetado ni sonidos añadidos, para probar las etiquetas del modelo (Higgs: <|...|>). Usa el bloqueo de GPU del backend.");
+        de(TRY_THE_VOICE_HELP, "Das verwendete Backend spricht den Text mit diesem Clip genau so, wie du ihn eingibst: ohne Auszeichnung und ohne Geräusche, damit sich die Tags des Modells (Higgs: <|...|>) ausprobieren lassen. Es nimmt die GPU-Sperre des Backends.");
+        ko(TRY_THE_VOICE_HELP, "사용 중인 백엔드가 입력한 그대로의 텍스트를 이 클립의 목소리로 말합니다. 라벨링도 효과음 추가도 없으므로 모델의 태그(Higgs: <|...|>)를 시험할 수 있습니다. 백엔드의 GPU 잠금을 사용합니다.");
+        it(TRY_THE_VOICE_HELP, "Il backend in uso pronuncia il testo con questa clip esattamente come lo scrivi: senza etichettatura né suoni aggiunti, per provare i tag del modello (Higgs: <|...|>). Prende il blocco GPU del backend.");
+
+        ja(SEED_HELP, "空欄: 42 (変換と同じシード)");
+        zh(SEED_HELP, "留空：42，即转换所用的种子");
+        fr(SEED_HELP, "Vide : 42, la graine des conversions");
+        es(SEED_HELP, "Vacío: 42, la semilla de las conversiones");
+        de(SEED_HELP, "Leer: 42, der Seed der Umwandlungen");
+        ko(SEED_HELP, "비우면 42(변환에 쓰는 시드)");
+        it(SEED_HELP, "Vuoto: 42, il seme delle conversioni");
+
+        ja(TYPE_A_TEXT, "読み上げるテキストを入力してください。");
+        zh(TYPE_A_TEXT, "请输入要朗读的文本。");
+        fr(TYPE_A_TEXT, "Écrivez un texte à dire.");
+        es(TYPE_A_TEXT, "Escribe un texto que decir.");
+        de(TYPE_A_TEXT, "Gib einen Text zum Sprechen ein.");
+        ko(TYPE_A_TEXT, "말할 텍스트를 입력하세요.");
+        it(TYPE_A_TEXT, "Scrivi un testo da pronunciare.");
+
+        ja(THE_VOICE_COULD_NOT_SPEAK, "テキストを読み上げられませんでした: %s");
+        zh(THE_VOICE_COULD_NOT_SPEAK, "无法朗读文本：%s");
+        fr(THE_VOICE_COULD_NOT_SPEAK, "Le texte n'a pas pu être dit : %s");
+        es(THE_VOICE_COULD_NOT_SPEAK, "No se pudo decir el texto: %s");
+        de(THE_VOICE_COULD_NOT_SPEAK, "Der Text konnte nicht gesprochen werden: %s");
+        ko(THE_VOICE_COULD_NOT_SPEAK, "텍스트를 말할 수 없습니다: %s");
+        it(THE_VOICE_COULD_NOT_SPEAK, "Impossibile pronunciare il testo: %s");
+
+        ja(TAGS_OF_THE_MODEL, "モデルが読むタグ");
+        zh(TAGS_OF_THE_MODEL, "模型可识别的标签");
+        fr(TAGS_OF_THE_MODEL, "Les balises que lit le modèle");
+        es(TAGS_OF_THE_MODEL, "Las etiquetas que lee el modelo");
+        de(TAGS_OF_THE_MODEL, "Die Tags, die das Modell liest");
+        ko(TAGS_OF_THE_MODEL, "모델이 읽는 태그");
+        it(TAGS_OF_THE_MODEL, "I tag che il modello legge");
+
+        ja(THE_TAGS_OF, "%s は次のタグを読みます (クリックでテキストに追加):");
+        zh(THE_TAGS_OF, "%s 可识别以下标签（点击加入文本）：");
+        fr(THE_TAGS_OF, "%s lit celles-ci (cliquez pour l'ajouter au texte) :");
+        es(THE_TAGS_OF, "%s lee estas (haz clic para añadirla al texto):");
+        de(THE_TAGS_OF, "%s liest diese (klicken fügt sie dem Text hinzu):");
+        ko(THE_TAGS_OF, "%s은(는) 다음 태그를 읽습니다(클릭하면 텍스트에 추가):");
+        it(THE_TAGS_OF, "%s legge questi (clicca per aggiungerlo al testo):");
+
+        ja(THE_MODEL_READS_NO_TAGS, "%s のモデルはタグを読みません: 単語として読み上げられます。");
+        zh(THE_MODEL_READS_NO_TAGS, "%s 的模型不识别标签：它们会被当作文字读出。");
+        fr(THE_MODEL_READS_NO_TAGS, "Le modèle de %s ne lit pas de balises : elles seraient dites comme des mots.");
+        es(THE_MODEL_READS_NO_TAGS, "El modelo de %s no lee etiquetas: se dirían como palabras.");
+        de(THE_MODEL_READS_NO_TAGS, "Das Modell von %s liest keine Tags: Sie würden als Wörter gesprochen.");
+        ko(THE_MODEL_READS_NO_TAGS, "%s의 모델은 태그를 읽지 않습니다: 단어로 읽힙니다.");
+        it(THE_MODEL_READS_NO_TAGS, "Il modello di %s non legge tag: verrebbero pronunciati come parole.");
     }
 }

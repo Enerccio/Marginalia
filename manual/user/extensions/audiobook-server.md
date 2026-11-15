@@ -68,11 +68,19 @@ banging became eleven knocks) or in a wrong voice, and changing the seed only mo
 the second recognition on), so the extension runs it in float32 as well.
 
 **The cleanup of clips** ([Cleanup of clips](audiobook.md#cleanup-of-clips)) uses two more nodes of the same suite, `VocalRemovalNode` (separation
-models) and `VoiceFixerNode`, with `LoadAudio` and `SaveAudio` of ComfyUI; nothing else needs installing. The suite downloads a model the first time it is
+models) and `VoiceFixerNode`, with `LoadAudio` and `SaveAudio` of ComfyUI; no other node pack is needed. The suite downloads a model the first time it is
 used (the MelBand Roformer models are about 900 MB each). On the R9700 the MelBand models (vocals, denoise) and the voice fixer worked, about 25 seconds
-for a 16-second clip. The UVR models did not: `UVR-DeNoise` failed to download (the address of the suite answered 404) and `UVR-DeEcho-DeReverb` failed with
-`module 'samplerate' has no attribute 'resample'` (the Python package `samplerate` in the container is not the one the suite expects). The default
-cleanups use only the models that worked.
+for a 16-second clip. The UVR models first did not:
+
+- `UVR-DeEcho-DeReverb` (used by *Remove echo* and *Film or game clip*) failed with `module 'samplerate' has no attribute 'resample'`. The container
+  had `samplerate` 0.1.0, a wrapper that needs the system library `libsamplerate`, which the image lacks. The current package brings its own; install
+  it with the torch pin and restart ComfyUI:
+  ```sh
+  PIP_CONSTRAINT=/root/.local/keep.txt python3 -m pip install --user 'samplerate>=0.2.1'
+  ```
+  After it, de-reverb took about 5 seconds for a 16-second clip.
+- `UVR-DeNoise` failed to download (the address of the suite answered 404); put the file into `models/TTS/UVR/` by hand to use it. The MelBand denoise
+  model needs no such step and is the one of the default cleanups.
 
 The **Fish Audio S2 Pro** engine of the suite did not work on that card: its audio came out as invalid numbers (NaN). The Higgs Audio v3 weights are under a
 research and non-commercial licence.

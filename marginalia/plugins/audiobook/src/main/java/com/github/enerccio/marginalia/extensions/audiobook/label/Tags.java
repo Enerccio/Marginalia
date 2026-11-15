@@ -39,6 +39,17 @@ public final class Tags {
         return List.of();
     }
 
+    /**
+     * What the model reads in a text as it is sent to it, for someone who types one: {@code [cough]} for Chatterbox Turbo, the {@code <|...|>} tokens
+     * for Higgs (the plugin turns its tags into them); empty for the models that read tags as words.
+     */
+    public static List<String> syntaxFor(String model) {
+        if (BackendConfig.MODEL_HIGGS.equals(model)) {
+            return HiggsText.tokens();
+        }
+        return forModel(model).stream().map(tag -> "[" + tag + "]").toList();
+    }
+
     /** The text without its tags (any model's) and the white space they leave. */
     public static String strip(String text) {
         return KNOWN_TAG.matcher(text).replaceAll(" ").replaceAll("\\s{2,}", " ").strip();

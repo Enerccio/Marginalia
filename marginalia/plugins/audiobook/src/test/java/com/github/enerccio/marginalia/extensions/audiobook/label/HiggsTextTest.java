@@ -32,4 +32,16 @@ class HiggsTextTest {
         assertEquals("<|emotion:sadness|>Please. <|sfx:crying|> Stay.", HiggsText.withDelivery(rendered, Delivery.SAD, 0.5));
         assertEquals("Please. <|sfx:crying|> Stay.", HiggsText.withDelivery(rendered, Delivery.NEUTRAL, 0.5));
     }
+
+    @org.junit.jupiter.api.Test
+    void theTagsOfAModelAreListedInTheSyntaxItReads() {
+        java.util.List<String> higgs = Tags.syntaxFor(com.github.enerccio.marginalia.extensions.audiobook.model.BackendConfig.MODEL_HIGGS);
+        org.junit.jupiter.api.Assertions.assertTrue(higgs.contains("<|sfx:cough|>"), higgs.toString());
+        org.junit.jupiter.api.Assertions.assertTrue(higgs.contains("<|emotion:sadness|>"));
+        org.junit.jupiter.api.Assertions.assertTrue(higgs.contains("<|style:whispering|>"));
+        org.junit.jupiter.api.Assertions.assertTrue(higgs.stream().allMatch(t -> t.startsWith("<|") && t.endsWith("|>")));
+        org.junit.jupiter.api.Assertions.assertTrue(Tags.syntaxFor(com.github.enerccio.marginalia.extensions.audiobook.model.BackendConfig.MODEL_TURBO)
+                .contains("[cough]"));
+        org.junit.jupiter.api.Assertions.assertTrue(Tags.syntaxFor("chatterbox").isEmpty());
+    }
 }

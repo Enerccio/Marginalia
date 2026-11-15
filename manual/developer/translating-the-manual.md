@@ -51,8 +51,11 @@ that was finished. Commit the translations; they are the source of the translate
 - A heading whose id changes with its translation gets an `<a id="english-id"></a>` line before it, so `page.md#english-id` links of other pages work.
 
 `verify --lang de` is the same rule applied to the pages that are there: it lists those that lost or changed something of the English page (what a
-translation has more, the `<a id>` lines, is not looked at), `--list` prints their paths for `translate --force --only`. `ManualLanguageTest` checks the
-code blocks and the inline code of every page in every language, so a translation that changes them fails the build.
+translation has more, the `<a id>` lines, is not looked at), `--list` prints their paths for `translate --force --only`. `ManualLanguageTest` checks that
+every page is there in every language, and the sections, the code blocks and the inline code of every **current** translation, so a translation that
+changes them fails the build. An outdated translation (its English page changed since) is not compared: while developing, translate only a **new**
+page (`translate --lang <l> --only <page>` for every language, or the build fails on the missing page); the changed pages are translated again once per
+release.
 
 ## The site
 

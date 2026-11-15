@@ -61,6 +61,20 @@ public final class HiggsText {
     private HiggsText() {
     }
 
+    /** The tokens of Higgs the plugin uses, as they are written in a text (the emotions and styles, the expressive prosody, the sounds), sorted. */
+    public static java.util.List<String> tokens() {
+        java.util.TreeSet<String> tokens = new java.util.TreeSet<>(DELIVERY.values());
+        tokens.add("<|prosody:expressive_high|>");
+        Pattern token = Pattern.compile("<\\|[^|]+\\|>");
+        for (String sound : SOUND.values()) {
+            Matcher m = token.matcher(sound);
+            while (m.find()) {
+                tokens.add(m.group());
+            }
+        }
+        return java.util.List.copyOf(tokens);
+    }
+
     /**
      * @param text      the words of the piece as they are read (the spoken form applied), with the sound tags the labelling put in
      * @param speech    direct speech: only speech gets the delivery (the narrator reads plainly)

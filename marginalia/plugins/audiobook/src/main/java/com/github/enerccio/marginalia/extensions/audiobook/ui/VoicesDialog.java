@@ -28,13 +28,11 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
-import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.data.provider.hierarchy.TreeData;
 import com.vaadin.flow.data.provider.hierarchy.TreeDataProvider;
-import com.vaadin.flow.dom.Element;
 import com.vaadin.flow.server.StreamResource;
 import com.vaadin.flow.server.streams.*;
 
@@ -70,10 +68,7 @@ public class VoicesDialog extends Dialog {
     private final TreeGrid<Node> clips = new TreeGrid<>();
     private final Button editActor = new Button(Solid.PEN.create(), e -> editActor(actors.asSingleSelect().getValue()));
     private final Button deleteActor = new Button(Solid.TRASH.create(), e -> deleteActor());
-    private final Element audio = new Element("audio");
-    private final com.vaadin.flow.component.html.Div player = new com.vaadin.flow.component.html.Div();
-    private final NumberField trimFrom = new NumberField(T.localized(FROM_SECONDS));
-    private final NumberField trimTo = new NumberField(T.localized(TO_SECONDS));
+    private final ClipEditor editor = new ClipEditor();
     private final Select<Boolean> trimKeep = new Select<>();
     private final Button trim = new Button(T.localized(TRIM), Solid.SCISSORS.create(), e -> trim());
     private final TabDock dock = new TabDock();
@@ -96,6 +91,7 @@ public class VoicesDialog extends Dialog {
     private final Button deleteClip = new Button(T.localized(DELETE), Solid.TRASH.create(), e -> deleteClip());
     private final Anchor download = new Anchor();
     private final ClipTextField clipText;
+    private final VoiceTry voiceTry;
     private final VerticalLayout clipDetail = new VerticalLayout();
     private boolean binding;
 
@@ -108,9 +104,10 @@ public class VoicesDialog extends Dialog {
         this.actorsChanged = actorsChanged;
         this.voiceReplaced = voiceReplaced;
         this.clipText = new ClipTextField(service);
+        this.voiceTry = new VoiceTry(service);
         setHeaderTitle(T.localized(VOICES_AND_CLIPS));
-        // the speech server is loaded on its GPU when the window opens, so the first sample does not wait
-        VoicePreview.warmUpOnOpen(this, service);
+        // no warm-up of the speech server here: the window is used for the cleanup and the recognition of clips too, which take locks of their own,
+        // and loading the speech model on opening switched the GPU back and forth (a restart of ComfyUI each time)
         setSizeFull();
         setCloseOnOutsideClick(false);
 
@@ -205,12 +202,6 @@ public class VoicesDialog extends Dialog {
         detail.addClassName(CssStyles.HINT_TEXT);
         madeFrom.addClassName(CssStyles.HINT_TEXT);
         usedBy.addClassName(CssStyles.HINT_TEXT);
-        // a player with a seek bar, to find the place of a sound to cut
-        audio.setAttribute("controls", true);
-        audio.setAttribute("preload", "metadata");
-        audio.getClassList().add(AudiobookStyles.CLIP_PLAYER);
-        player.getElement().appendChild(audio);
-        player.setWidthFull();
         clean.setTooltipText(T.localized(CLEAN_WITH_FFMPEG_HELP));
         clean.setVisible(Ffmpeg.available());
         useVersion.setTooltipText(T.localized(USE_THIS_VERSION_HELP));
@@ -226,25 +217,15 @@ public class VoicesDialog extends Dialog {
         download.add(save);
         HorizontalLayout actions = bar(download, useVersion, replace, deleteClip);
         HorizontalLayout cleaning = bar(clean, preset, cleanWithAi);
-        for (NumberField field : List.of(trimFrom, trimTo)) {
-            field.setMin(0);
-            field.setStep(0.1);
-            field.setWidth("8em");
-            Button here = new Button(Solid.LOCATION_CROSSHAIRS.create(), e -> audio.executeJs("return this.currentTime").then(Double.class,
-                    at -> field.setValue(Math.round(at * 10) / 10.0)));
-            here.setThemeName("tertiary small");
-            here.setTooltipText(T.localized(TAKE_THE_PLACE_OF_THE_PLAYER));
-            field.setSuffixComponent(here);
-        }
         trimKeep.setItems(true, false);
         trimKeep.setItemLabelGenerator(k -> k ? T.localized(KEEP_THIS_PART) : T.localized(CUT_THIS_PART_OUT));
         trimKeep.setValue(false);
         trimKeep.setWidth("14em");
         trim.setTooltipText(T.localized(TRIM_HELP));
-        HorizontalLayout trimming = bar(trimFrom, trimTo, trimKeep, trim);
+        HorizontalLayout trimming = bar(trimKeep, trim);
         trimming.setAlignItems(FlexComponent.Alignment.BASELINE);
         clipDetail.setPadding(false);
-        clipDetail.add(clipTitle, player, clipName, folder, detail, madeFrom, usedBy, actions, cleaning, trimming, clipText);
+        clipDetail.add(clipTitle, editor, trimming, clipName, folder, detail, madeFrom, usedBy, actions, cleaning, clipText, voiceTry);
         VerticalLayout tab = new VerticalLayout(pickAClip, clipDetail);
         tab.setSizeFull();
         tab.setPadding(true);
@@ -438,6 +419,7 @@ public class VoicesDialog extends Dialog {
 
     private void showClip(AudiobookService.Clip clip) {
         clipText.show(clip == null ? null : clip.uuid());
+        voiceTry.show(clip == null ? null : "clip:" + clip.uuid());
         pickAClip.setVisible(clip == null);
         clipDetail.setVisible(clip != null);
         if (clip == null) {
@@ -463,8 +445,6 @@ public class VoicesDialog extends Dialog {
         }
         download.setHref(downloadOf(clip));
         load(clip);
-        trimFrom.clear();
-        trimTo.clear();
         String uses = usedBy(clip.uuid());
         usedBy.setText(uses.isEmpty() ? T.localized(NOT_USED) : T.localized(USED_BY) + ": " + uses);
         useVersion.setVisible(parent != null);
@@ -542,7 +522,7 @@ public class VoicesDialog extends Dialog {
         }
     }
 
-    /** Puts the clip into the player (it does not start). */
+    /** Puts the clip into the editor (it does not start). */
     private void load(AudiobookService.Clip clip) {
         String type = clip.fileName().toLowerCase(Locale.ROOT).endsWith(".mp3") ? "audio/mpeg" : "audio/wav";
         String uuid = clip.uuid();
@@ -551,13 +531,13 @@ public class VoicesDialog extends Dialog {
             return new ByteArrayInputStream(bytes == null ? new byte[0] : bytes);
         });
         resource.setContentType(type);
-        audio.setAttribute("src", resource);
+        editor.show(service.clipWaveform(uuid), resource);
     }
 
     private void trim() {
         AudiobookService.Clip clip = selected();
-        Double from = trimFrom.getValue();
-        Double to = trimTo.getValue();
+        Double from = editor.from();
+        Double to = editor.to();
         if (clip == null || from == null || to == null || to <= from) {
             Notification.warning(T.localized(GIVE_A_RANGE));
             return;

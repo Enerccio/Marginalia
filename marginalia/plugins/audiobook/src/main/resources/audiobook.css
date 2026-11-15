@@ -76,7 +76,50 @@
     width: 100%;
 }
 
-/* The player of the selected clip in Voices and clips (its seek bar finds the place of a sound to cut) */
-.audiobook-clip-player {
+/* The waveform of a clip in Voices and clips: drag to select a range, click to move the playhead */
+.audiobook-wave {
+    position: relative;
     width: 100%;
+    height: 120px;
+    background: var(--lumo-contrast-5pct);
+    border-radius: var(--lumo-border-radius-m);
+    cursor: crosshair;
+    user-select: none;
+    overflow: hidden;
+}
+
+.audiobook-wave-drawing,
+.audiobook-wave-drawing svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.audiobook-wave-drawing path {
+    stroke: var(--lumo-primary-color);
+    stroke-width: 1px;
+    fill: none;
+}
+
+.audiobook-wave-selection {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    display: none;
+    background: var(--lumo-primary-color-10pct);
+    border-left: 1px solid var(--lumo-primary-color);
+    border-right: 1px solid var(--lumo-primary-color);
+    pointer-events: none;
+}
+
+.audiobook-wave-cursor {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 0;
+    display: none;
+    border-left: 2px solid var(--lumo-error-color);
+    pointer-events: none;
 }

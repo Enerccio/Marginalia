@@ -27,7 +27,7 @@ Three entities of the installation (`BaseEntity`, not owned by a user; migration
 
 | Entity | Table | |
 |---|---|---|
-| `Gpu` | `gpus` | A name. What it is loaded with is known only in memory. |
+| `Gpu` | `gpus` | A name and `usedOutside` (migration `V30__gpu_used_outside.sql`). What it is loaded with is known only in memory. |
 | `GpuStep` | `gpu_steps` | An HTTP request: `url`, `method`, `headers` (`EncryptedStringConverter`), `body`, `timeoutSeconds` (0: 60, at most 600), `waitSeconds` (at most 300). Shared by locks. |
 | `GpuLock` | `gpu_locks` | `name`, `gpu`, `maxConcurrent` (0: no limit) and the ordered `acquireSteps` / `releaseSteps` (`@ManyToMany` + `@OrderColumn`, tables `gpu_lock_acquire_steps` and `gpu_lock_release_steps`). |
 
@@ -45,6 +45,8 @@ resolver over an in-memory snapshot of the entities (read in a read-only transac
   A failed acquire leaves the GPU unknown and fails the job; a failed release fails the job and keeps the old lock loaded (the card may be
   full, nothing is started on it).
 - Closing a lease runs **no** step: the GPU stays loaded (sticky). There is no timeout.
+- A GPU **used outside** the application (`LockDef.acquireEachJob`, from `Gpu.usedOutside`) never trusts that state: a job of the loaded lock runs
+  its acquire steps first (`recheck`, on a virtual thread, its place already counted); a failure fails the job and leaves the GPU unknown.
 - The queue is fair: once a job waits for a switch, jobs of the loaded lock queue behind it.
 - `unload(gpu)` queues like a job, runs the release steps and leaves the GPU unknown whatever they answered.
 - `GpuLease.reload()` runs the release and the acquire steps of the held lock again (a server that died in the middle of a long job).
