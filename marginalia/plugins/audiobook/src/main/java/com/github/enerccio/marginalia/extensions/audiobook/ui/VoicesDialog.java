@@ -21,12 +21,14 @@ import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
+import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.component.upload.Upload;
@@ -34,7 +36,7 @@ import com.vaadin.flow.data.provider.hierarchy.TreeData;
 import com.vaadin.flow.data.provider.hierarchy.TreeDataProvider;
 import com.vaadin.flow.dom.Element;
 import com.vaadin.flow.server.StreamResource;
-import com.vaadin.flow.server.streams.InMemoryUploadHandler;
+import com.vaadin.flow.server.streams.*;
 
 import java.io.ByteArrayInputStream;
 import java.util.*;
@@ -69,6 +71,11 @@ public class VoicesDialog extends Dialog {
     private final Button editActor = new Button(Solid.PEN.create(), e -> editActor(actors.asSingleSelect().getValue()));
     private final Button deleteActor = new Button(Solid.TRASH.create(), e -> deleteActor());
     private final Element audio = new Element("audio");
+    private final com.vaadin.flow.component.html.Div player = new com.vaadin.flow.component.html.Div();
+    private final NumberField trimFrom = new NumberField(T.localized(FROM_SECONDS));
+    private final NumberField trimTo = new NumberField(T.localized(TO_SECONDS));
+    private final Select<Boolean> trimKeep = new Select<>();
+    private final Button trim = new Button(T.localized(TRIM), Solid.SCISSORS.create(), e -> trim());
     private final TabDock dock = new TabDock();
     private AudiobookSettings settings;
     private List<AudiobookService.Clip> all = List.of();
@@ -81,13 +88,13 @@ public class VoicesDialog extends Dialog {
     private final Span detail = new Span();
     private final Span madeFrom = new Span();
     private final Span usedBy = new Span();
-    private final Button play = new Button(T.localized(PLAY), Solid.PLAY.create(), e -> play());
     private final Button useVersion = new Button(T.localized(USE_THIS_VERSION), Solid.CHECK.create(), e -> useVersion());
     private final Button replace = new Button(T.localized(REPLACE), Solid.RIGHT_LEFT.create(), e -> openReplace());
     private final Button clean = new Button(T.localized(CLEAN_WITH_FFMPEG), Solid.WAND_MAGIC_SPARKLES.create(), e -> clean());
     private final Select<CleanupPreset> preset = new Select<>();
     private final Button cleanWithAi = new Button(T.localized(CLEAN_WITH_AI), Solid.WAND_MAGIC_SPARKLES.create(), e -> cleanWithAi());
     private final Button deleteClip = new Button(T.localized(DELETE), Solid.TRASH.create(), e -> deleteClip());
+    private final Anchor download = new Anchor();
     private final ClipTextField clipText;
     private final VerticalLayout clipDetail = new VerticalLayout();
     private boolean binding;
@@ -198,20 +205,46 @@ public class VoicesDialog extends Dialog {
         detail.addClassName(CssStyles.HINT_TEXT);
         madeFrom.addClassName(CssStyles.HINT_TEXT);
         usedBy.addClassName(CssStyles.HINT_TEXT);
-        play.getElement().appendChild(audio);
+        // a player with a seek bar, to find the place of a sound to cut
+        audio.setAttribute("controls", true);
+        audio.setAttribute("preload", "metadata");
+        audio.getClassList().add(AudiobookStyles.CLIP_PLAYER);
+        player.getElement().appendChild(audio);
+        player.setWidthFull();
         clean.setTooltipText(T.localized(CLEAN_WITH_FFMPEG_HELP));
         clean.setVisible(Ffmpeg.available());
         useVersion.setTooltipText(T.localized(USE_THIS_VERSION_HELP));
         preset.setItemLabelGenerator(CleanupPreset::getName);
         preset.setWidth("16em");
         cleanWithAi.setTooltipText(T.localized(CLEAN_WITH_AI_HELP));
-        for (Button b : List.of(play, useVersion, replace, clean, cleanWithAi, deleteClip)) {
+        for (Button b : List.of(useVersion, replace, clean, cleanWithAi, deleteClip, trim)) {
             b.setThemeName("tertiary small");
         }
-        HorizontalLayout actions = bar(play, useVersion, replace, deleteClip);
+        Button save = new Button(T.localized(DOWNLOAD), Solid.DOWNLOAD.create());
+        save.setThemeName("tertiary small");
+        download.getElement().setAttribute("download", true);
+        download.add(save);
+        HorizontalLayout actions = bar(download, useVersion, replace, deleteClip);
         HorizontalLayout cleaning = bar(clean, preset, cleanWithAi);
+        for (NumberField field : List.of(trimFrom, trimTo)) {
+            field.setMin(0);
+            field.setStep(0.1);
+            field.setWidth("8em");
+            Button here = new Button(Solid.LOCATION_CROSSHAIRS.create(), e -> audio.executeJs("return this.currentTime").then(Double.class,
+                    at -> field.setValue(Math.round(at * 10) / 10.0)));
+            here.setThemeName("tertiary small");
+            here.setTooltipText(T.localized(TAKE_THE_PLACE_OF_THE_PLAYER));
+            field.setSuffixComponent(here);
+        }
+        trimKeep.setItems(true, false);
+        trimKeep.setItemLabelGenerator(k -> k ? T.localized(KEEP_THIS_PART) : T.localized(CUT_THIS_PART_OUT));
+        trimKeep.setValue(false);
+        trimKeep.setWidth("14em");
+        trim.setTooltipText(T.localized(TRIM_HELP));
+        HorizontalLayout trimming = bar(trimFrom, trimTo, trimKeep, trim);
+        trimming.setAlignItems(FlexComponent.Alignment.BASELINE);
         clipDetail.setPadding(false);
-        clipDetail.add(clipTitle, clipName, folder, detail, madeFrom, usedBy, actions, cleaning, clipText);
+        clipDetail.add(clipTitle, player, clipName, folder, detail, madeFrom, usedBy, actions, cleaning, trimming, clipText);
         VerticalLayout tab = new VerticalLayout(pickAClip, clipDetail);
         tab.setSizeFull();
         tab.setPadding(true);
@@ -428,10 +461,29 @@ public class VoicesDialog extends Dialog {
         if (parent != null) {
             madeFrom.setText(T.localized(MADE_FROM).formatted(parent.name(), clip.madeWith() == null ? "?" : clip.madeWith()));
         }
+        download.setHref(downloadOf(clip));
+        load(clip);
+        trimFrom.clear();
+        trimTo.clear();
         String uses = usedBy(clip.uuid());
         usedBy.setText(uses.isEmpty() ? T.localized(NOT_USED) : T.localized(USED_BY) + ": " + uses);
         useVersion.setVisible(parent != null);
         cleanWithAi.setEnabled(preset.getValue() != null);
+    }
+
+    /** The clip as a file named after its label (a version: the clip, the version), with the kind of audio of its file. */
+    private DownloadHandler downloadOf(AudiobookService.Clip clip) {
+        String uuid = clip.uuid();
+        boolean mp3 = clip.fileName().toLowerCase(Locale.ROOT).endsWith(".mp3");
+        String base = clip.label().replace(" › ", " - ").replace(" / ", " - ").replaceFirst("(?i)\\.(wav|mp3)$", "");
+        String fileName = base.replaceAll("[\\\\/:*?\"<>|\\p{Cntrl}]", "_") + (mp3 ? ".mp3" : ".wav");
+        return new InputStreamDownloadHandler((InputStreamDownloadCallback) event -> {
+            byte[] bytes = service.clipBytes(uuid);
+            if (bytes == null) {
+                bytes = new byte[0];
+            }
+            return new DownloadResponse(new ByteArrayInputStream(bytes), fileName, mp3 ? "audio/mpeg" : "audio/wav", bytes.length);
+        });
     }
 
     private void moveTo(String target) {
@@ -490,18 +542,32 @@ public class VoicesDialog extends Dialog {
         }
     }
 
-    private void play() {
-        AudiobookService.Clip clip = selected();
-        byte[] bytes = clip == null ? null : service.clipBytes(clip.uuid());
-        if (bytes == null) {
-            return;
-        }
+    /** Puts the clip into the player (it does not start). */
+    private void load(AudiobookService.Clip clip) {
         String type = clip.fileName().toLowerCase(Locale.ROOT).endsWith(".mp3") ? "audio/mpeg" : "audio/wav";
-        StreamResource resource = new StreamResource("clip-" + System.nanoTime() + (type.equals("audio/mpeg") ? ".mp3" : ".wav"),
-                () -> new ByteArrayInputStream(bytes));
+        String uuid = clip.uuid();
+        StreamResource resource = new StreamResource("clip-" + System.nanoTime() + (type.equals("audio/mpeg") ? ".mp3" : ".wav"), () -> {
+            byte[] bytes = service.clipBytes(uuid);
+            return new ByteArrayInputStream(bytes == null ? new byte[0] : bytes);
+        });
         resource.setContentType(type);
         audio.setAttribute("src", resource);
-        audio.callJsFunction("play");
+    }
+
+    private void trim() {
+        AudiobookService.Clip clip = selected();
+        Double from = trimFrom.getValue();
+        Double to = trimTo.getValue();
+        if (clip == null || from == null || to == null || to <= from) {
+            Notification.warning(T.localized(GIVE_A_RANGE));
+            return;
+        }
+        try {
+            cleaned(service.trimClip(clip.uuid(), from, to, Boolean.TRUE.equals(trimKeep.getValue())));
+        } catch (BackendException | RuntimeException e) {
+            AudiobookLog.get().warn("The clip could not be trimmed: {}", e.getMessage(), e);
+            Notification.error(T.localized(THE_CLIP_COULD_NOT_BE_TRIMMED).formatted(e.getMessage()));
+        }
     }
 
     private void clean() {

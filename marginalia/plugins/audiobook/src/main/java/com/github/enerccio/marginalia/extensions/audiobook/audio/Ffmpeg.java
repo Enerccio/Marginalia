@@ -196,6 +196,21 @@ public final class Ffmpeg {
                 "highpass=f=70,afftdn=nr=12:nf=" + floor + ":gs=10", "-c:a", "pcm_s16le", "-f", "wav"));
     }
 
+    /**
+     * A 16-bit wav of the audio with only the range kept ({@code keep}) or with the range cut out, the two sides joined.
+     *
+     * @param from the start of the range in seconds
+     * @param to   the end of the range in seconds
+     */
+    public static byte[] trim(byte[] audio, double from, double to, boolean keep) throws BackendException {
+        String start = String.format(java.util.Locale.ROOT, "%.3f", from);
+        String end = String.format(java.util.Locale.ROOT, "%.3f", to);
+        String filter = keep ? "atrim=start=" + start + ":end=" + end + ",asetpts=PTS-STARTPTS"
+                : "aselect=not(between(t\\," + start + "\\," + end + ")),asetpts=N/SR/TB";
+        return run(audio, AudioKind.of(audio).extension(), "wav", null, List.of("-map", "0:a", "-map_metadata", "-1", "-af", filter, "-c:a", "pcm_s16le",
+                "-f", "wav"));
+    }
+
     /** A 16-bit wav of a flac, at its own sample rate and channels (ComfyUI writes no wav: a Higgs piece comes as flac when the storage is wav). */
     public static byte[] flacToWav(byte[] flac) throws BackendException {
         return run(flac, "flac", "wav", null, List.of("-map", "0:a", "-map_metadata", "-1", "-c:a", "pcm_s16le", "-f", "wav"));

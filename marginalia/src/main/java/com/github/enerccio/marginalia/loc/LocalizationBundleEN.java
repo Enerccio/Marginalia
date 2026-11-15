@@ -1116,6 +1116,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_UNLOAD_NOW, "Unload now");
         setValue(L.LABEL_TEST_STEP, "Test");
         setValue(L.LABEL_REMOVE, "Remove");
+        setValue(L.LABEL_USED_OUTSIDE_MARGINALIA, "Also used outside Marginalia");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -2059,6 +2060,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_GPU_STEP_HEADERS, "One header per line, Name: value. Stored encrypted.");
         setValue(L.HELP_GPU_ACQUIRE_STEPS, "Run in order before the first job of this lock; the first failure stops them.");
         setValue(L.HELP_GPU_RELEASE_STEPS, "Run when a job of another lock needs the GPU, or with Unload now; all of them run, also when one fails.");
+        setValue(L.HELP_GPU_USED_OUTSIDE, "Other programs or people use this GPU too: Marginalia then runs the acquire steps of a lock before every job, not only when the GPU changes locks, as it can't know what is loaded. The acquire steps of each lock must then make room by themselves (unload the other models) and be safe to repeat.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

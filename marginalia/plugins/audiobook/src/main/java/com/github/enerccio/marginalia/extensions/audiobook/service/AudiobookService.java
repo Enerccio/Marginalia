@@ -667,6 +667,23 @@ public class AudiobookService {
         });
     }
 
+    /**
+     * A version of the clip with only the range kept, or with the range cut out ({@code ClipTrim}).
+     *
+     * @param from the start of the range in seconds
+     * @param to   the end of the range in seconds
+     */
+    public Clip trimClip(String uuid, double from, double to, boolean keep) throws BackendException {
+        byte[] bytes = clipBytes(uuid);
+        if (bytes == null) {
+            throw new BackendException("The clip is gone");
+        }
+        byte[] trimmed = com.github.enerccio.marginalia.extensions.audiobook.audio.ClipTrim.trim(bytes, from, to, keep);
+        String range = String.format(java.util.Locale.ROOT, "%.1f-%.1f s", from, to);
+        String name = (keep ? T.localized(VERSION_PART) : T.localized(VERSION_WITHOUT)).formatted(range);
+        return storeVersion(uuid, trimmed, "wav", name, (keep ? "trim " : "cut ") + range);
+    }
+
     /** Puts the version wherever its parent is used (see {@link #replaceClip}); 0 for an original. */
     public int useVersion(String versionUuid) {
         String parent = clips().stream().filter(c -> c.uuid().equals(versionUuid)).map(Clip::parent).findFirst().orElse(null);

@@ -211,7 +211,19 @@ noise, 50 Hz hum and an echo added:
 - The plugin's *Film or game clip* (vocals → denoise) through `ComfyCleaner`: the noisy copy went from floor -38 dB (*Poor*, background) to -89 dB
   (*Clean*), the original clip from -46 dB to -64 dB, about 25 s a clip. Not judged by ear yet.
 
-Open: whether a separated clip clones better with Higgs (a sample with the original and the cleaned clip), the de-echo models.
+- The user's own clips: *Film or game clip* gave a clean voice, but owl hoots of the source stayed (a hoot is tonal and syllable-like: a vocals model
+  keeps it as voice). On that clip BS-Roformer vocals, MelBand + the aggressive denoise and MelBand at aggressiveness 20 hardly differed; MDX23C
+  InstVoc broke the voice completely. Separation models do not remove animal sounds.
+
+Done: **Trim** in the Clip tab (keep a range or cut it out, as a version; `ClipTrim`, 16-bit wav in Java with 10 ms fades, else `Ffmpeg.trim`), a
+player with a seek bar and **Download**. Not tried in a running application.
+
+- De-reverb: after `samplerate` 0.2.4 was installed in the container (0.1.0 needed the missing system `libsamplerate`), `UVR-DeEcho-DeReverb`
+  works (about 5 s for 16 s; the voice is the *remaining* output). On the user's 11 s film clip the user liked vocals → de-reverb → denoise best,
+  better than vocals → denoise (which made the room stand out) or with the de-reverb last. Now the default *Film or game clip* and *Remove echo*.
+
+Open: a speech-only enhancement model (DeepFilterNet, Resemble Enhance:
+another node pack); whether a separated clip clones better with Higgs; the de-echo models.
 
 ## Open
 

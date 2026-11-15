@@ -75,3 +75,8 @@
 .audiobook-convert-audio {
     width: 100%;
 }
+
+/* The player of the selected clip in Voices and clips (its seek bar finds the place of a sound to cut) */
+.audiobook-clip-player {
+    width: 100%;
+}

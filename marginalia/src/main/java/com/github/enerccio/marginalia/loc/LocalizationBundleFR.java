@@ -1116,6 +1116,7 @@ public class LocalizationBundleFR extends LocalizationBundleBase {
         setValue(L.LABEL_UNLOAD_NOW, "Décharger maintenant");
         setValue(L.LABEL_TEST_STEP, "Tester");
         setValue(L.LABEL_REMOVE, "Retirer");
+        setValue(L.LABEL_USED_OUTSIDE_MARGINALIA, "Utilisé aussi hors de Marginalia");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "Compatible OpenAI");
@@ -2059,6 +2060,7 @@ public class LocalizationBundleFR extends LocalizationBundleBase {
         setValue(L.HELP_GPU_STEP_HEADERS, "Un en-tête par ligne, Nom : valeur. Enregistrés chiffrés.");
         setValue(L.HELP_GPU_ACQUIRE_STEPS, "Exécutées dans l'ordre avant la première tâche de ce verrou ; le premier échec les arrête.");
         setValue(L.HELP_GPU_RELEASE_STEPS, "Exécutées quand une tâche d'un autre verrou a besoin du GPU, ou avec Décharger maintenant ; toutes s'exécutent, même si l'une échoue.");
+        setValue(L.HELP_GPU_USED_OUTSIDE, "D'autres programmes ou personnes utilisent aussi ce GPU : Marginalia exécute alors les étapes d'acquisition d'un verrou avant chaque tâche, pas seulement quand le GPU change de verrou, car il ne peut pas savoir ce qui est chargé. Les étapes d'acquisition de chaque verrou doivent alors faire de la place elles-mêmes (décharger les autres modèles) et pouvoir être répétées sans risque.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Lore de fond et contexte du monde.");

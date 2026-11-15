@@ -1116,6 +1116,7 @@ public class LocalizationBundleIT extends LocalizationBundleBase {
         setValue(L.LABEL_UNLOAD_NOW, "Scarica ora");
         setValue(L.LABEL_TEST_STEP, "Prova");
         setValue(L.LABEL_REMOVE, "Rimuovi");
+        setValue(L.LABEL_USED_OUTSIDE_MARGINALIA, "Usata anche fuori da Marginalia");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "Compatibile con OpenAI");
@@ -2059,6 +2060,7 @@ public class LocalizationBundleIT extends LocalizationBundleBase {
         setValue(L.HELP_GPU_STEP_HEADERS, "Un'intestazione per riga, Nome: valore. Salvate cifrate.");
         setValue(L.HELP_GPU_ACQUIRE_STEPS, "Eseguiti in ordine prima del primo lavoro di questo blocco; il primo errore li ferma.");
         setValue(L.HELP_GPU_RELEASE_STEPS, "Eseguiti quando un lavoro di un altro blocco ha bisogno della GPU, o con Scarica ora; vengono eseguiti tutti, anche se uno non riesce.");
+        setValue(L.HELP_GPU_USED_OUTSIDE, "Anche altri programmi o persone usano questa GPU: Marginalia esegue allora i passi di acquisizione di un blocco prima di ogni lavoro, non solo quando la GPU cambia blocco, perché non può sapere cosa è caricato. I passi di acquisizione di ogni blocco devono allora fare spazio da soli (scaricare gli altri modelli) ed essere ripetibili senza rischi.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Lore di sfondo e contesto del mondo.");

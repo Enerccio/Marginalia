@@ -383,6 +383,17 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
     public static final String FIXER_MODE_DEGRADED = "Seriously degraded voice";
     public static final String THE_CLEANUP_WORKS = "The cleanup works: ComfyUI offers %d separation models.";
     public static final String KEEP_HELP = "Which output holds the voice depends on the model: a vocals model extracts the voice, a denoise model extracts the noise (keep the remaining). Listen to the result once.";
+    public static final String FROM_SECONDS = "From (s)";
+    public static final String TO_SECONDS = "To (s)";
+    public static final String TAKE_THE_PLACE_OF_THE_PLAYER = "Take the place of the player";
+    public static final String KEEP_THIS_PART = "Keep this part";
+    public static final String CUT_THIS_PART_OUT = "Cut this part out";
+    public static final String TRIM = "Trim";
+    public static final String TRIM_HELP = "Makes a version of the clip with only this part, or without it (a sound no cleanup removes: an animal, a cough, a door). Find the place with the player.";
+    public static final String GIVE_A_RANGE = "Give where the part starts and ends (From before To).";
+    public static final String THE_CLIP_COULD_NOT_BE_TRIMMED = "The clip could not be trimmed: %s";
+    public static final String VERSION_PART = "part %s";
+    public static final String VERSION_WITHOUT = "without %s";
     public static final String GPU_LOCK_HELP = "The GPU lock the administrator set up for the GPU of this server: every batch and sample waits for its turn on the GPU, and the lock's steps load the server first (freeing the language model or another server when needed). Empty: no lock.";
 
     @Override
@@ -3137,5 +3148,93 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
         de(KEEP_HELP, "Welcher Ausgang die Stimme enthält, hängt vom Modell ab: Ein Gesangsmodell extrahiert die Stimme, ein Entrauschungsmodell das Rauschen (Rest behalten). Hör dir das Ergebnis einmal an.");
         ko(KEEP_HELP, "목소리가 어느 출력에 담기는지는 모델에 따라 다릅니다. 보컬 모델은 목소리를, 잡음 제거 모델은 잡음을 추출합니다(나머지 쪽 유지). 결과를 한 번 들어 보세요.");
         it(KEEP_HELP, "Quale uscita contiene la voce dipende dal modello: un modello di voce estrae la voce, un modello di riduzione del rumore estrae il rumore (tieni il resto). Ascolta il risultato una volta.");
+
+        ja(FROM_SECONDS, "開始 (秒)");
+        zh(FROM_SECONDS, "起点（秒）");
+        fr(FROM_SECONDS, "De (s)");
+        es(FROM_SECONDS, "Desde (s)");
+        de(FROM_SECONDS, "Von (s)");
+        ko(FROM_SECONDS, "시작(초)");
+        it(FROM_SECONDS, "Da (s)");
+
+        ja(TO_SECONDS, "終了 (秒)");
+        zh(TO_SECONDS, "终点（秒）");
+        fr(TO_SECONDS, "À (s)");
+        es(TO_SECONDS, "Hasta (s)");
+        de(TO_SECONDS, "Bis (s)");
+        ko(TO_SECONDS, "끝(초)");
+        it(TO_SECONDS, "A (s)");
+
+        ja(TAKE_THE_PLACE_OF_THE_PLAYER, "プレーヤーの再生位置を使う");
+        zh(TAKE_THE_PLACE_OF_THE_PLAYER, "使用播放器的当前位置");
+        fr(TAKE_THE_PLACE_OF_THE_PLAYER, "Prendre la position du lecteur");
+        es(TAKE_THE_PLACE_OF_THE_PLAYER, "Tomar la posición del reproductor");
+        de(TAKE_THE_PLACE_OF_THE_PLAYER, "Position des Players übernehmen");
+        ko(TAKE_THE_PLACE_OF_THE_PLAYER, "플레이어의 현재 위치 사용");
+        it(TAKE_THE_PLACE_OF_THE_PLAYER, "Prendi la posizione del lettore");
+
+        ja(KEEP_THIS_PART, "この部分を残す");
+        zh(KEEP_THIS_PART, "保留这一段");
+        fr(KEEP_THIS_PART, "Garder ce passage");
+        es(KEEP_THIS_PART, "Conservar esta parte");
+        de(KEEP_THIS_PART, "Diesen Teil behalten");
+        ko(KEEP_THIS_PART, "이 부분 유지");
+        it(KEEP_THIS_PART, "Tieni questa parte");
+
+        ja(CUT_THIS_PART_OUT, "この部分を切り取る");
+        zh(CUT_THIS_PART_OUT, "剪掉这一段");
+        fr(CUT_THIS_PART_OUT, "Couper ce passage");
+        es(CUT_THIS_PART_OUT, "Cortar esta parte");
+        de(CUT_THIS_PART_OUT, "Diesen Teil herausschneiden");
+        ko(CUT_THIS_PART_OUT, "이 부분 잘라내기");
+        it(CUT_THIS_PART_OUT, "Taglia questa parte");
+
+        ja(TRIM, "トリミング");
+        zh(TRIM, "剪辑");
+        fr(TRIM, "Couper");
+        es(TRIM, "Recortar");
+        de(TRIM, "Schneiden");
+        ko(TRIM, "자르기");
+        it(TRIM, "Taglia");
+
+        ja(TRIM_HELP, "この部分だけ、またはこの部分を除いたクリップのバージョンを作ります (クリーンアップで消えない音: 動物、咳、ドア)。場所はプレーヤーで探してください。");
+        zh(TRIM_HELP, "生成只含这一段或去掉这一段的片段版本（清理去不掉的声音：动物、咳嗽、关门声）。用播放器找到位置。");
+        fr(TRIM_HELP, "Crée une version de l'extrait avec seulement ce passage, ou sans lui (un son qu'aucun nettoyage n'enlève : un animal, une toux, une porte). Trouvez l'endroit avec le lecteur.");
+        es(TRIM_HELP, "Crea una versión del clip solo con esta parte, o sin ella (un sonido que ninguna limpieza quita: un animal, una tos, una puerta). Busca el lugar con el reproductor.");
+        de(TRIM_HELP, "Macht eine Version des Clips nur mit diesem Teil oder ohne ihn (ein Geräusch, das keine Bereinigung entfernt: ein Tier, ein Husten, eine Tür). Finde die Stelle mit dem Player.");
+        ko(TRIM_HELP, "이 부분만 남기거나 이 부분을 뺀 클립 버전을 만듭니다(정리로 지워지지 않는 소리: 동물, 기침, 문). 위치는 플레이어로 찾으세요.");
+        it(TRIM_HELP, "Crea una versione della clip con solo questa parte, o senza (un suono che nessuna pulizia toglie: un animale, una tosse, una porta). Trova il punto con il lettore.");
+
+        ja(GIVE_A_RANGE, "部分の開始と終了を指定してください (開始 < 終了)。");
+        zh(GIVE_A_RANGE, "请填写这一段的起点和终点（起点小于终点）。");
+        fr(GIVE_A_RANGE, "Indiquez où le passage commence et finit (De avant À).");
+        es(GIVE_A_RANGE, "Indica dónde empieza y termina la parte (Desde antes de Hasta).");
+        de(GIVE_A_RANGE, "Gib an, wo der Teil beginnt und endet (Von vor Bis).");
+        ko(GIVE_A_RANGE, "부분의 시작과 끝을 입력하세요(시작이 끝보다 앞).");
+        it(GIVE_A_RANGE, "Indica dove la parte inizia e finisce (Da prima di A).");
+
+        ja(THE_CLIP_COULD_NOT_BE_TRIMMED, "クリップをトリミングできませんでした: %s");
+        zh(THE_CLIP_COULD_NOT_BE_TRIMMED, "无法剪辑片段：%s");
+        fr(THE_CLIP_COULD_NOT_BE_TRIMMED, "L'extrait n'a pas pu être coupé : %s");
+        es(THE_CLIP_COULD_NOT_BE_TRIMMED, "No se pudo recortar el clip: %s");
+        de(THE_CLIP_COULD_NOT_BE_TRIMMED, "Der Clip konnte nicht geschnitten werden: %s");
+        ko(THE_CLIP_COULD_NOT_BE_TRIMMED, "클립을 자를 수 없습니다: %s");
+        it(THE_CLIP_COULD_NOT_BE_TRIMMED, "Impossibile tagliare la clip: %s");
+
+        ja(VERSION_PART, "部分 %s");
+        zh(VERSION_PART, "片段 %s");
+        fr(VERSION_PART, "passage %s");
+        es(VERSION_PART, "parte %s");
+        de(VERSION_PART, "Teil %s");
+        ko(VERSION_PART, "부분 %s");
+        it(VERSION_PART, "parte %s");
+
+        ja(VERSION_WITHOUT, "%s を除く");
+        zh(VERSION_WITHOUT, "去掉 %s");
+        fr(VERSION_WITHOUT, "sans %s");
+        es(VERSION_WITHOUT, "sin %s");
+        de(VERSION_WITHOUT, "ohne %s");
+        ko(VERSION_WITHOUT, "%s 제외");
+        it(VERSION_WITHOUT, "senza %s");
     }
 }

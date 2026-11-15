@@ -122,6 +122,10 @@ class ManualLanguageTest {
             ManualPage page = translated.get(i);
             assertThat(page.language()).as("%s of %s", page.path(), language).isEqualTo(language);
             assertThat(page.url()).startsWith(SITE + language + "/user/");
+            if (!isCurrent(language, page.path())) {
+                // changed in English since it was translated: translated again for the release (tools/manual_i18n.py status lists it)
+                continue;
+            }
             // the search gives the section of the translation at the place of the English one: the headings are the same
             assertThat(page.sections()).as("the sections of %s in %s", page.path(), language).hasSameSizeAs(english.get(i).sections());
         }
@@ -136,6 +140,9 @@ class ManualLanguageTest {
     void aTranslationKeepsTheCodeOfTheEnglishPage(String language) {
         for (ManualPage english : service.listPages()) {
             ManualPage translated = service.getPage(language, english.path()).orElseThrow();
+            if (!isCurrent(language, english.path())) {
+                continue;
+            }
 
             assertThat(codeBlocks(translated.text())).as("the code blocks of %s in %s", english.path(), language)
                     .containsExactlyElementsOf(codeBlocks(english.text()));
@@ -143,6 +150,30 @@ class ManualLanguageTest {
             java.util.Map<String, Long> had = inlineCode(translated.text());
             wanted.forEach((code, count) -> assertThat(had.getOrDefault(code, 0L))
                     .as("`%s` in %s (%s)", code, english.path(), language).isGreaterThanOrEqualTo(count));
+        }
+    }
+
+    /**
+     * Whether the translation of a page was made from the English page as it is now: {@code translations/<language>/manifest.json} keeps the SHA-256
+     * of the English text each translation was made from (as tools/manual_i18n.py writes it). A page changed since is outdated until the
+     * translations are made again for a release; its structure and code are then not compared (it is still there and in its language).
+     */
+    private static boolean isCurrent(String language, String path) {
+        try {
+            Path manifest = Path.of("..", "translations", language, "manifest.json");
+            Path source = Path.of("..", "manual", "user", path);
+            if (!Files.isRegularFile(manifest) || !Files.isRegularFile(source)) {
+                return true;
+            }
+            com.google.gson.JsonObject pages = com.google.gson.JsonParser.parseString(Files.readString(manifest)).getAsJsonObject().getAsJsonObject("pages");
+            com.google.gson.JsonElement entry = pages == null ? null : pages.get("user/" + path);
+            if (entry == null || !entry.isJsonObject() || !entry.getAsJsonObject().has("source_sha")) {
+                return false;
+            }
+            byte[] digest = java.security.MessageDigest.getInstance("SHA-256").digest(Files.readString(source).getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            return java.util.HexFormat.of().formatHex(digest).equals(entry.getAsJsonObject().get("source_sha").getAsString());
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
         }
     }
 

@@ -25,8 +25,14 @@ public final class GpuArbiter {
      * A lock as the arbiter needs it, read from the database by the resolver.
      *
      * @param maxConcurrent 0 for no limit
+     * @param acquireEachJob the GPU is used outside the application too: what it holds is never trusted, the acquire steps run before every job of
+     *                       the lock, also when the GPU is loaded with it
      */
-    public record LockDef(String uuid, String name, String gpuUuid, int maxConcurrent, List<Step> acquire, List<Step> release) {
+    public record LockDef(String uuid, String name, String gpuUuid, int maxConcurrent, List<Step> acquire, List<Step> release, boolean acquireEachJob) {
+
+        public LockDef(String uuid, String name, String gpuUuid, int maxConcurrent, List<Step> acquire, List<Step> release) {
+            this(uuid, name, gpuUuid, maxConcurrent, acquire, release, false);
+        }
     }
 
     /** Runs the steps; {@link GpuStepRunner} in the application, a fake in the tests. */
@@ -227,7 +233,12 @@ public final class GpuArbiter {
                 state.queue.pollFirst();
                 state.active++;
                 Held held = new Held(state, head.lock());
-                after.add(() -> grant(head, held));
+                if (head.lock().acquireEachJob()) {
+                    // the GPU may have been used by someone else since: its acquire steps make sure it holds the lock (they make room themselves)
+                    after.add(() -> executor.execute(() -> recheck(state, head, held)));
+                } else {
+                    after.add(() -> grant(head, held));
+                }
                 continue;
             }
             if (state.active > 0) {
@@ -309,6 +320,30 @@ public final class GpuArbiter {
         }
         Held held = new Held(state, waiter.lock());
         finish(state, waiter.lock(), held);
+        grant(waiter, held);
+    }
+
+    /**
+     * The acquire steps of the loaded lock again, before a job of a GPU that is used outside the application too; the job's place is already
+     * counted. A failure fails the job and leaves the GPU unknown. Runs on a thread of its own.
+     */
+    private void recheck(State state, Waiter waiter, Held held) {
+        LockDef current = resolver.apply(waiter.lock().uuid());
+        try {
+            log.debug("GPU {}: acquiring \"{}\" again for a job (the GPU is used outside Marginalia too)", state.gpuUuid, waiter.lock().name());
+            runner.runAll((current != null ? current : waiter.lock()).acquire());
+        } catch (GpuException | RuntimeException e) {
+            log.warn("GPU {}: the acquire steps of \"{}\" failed: {}", state.gpuUuid, waiter.lock().name(), e.getMessage());
+            synchronized (state) {
+                if (state.loaded != null && state.loaded.uuid().equals(waiter.lock().uuid())) {
+                    state.loaded = null;
+                }
+            }
+            // gives the place back and lets the queue go on (a job of the same lock now switches: its steps run again)
+            held.close();
+            waiter.lease().completeExceptionally(e instanceof GpuException ? e : new GpuException(e.getMessage(), e));
+            return;
+        }
         grant(waiter, held);
     }
 

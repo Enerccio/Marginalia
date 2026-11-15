@@ -1116,6 +1116,7 @@ public class LocalizationBundleKO extends LocalizationBundleBase {
         setValue(L.LABEL_UNLOAD_NOW, "지금 해제");
         setValue(L.LABEL_TEST_STEP, "테스트");
         setValue(L.LABEL_REMOVE, "제거");
+        setValue(L.LABEL_USED_OUTSIDE_MARGINALIA, "Marginalia 밖에서도 사용");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 호환");
@@ -2059,6 +2060,7 @@ public class LocalizationBundleKO extends LocalizationBundleBase {
         setValue(L.HELP_GPU_STEP_HEADERS, "한 줄에 헤더 하나, 이름: 값. 암호화되어 저장됩니다.");
         setValue(L.HELP_GPU_ACQUIRE_STEPS, "이 잠금의 첫 작업 전에 순서대로 실행됩니다. 첫 실패에서 멈춥니다.");
         setValue(L.HELP_GPU_RELEASE_STEPS, "다른 잠금의 작업이 GPU를 필요로 할 때나 '지금 해제'로 실행됩니다. 하나가 실패해도 모두 실행됩니다.");
+        setValue(L.HELP_GPU_USED_OUTSIDE, "다른 프로그램이나 사람도 이 GPU를 사용합니다. Marginalia는 무엇이 로드되어 있는지 알 수 없으므로 GPU의 잠금이 바뀔 때뿐 아니라 모든 작업 전에 잠금의 획득 단계를 실행합니다. 이때 각 잠금의 획득 단계는 스스로 자리를 비우고(다른 모델 해제) 반복해도 안전해야 합니다.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "배경 로어와 세계관 컨텍스트.");

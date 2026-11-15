@@ -1116,6 +1116,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_UNLOAD_NOW, "今すぐ解放");
         setValue(L.LABEL_TEST_STEP, "テスト");
         setValue(L.LABEL_REMOVE, "削除");
+        setValue(L.LABEL_USED_OUTSIDE_MARGINALIA, "Marginalia の外でも使用");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -2059,6 +2060,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_GPU_STEP_HEADERS, "1 行に 1 ヘッダー、名前: 値。暗号化して保存されます。");
         setValue(L.HELP_GPU_ACQUIRE_STEPS, "このロックの最初のジョブの前に順番に実行されます。最初の失敗で止まります。");
         setValue(L.HELP_GPU_RELEASE_STEPS, "別のロックのジョブが GPU を必要とするとき、または「今すぐ解放」で実行されます。一つが失敗してもすべて実行されます。");
+        setValue(L.HELP_GPU_USED_OUTSIDE, "他のプログラムや人もこの GPU を使います。Marginalia は何が読み込まれているか分からないため、GPU のロックが切り替わるときだけでなく、すべてのジョブの前にロックの取得ステップを実行します。各ロックの取得ステップは自分で場所を空け (他のモデルを解放し)、繰り返しても安全である必要があります。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");

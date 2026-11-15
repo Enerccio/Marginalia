@@ -1116,6 +1116,7 @@ public class LocalizationBundleDE extends LocalizationBundleBase {
         setValue(L.LABEL_UNLOAD_NOW, "Jetzt entladen");
         setValue(L.LABEL_TEST_STEP, "Testen");
         setValue(L.LABEL_REMOVE, "Entfernen");
+        setValue(L.LABEL_USED_OUTSIDE_MARGINALIA, "Auch außerhalb von Marginalia genutzt");
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI-kompatibel");
         setValue(L.ENUM_PROTOCOL_TYPE_OPEN_CHAT_COMPLETION, "Chat Completion");
@@ -2055,6 +2056,7 @@ public class LocalizationBundleDE extends LocalizationBundleBase {
         setValue(L.HELP_GPU_STEP_HEADERS, "Ein Header pro Zeile, Name: Wert. Verschlüsselt gespeichert.");
         setValue(L.HELP_GPU_ACQUIRE_STEPS, "Laufen der Reihe nach vor dem ersten Auftrag dieser Sperre; der erste Fehler stoppt sie.");
         setValue(L.HELP_GPU_RELEASE_STEPS, "Laufen, wenn ein Auftrag einer anderen Sperre die GPU braucht, oder mit „Jetzt entladen“; alle laufen, auch wenn einer fehlschlägt.");
+        setValue(L.HELP_GPU_USED_OUTSIDE, "Auch andere Programme oder Personen nutzen diese GPU: Marginalia führt dann die Belegungsschritte einer Sperre vor jedem Auftrag aus, nicht nur, wenn die GPU die Sperre wechselt, da es nicht wissen kann, was geladen ist. Die Belegungsschritte jeder Sperre müssen dann selbst Platz schaffen (die anderen Modelle entladen) und gefahrlos wiederholbar sein.");
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Hintergrund-Lore und Weltkontext.");
         setValue(L.DESC_TEMPLATE_MANUSCRIPT, "Der laufende Manuskriptinhalt für die Zusammenfassung.");

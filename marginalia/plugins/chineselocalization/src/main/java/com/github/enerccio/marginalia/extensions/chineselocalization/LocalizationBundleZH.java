@@ -1124,6 +1124,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_UNLOAD_NOW, "立即卸载");
         setValue(L.LABEL_TEST_STEP, "测试");
         setValue(L.LABEL_REMOVE, "移除");
+        setValue(L.LABEL_USED_OUTSIDE_MARGINALIA, "也在 Marginalia 之外使用");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -2067,6 +2068,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_GPU_STEP_HEADERS, "每行一个请求头，名称: 值。加密存储。");
         setValue(L.HELP_GPU_ACQUIRE_STEPS, "在此锁的第一个作业之前按顺序运行；第一次失败即停止。");
         setValue(L.HELP_GPU_RELEASE_STEPS, "当另一个锁的作业需要 GPU 或点击“立即卸载”时运行；即使其中一个失败，也会全部运行。");
+        setValue(L.HELP_GPU_USED_OUTSIDE, "其他程序或人员也使用此 GPU：由于 Marginalia 无法知道加载了什么，它会在每个作业之前运行锁的获取步骤，而不仅是在 GPU 切换锁时。此时每个锁的获取步骤必须自行腾出空间（卸载其他模型），并且可以安全地重复执行。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");

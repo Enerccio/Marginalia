@@ -1116,6 +1116,7 @@ public class LocalizationBundleES extends LocalizationBundleBase {
         setValue(L.LABEL_UNLOAD_NOW, "Descargar ahora");
         setValue(L.LABEL_TEST_STEP, "Probar");
         setValue(L.LABEL_REMOVE, "Quitar");
+        setValue(L.LABEL_USED_OUTSIDE_MARGINALIA, "También se usa fuera de Marginalia");
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "Compatible con OpenAI");
         setValue(L.ENUM_PROTOCOL_TYPE_OPEN_CHAT_COMPLETION, "Chat Completion");
@@ -2055,6 +2056,7 @@ public class LocalizationBundleES extends LocalizationBundleBase {
         setValue(L.HELP_GPU_STEP_HEADERS, "Una cabecera por línea, Nombre: valor. Se guardan cifradas.");
         setValue(L.HELP_GPU_ACQUIRE_STEPS, "Se ejecutan en orden antes del primer trabajo de este bloqueo; el primer fallo los detiene.");
         setValue(L.HELP_GPU_RELEASE_STEPS, "Se ejecutan cuando un trabajo de otro bloqueo necesita la GPU, o con Descargar ahora; se ejecutan todos, aunque uno falle.");
+        setValue(L.HELP_GPU_USED_OUTSIDE, "Otros programas o personas también usan esta GPU: Marginalia ejecuta entonces los pasos de adquisición de un bloqueo antes de cada trabajo, no solo cuando la GPU cambia de bloqueo, porque no puede saber qué está cargado. Los pasos de adquisición de cada bloqueo deben entonces hacer sitio por sí mismos (descargar los otros modelos) y poder repetirse sin riesgo.");
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Lore de fondo y contexto del mundo.");
         setValue(L.DESC_TEMPLATE_MANUSCRIPT, "El contenido del manuscrito en curso para el resumen.");

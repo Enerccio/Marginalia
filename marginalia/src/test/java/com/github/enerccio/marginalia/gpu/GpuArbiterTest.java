@@ -101,6 +101,39 @@ class GpuArbiterTest {
         assertThat(arbiter.status("gpu").active()).isZero();
     }
 
+    private void outsideLock(String uuid, String gpu) {
+        locks.put(uuid, new LockDef(uuid, uuid, gpu, 0, List.of(step("load " + uuid)), List.of(step("free " + uuid)), true));
+    }
+
+    @Test
+    void onAGpuUsedOutsideTheAcquireStepsRunBeforeEveryJob() throws Exception {
+        outsideLock("comfy", "gpu");
+        get(arbiter.acquireAsync("comfy", null)).close();
+        get(arbiter.acquireAsync("comfy", null)).close();
+        GpuLease third = get(arbiter.acquireAsync("comfy", null));
+        third.close();
+
+        assertThat(log).containsExactly("load comfy", "load comfy", "load comfy");
+        assertThat(arbiter.loadedLock("gpu")).isEqualTo("comfy");
+        assertThat(arbiter.status("gpu").active()).isZero();
+    }
+
+    @Test
+    void onAGpuUsedOutsideAFailedRecheckFailsTheJobAndTheNextOneLoadsAgain() throws Exception {
+        outsideLock("comfy", "gpu");
+        lock("llm", "gpu", 0);
+        get(arbiter.acquireAsync("comfy", null)).close();
+        failing.add("load comfy");
+
+        assertThatThrownBy(() -> get(arbiter.acquireAsync("comfy", null))).hasCauseInstanceOf(GpuException.class);
+        assertThat(arbiter.loadedLock("gpu")).as("not trusted any more").isNull();
+        assertThat(arbiter.status("gpu").active()).isZero();
+
+        failing.clear();
+        get(arbiter.acquireAsync("llm", null)).close();
+        assertThat(log).as("from an unknown GPU nothing is released").containsExactly("load comfy", "load comfy", "load llm");
+    }
+
     @Test
     void anotherLockWaitsForTheJobsThenReleasesAndAcquiresInOrder() throws Exception {
         lock("llm", "gpu", 0);

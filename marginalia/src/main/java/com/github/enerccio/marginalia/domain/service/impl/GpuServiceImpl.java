@@ -120,7 +120,7 @@ public class GpuServiceImpl implements GpuService {
                             continue;
                         }
                         defs.put(lock.getUuid(), new LockDef(lock.getUuid(), lock.getName(), lock.getGpu().getUuid(), lock.getMaxConcurrent(),
-                                steps(lock.getAcquireSteps()), steps(lock.getReleaseSteps())));
+                                steps(lock.getAcquireSteps()), steps(lock.getReleaseSteps()), lock.getGpu().isUsedOutside()));
                         found.put(lock.getUuid(), new GpuLockChoice(lock.getUuid(), lock.getName(), lock.getGpu().getName()));
                     }
                 } catch (Exception e) {

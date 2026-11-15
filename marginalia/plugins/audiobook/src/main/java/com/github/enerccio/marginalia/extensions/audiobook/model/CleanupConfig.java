@@ -85,6 +85,7 @@ public class CleanupConfig {
 
     public static final String MODEL_VOCALS = "MELBAND/MelBandRoformer_fp32.safetensors";
     public static final String MODEL_DENOISE = "MELBAND/denoise_mel_band_roformer_sdr_27.99.ckpt";
+    public static final String MODEL_DEREVERB = "UVR/UVR-DeEcho-DeReverb.pth";
 
     /** The separation models of the TTS Audio Suite (shown until a test reads the list of the server). */
     public static final List<String> KNOWN_MODELS = List.of("karafan/MDX23C-8KFFT-InstVoc_HQ.ckpt", "MDX23C/model_vocals_mdx23c_sdr_10.17.ckpt",
@@ -96,16 +97,18 @@ public class CleanupConfig {
 
     /**
      * The presets a user starts with (the models come with the TTS Audio Suite, which downloads them on first use). Tried on the author's server
-     * (2026-11-15): the vocals model gives the voice as its first output, the denoise model as the remaining one; the UVR models failed there (a
-     * download that is gone, a {@code samplerate} module without {@code resample}), so they are not among the defaults.
+     * (2026-11-15): the vocals model gives the voice as its first output, the denoise and the de-reverb models as the remaining one; the de-reverb
+     * (a UVR model) needs the Python package {@code samplerate} 0.2 or newer in ComfyUI. Of the orders tried on a film clip, vocals, de-reverb, then
+     * denoise sounded best (the denoise first made the room stand out).
      */
     public static List<CleanupPreset> defaultPresets() {
         List<CleanupPreset> list = new ArrayList<>();
         list.add(new CleanupPreset("Voice from music", List.of(CleanupStep.separate(MODEL_VOCALS, CleanupStep.Keep.EXTRACTED))));
         list.add(new CleanupPreset("Remove noise", List.of(CleanupStep.separate(MODEL_DENOISE, CleanupStep.Keep.REMAINING))));
+        list.add(new CleanupPreset("Remove echo", List.of(CleanupStep.separate(MODEL_DEREVERB, CleanupStep.Keep.REMAINING))));
         list.add(new CleanupPreset("Restore the voice", List.of(CleanupStep.voiceFixer(0))));
         list.add(new CleanupPreset("Film or game clip", List.of(CleanupStep.separate(MODEL_VOCALS, CleanupStep.Keep.EXTRACTED),
-                CleanupStep.separate(MODEL_DENOISE, CleanupStep.Keep.REMAINING))));
+                CleanupStep.separate(MODEL_DEREVERB, CleanupStep.Keep.REMAINING), CleanupStep.separate(MODEL_DENOISE, CleanupStep.Keep.REMAINING))));
         return list;
     }
 }
