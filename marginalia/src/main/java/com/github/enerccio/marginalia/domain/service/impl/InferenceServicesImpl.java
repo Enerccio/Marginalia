@@ -8,7 +8,6 @@ import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.impl.inference.GatedInferenceService;
 import com.github.enerccio.marginalia.domain.service.impl.inference.ObservedInferenceService;
-import com.github.enerccio.marginalia.domain.service.AIGate;
 import com.github.enerccio.marginalia.domain.traits.SupportedAI;
 import com.github.enerccio.marginalia.extensions.ExtensionAIFactory;
 import org.apache.commons.lang3.StringUtils;
@@ -36,6 +35,9 @@ public class InferenceServicesImpl implements InferenceServices, InitializingBea
 
     @Autowired(required = false)
     private AIGate aiGate;
+
+    @Autowired(required = false)
+    private GpuService gpuService;
 
     private final Map<String, ExtensionAIFactory> extensionFactories = new ConcurrentHashMap<>();
 
@@ -121,7 +123,7 @@ public class InferenceServicesImpl implements InferenceServices, InitializingBea
         List<InferenceListener> listeners = InferenceSession.listeners();
         InferenceService observed = listeners.isEmpty() ? service : new ObservedInferenceService(service, ai, listeners);
         // every request takes a connection of the AI (outside the observation: the time in the queue is not the request's)
-        return aiGate == null ? observed : new GatedInferenceService(observed, ai, aiGate);
+        return aiGate == null ? observed : new GatedInferenceService(observed, ai, aiGate, gpuService);
     }
 
     private InferenceService cachedOrCreate(AI ai) throws Exception {

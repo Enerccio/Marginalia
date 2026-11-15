@@ -32,7 +32,7 @@ that you named; the audio is stored in your own installation, as resources linke
 
 ### Backends
 
-A backend is a speech server and the model it speaks with. Add one with **+**. **Duplicate** copies the selected one (address, keys, GPU name,
+A backend is a speech server and the model it speaks with. Add one with **+**. **Duplicate** copies the selected one (address, keys, GPU lock,
 voice, defaults and the requests before and after a batch) under a new name: the quick way to a backend of another model on the same machine,
 for example Higgs next to Chatterbox, where you then change the model, the address and the start and stop requests.
 
@@ -41,18 +41,18 @@ for example Higgs next to Chatterbox, where you then change the model, the addre
 | Name | The name shown in the Convert dialog. |
 | Address | The base address of the speech server, or of what forwards to it, for example `http://localhost:8004`. |
 | Api key | Sent as a bearer token if the server (or your proxy) wants one. It is stored encrypted and not shown again; type a new one to replace it, or **Remove the key**. |
-| Speech model | **Chatterbox Turbo** (English, with sound tags such as `[sigh]`, the fastest and the default), **Chatterbox** (English, with an *exaggeration* of the delivery), **Chatterbox Multilingual** (23 languages) or **Higgs Audio v3 in ComfyUI** (many languages, voices the mood of a line and sounds such as crying, panting or a moan; see [below](#higgs-audio-v3-emotions-and-sounds)). The requests before a batch must leave this model loaded. A book that needs another model uses another backend. |
-| GPU (name) | Optional. Servers that share one GPU, also those of the [Image Generator](image-generator.md), get the same name here: their work then waits for each other, and a backend for another model waits for the others to be done. Empty: only batches to this address wait for each other. |
+| Speech model | **Chatterbox Turbo** (English, with sound tags such as `[sigh]`, the fastest and the default), **Chatterbox** (English, with an *exaggeration* of the delivery), **Chatterbox Multilingual** (23 languages) or **Higgs Audio v3 in ComfyUI** (many languages, voices the mood of a line and sounds such as crying, panting or a moan; see [below](#higgs-audio-v3-emotions-and-sounds)). The [GPU lock](../administration/gpus.md) of the backend (or the requests before a batch) must leave this model loaded. A book that needs another model uses another backend. |
+| GPU lock | The [GPU lock](../administration/gpus.md) of the GPU the server runs on, when it shares it with the language model or other servers (the [Image Generator](image-generator.md)'s too): every batch and sample takes its turn on the GPU and the lock loads the speech server first. Shown only when the administrator set up GPU locks. |
 | The server is on this machine or on my network | Allows addresses of the local network. Leave it off for a server in the cloud: it then cannot be made to call your own machine. |
 | Timeout of a request | How long to wait for one piece of speech. |
 | Restart the server after (pieces) | For a speech server that leaks memory and is killed by the system in a long batch: after this many pieces the requests after the batch and then the requests before it are made again in the middle of the batch (stop, start, load), and the work goes on with a fresh server. 0 (the default) never does it. A server that dies is started again whatever this says, see [Troubleshooting](audiobook-server.md#troubleshooting). |
 | Key of the requests around a batch | The key the requests before and after a batch carry as `Authorization: Bearer`. It is stored encrypted and not shown again (**Remove the key** clears it), so it does not have to be written into the headers of each request, where it would be readable. Empty: the *Api key* above is used, which is what you want when one proxy such as LiteLLM serves everything. A request that has an `Authorization` header of its own keeps it. |
 | Narrator voice | The narrator of a book that has no cast. A voice file of the server is written `predefined:Henry.wav`. |
 | Defaults of a segment | Temperature, CFG weight, speed and chunk size that a piece starts with (the studio can change them for one piece). Higgs uses only the temperature. |
-| Before a batch, After a batch | The requests made around a batch of parts: *before* frees the graphics card and starts the speech server, *after* stops it. See [One GPU for the model and the speech](audiobook-server.md#one-gpu-for-the-model-and-the-speech). Empty does nothing. |
+| Before a batch, After a batch | Requests made around each batch of parts (and each sample), inside the GPU lock. Freeing the graphics card and starting the speech server is the job of the GPU lock; see [One GPU for the model and the speech](audiobook-server.md#one-gpu-for-the-model-and-the-speech). Empty does nothing. |
 
-**Test connection** does what a batch does: it makes the requests before a batch (so a speech server that is stopped is started), asks the server whether it is there and has a model loaded,
-and makes the requests after the batch. Without any requests it only asks.
+**Test connection** does what a batch does: it takes the GPU lock (so a speech server that is stopped is started), makes the requests before a batch, asks the server whether it is there and has a model loaded,
+and makes the requests after the batch. Without a lock or requests it only asks.
 
 A book that has pieces in another script (Japanese in an English book) sends them to the multilingual model, if you have a backend
 for it, with their language; they stay on the model of the book when you have none. A Higgs book keeps them: Higgs reads them itself, in the same voice.
@@ -99,9 +99,9 @@ voice file of the server, with voices of its own for a **mood** (a whisper, a sh
 Japanese). The language wins over the mood, and without a voice for them the voice of the actor reads. Your actors are kept in
 your account; any book can give an actor to its narrator and its characters.
 
-**Preview** next to a voice (in the actor, the settings and the cast) has a few sentences spoken with it (a short one in the language of the voice for a language) and plays it, starting the speech server if the requests before a batch do that. The arrow beside it offers other samples: **with sounds** (a sigh, a laugh, a gasp) for the models that voice them (Chatterbox Turbo, Higgs Audio v3), and for Higgs every **mood** of the labelling (sad, whispered, sarcastic...). The actors are listed by name.
+**Preview** next to a voice (in the actor, the settings and the cast) has a few sentences spoken with it (a short one in the language of the voice for a language) and plays it; when the GPU holds something else, the GPU lock loads the speech server first. The arrow beside it offers other samples: **with sounds** (a sigh, a laugh, a gasp) for the models that voice them (Chatterbox Turbo, Higgs Audio v3), and for Higgs every **mood** of the labelling (sad, whispered, sarcastic...). The actors are listed by name.
 
-While **Voices and clips**, an actor or the cast is open, the speech server stays up for the samples: the requests before a batch run once (when *Voices and clips* opens, or with the first sample in the others), the next samples come at once, and the requests after a batch run when the last of these windows is closed. A window left open for five minutes without a sample gives the server back, and the next sample starts it again.
+Each sample takes the GPU for itself only. The GPU stays loaded with the speech server after a sample, so the next samples come at once, until a request of the language model (or another server) needs the GPU. Opening **Voices and clips** loads the speech server already, so its first sample does not wait.
 
 ![An actor with a voice for a mood](../../images/plugin-audiobook-actor.png)
 

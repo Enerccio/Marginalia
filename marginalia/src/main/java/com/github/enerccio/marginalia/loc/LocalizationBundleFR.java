@@ -1093,6 +1093,29 @@ public class LocalizationBundleFR extends LocalizationBundleBase {
         setValue(L.LABEL_SEND_LORE_IMAGES, "Envoyer les images du lore");
         setValue(L.LABEL_LORE_IMAGES_IN_SYSTEM, "Images dans le message système");
         setValue(L.LABEL_PROMPT_LANGUAGE, "Langue des prompts");
+        setValue(L.LABEL_GPU_LOCK, "Verrou GPU");
+        setValue(L.LABEL_NO_GPU_LOCK, "Aucun verrou GPU");
+        setValue(L.LABEL_GPUS, "GPU");
+        setValue(L.LABEL_GPU, "GPU");
+        setValue(L.LABEL_GPU_LOCKS, "Verrous GPU");
+        setValue(L.LABEL_GPU_STEPS, "Étapes GPU");
+        setValue(L.LABEL_ADD_GPU, "Ajouter un GPU");
+        setValue(L.LABEL_ADD_GPU_LOCK, "Ajouter un verrou");
+        setValue(L.LABEL_ADD_GPU_STEP, "Ajouter une étape");
+        setValue(L.LABEL_ACQUIRE_STEPS, "Étapes d'acquisition");
+        setValue(L.LABEL_RELEASE_STEPS, "Étapes de libération");
+        setValue(L.LABEL_MAX_CONCURRENT_JOBS, "Tâches simultanées");
+        setValue(L.LABEL_HTTP_URL, "URL");
+        setValue(L.LABEL_HTTP_METHOD, "Méthode");
+        setValue(L.LABEL_HTTP_HEADERS, "En-têtes");
+        setValue(L.LABEL_HTTP_BODY, "Corps");
+        setValue(L.LABEL_WAIT_AFTER_SECONDS, "Attente après (secondes)");
+        setValue(L.LABEL_LOADED_LOCK, "Chargé");
+        setValue(L.LABEL_NOTHING_LOADED, "Inconnu");
+        setValue(L.LABEL_GPU_JOBS, "Tâches (en cours / en attente)");
+        setValue(L.LABEL_UNLOAD_NOW, "Décharger maintenant");
+        setValue(L.LABEL_TEST_STEP, "Tester");
+        setValue(L.LABEL_REMOVE, "Retirer");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "Compatible OpenAI");
@@ -1399,6 +1422,8 @@ public class LocalizationBundleFR extends LocalizationBundleBase {
         setValue(L.ERROR_COMMAND_LORE_RANGE_EMPTY, "La plage est vide : elle commence à la partie %d et finit à la partie %d.");
         setValue(L.ERROR_HELD_BY_RUN, "Ceci est en cours d'utilisation : %s. Attendez la fin ou arrêtez-le.");
         setValue(L.ERROR_COMMAND_STILL_RUNNING, "La commande %s est toujours en cours. Attendez la fin ou arrêtez-la.");
+        setValue(L.ERROR_GPU_STEP_FAILED, "L'étape a échoué : %s");
+        setValue(L.ERROR_GPU_UNLOAD_FAILED, "Une étape de libération a échoué : %s");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "Impossible d'enregistrer le formulaire.");
@@ -1890,6 +1915,11 @@ public class LocalizationBundleFR extends LocalizationBundleBase {
         setValue(L.MSG_LAST_CHANGE_NOT_SAVED, "Votre dernière modification n'a pas été enregistrée.");
         setValue(L.MSG_ACTIVATION_PREVIEW_ENTRY_USED, "« %s » est utilisée : %s.");
         setValue(L.MSG_ACTIVATION_PREVIEW_ENTRY_NOT_USED, "« %s » n'est pas utilisée : %s.");
+        setValue(L.MSG_GPU_STEP_OK, "L'étape a réussi.");
+        setValue(L.MSG_GPU_UNLOADED, "Le GPU a été déchargé.");
+        setValue(L.MSG_DELETE_GPU, "Supprimer le GPU « %s » et ses verrous ?");
+        setValue(L.MSG_DELETE_GPU_LOCK, "Supprimer le verrou « %s » ? Les IA et les serveurs qui l'utilisent fonctionnent sans verrou.");
+        setValue(L.MSG_DELETE_GPU_STEP, "Supprimer l'étape « %s » ? Elle est retirée des verrous qui l'exécutent.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute heure jour-du-mois mois jour-de-la-semaine - p. ex. \"0 3 * * *\" tous les jours à 3 h 00, \"0 */6 * * *\" toutes les 6 heures, \"30 2 * * 1\" le lundi à 2 h 30. @daily, @weekly et @monthly fonctionnent aussi.");
@@ -2023,6 +2053,12 @@ public class LocalizationBundleFR extends LocalizationBundleBase {
         setValue(L.HELP_SEND_LORE_IMAGES, "Envoyer les images contenues dans les entrées de lorebook utilisées par le tour avec le lore. Seulement pour un modèle qui accepte les images : un modèle sans vision refuse la requête.");
         setValue(L.HELP_LORE_IMAGES_IN_SYSTEM, "Mettre les images du bloc de lore dans le message système lui-même au lieu d'un message à part après lui. Seulement pour un serveur et un modèle de chat qui les acceptent à cet endroit ; la plupart ne le font pas.");
         setValue(L.HELP_PROMPT_LANGUAGE, "La langue des prompts intégrés (génération, résumés, réécriture, annotations, rédaction des instructions, agents) et des prompts des plugins. Les prompts que vous avez écrits vous-même restent tels quels ; la langue de l'interface se règle à part.");
+        setValue(L.HELP_AI_GPU_LOCK, "Le GPU sur lequel tourne ce modèle, s'il est partagé avec d'autres modèles ou serveurs d'images et de voix : chaque requête attend son tour sur le GPU et le charge d'abord avec ce verrou.");
+        setValue(L.HELP_GPUS, "Un GPU contient un modèle à la fois. Un verrou indique comment le charger (étapes d'acquisition) et comment le libérer pour un autre verrou (étapes de libération). Les IA et les serveurs des extensions choisissent un verrou ; après une tâche, le GPU reste chargé jusqu'à ce qu'une tâche d'un autre verrou arrive.");
+        setValue(L.HELP_GPU_LOCK_MAX_CONCURRENT, "Combien de tâches de ce verrou tournent en même temps sur le GPU ; 0 pour aucune limite.");
+        setValue(L.HELP_GPU_STEP_HEADERS, "Un en-tête par ligne, Nom : valeur. Enregistrés chiffrés.");
+        setValue(L.HELP_GPU_ACQUIRE_STEPS, "Exécutées dans l'ordre avant la première tâche de ce verrou ; le premier échec les arrête.");
+        setValue(L.HELP_GPU_RELEASE_STEPS, "Exécutées quand une tâche d'un autre verrou a besoin du GPU, ou avec Décharger maintenant ; toutes s'exécutent, même si l'une échoue.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Lore de fond et contexte du monde.");

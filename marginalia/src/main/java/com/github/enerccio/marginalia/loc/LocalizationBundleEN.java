@@ -1093,6 +1093,29 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_SEND_LORE_IMAGES, "Send lore images");
         setValue(L.LABEL_LORE_IMAGES_IN_SYSTEM, "Images in the system message");
         setValue(L.LABEL_PROMPT_LANGUAGE, "Prompt language");
+        setValue(L.LABEL_GPU_LOCK, "GPU lock");
+        setValue(L.LABEL_NO_GPU_LOCK, "No GPU lock");
+        setValue(L.LABEL_GPUS, "GPUs");
+        setValue(L.LABEL_GPU, "GPU");
+        setValue(L.LABEL_GPU_LOCKS, "GPU locks");
+        setValue(L.LABEL_GPU_STEPS, "GPU steps");
+        setValue(L.LABEL_ADD_GPU, "Add GPU");
+        setValue(L.LABEL_ADD_GPU_LOCK, "Add lock");
+        setValue(L.LABEL_ADD_GPU_STEP, "Add step");
+        setValue(L.LABEL_ACQUIRE_STEPS, "Acquire steps");
+        setValue(L.LABEL_RELEASE_STEPS, "Release steps");
+        setValue(L.LABEL_MAX_CONCURRENT_JOBS, "Jobs at once");
+        setValue(L.LABEL_HTTP_URL, "URL");
+        setValue(L.LABEL_HTTP_METHOD, "Method");
+        setValue(L.LABEL_HTTP_HEADERS, "Headers");
+        setValue(L.LABEL_HTTP_BODY, "Body");
+        setValue(L.LABEL_WAIT_AFTER_SECONDS, "Wait after (seconds)");
+        setValue(L.LABEL_LOADED_LOCK, "Loaded");
+        setValue(L.LABEL_NOTHING_LOADED, "Nothing known");
+        setValue(L.LABEL_GPU_JOBS, "Jobs (running / waiting)");
+        setValue(L.LABEL_UNLOAD_NOW, "Unload now");
+        setValue(L.LABEL_TEST_STEP, "Test");
+        setValue(L.LABEL_REMOVE, "Remove");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1399,6 +1422,8 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ERROR_COMMAND_LORE_RANGE_EMPTY, "The range is empty: it starts at part %d and ends at part %d.");
         setValue(L.ERROR_HELD_BY_RUN, "This is in use: %s. Wait until it is done, or stop it.");
         setValue(L.ERROR_COMMAND_STILL_RUNNING, "The command %s is still running. Wait until it is done, or stop it.");
+        setValue(L.ERROR_GPU_STEP_FAILED, "The step failed: %s");
+        setValue(L.ERROR_GPU_UNLOAD_FAILED, "A release step failed: %s");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "Cannot save form.");
@@ -1890,6 +1915,11 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_LAST_CHANGE_NOT_SAVED, "Your last change was not saved.");
         setValue(L.MSG_ACTIVATION_PREVIEW_ENTRY_USED, "\"%s\" is used: %s.");
         setValue(L.MSG_ACTIVATION_PREVIEW_ENTRY_NOT_USED, "\"%s\" is not used: %s.");
+        setValue(L.MSG_GPU_STEP_OK, "The step went well.");
+        setValue(L.MSG_GPU_UNLOADED, "The GPU was unloaded.");
+        setValue(L.MSG_DELETE_GPU, "Delete the GPU \"%s\" and its locks?");
+        setValue(L.MSG_DELETE_GPU_LOCK, "Delete the lock \"%s\"? The AIs and backends that use it run without a lock.");
+        setValue(L.MSG_DELETE_GPU_STEP, "Delete the step \"%s\"? It is taken out of the locks that run it.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -2023,6 +2053,12 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_SEND_LORE_IMAGES, "Send the images in the content of the lorebook entries the turn uses along with the lore. Only for a model that accepts images: a model without vision refuses the request.");
         setValue(L.HELP_LORE_IMAGES_IN_SYSTEM, "Put the images of the lore block into the system message itself instead of a message of their own after it. Only for a server and chat template that take images there; most do not.");
         setValue(L.HELP_PROMPT_LANGUAGE, "The language of the built-in prompts (generation, summaries, redraft, annotations, impersonate, agents) and of the plugins' prompts. The prompts you wrote yourself stay as they are; the language of the interface is set apart.");
+        setValue(L.HELP_AI_GPU_LOCK, "The GPU this model runs on, when other models or image and speech servers share it: every request waits for its turn on the GPU and loads it with this lock first.");
+        setValue(L.HELP_GPUS, "A GPU holds one model at a time. A lock says how to load it (acquire steps) and how to free it for another lock (release steps). AIs and the backends of extensions pick a lock; after a job the GPU stays loaded until a job of another lock comes.");
+        setValue(L.HELP_GPU_LOCK_MAX_CONCURRENT, "How many jobs of this lock run at once on the GPU; 0 for no limit.");
+        setValue(L.HELP_GPU_STEP_HEADERS, "One header per line, Name: value. Stored encrypted.");
+        setValue(L.HELP_GPU_ACQUIRE_STEPS, "Run in order before the first job of this lock; the first failure stops them.");
+        setValue(L.HELP_GPU_RELEASE_STEPS, "Run when a job of another lock needs the GPU, or with Unload now; all of them run, also when one fails.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

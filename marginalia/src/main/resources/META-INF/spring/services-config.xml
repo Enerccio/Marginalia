@@ -266,6 +266,24 @@
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.AIGateImpl" />
 
+    <bean id="gpuRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaGpuRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean id="gpuLockRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaGpuLockRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean id="gpuStepRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaGpuStepRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.GpuServiceImpl">
+        <property name="gpuRepository" ref="gpuRepository" />
+        <property name="lockRepository" ref="gpuLockRepository" />
+        <property name="stepRepository" ref="gpuStepRepository" />
+    </bean>
+
     <bean class="com.github.enerccio.marginalia.domain.service.impl.AgentRunnerImpl" />
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.AgentVirtualFileSystemServiceImpl">

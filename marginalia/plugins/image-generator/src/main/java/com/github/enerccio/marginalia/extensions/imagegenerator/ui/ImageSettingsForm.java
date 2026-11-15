@@ -12,6 +12,7 @@ import com.github.enerccio.marginalia.extensions.imagegenerator.model.PromptForm
 import com.github.enerccio.marginalia.extensions.imagegenerator.service.ImageBackend;
 import com.github.enerccio.marginalia.extensions.imagegenerator.service.ImageGeneratorService;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.widgets.GpuLockSelect;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
 import com.github.enerccio.marginalia.ui.widgets.SettingsChanges;
@@ -75,12 +76,11 @@ public class ImageSettingsForm extends VerticalLayout {
     private final TextArea workflow = new TextArea(T.localized(WORKFLOW));
     private final Select<PromptForm> promptForm = new Select<>();
     private final TextArea instruction = new TextArea(T.localized(INSTRUCTION_FOR_THE_PROMPT_WRITER));
-    private final TextField gpu = new TextField(T.localized(GPU_NAME));
+    private final GpuLockSelect gpuLock = new GpuLockSelect();
     private final Checkbox local = new Checkbox(T.localized(THE_SERVER_IS_LOCAL));
     private final IntegerField width = new IntegerField(T.localized(WIDTH));
     private final IntegerField height = new IntegerField(T.localized(HEIGHT));
     private final IntegerField timeout = new IntegerField(T.localized(TIMEOUT_SECONDS));
-    private final IntegerField idle = new IntegerField(T.localized(RELEASE_AFTER_IDLE_SECONDS));
     private final HookListEditor before;
     private final HookListEditor after;
     private final Button test = new Button(T.localized(TEST_CONNECTION), Solid.PLUG.create(), e -> testConnection());
@@ -164,32 +164,30 @@ public class ImageSettingsForm extends VerticalLayout {
         ResizableTextArea.install(loc, workflow, "240px");
         workflow.setHelperText(T.localized(API_FORMAT_WORKFLOW));
         local.getElement().setProperty("title", T.localized(ALLOWS_ADDRESSES_OF_THE_LOCAL_NETWORK));
-        for (IntegerField f : List.of(width, height, timeout, idle)) {
+        for (IntegerField f : List.of(width, height, timeout)) {
             f.setMin(0);
             f.setStepButtonsVisible(true);
         }
-        idle.setHelperText(T.localized(THE_REQUEST_AFTER_THE_IMAGES_RUNS));
 
         HorizontalLayout identity = new HorizontalLayout(name, type);
         identity.setWrap(true);
         HorizontalLayout credentials = new HorizontalLayout(apiKey, removeKey, model);
         credentials.setWrap(true);
         credentials.setAlignItems(FlexComponent.Alignment.END);
-        HorizontalLayout numbers = new HorizontalLayout(width, height, timeout, idle);
+        HorizontalLayout numbers = new HorizontalLayout(width, height, timeout);
         numbers.setWrap(true);
 
-        Details beforeDetails = new Details(T.localized(BEFORE_THE_FIRST_IMAGE), before);
-        Details afterDetails = new Details(T.localized(AFTER_THE_LAST_IMAGE), after);
-        Span hookHint = new Span(T.localized(A_REQUEST_MADE_AROUND_THE_IMAGES));
+        Details beforeDetails = new Details(T.localized(BEFORE_EACH_IMAGE), before);
+        Details afterDetails = new Details(T.localized(AFTER_EACH_IMAGE), after);
+        Span hookHint = new Span(T.localized(REQUESTS_MADE_AROUND_EACH_IMAGE));
         hookHint.addClassName(CssStyles.HINT_TEXT);
         HorizontalLayout hooksCredentials = new HorizontalLayout(hooksKey, removeHooksKey);
         hooksCredentials.setAlignItems(FlexComponent.Alignment.BASELINE);
 
         editor.setPadding(false);
         editor.setSpacing(true);
-        gpu.setWidth("14em");
-        gpu.setHelperText(T.localized(GPU_NAME_HELP));
-        editor.add(identity, baseUrl, gpu, credentials, workflow, promptForm, instruction, local, numbers, hookHint, hooksCredentials, beforeDetails,
+        gpuLock.setHelperText(T.localized(GPU_LOCK_HELP));
+        editor.add(identity, baseUrl, gpuLock, credentials, workflow, promptForm, instruction, local, numbers, hookHint, hooksCredentials, beforeDetails,
                 afterDetails, test);
         editor.addClassName(ImageStyles.SECTION);
 
@@ -322,12 +320,11 @@ public class ImageSettingsForm extends VerticalLayout {
                 instruction.setValue(legacy);
             }
             workflow.setValue(StringUtils.defaultString(config.getWorkflow()));
-            gpu.setValue(config.getGpu());
+            gpuLock.setLockUuid(config.getGpuLock());
             local.setValue(config.isLocal());
             width.setValue(config.getWidth());
             height.setValue(config.getHeight());
             timeout.setValue(config.getTimeoutSeconds());
-            idle.setValue(config.getIdleSeconds());
             before.show(config.getBeforeHooks(), service::reveal);
             after.show(config.getAfterHooks(), service::reveal);
         } finally {
@@ -357,12 +354,14 @@ public class ImageSettingsForm extends VerticalLayout {
         current.setPromptForm(promptForm.getValue() == null ? PromptForm.TAGS : promptForm.getValue());
         current.setPromptInstruction(StringUtils.defaultIfBlank(instruction.getValue(), null));
         current.setWorkflow(StringUtils.defaultIfBlank(workflow.getValue(), null));
-        current.setGpu(gpu.getValue().strip());
+        // a lock the administrator removed (the box is hidden then) stays as it was
+        if (gpuLock.isVisible()) {
+            current.setGpuLock(gpuLock.getLockUuid());
+        }
         current.setLocal(local.getValue());
         current.setWidth(valueOr(width, BackendConfig.DEFAULT_WIDTH));
         current.setHeight(valueOr(height, BackendConfig.DEFAULT_HEIGHT));
         current.setTimeoutSeconds(valueOr(timeout, BackendConfig.DEFAULT_TIMEOUT_SECONDS));
-        current.setIdleSeconds(idle.getValue() == null ? 0 : Math.max(0, idle.getValue()));
         current.setBeforeHooks(before.read(service::protect));
         current.setAfterHooks(after.read(service::protect));
         updateKeyState();

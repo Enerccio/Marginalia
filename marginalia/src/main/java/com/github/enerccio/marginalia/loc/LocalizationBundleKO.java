@@ -1093,6 +1093,29 @@ public class LocalizationBundleKO extends LocalizationBundleBase {
         setValue(L.LABEL_SEND_LORE_IMAGES, "로어 이미지 전송");
         setValue(L.LABEL_LORE_IMAGES_IN_SYSTEM, "시스템 메시지의 이미지");
         setValue(L.LABEL_PROMPT_LANGUAGE, "프롬프트 언어");
+        setValue(L.LABEL_GPU_LOCK, "GPU 잠금");
+        setValue(L.LABEL_NO_GPU_LOCK, "GPU 잠금 없음");
+        setValue(L.LABEL_GPUS, "GPU");
+        setValue(L.LABEL_GPU, "GPU");
+        setValue(L.LABEL_GPU_LOCKS, "GPU 잠금");
+        setValue(L.LABEL_GPU_STEPS, "GPU 단계");
+        setValue(L.LABEL_ADD_GPU, "GPU 추가");
+        setValue(L.LABEL_ADD_GPU_LOCK, "잠금 추가");
+        setValue(L.LABEL_ADD_GPU_STEP, "단계 추가");
+        setValue(L.LABEL_ACQUIRE_STEPS, "획득 단계");
+        setValue(L.LABEL_RELEASE_STEPS, "해제 단계");
+        setValue(L.LABEL_MAX_CONCURRENT_JOBS, "동시 작업 수");
+        setValue(L.LABEL_HTTP_URL, "URL");
+        setValue(L.LABEL_HTTP_METHOD, "메서드");
+        setValue(L.LABEL_HTTP_HEADERS, "헤더");
+        setValue(L.LABEL_HTTP_BODY, "본문");
+        setValue(L.LABEL_WAIT_AFTER_SECONDS, "이후 대기(초)");
+        setValue(L.LABEL_LOADED_LOCK, "로드됨");
+        setValue(L.LABEL_NOTHING_LOADED, "알 수 없음");
+        setValue(L.LABEL_GPU_JOBS, "작업(실행 중 / 대기 중)");
+        setValue(L.LABEL_UNLOAD_NOW, "지금 해제");
+        setValue(L.LABEL_TEST_STEP, "테스트");
+        setValue(L.LABEL_REMOVE, "제거");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 호환");
@@ -1399,6 +1422,8 @@ public class LocalizationBundleKO extends LocalizationBundleBase {
         setValue(L.ERROR_COMMAND_LORE_RANGE_EMPTY, "범위가 비어 있습니다: 파트 %d에서 시작해 파트 %d에서 끝납니다.");
         setValue(L.ERROR_HELD_BY_RUN, "사용 중입니다: %s. 끝날 때까지 기다리거나 중지하세요.");
         setValue(L.ERROR_COMMAND_STILL_RUNNING, "%s 명령이 아직 실행 중입니다. 끝날 때까지 기다리거나 중지하세요.");
+        setValue(L.ERROR_GPU_STEP_FAILED, "단계가 실패했습니다: %s");
+        setValue(L.ERROR_GPU_UNLOAD_FAILED, "해제 단계가 실패했습니다: %s");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "양식을 저장할 수 없습니다.");
@@ -1890,6 +1915,11 @@ public class LocalizationBundleKO extends LocalizationBundleBase {
         setValue(L.MSG_LAST_CHANGE_NOT_SAVED, "마지막 변경 사항이 저장되지 않았습니다.");
         setValue(L.MSG_ACTIVATION_PREVIEW_ENTRY_USED, "\"%s\" 사용됨: %s.");
         setValue(L.MSG_ACTIVATION_PREVIEW_ENTRY_NOT_USED, "\"%s\" 사용 안 됨: %s.");
+        setValue(L.MSG_GPU_STEP_OK, "단계가 성공했습니다.");
+        setValue(L.MSG_GPU_UNLOADED, "GPU를 해제했습니다.");
+        setValue(L.MSG_DELETE_GPU, "GPU \"%s\"와 그 잠금을 삭제할까요?");
+        setValue(L.MSG_DELETE_GPU_LOCK, "잠금 \"%s\"을(를) 삭제할까요? 이를 쓰는 AI와 백엔드는 잠금 없이 동작합니다.");
+        setValue(L.MSG_DELETE_GPU_STEP, "단계 \"%s\"을(를) 삭제할까요? 이를 실행하는 잠금에서 빠집니다.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "분 시 일 월 요일 - 예: \"0 3 * * *\"은 매일 3:00, \"0 */6 * * *\"은 6시간마다, \"30 2 * * 1\"은 월요일 2:30. @daily, @weekly, @monthly도 사용할 수 있습니다.");
@@ -2023,6 +2053,12 @@ public class LocalizationBundleKO extends LocalizationBundleBase {
         setValue(L.HELP_SEND_LORE_IMAGES, "턴이 사용하는 로어북 항목의 내용에 있는 이미지를 로어와 함께 전송합니다. 이미지를 받는 모델에만 해당합니다: 비전이 없는 모델은 요청을 거부합니다.");
         setValue(L.HELP_LORE_IMAGES_IN_SYSTEM, "로어 블록의 이미지를 그 뒤의 별도 메시지가 아니라 시스템 메시지 자체에 넣습니다. 이미지를 거기에 받는 서버와 채팅 템플릿에만 해당하며, 대부분은 그렇지 않습니다.");
         setValue(L.HELP_PROMPT_LANGUAGE, "내장 프롬프트(생성, 요약, 재작성, 주석, 대필, 에이전트)와 플러그인 프롬프트의 언어입니다. 직접 작성한 프롬프트는 그대로 유지되며, 인터페이스 언어는 별도로 설정합니다.");
+        setValue(L.HELP_AI_GPU_LOCK, "다른 모델이나 이미지·음성 서버와 공유하는 GPU에서 이 모델이 동작할 때 설정합니다. 각 요청은 GPU 차례를 기다리고 먼저 이 잠금으로 GPU를 로드합니다.");
+        setValue(L.HELP_GPUS, "GPU는 한 번에 하나의 모델만 담습니다. 잠금은 그것을 로드하는 방법(획득 단계)과 다른 잠금을 위해 비우는 방법(해제 단계)을 정합니다. AI와 확장 기능의 백엔드가 잠금을 고릅니다. 작업이 끝나도 다른 잠금의 작업이 올 때까지 GPU는 로드된 상태로 남습니다.");
+        setValue(L.HELP_GPU_LOCK_MAX_CONCURRENT, "이 잠금의 작업을 GPU에서 동시에 몇 개 실행할지. 0이면 제한 없음.");
+        setValue(L.HELP_GPU_STEP_HEADERS, "한 줄에 헤더 하나, 이름: 값. 암호화되어 저장됩니다.");
+        setValue(L.HELP_GPU_ACQUIRE_STEPS, "이 잠금의 첫 작업 전에 순서대로 실행됩니다. 첫 실패에서 멈춥니다.");
+        setValue(L.HELP_GPU_RELEASE_STEPS, "다른 잠금의 작업이 GPU를 필요로 할 때나 '지금 해제'로 실행됩니다. 하나가 실패해도 모두 실행됩니다.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "배경 로어와 세계관 컨텍스트.");

@@ -15,7 +15,6 @@ public class BackendConfig {
     public static final int DEFAULT_WIDTH = 1024;
     public static final int DEFAULT_HEIGHT = 1024;
     public static final int DEFAULT_TIMEOUT_SECONDS = 300;
-    public static final int DEFAULT_IDLE_SECONDS = 120;
     public static final double DEFAULT_LORA_STRENGTH = 1.0;
 
 
@@ -37,24 +36,22 @@ public class BackendConfig {
     /** True when the server is on this machine or the local network: the private addresses are allowed. */
     private boolean local = true;
     /**
-     * The name of the GPU the server runs on, when other servers (of this or another extension) use the same one: backends with the same name wait
-     * for each other. Empty: the address of the server says it.
+     * The uuid of the GPU lock of the application every image takes (see {@code GpuService}): the server runs on a GPU shared with the language
+     * model or other servers. Null: no lock.
      */
-    private String gpu = "";
+    private String gpuLock;
     private int width = DEFAULT_WIDTH;
     private int height = DEFAULT_HEIGHT;
     /** Saved before the negative prompt was a setting of the user and the book: read once by the settings panel, not used otherwise. */
     private String negativePrompt = "";
     private int timeoutSeconds = DEFAULT_TIMEOUT_SECONDS;
-    /** Made in order before the first image of a session (unload the language model, start the image server...). */
+    /** Made in order before every image, inside the GPU lock (start a container, wake the server...). */
     private List<HttpHook> beforeHooks;
-    /** Made in order when the session is over (accepted, discarded, closed or idle): all of them, whatever happens to one. */
+    /** Made in order after every image, inside the GPU lock: all of them, whatever happens to one. */
     private List<HttpHook> afterHooks;
     /** The one request of the settings saved before the lists: read when there is no list, dropped when the list is set. */
     private HttpHook before;
     private HttpHook after;
-    /** The session is over this many seconds after the last image; 0 for never (it ends with the window). */
-    private int idleSeconds = DEFAULT_IDLE_SECONDS;
     /** How the prompt is written for this backend; null in settings saved before: see {@link #instructionFor}. */
     private PromptForm promptForm;
     /** The instruction of {@link PromptForm#CUSTOM}. */
@@ -133,25 +130,13 @@ public class BackendConfig {
         this.workflow = workflow;
     }
 
-    public String getGpu() {
-        return gpu == null ? "" : gpu;
+    /** The uuid of the GPU lock, null for none. */
+    public String getGpuLock() {
+        return gpuLock == null || gpuLock.isBlank() ? null : gpuLock;
     }
 
-    public void setGpu(String gpu) {
-        this.gpu = gpu;
-    }
-
-    /** The gate of the GPU the server uses, see {@link #getGpu()}. */
-    public com.github.enerccio.marginalia.extensions.httphooks.GpuGate gate() {
-        return com.github.enerccio.marginalia.extensions.httphooks.GpuGate.forBackend(getGpu(), getBaseUrl());
-    }
-
-    /**
-     * What the requests before an image leave loaded on the GPU: this server with this model and workflow. Sessions with the same mode share the
-     * load; one with another mode (another model, or another extension's) waits for them to end.
-     */
-    public String gateMode() {
-        return "image:" + com.github.enerccio.marginalia.extensions.httphooks.UrlGuard.origin(getBaseUrl()) + "|" + type + "|" + model + "|" + workflow;
+    public void setGpuLock(String gpuLock) {
+        this.gpuLock = gpuLock;
     }
 
     public boolean isLocal() {
@@ -220,14 +205,6 @@ public class BackendConfig {
             return new ArrayList<>(list);
         }
         return legacy == null || legacy.isEmpty() ? new ArrayList<>() : new ArrayList<>(List.of(legacy));
-    }
-
-    public int getIdleSeconds() {
-        return Math.max(0, idleSeconds);
-    }
-
-    public void setIdleSeconds(int idleSeconds) {
-        this.idleSeconds = idleSeconds;
     }
 
     /** The form chosen; a backend saved before the choice existed writes tags, or the instruction the user had then. */

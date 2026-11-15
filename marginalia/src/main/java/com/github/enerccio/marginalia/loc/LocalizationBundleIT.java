@@ -1093,6 +1093,29 @@ public class LocalizationBundleIT extends LocalizationBundleBase {
         setValue(L.LABEL_SEND_LORE_IMAGES, "Invia le immagini del lore");
         setValue(L.LABEL_LORE_IMAGES_IN_SYSTEM, "Immagini nel messaggio di sistema");
         setValue(L.LABEL_PROMPT_LANGUAGE, "Lingua dei prompt");
+        setValue(L.LABEL_GPU_LOCK, "Blocco GPU");
+        setValue(L.LABEL_NO_GPU_LOCK, "Nessun blocco GPU");
+        setValue(L.LABEL_GPUS, "GPU");
+        setValue(L.LABEL_GPU, "GPU");
+        setValue(L.LABEL_GPU_LOCKS, "Blocchi GPU");
+        setValue(L.LABEL_GPU_STEPS, "Passi GPU");
+        setValue(L.LABEL_ADD_GPU, "Aggiungi GPU");
+        setValue(L.LABEL_ADD_GPU_LOCK, "Aggiungi blocco");
+        setValue(L.LABEL_ADD_GPU_STEP, "Aggiungi passo");
+        setValue(L.LABEL_ACQUIRE_STEPS, "Passi di acquisizione");
+        setValue(L.LABEL_RELEASE_STEPS, "Passi di rilascio");
+        setValue(L.LABEL_MAX_CONCURRENT_JOBS, "Lavori contemporanei");
+        setValue(L.LABEL_HTTP_URL, "URL");
+        setValue(L.LABEL_HTTP_METHOD, "Metodo");
+        setValue(L.LABEL_HTTP_HEADERS, "Intestazioni");
+        setValue(L.LABEL_HTTP_BODY, "Corpo");
+        setValue(L.LABEL_WAIT_AFTER_SECONDS, "Attesa dopo (secondi)");
+        setValue(L.LABEL_LOADED_LOCK, "Caricato");
+        setValue(L.LABEL_NOTHING_LOADED, "Sconosciuto");
+        setValue(L.LABEL_GPU_JOBS, "Lavori (in corso / in attesa)");
+        setValue(L.LABEL_UNLOAD_NOW, "Scarica ora");
+        setValue(L.LABEL_TEST_STEP, "Prova");
+        setValue(L.LABEL_REMOVE, "Rimuovi");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "Compatibile con OpenAI");
@@ -1399,6 +1422,8 @@ public class LocalizationBundleIT extends LocalizationBundleBase {
         setValue(L.ERROR_COMMAND_LORE_RANGE_EMPTY, "L'intervallo è vuoto: inizia dalla parte %d e termina alla parte %d.");
         setValue(L.ERROR_HELD_BY_RUN, "È in uso: %s. Attendi che finisca oppure interrompilo.");
         setValue(L.ERROR_COMMAND_STILL_RUNNING, "Il comando %s è ancora in esecuzione. Attendi che finisca oppure interrompilo.");
+        setValue(L.ERROR_GPU_STEP_FAILED, "Il passo non è riuscito: %s");
+        setValue(L.ERROR_GPU_UNLOAD_FAILED, "Un passo di rilascio non è riuscito: %s");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "Impossibile salvare il modulo.");
@@ -1890,6 +1915,11 @@ public class LocalizationBundleIT extends LocalizationBundleBase {
         setValue(L.MSG_LAST_CHANGE_NOT_SAVED, "La tua ultima modifica non è stata salvata.");
         setValue(L.MSG_ACTIVATION_PREVIEW_ENTRY_USED, "\"%s\" è usata: %s.");
         setValue(L.MSG_ACTIVATION_PREVIEW_ENTRY_NOT_USED, "\"%s\" non è usata: %s.");
+        setValue(L.MSG_GPU_STEP_OK, "Il passo è riuscito.");
+        setValue(L.MSG_GPU_UNLOADED, "La GPU è stata scaricata.");
+        setValue(L.MSG_DELETE_GPU, "Eliminare la GPU «%s» e i suoi blocchi?");
+        setValue(L.MSG_DELETE_GPU_LOCK, "Eliminare il blocco «%s»? Le IA e i server che lo usano funzionano senza blocco.");
+        setValue(L.MSG_DELETE_GPU_STEP, "Eliminare il passo «%s»? Viene tolto dai blocchi che lo eseguono.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minuto ora giorno-del-mese mese giorno-della-settimana - ad es. \"0 3 * * *\" ogni giorno alle 3:00, \"0 */6 * * *\" ogni 6 ore, \"30 2 * * 1\" i lunedì alle 2:30. Funzionano anche @daily, @weekly e @monthly.");
@@ -2023,6 +2053,12 @@ public class LocalizationBundleIT extends LocalizationBundleBase {
         setValue(L.HELP_SEND_LORE_IMAGES, "Invia insieme al lore le immagini nel contenuto delle voci del lorebook che il turno usa. Solo per un modello che accetta immagini: un modello senza visione rifiuta la richiesta.");
         setValue(L.HELP_LORE_IMAGES_IN_SYSTEM, "Inserisce le immagini del blocco del lore nel messaggio di sistema stesso invece che in un messaggio a parte dopo di esso. Solo per un server e un template di chat che le accettano lì; la maggior parte no.");
         setValue(L.HELP_PROMPT_LANGUAGE, "La lingua dei prompt integrati (generazione, riassunti, riscrittura, annotazioni, impersonificazione, agenti) e dei prompt dei plugin. I prompt che hai scritto tu restano come sono; la lingua dell'interfaccia è impostata a parte.");
+        setValue(L.HELP_AI_GPU_LOCK, "La GPU su cui gira questo modello, se condivisa con altri modelli o server di immagini e voce: ogni richiesta attende il suo turno sulla GPU e prima la carica con questo blocco.");
+        setValue(L.HELP_GPUS, "Una GPU contiene un modello alla volta. Un blocco dice come caricarlo (passi di acquisizione) e come liberarla per un altro blocco (passi di rilascio). Le IA e i server delle estensioni scelgono un blocco; dopo un lavoro la GPU resta caricata finché non arriva un lavoro di un altro blocco.");
+        setValue(L.HELP_GPU_LOCK_MAX_CONCURRENT, "Quanti lavori di questo blocco girano insieme sulla GPU; 0 per nessun limite.");
+        setValue(L.HELP_GPU_STEP_HEADERS, "Un'intestazione per riga, Nome: valore. Salvate cifrate.");
+        setValue(L.HELP_GPU_ACQUIRE_STEPS, "Eseguiti in ordine prima del primo lavoro di questo blocco; il primo errore li ferma.");
+        setValue(L.HELP_GPU_RELEASE_STEPS, "Eseguiti quando un lavoro di un altro blocco ha bisogno della GPU, o con Scarica ora; vengono eseguiti tutti, anche se uno non riesce.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Lore di sfondo e contesto del mondo.");

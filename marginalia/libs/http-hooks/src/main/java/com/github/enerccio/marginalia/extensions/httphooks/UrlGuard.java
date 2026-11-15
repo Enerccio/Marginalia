@@ -92,7 +92,7 @@ public final class UrlGuard {
 
     /**
      * The server an address belongs to, {@code scheme://host:port} in lower case: what two settings that call the same server
-     * have in common (the key of a {@link GpuGate}). An unusable address is returned stripped and in lower case.
+     * have in common. An unusable address is returned stripped and in lower case.
      */
     public static String origin(String url) {
         if (url == null) {

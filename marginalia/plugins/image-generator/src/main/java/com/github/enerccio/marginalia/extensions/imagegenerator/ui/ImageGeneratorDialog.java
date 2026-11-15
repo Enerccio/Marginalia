@@ -55,8 +55,8 @@ import static com.github.enerccio.marginalia.extensions.imagegenerator.ImageGene
 
 /**
  * Makes an image for one part of the story: the model writes the prompt from the part (the user can change it), the chosen backend
- * makes the picture, the user rerolls until it fits and accepts it - it becomes an image of the part. The backend is held between
- * the images (see {@link ImageSession}) and released when the window is done with it.
+ * makes the picture, the user rerolls until it fits and accepts it - it becomes an image of the part. The GPU lock of the backend is held for
+ * each image only (see {@link ImageJob}): a window that is closed, folded or left open holds no GPU.
  */
 @Configurable(preConstruction = true)
 public class ImageGeneratorDialog extends Dialog {
@@ -80,7 +80,6 @@ public class ImageGeneratorDialog extends Dialog {
     private final TextArea style = new TextArea(T.localized(STYLE));
     /** The negative prompt of the book (book, folders, user). */
     private String bookNegative = "";
-    private boolean freeing;
     /** What is stored in the part, so an unchanged window is not saved again. */
     private PartImageValues partValues;
     /**
@@ -105,8 +104,6 @@ public class ImageGeneratorDialog extends Dialog {
         return t;
     });
 
-    private ImageSession session;
-    private String sessionBackendId;
     private CancellationToken promptToken;
     // not modal: closing it while the model or the backend works folds it into the corner, the work goes on
     private final FloatingWindow floating;
@@ -248,8 +245,6 @@ public class ImageGeneratorDialog extends Dialog {
     }
 
     private void backendChanged(BackendConfig backend) {
-        // the new backend is a new session; the one that was held is let go
-        releaseSession();
         applyBackendDefaults(backend);
         if (backend != null) {
             try {
@@ -467,34 +462,10 @@ public class ImageGeneratorDialog extends Dialog {
         }
         AI ai = modelPicker.getAi();
         Protocol protocol = modelPicker.getProtocol();
-        if (ai == null || protocol == null || message == null || freeing) {
+        if (ai == null || protocol == null || message == null) {
             return;
         }
         UI ui = UI.getCurrent();
-        if (session != null) {
-            // the image model may hold the GPU the language model needs: let it go first (the after hooks), the next image
-            // runs the before hooks again
-            ImageSession held = session;
-            session = null;
-            sessionBackendId = null;
-            freeing = true;
-            status.setText(T.localized(FREEING_THE_IMAGE_BACKEND));
-            updateButtons();
-            Thread.ofVirtual().name("image-generator-release").start(() -> {
-                String error = held.end();
-                inRequest(ui, () -> {
-                    freeing = false;
-                    status.setText("");
-                    if (error != null) {
-                        Notification.warning(T.localized(THE_AFTER_HOOK_FAILED).formatted(error));
-                    }
-                    updateButtons();
-                    writePrompt();
-                    UIPushGuard.push(ui);
-                });
-            });
-            return;
-        }
         writing = true;
         prompt.clear();
         status.setText(T.localized(WAITING_FOR_THE_MODEL));
@@ -593,7 +564,6 @@ public class ImageGeneratorDialog extends Dialog {
                 height.getValue() == null ? backend.getHeight() : height.getValue(), lora, strength);
         rememberPartValues();
         UI ui = UI.getCurrent();
-        ImageSession active = session(backend, ui);
         AtomicBoolean cancel = new AtomicBoolean();
         imageCancel = cancel;
         making = true;
@@ -603,7 +573,7 @@ public class ImageGeneratorDialog extends Dialog {
             byte[] bytes = null;
             String error = null;
             try {
-                bytes = active.generate(request, cancel::get);
+                bytes = service.generate(backend, request, cancel::get);
                 if (ImageFormats.extension(bytes) == null) {
                     bytes = null;
                     error = T.localized(THE_IMAGE_IS_NOT_VALID);
@@ -640,21 +610,6 @@ public class ImageGeneratorDialog extends Dialog {
                 UIPushGuard.push(ui);
             });
         });
-    }
-
-    private ImageSession session(BackendConfig backend, UI ui) {
-        if (session == null || !backend.getId().equals(sessionBackendId)) {
-            releaseSession();
-            sessionBackendId = backend.getId();
-            session = service.createSession(backend, error -> inRequest(ui, () -> {
-                Notification.success(T.localized(THE_BACKEND_WAS_RELEASED));
-                if (error != null) {
-                    Notification.warning(T.localized(THE_AFTER_HOOK_FAILED).formatted(error));
-                }
-                UIPushGuard.push(ui);
-            }));
-        }
-        return session;
     }
 
     private void showImage(byte[] bytes) {
@@ -700,25 +655,15 @@ public class ImageGeneratorDialog extends Dialog {
     private void updateButtons() {
         boolean hasBackend = backendSelect.getValue() != null;
         writePrompt.setText(writing ? T.localized(ABORT) : T.localized(WRITE_THE_PROMPT));
-        writePrompt.setEnabled(!making && !freeing && message != null);
+        writePrompt.setEnabled(!making && message != null);
         generate.setText(making ? T.localized(ABORT) : image == null ? T.localized(GENERATE) : T.localized(REROLL));
-        generate.setEnabled(hasBackend && !writing && !freeing);
+        generate.setEnabled(hasBackend && !writing);
         accept.setVisible(image != null);
         accept.setEnabled(!making);
         discard.setVisible(image != null);
         discard.setEnabled(!making);
         backendSelect.setEnabled(!making);
         floating.setRunning(writing || making);
-    }
-
-    private void releaseSession() {
-        ImageSession old = session;
-        session = null;
-        sessionBackendId = null;
-        if (old != null) {
-            // the after hook is a request; the thread of the window may be gone
-            Thread.ofVirtual().name("image-generator-release").start(old::end);
-        }
     }
 
     private void detached(DetachEvent event) {
@@ -734,7 +679,6 @@ public class ImageGeneratorDialog extends Dialog {
         if (imageCancel != null) {
             imageCancel.set(true);
         }
-        releaseSession();
         worker.shutdown();
     }
 }

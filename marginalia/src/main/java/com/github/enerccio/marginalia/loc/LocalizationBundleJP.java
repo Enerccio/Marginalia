@@ -1093,6 +1093,29 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_SEND_LORE_IMAGES, "ロア画像を送る");
         setValue(L.LABEL_LORE_IMAGES_IN_SYSTEM, "画像をシステムメッセージに入れる");
         setValue(L.LABEL_PROMPT_LANGUAGE, "プロンプトの言語");
+        setValue(L.LABEL_GPU_LOCK, "GPU ロック");
+        setValue(L.LABEL_NO_GPU_LOCK, "GPU ロックなし");
+        setValue(L.LABEL_GPUS, "GPU");
+        setValue(L.LABEL_GPU, "GPU");
+        setValue(L.LABEL_GPU_LOCKS, "GPU ロック");
+        setValue(L.LABEL_GPU_STEPS, "GPU ステップ");
+        setValue(L.LABEL_ADD_GPU, "GPU を追加");
+        setValue(L.LABEL_ADD_GPU_LOCK, "ロックを追加");
+        setValue(L.LABEL_ADD_GPU_STEP, "ステップを追加");
+        setValue(L.LABEL_ACQUIRE_STEPS, "取得ステップ");
+        setValue(L.LABEL_RELEASE_STEPS, "解放ステップ");
+        setValue(L.LABEL_MAX_CONCURRENT_JOBS, "同時ジョブ数");
+        setValue(L.LABEL_HTTP_URL, "URL");
+        setValue(L.LABEL_HTTP_METHOD, "メソッド");
+        setValue(L.LABEL_HTTP_HEADERS, "ヘッダー");
+        setValue(L.LABEL_HTTP_BODY, "本文");
+        setValue(L.LABEL_WAIT_AFTER_SECONDS, "後の待機（秒）");
+        setValue(L.LABEL_LOADED_LOCK, "ロード中");
+        setValue(L.LABEL_NOTHING_LOADED, "不明");
+        setValue(L.LABEL_GPU_JOBS, "ジョブ（実行中 / 待機中）");
+        setValue(L.LABEL_UNLOAD_NOW, "今すぐ解放");
+        setValue(L.LABEL_TEST_STEP, "テスト");
+        setValue(L.LABEL_REMOVE, "削除");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1399,6 +1422,8 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ERROR_COMMAND_LORE_RANGE_EMPTY, "範囲が空です：パート %d から始まり、パート %d で終わります。");
         setValue(L.ERROR_HELD_BY_RUN, "使用中です：%s。終わるまで待つか、停止してください。");
         setValue(L.ERROR_COMMAND_STILL_RUNNING, "コマンド %s はまだ実行中です。終わるまで待つか、停止してください。");
+        setValue(L.ERROR_GPU_STEP_FAILED, "ステップが失敗しました: %s");
+        setValue(L.ERROR_GPU_UNLOAD_FAILED, "解放ステップが失敗しました: %s");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "フォームを保存できません。");
@@ -1890,6 +1915,11 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_LAST_CHANGE_NOT_SAVED, "最後の変更は保存されていません。");
         setValue(L.MSG_ACTIVATION_PREVIEW_ENTRY_USED, "「%s」は使われます：%s。");
         setValue(L.MSG_ACTIVATION_PREVIEW_ENTRY_NOT_USED, "「%s」は使われません：%s。");
+        setValue(L.MSG_GPU_STEP_OK, "ステップは成功しました。");
+        setValue(L.MSG_GPU_UNLOADED, "GPU を解放しました。");
+        setValue(L.MSG_DELETE_GPU, "GPU「%s」とそのロックを削除しますか？");
+        setValue(L.MSG_DELETE_GPU_LOCK, "ロック「%s」を削除しますか？これを使う AI とバックエンドはロックなしで動きます。");
+        setValue(L.MSG_DELETE_GPU_STEP, "ステップ「%s」を削除しますか？これを使うロックから外されます。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
@@ -2023,6 +2053,12 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_SEND_LORE_IMAGES, "そのターンで使われるロアブック項目の本文中の画像を、ロアと一緒に送ります。画像を受け付けるモデル専用です。画像に対応していないモデルはリクエストを拒否します。");
         setValue(L.HELP_LORE_IMAGES_IN_SYSTEM, "ロアブロックの画像を、後に続く専用のメッセージではなくシステムメッセージ自体に入れます。システムメッセージで画像を受け付けるサーバーとチャットテンプレート専用です。多くは対応していません。");
         setValue(L.HELP_PROMPT_LANGUAGE, "組み込みプロンプト（生成、要約、書き直し、注釈、代筆、エージェント）とプラグインのプロンプトの言語です。自分で書いたプロンプトはそのまま使われます。インターフェースの言語は別に設定します。");
+        setValue(L.HELP_AI_GPU_LOCK, "他のモデルや画像・音声サーバーと共有する GPU で動くモデルの場合に設定します。各リクエストは GPU の順番を待ち、先にこのロックで GPU をロードします。");
+        setValue(L.HELP_GPUS, "GPU は一度に一つのモデルを保持します。ロックはそれをロードする方法（取得ステップ）と、別のロックのために解放する方法（解放ステップ）を定めます。AI と拡張機能のバックエンドがロックを選びます。ジョブの後も、別のロックのジョブが来るまで GPU はロードされたままです。");
+        setValue(L.HELP_GPU_LOCK_MAX_CONCURRENT, "このロックのジョブを GPU で同時にいくつ実行するか。0 で無制限。");
+        setValue(L.HELP_GPU_STEP_HEADERS, "1 行に 1 ヘッダー、名前: 値。暗号化して保存されます。");
+        setValue(L.HELP_GPU_ACQUIRE_STEPS, "このロックの最初のジョブの前に順番に実行されます。最初の失敗で止まります。");
+        setValue(L.HELP_GPU_RELEASE_STEPS, "別のロックのジョブが GPU を必要とするとき、または「今すぐ解放」で実行されます。一つが失敗してもすべて実行されます。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");

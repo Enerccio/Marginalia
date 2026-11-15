@@ -1093,6 +1093,29 @@ public class LocalizationBundleDE extends LocalizationBundleBase {
         setValue(L.LABEL_SEND_LORE_IMAGES, "Lore-Bilder senden");
         setValue(L.LABEL_LORE_IMAGES_IN_SYSTEM, "Bilder in der Systemnachricht");
         setValue(L.LABEL_PROMPT_LANGUAGE, "Sprache der Prompts");
+        setValue(L.LABEL_GPU_LOCK, "GPU-Sperre");
+        setValue(L.LABEL_NO_GPU_LOCK, "Keine GPU-Sperre");
+        setValue(L.LABEL_GPUS, "GPUs");
+        setValue(L.LABEL_GPU, "GPU");
+        setValue(L.LABEL_GPU_LOCKS, "GPU-Sperren");
+        setValue(L.LABEL_GPU_STEPS, "GPU-Schritte");
+        setValue(L.LABEL_ADD_GPU, "GPU hinzufügen");
+        setValue(L.LABEL_ADD_GPU_LOCK, "Sperre hinzufügen");
+        setValue(L.LABEL_ADD_GPU_STEP, "Schritt hinzufügen");
+        setValue(L.LABEL_ACQUIRE_STEPS, "Schritte beim Belegen");
+        setValue(L.LABEL_RELEASE_STEPS, "Schritte beim Freigeben");
+        setValue(L.LABEL_MAX_CONCURRENT_JOBS, "Gleichzeitige Aufträge");
+        setValue(L.LABEL_HTTP_URL, "URL");
+        setValue(L.LABEL_HTTP_METHOD, "Methode");
+        setValue(L.LABEL_HTTP_HEADERS, "Header");
+        setValue(L.LABEL_HTTP_BODY, "Body");
+        setValue(L.LABEL_WAIT_AFTER_SECONDS, "Danach warten (Sekunden)");
+        setValue(L.LABEL_LOADED_LOCK, "Geladen");
+        setValue(L.LABEL_NOTHING_LOADED, "Unbekannt");
+        setValue(L.LABEL_GPU_JOBS, "Aufträge (laufend / wartend)");
+        setValue(L.LABEL_UNLOAD_NOW, "Jetzt entladen");
+        setValue(L.LABEL_TEST_STEP, "Testen");
+        setValue(L.LABEL_REMOVE, "Entfernen");
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI-kompatibel");
         setValue(L.ENUM_PROTOCOL_TYPE_OPEN_CHAT_COMPLETION, "Chat Completion");
@@ -1397,6 +1420,8 @@ public class LocalizationBundleDE extends LocalizationBundleBase {
         setValue(L.ERROR_COMMAND_LORE_RANGE_EMPTY, "Der Bereich ist leer: Er beginnt bei Abschnitt %d und endet bei Abschnitt %d.");
         setValue(L.ERROR_HELD_BY_RUN, "Das ist in Benutzung: %s. Warte, bis es fertig ist, oder stoppe es.");
         setValue(L.ERROR_COMMAND_STILL_RUNNING, "Der Befehl %s läuft noch. Warte, bis er fertig ist, oder stoppe ihn.");
+        setValue(L.ERROR_GPU_STEP_FAILED, "Der Schritt ist fehlgeschlagen: %s");
+        setValue(L.ERROR_GPU_UNLOAD_FAILED, "Ein Freigabeschritt ist fehlgeschlagen: %s");
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "Das Formular kann nicht gespeichert werden.");
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE_EXT, "Das Formular kann nicht gespeichert werden. Ungültige Felder: ");
@@ -1887,6 +1912,11 @@ public class LocalizationBundleDE extends LocalizationBundleBase {
         setValue(L.MSG_LAST_CHANGE_NOT_SAVED, "Deine letzte Änderung wurde nicht gespeichert.");
         setValue(L.MSG_ACTIVATION_PREVIEW_ENTRY_USED, "„%s“ wird verwendet: %s.");
         setValue(L.MSG_ACTIVATION_PREVIEW_ENTRY_NOT_USED, "„%s“ wird nicht verwendet: %s.");
+        setValue(L.MSG_GPU_STEP_OK, "Der Schritt war erfolgreich.");
+        setValue(L.MSG_GPU_UNLOADED, "Die GPU wurde entladen.");
+        setValue(L.MSG_DELETE_GPU, "Die GPU „%s“ und ihre Sperren löschen?");
+        setValue(L.MSG_DELETE_GPU_LOCK, "Die Sperre „%s“ löschen? KIs und Backends, die sie nutzen, laufen ohne Sperre.");
+        setValue(L.MSG_DELETE_GPU_STEP, "Den Schritt „%s“ löschen? Er wird aus den Sperren entfernt, die ihn ausführen.");
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "Minute Stunde Tag-des-Monats Monat Wochentag – z. B. „0 3 * * *“ jeden Tag um 3:00, „0 */6 * * *“ alle 6 Stunden, „30 2 * * 1“ montags um 2:30. @daily, @weekly und @monthly funktionieren ebenfalls.");
         setValue(L.HELP_BACKUP_KEEP, "Ältere geplante Sicherungen werden gelöscht, 0 behält alle. Manuelle Sicherungen werden nie gelöscht.");
@@ -2019,6 +2049,12 @@ public class LocalizationBundleDE extends LocalizationBundleBase {
         setValue(L.HELP_SEND_LORE_IMAGES, "Die Bilder im Inhalt der Lorebook-Einträge, die der Zug verwendet, zusammen mit der Lore senden. Nur für ein Modell, das Bilder akzeptiert: Ein Modell ohne Bildverständnis lehnt die Anfrage ab.");
         setValue(L.HELP_LORE_IMAGES_IN_SYSTEM, "Die Bilder des Lore-Blocks in die Systemnachricht selbst legen statt in eine eigene Nachricht danach. Nur für einen Server und ein Chat-Template, die dort Bilder annehmen; die meisten tun das nicht.");
         setValue(L.HELP_PROMPT_LANGUAGE, "Die Sprache der eingebauten Prompts (Generierung, Zusammenfassungen, Überarbeitung, Anmerkungen, Impersonate, Agenten) und der Prompts der Plugins. Die Prompts, die du selbst geschrieben hast, bleiben, wie sie sind; die Sprache der Oberfläche wird separat festgelegt.");
+        setValue(L.HELP_AI_GPU_LOCK, "Die GPU, auf der dieses Modell läuft, wenn andere Modelle oder Bild- und Sprachserver sie teilen: Jede Anfrage wartet, bis sie an der Reihe ist, und lädt die GPU zuerst mit dieser Sperre.");
+        setValue(L.HELP_GPUS, "Eine GPU hält jeweils ein Modell. Eine Sperre legt fest, wie es geladen wird (Schritte beim Belegen) und wie die GPU für eine andere Sperre freigegeben wird (Schritte beim Freigeben). KIs und die Backends der Erweiterungen wählen eine Sperre; nach einem Auftrag bleibt die GPU geladen, bis ein Auftrag einer anderen Sperre kommt.");
+        setValue(L.HELP_GPU_LOCK_MAX_CONCURRENT, "Wie viele Aufträge dieser Sperre gleichzeitig auf der GPU laufen; 0 für unbegrenzt.");
+        setValue(L.HELP_GPU_STEP_HEADERS, "Ein Header pro Zeile, Name: Wert. Verschlüsselt gespeichert.");
+        setValue(L.HELP_GPU_ACQUIRE_STEPS, "Laufen der Reihe nach vor dem ersten Auftrag dieser Sperre; der erste Fehler stoppt sie.");
+        setValue(L.HELP_GPU_RELEASE_STEPS, "Laufen, wenn ein Auftrag einer anderen Sperre die GPU braucht, oder mit „Jetzt entladen“; alle laufen, auch wenn einer fehlschlägt.");
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Hintergrund-Lore und Weltkontext.");
         setValue(L.DESC_TEMPLATE_MANUSCRIPT, "Der laufende Manuskriptinhalt für die Zusammenfassung.");

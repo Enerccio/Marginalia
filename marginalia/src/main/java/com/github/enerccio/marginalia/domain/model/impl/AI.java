@@ -102,6 +102,22 @@ public class AI extends ExtendableEntity {
         this.loreImagesInSystem = loreImagesInSystem ? Boolean.TRUE : null;
     }
 
+    /**
+     * The uuid of the {@link GpuLock} every request to this AI takes (see {@code GpuService}): the model runs on a GPU shared with other
+     * AIs or extensions. Null: no lock.
+     */
+    @Transient
+    @ExtendedAttribute
+    private String gpuLock;
+
+    public String getGpuLock() {
+        return gpuLock;
+    }
+
+    public void setGpuLock(String gpuLock) {
+        this.gpuLock = gpuLock == null || gpuLock.isBlank() ? null : gpuLock;
+    }
+
     /** The number as it is stored, null when it was never set; {@link #getConnections()} is what applies. */
     public Integer getMaxConcurrentRequests() {
         return maxConcurrentRequests;

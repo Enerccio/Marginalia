@@ -3,14 +3,10 @@ package com.github.enerccio.marginalia.domain.service.impl.inference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
-import com.github.enerccio.marginalia.domain.service.AIGate;
+import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.AIGate.Permit;
-import com.github.enerccio.marginalia.domain.service.CancellationToken;
-import com.github.enerccio.marginalia.domain.service.InferenceService;
-import com.github.enerccio.marginalia.domain.service.InferenceSession;
-import com.github.enerccio.marginalia.domain.service.UnmeteredScope;
-import com.github.enerccio.marginalia.domain.service.UsageContext;
 import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
+import com.github.enerccio.marginalia.domain.service.gpu.GpuLease;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMToolCall;
 import com.github.enerccio.marginalia.domain.service.job.Jobs;
@@ -25,8 +21,12 @@ import org.springframework.web.context.request.RequestAttributes;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.IntConsumer;
 
 /**
  * The connections of an AI for every request (see {@link AIGate}): wraps the service of any AI, the core's and an extension's,
@@ -56,11 +56,79 @@ public class GatedInferenceService implements InferenceService {
     private final InferenceService delegate;
     private final AI ai;
     private final AIGate gate;
+    private final GpuService gpu;
 
     public GatedInferenceService(InferenceService delegate, AI ai, AIGate gate) {
+        this(delegate, ai, gate, null);
+    }
+
+    /**
+     * @param gpu the GPU locks, null without them: a request of an AI with a {@link AI#getGpuLock() lock} takes it after its
+     *            connection, for as long as it holds the connection
+     */
+    public GatedInferenceService(InferenceService delegate, AI ai, AIGate gate, GpuService gpu) {
         this.delegate = delegate;
         this.ai = ai;
         this.gate = gate;
+        this.gpu = gpu;
+    }
+
+    /**
+     * The place of a request: a connection of the AI and then, when the AI runs on a shared GPU, its lock (a request never holds the GPU
+     * while it waits for a connection). The permit gives back both; canceling the future takes the request out of both queues. Fails
+     * with the error of the GPU when its steps failed.
+     */
+    private CompletableFuture<Permit> place(IntConsumer position) {
+        CompletableFuture<Permit> connection = gate.acquire(ai, position);
+        String lock = ai == null ? null : ai.getGpuLock();
+        if (gpu == null || lock == null) {
+            return connection;
+        }
+        CompletableFuture<Permit> both = new CompletableFuture<>();
+        AtomicReference<CompletableFuture<GpuLease>> gpuWait = new AtomicReference<>();
+        connection.whenComplete((permit, error) -> {
+            if (error != null) {
+                both.completeExceptionally(error);
+                return;
+            }
+            if (both.isDone()) {
+                permit.close();
+                return;
+            }
+            CompletableFuture<GpuLease> lease = gpu.acquireAsync(lock, position);
+            gpuWait.set(lease);
+            lease.whenComplete((held, failure) -> {
+                if (failure != null) {
+                    permit.close();
+                    both.completeExceptionally(failure instanceof CompletionException && failure.getCause() != null ? failure.getCause() : failure);
+                    return;
+                }
+                AtomicBoolean closed = new AtomicBoolean();
+                Permit combined = () -> {
+                    if (closed.compareAndSet(false, true)) {
+                        held.close();
+                        permit.close();
+                    }
+                };
+                if (!both.complete(combined)) {
+                    combined.close();
+                }
+            });
+            if (both.isDone()) {
+                // cancelled while the wait for the GPU started
+                lease.cancel(true);
+            }
+        });
+        both.whenComplete((value, error) -> {
+            if (error instanceof CancellationException) {
+                connection.cancel(true);
+                CompletableFuture<GpuLease> lease = gpuWait.get();
+                if (lease != null) {
+                    lease.cancel(true);
+                }
+            }
+        });
+        return both;
     }
 
     /** The wrapped service. */
@@ -221,7 +289,7 @@ public class GatedInferenceService implements InferenceService {
          * Takes the place and sends the request, now or when its turn comes.
          */
         CancellationToken start(InferenceOutcomeCallback outcome, Send send) throws Exception {
-            CompletableFuture<Permit> place = gate.acquire(ai, ahead -> {
+            CompletableFuture<Permit> place = place(ahead -> {
                 if (run != null) {
                     run.waiting(ahead);
                 }
@@ -252,6 +320,11 @@ public class GatedInferenceService implements InferenceService {
             });
             place.whenComplete((granted, error) -> {
                 if (error != null) {
+                    if (!(error instanceof CancellationException)) {
+                        // the steps of the GPU failed: the request never went out
+                        end();
+                        notify(outcome, error);
+                    }
                     return;
                 }
                 Thread.ofVirtual().name("inference-gated").start(() -> sendLater(granted, token, context, outcome, send));
@@ -372,7 +445,7 @@ public class GatedInferenceService implements InferenceService {
                     synchronized (Flight.this) {
                         mine = resumed;
                         if (--calls == 0 && !ended) {
-                            place = gate.acquire(ai);
+                            place = place(null);
                             pending = place;
                         }
                     }

@@ -28,7 +28,7 @@ spoken by stable-diffusion.cpp, LiteLLM and many hosted services).
 | Width, Height | What the window starts with (you can change them there for one image). |
 | Prompt form | How the language model writes the prompt for this backend, to suit its image model: **Tags** (short comma separated phrases, for SDXL, Pony, Illustrious), **Descriptive sentences** (a paragraph, for Flux, Krea, Qwen-Image, Z-Image) or **Free text**, your own instruction for the prompt writer (it starts from the one that was chosen). A backend made before this setting existed writes tags, or uses the instruction you had set then as its free text. The built-in instructions are in your [prompt language](../account.md#prompt-language) and ask for the image prompt in English, which image models read best. |
 | Timeout | How long to wait for one image. |
-| Release after idle | See [One GPU](#one-gpu-for-the-model-and-the-images). |
+| GPU lock | The [GPU lock](../administration/gpus.md) of the GPU the server runs on, when it shares it with the language model or other servers; see [One GPU](#one-gpu-for-the-model-and-the-images). Shown only when the administrator set up GPU locks. |
 
 ![A backend in the settings](../../images/plugin-imagegenerator-settings.png)
 
@@ -41,7 +41,7 @@ The panel also has two texts that a book can change:
 - **Negative prompt** - what the pictures must not show. A turbo model that runs without guidance (CFG 1) ignores it. The negative
   prompt a backend had before is taken over here the first time you open the panel.
 
-What you set in the panel is your default. A book (its *Prompts* tab) or a [folder](../folders.md) can set its own under
+What you set in the panel is your default. A book (its *Prompts* tab) or a [folder](../books/folders.md) can set its own under
 *Extension Settings → Image Generator*; a book uses its own, else the nearest folder's, else yours.
 
 ## Making an image
@@ -92,40 +92,34 @@ the LoRAs could not be read; you can still type the name of a file.
 
 ## One GPU for the model and the images
 
-With one small GPU, the language model and the image model cannot be loaded together. The extension does not manage the memory;
-each backend can have two lists of requests that you set up:
+With one small GPU, the language model and the image model cannot be loaded together. The administrator sets this up once, for
+every model and server on that GPU, under [Admin → GPUs](../administration/gpus.md): a **GPU lock** for the language model and one for
+the image server, each with the requests that load it and free the GPU of it. Pick the image server's lock in **GPU lock** of the
+backend (and the language model's lock in its [AI settings](../inference-providers.md)).
 
-- **Before the first image** - made once, when the window starts to use the backend. For example a request to your proxy that
-  unloads the language model and loads the image model.
-- **After the last image** - made when you accept, discard or close the window, or when **Release after idle** seconds passed since
-  the last image (so a forgotten window does not keep the GPU; 0 turns it off). For ComfyUI this can be `POST <address>/free` with the
-  body `{"unload_models": true, "free_memory": true}`; for a proxy a request that loads the language model again.
+Every image then takes its turn on the GPU:
 
-With `llama-server` in router mode behind LiteLLM, the *before* request can unload the language model through the proxy: see
-[Freeing the GPU for another model](../prompt-cache.md#freeing-the-gpu-for-another-model).
+- When the GPU is loaded with the image server already, the image starts at once; nothing is unloaded between rerolls.
+- When it holds the language model (or another server), the image waits until the model has answered, the model's lock frees the GPU,
+  and the image server's lock loads it.
+- Nothing is held between the images: closing or folding the window, or leaving it open, keeps no GPU. The next request to the
+  language model frees the GPU of the image server by itself, and the image server stays loaded until then.
 
-Writing the prompt again after an image (**Write the prompt with the model**) first lets the image backend go: the *after*
-requests are made and the window waits for them, so the language model finds the GPU free. The next **Generate** makes the *before*
-requests again.
+The window shows *Generating the image* while it waits for its turn.
 
-Both moments take a **list of requests**, made one after the other (**Add a request** adds one, the bin removes one). A swap often needs
-several: unload the language model, then start the image server, and after the images stop it. Each request has an address, a method
-(`POST` by default), headers (`Name: value`, one per line), a body, a **timeout** (empty: 60 seconds, at most 600; give a server that
-loads a big model more) and **Wait afterwards** (seconds to pause after the answer, for a server that is still busy after it said yes).
-The headers are stored encrypted, like the api key (a request often carries `Authorization: Bearer ...`). The backend stays held while
-you reroll, so only the first image pays for the swap. If a proxy in front of the models swaps them by the model name, leave both empty.
+**Requests before and after each image.** A backend can also have its own two lists of requests, made inside the lock around every
+image: **Before each image** and **After each image**. Freeing the GPU belongs to the GPU lock; use these for anything else the
+server needs around an image. Each list is made one request after the other (**Add a request** adds one, the bin removes one). Each
+request has an address, a method (`POST` by default), headers (`Name: value`, one per line), a body, a **timeout** (empty: 60 seconds,
+at most 600) and **Wait afterwards** (seconds to pause after the answer). The headers are stored encrypted, like the api key.
 
 When a request of the *before* list fails, the rest is not made and the image stops (the message says which request failed: *Request 2
-of 3: ...*), so that nothing is loaded on a GPU that is still full. The *after* list is made **completely** whatever happens to one of
-its requests (every server must be stopped), and the first failure is shown as a warning. A backend saved with the single request of an
-earlier version shows it as the first request of the list.
+of 3: ...*). The *after* list is made **completely** whatever happens to one of its requests, and a failure is written to the log of
+the extension; the image is kept. A backend saved with the single request of an earlier version shows it as the first request of the
+list.
 
-**Several people on one GPU.** Everyone whose backend has the same server address (`http://host:port`) goes through one gate: the
-*before* request is made for the first window that starts and the *after* request when the last one is done, so closing one window
-does not unload the model under the image of another, and the images are made one at a time (a second window waits its turn).
-The requests are those of the user who comes first and last.
-
-A backend can also name the GPU it runs on (**GPU (name)**). Backends that name the same GPU wait for each other even when their addresses differ, and that includes the backends of the [Audiobook](audiobook.md) (a speech server and an image server on one card): a user whose backend needs another model waits until the others are done and then runs their own requests, instead of joining a load that is not theirs. Leave it empty and only requests to the same address wait for each other.
+Backends saved before GPU locks existed lose their **GPU (name)** and **Release after idle** settings: pick a GPU lock instead, and move
+requests that freed the GPU (unloading the language model, `POST <address>/free` of ComfyUI) into the steps of the locks.
 
 ## What is not done
 

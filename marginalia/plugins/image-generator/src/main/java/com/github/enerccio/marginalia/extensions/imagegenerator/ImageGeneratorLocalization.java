@@ -46,8 +46,6 @@ public class ImageGeneratorLocalization extends PluginLocalizationBundle {
     public static final String THE_PROMPT_IS_EMPTY = "The prompt is empty";
     public static final String THE_IMAGE_WAS_ADDED = "The image was added to the part";
     public static final String THE_IMAGE_IS_NOT_VALID = "The server did not return a valid image";
-    public static final String THE_BACKEND_WAS_RELEASED = "The backend was released after the idle time";
-    public static final String THE_AFTER_HOOK_FAILED = "The request after the images failed: %s";
     public static final String GENERATING_FAILED = "Generating the image failed: %s";
     public static final String THE_MODEL_FAILED = "The model failed: %s";
     public static final String STYLE = "Style";
@@ -72,11 +70,6 @@ public class ImageGeneratorLocalization extends PluginLocalizationBundle {
     public static final String THE_SERVER_IS_LOCAL = "The server is on this machine or on my network";
     public static final String ALLOWS_ADDRESSES_OF_THE_LOCAL_NETWORK = "Allows the addresses of the local network; leave it off for a server in the cloud";
     public static final String TIMEOUT_SECONDS = "Timeout (s)";
-    public static final String RELEASE_AFTER_IDLE_SECONDS = "Release after idle (s)";
-    public static final String THE_REQUEST_AFTER_THE_IMAGES_RUNS = "The request after the images runs this many seconds after the last image; 0 never";
-    public static final String BEFORE_THE_FIRST_IMAGE = "Before the first image";
-    public static final String AFTER_THE_LAST_IMAGE = "After the last image";
-    public static final String A_REQUEST_MADE_AROUND_THE_IMAGES = "Requests made around the images, one after the other, for example to free the memory of the GPU. None does nothing.";
     public static final String ADD_A_REQUEST = "Add a request";
     public static final String REMOVE_THE_REQUEST = "Remove the request";
     public static final String REQUEST = "Request";
@@ -96,15 +89,12 @@ public class ImageGeneratorLocalization extends PluginLocalizationBundle {
     public static final String IMAGE_GENERATOR_WRITE_THE_PROMPT = "Image Generator: write the prompt";
     public static final String IMAGE_GENERATOR_GENERATE_THE_IMAGE = "Image Generator: generate the image";
 
-    public static final String GPU_NAME = "GPU (name)";
-    public static final String GPU_NAME_HELP = "Optional. Name the GPU when this server shares it with other servers (a speech server, another image server), and give the same name there: they then wait for each other instead of unloading each other's model. Empty: only requests to this address wait for each other.";
     public static final String LORA = "LoRA";
     public static final String LORA_STRENGTH = "LoRA strength";
     public static final String NO_LORA = "None";
     public static final String THE_LORAS_COULD_NOT_BE_READ = "The LoRAs of the server could not be read: %s";
     public static final String STYLE_FOR_THIS_WINDOW = "The style of the book (its Prompts tab, a folder or your settings); a change here is for this window only";
     public static final String NEGATIVE_PROMPT_HELP = "What the pictures must not show. A turbo model that runs without guidance (CFG 1) ignores it";
-    public static final String FREEING_THE_IMAGE_BACKEND = "Freeing the image backend for the language model…";
     public static final String A_BOOK_OR_A_FOLDER_CAN_CHANGE_THESE = "These are your defaults: a book or a folder can change the style and the negative prompt in its Prompts tab, under Extension Settings.";
     public static final String PROMPT_FORM = "Prompt form";
     public static final String TAGS_FORM = "Tags (SDXL, Pony, Illustrious)";
@@ -112,6 +102,10 @@ public class ImageGeneratorLocalization extends PluginLocalizationBundle {
     public static final String FREE_TEXT = "Free text";
     public static final String PROMPT_FORM_HELP = "How the language model writes the prompt: what the image model of this backend understands best";
     public static final String KEY_OF_THE_REQUESTS = "Key of the requests around the images";
+    public static final String BEFORE_EACH_IMAGE = "Before each image";
+    public static final String AFTER_EACH_IMAGE = "After each image";
+    public static final String REQUESTS_MADE_AROUND_EACH_IMAGE = "Requests made before and after each image, one after the other, for example to start or stop a container. Freeing the GPU for the language model is the job of the GPU lock. None does nothing.";
+    public static final String GPU_LOCK_HELP = "The GPU lock the administrator set up for the GPU of this server: every image waits for its turn on the GPU, and the lock's steps load the server first (freeing the language model or another server when needed). Empty: no lock.";
     public static final String KEY_OF_THE_REQUESTS_HELP = "Sent as Authorization: Bearer with every request before and after the images that has no Authorization header of its own (a proxy such as LiteLLM wants it), stored encrypted and never shown again. Empty: the api key above is used.";
 
     @Override
@@ -291,22 +285,6 @@ public class ImageGeneratorLocalization extends PluginLocalizationBundle {
         de(THE_IMAGE_IS_NOT_VALID, "Der Server hat kein gültiges Bild zurückgegeben");
         ko(THE_IMAGE_IS_NOT_VALID, "서버가 올바른 이미지를 반환하지 않았습니다");
         it(THE_IMAGE_IS_NOT_VALID, "Il server non ha restituito un'immagine valida");
-
-        ja(THE_BACKEND_WAS_RELEASED, "待機時間が過ぎたためバックエンドを解放しました");
-        zh(THE_BACKEND_WAS_RELEASED, "空闲时间已过，已释放后端");
-        fr(THE_BACKEND_WAS_RELEASED, "Le moteur a été libéré après le délai d'inactivité");
-        es(THE_BACKEND_WAS_RELEASED, "El backend se liberó tras el tiempo de inactividad");
-        de(THE_BACKEND_WAS_RELEASED, "Das Backend wurde nach der Leerlaufzeit freigegeben");
-        ko(THE_BACKEND_WAS_RELEASED, "유휴 시간 후 백엔드가 해제되었습니다");
-        it(THE_BACKEND_WAS_RELEASED, "Il backend è stato rilasciato dopo il tempo di inattività");
-
-        ja(THE_AFTER_HOOK_FAILED, "画像の後のリクエストが失敗しました: %s");
-        zh(THE_AFTER_HOOK_FAILED, "图像之后的请求失败：%s");
-        fr(THE_AFTER_HOOK_FAILED, "La requête après les images a échoué : %s");
-        es(THE_AFTER_HOOK_FAILED, "Falló la solicitud posterior a las imágenes: %s");
-        de(THE_AFTER_HOOK_FAILED, "Die Anfrage nach den Bildern ist fehlgeschlagen: %s");
-        ko(THE_AFTER_HOOK_FAILED, "이미지 후의 요청이 실패했습니다: %s");
-        it(THE_AFTER_HOOK_FAILED, "La richiesta dopo le immagini non è riuscita: %s");
 
         ja(GENERATING_FAILED, "画像の生成に失敗しました: %s");
         zh(GENERATING_FAILED, "生成图像失败：%s");
@@ -500,46 +478,6 @@ public class ImageGeneratorLocalization extends PluginLocalizationBundle {
         ko(TIMEOUT_SECONDS, "제한 시간 (초)");
         it(TIMEOUT_SECONDS, "Timeout (s)");
 
-        ja(RELEASE_AFTER_IDLE_SECONDS, "待機後に解放 (秒)");
-        zh(RELEASE_AFTER_IDLE_SECONDS, "空闲后释放（秒）");
-        fr(RELEASE_AFTER_IDLE_SECONDS, "Libérer après inactivité (s)");
-        es(RELEASE_AFTER_IDLE_SECONDS, "Liberar tras inactividad (s)");
-        de(RELEASE_AFTER_IDLE_SECONDS, "Freigeben nach Leerlauf (s)");
-        ko(RELEASE_AFTER_IDLE_SECONDS, "유휴 후 해제 (초)");
-        it(RELEASE_AFTER_IDLE_SECONDS, "Rilascia dopo l'inattività (s)");
-
-        ja(THE_REQUEST_AFTER_THE_IMAGES_RUNS, "最後の画像からこの秒数後に画像後のリクエストを実行します。0 で実行しません");
-        zh(THE_REQUEST_AFTER_THE_IMAGES_RUNS, "最后一张图像之后经过这么多秒执行“之后”的请求；0 表示不执行");
-        fr(THE_REQUEST_AFTER_THE_IMAGES_RUNS, "La requête après les images s'exécute ce nombre de secondes après la dernière image ; 0 jamais");
-        es(THE_REQUEST_AFTER_THE_IMAGES_RUNS, "La solicitud posterior a las imágenes se ejecuta tantos segundos después de la última imagen; 0 nunca");
-        de(THE_REQUEST_AFTER_THE_IMAGES_RUNS, "Die Anfrage nach den Bildern läuft so viele Sekunden nach dem letzten Bild; 0 nie");
-        ko(THE_REQUEST_AFTER_THE_IMAGES_RUNS, "이미지 후의 요청은 마지막 이미지로부터 이 시간(초) 후에 실행됩니다. 0은 실행하지 않음");
-        it(THE_REQUEST_AFTER_THE_IMAGES_RUNS, "La richiesta dopo le immagini viene eseguita questi secondi dopo l'ultima immagine; 0 mai");
-
-        ja(BEFORE_THE_FIRST_IMAGE, "最初の画像の前");
-        zh(BEFORE_THE_FIRST_IMAGE, "第一张图像之前");
-        fr(BEFORE_THE_FIRST_IMAGE, "Avant la première image");
-        es(BEFORE_THE_FIRST_IMAGE, "Antes de la primera imagen");
-        de(BEFORE_THE_FIRST_IMAGE, "Vor dem ersten Bild");
-        ko(BEFORE_THE_FIRST_IMAGE, "첫 이미지 전");
-        it(BEFORE_THE_FIRST_IMAGE, "Prima della prima immagine");
-
-        ja(AFTER_THE_LAST_IMAGE, "最後の画像の後");
-        zh(AFTER_THE_LAST_IMAGE, "最后一张图像之后");
-        fr(AFTER_THE_LAST_IMAGE, "Après la dernière image");
-        es(AFTER_THE_LAST_IMAGE, "Después de la última imagen");
-        de(AFTER_THE_LAST_IMAGE, "Nach dem letzten Bild");
-        ko(AFTER_THE_LAST_IMAGE, "마지막 이미지 후");
-        it(AFTER_THE_LAST_IMAGE, "Dopo l'ultima immagine");
-
-        ja(A_REQUEST_MADE_AROUND_THE_IMAGES, "画像の前後に順番に行うリクエスト (例: GPU のメモリを解放する)。なければ何もしません。");
-        zh(A_REQUEST_MADE_AROUND_THE_IMAGES, "在图像前后按顺序发出的请求（例如释放 GPU 显存）。没有则不执行任何操作。");
-        fr(A_REQUEST_MADE_AROUND_THE_IMAGES, "Requêtes faites autour des images, l'une après l'autre, par exemple pour libérer la mémoire du GPU. Aucune : ne fait rien.");
-        es(A_REQUEST_MADE_AROUND_THE_IMAGES, "Solicitudes que se hacen alrededor de las imágenes, una tras otra, por ejemplo para liberar la memoria de la GPU. Ninguna no hace nada.");
-        de(A_REQUEST_MADE_AROUND_THE_IMAGES, "Anfragen, die um die Bilder herum gemacht werden, nacheinander, zum Beispiel um den Speicher der GPU freizugeben. „Keine“ tut nichts.");
-        ko(A_REQUEST_MADE_AROUND_THE_IMAGES, "이미지 전후에 차례로 실행하는 요청, 예를 들어 GPU 메모리를 비우기 위한 것. 없음은 아무것도 하지 않습니다.");
-        it(A_REQUEST_MADE_AROUND_THE_IMAGES, "Richieste fatte attorno alle immagini, una dopo l'altra, ad esempio per liberare la memoria della GPU. Nessuna non fa nulla.");
-
         ja(ADD_A_REQUEST, "リクエストを追加");
         zh(ADD_A_REQUEST, "添加请求");
         fr(ADD_A_REQUEST, "Ajouter une requête");
@@ -679,22 +617,6 @@ public class ImageGeneratorLocalization extends PluginLocalizationBundle {
         ko(IMAGE_GENERATOR_GENERATE_THE_IMAGE, "이미지 생성기: 이미지 생성");
         it(IMAGE_GENERATOR_GENERATE_THE_IMAGE, "Generatore di immagini: genera l'immagine");
 
-        ja(GPU_NAME, "GPU（名前）");
-        zh(GPU_NAME, "GPU（名称）");
-        fr(GPU_NAME, "GPU (nom)");
-        es(GPU_NAME, "GPU (nombre)");
-        de(GPU_NAME, "GPU (Name)");
-        ko(GPU_NAME, "GPU (이름)");
-        it(GPU_NAME, "GPU (nome)");
-
-        ja(GPU_NAME_HELP, "任意。このサーバーが他のサーバー (音声サーバーなど) とGPUを共有している場合に名前を付け、他にも同じ名前を指定します。互いのモデルを解放せず、順番に待ちます。空の場合は、このアドレスへのリクエスト同士だけが待ち合います。");
-        zh(GPU_NAME_HELP, "可选。如果此服务器与其他服务器（如语音服务器）共用一块 GPU，请给它起个名字，并在其他服务器上填写相同的名字：它们会互相等待，而不是卸载对方的模型。留空：只有发往此地址的请求会互相等待。");
-        fr(GPU_NAME_HELP, "Facultatif. Nommez le GPU quand ce serveur le partage avec d'autres serveurs (un serveur de synthèse vocale, un autre serveur d'images), et donnez-y le même nom : ils s'attendent alors au lieu de décharger le modèle des autres. Vide : seules les requêtes vers cette adresse s'attendent.");
-        es(GPU_NAME_HELP, "Opcional. Indica el nombre de la GPU cuando este servidor la comparte con otros servidores (un servidor de voz, otro servidor de imágenes) y da allí el mismo nombre: entonces esperan unos a otros en lugar de descargarse mutuamente el modelo. Vacío: solo esperan entre sí las solicitudes a esta dirección.");
-        de(GPU_NAME_HELP, "Optional. Gib der GPU einen Namen, wenn dieser Server sie mit anderen Servern teilt (einem Sprachserver, einem anderen Bildserver), und gib dort denselben Namen an: Sie warten dann aufeinander, statt gegenseitig ihr Modell zu entladen. Leer: Nur Anfragen an diese Adresse warten aufeinander.");
-        ko(GPU_NAME_HELP, "선택 사항. 이 서버가 GPU를 다른 서버(음성 서버, 다른 이미지 서버)와 공유할 때 GPU 이름을 지정하고 그쪽에도 같은 이름을 지정하세요: 그러면 서로의 모델을 언로드하는 대신 서로를 기다립니다. 비워 두면 이 주소로의 요청끼리만 서로 기다립니다.");
-        it(GPU_NAME_HELP, "Facoltativo. Indica il nome della GPU quando questo server la condivide con altri server (un server vocale, un altro server di immagini), e indica lì lo stesso nome: si aspettano allora a vicenda invece di scaricare il modello l'uno dell'altro. Vuoto: si aspettano solo le richieste a questo indirizzo.");
-
         ja(LORA, "LoRA");
         zh(LORA, "LoRA");
         fr(LORA, "LoRA");
@@ -742,14 +664,6 @@ public class ImageGeneratorLocalization extends PluginLocalizationBundle {
         de(NEGATIVE_PROMPT_HELP, "Was die Bilder nicht zeigen dürfen. Ein Turbo-Modell ohne Guidance (CFG 1) ignoriert ihn");
         ko(NEGATIVE_PROMPT_HELP, "그림에 나오면 안 되는 것. 가이던스 없이(CFG 1) 동작하는 터보 모델은 이를 무시합니다");
         it(NEGATIVE_PROMPT_HELP, "Ciò che le immagini non devono mostrare. Un modello turbo che funziona senza guida (CFG 1) lo ignora");
-
-        ja(FREEING_THE_IMAGE_BACKEND, "言語モデルのために画像バックエンドを解放しています…");
-        zh(FREEING_THE_IMAGE_BACKEND, "正在为语言模型释放图像后端…");
-        fr(FREEING_THE_IMAGE_BACKEND, "Libération du backend d'images pour le modèle de langage…");
-        es(FREEING_THE_IMAGE_BACKEND, "Liberando el backend de imágenes para el modelo de lenguaje…");
-        de(FREEING_THE_IMAGE_BACKEND, "Das Bild-Backend wird für das Sprachmodell freigegeben…");
-        ko(FREEING_THE_IMAGE_BACKEND, "언어 모델을 위해 이미지 백엔드를 해제하는 중…");
-        it(FREEING_THE_IMAGE_BACKEND, "Liberazione del backend di immagini per il modello linguistico…");
 
         ja(A_BOOK_OR_A_FOLDER_CAN_CHANGE_THESE, "これはあなたの既定値です。本やフォルダーは「プロンプト」タブの「拡張機能の設定」で、スタイルとネガティブプロンプトを変更できます。");
         zh(A_BOOK_OR_A_FOLDER_CAN_CHANGE_THESE, "这些是你的默认值：书或文件夹可以在其“提示词”选项卡的“扩展设置”中更改风格和负面提示词。");
@@ -814,5 +728,37 @@ public class ImageGeneratorLocalization extends PluginLocalizationBundle {
         de(KEY_OF_THE_REQUESTS_HELP, "Wird als Authorization: Bearer bei jeder Anfrage vor und nach den Bildern gesendet, die keinen eigenen Authorization-Header hat (ein Proxy wie LiteLLM verlangt ihn), verschlüsselt gespeichert und nie wieder angezeigt. Leer: Der API-Schlüssel oben wird verwendet.");
         ko(KEY_OF_THE_REQUESTS_HELP, "이미지 전후의 요청 중 자체 Authorization 헤더가 없는 모든 요청에 Authorization: Bearer로 전송되며(LiteLLM 같은 프록시가 요구합니다), 암호화되어 저장되고 다시 표시되지 않습니다. 비워 두면 위의 API 키를 사용합니다.");
         it(KEY_OF_THE_REQUESTS_HELP, "Inviata come Authorization: Bearer con ogni richiesta prima e dopo le immagini che non ha un'intestazione Authorization propria (un proxy come LiteLLM la richiede), memorizzata cifrata e mai più mostrata. Vuoto: viene usata la chiave API qui sopra.");
+
+        ja(BEFORE_EACH_IMAGE, "各画像の前");
+        zh(BEFORE_EACH_IMAGE, "每张图像之前");
+        fr(BEFORE_EACH_IMAGE, "Avant chaque image");
+        es(BEFORE_EACH_IMAGE, "Antes de cada imagen");
+        de(BEFORE_EACH_IMAGE, "Vor jedem Bild");
+        ko(BEFORE_EACH_IMAGE, "각 이미지 전");
+        it(BEFORE_EACH_IMAGE, "Prima di ogni immagine");
+
+        ja(AFTER_EACH_IMAGE, "各画像の後");
+        zh(AFTER_EACH_IMAGE, "每张图像之后");
+        fr(AFTER_EACH_IMAGE, "Après chaque image");
+        es(AFTER_EACH_IMAGE, "Después de cada imagen");
+        de(AFTER_EACH_IMAGE, "Nach jedem Bild");
+        ko(AFTER_EACH_IMAGE, "각 이미지 후");
+        it(AFTER_EACH_IMAGE, "Dopo ogni immagine");
+
+        ja(REQUESTS_MADE_AROUND_EACH_IMAGE, "各画像の前後に順番に行うリクエスト (例: コンテナの起動や停止)。言語モデルのために GPU を空けるのは GPU ロックの役目です。なければ何もしません。");
+        zh(REQUESTS_MADE_AROUND_EACH_IMAGE, "在每张图像前后按顺序发出的请求（例如启动或停止容器）。为语言模型腾出 GPU 由 GPU 锁负责。没有则不执行任何操作。");
+        fr(REQUESTS_MADE_AROUND_EACH_IMAGE, "Requêtes faites avant et après chaque image, l'une après l'autre, par exemple pour démarrer ou arrêter un conteneur. Libérer le GPU pour le modèle de langage est le rôle du verrou GPU. Aucune : ne fait rien.");
+        es(REQUESTS_MADE_AROUND_EACH_IMAGE, "Solicitudes que se hacen antes y después de cada imagen, una tras otra, por ejemplo para arrancar o detener un contenedor. Liberar la GPU para el modelo de lenguaje es tarea del bloqueo de GPU. Ninguna no hace nada.");
+        de(REQUESTS_MADE_AROUND_EACH_IMAGE, "Anfragen vor und nach jedem Bild, nacheinander, zum Beispiel um einen Container zu starten oder zu stoppen. Die GPU für das Sprachmodell freizugeben ist Aufgabe der GPU-Sperre. „Keine“ tut nichts.");
+        ko(REQUESTS_MADE_AROUND_EACH_IMAGE, "각 이미지 전후에 차례로 실행하는 요청, 예를 들어 컨테이너를 시작하거나 멈추기 위한 것. 언어 모델을 위해 GPU를 비우는 것은 GPU 잠금이 맡습니다. 없음은 아무것도 하지 않습니다.");
+        it(REQUESTS_MADE_AROUND_EACH_IMAGE, "Richieste fatte prima e dopo ogni immagine, una dopo l'altra, ad esempio per avviare o fermare un container. Liberare la GPU per il modello linguistico è compito del blocco GPU. Nessuna non fa nulla.");
+
+        ja(GPU_LOCK_HELP, "このサーバーの GPU 用に管理者が設定した GPU ロックです。各画像は GPU の順番を待ち、ロックのステップが先にサーバーをロードします (必要なら言語モデルや他のサーバーを解放します)。空: ロックなし。");
+        zh(GPU_LOCK_HELP, "管理员为此服务器所在 GPU 设置的 GPU 锁：每张图像都会等待轮到自己使用 GPU，锁的步骤会先加载服务器（需要时释放语言模型或其他服务器）。留空：无锁。");
+        fr(GPU_LOCK_HELP, "Le verrou GPU que l'administrateur a configuré pour le GPU de ce serveur : chaque image attend son tour sur le GPU, et les étapes du verrou chargent d'abord le serveur (en libérant le modèle de langage ou un autre serveur si besoin). Vide : aucun verrou.");
+        es(GPU_LOCK_HELP, "El bloqueo de GPU que el administrador configuró para la GPU de este servidor: cada imagen espera su turno en la GPU y los pasos del bloqueo cargan primero el servidor (liberando el modelo de lenguaje u otro servidor si hace falta). Vacío: sin bloqueo.");
+        de(GPU_LOCK_HELP, "Die GPU-Sperre, die der Administrator für die GPU dieses Servers eingerichtet hat: Jedes Bild wartet, bis es an der Reihe ist, und die Schritte der Sperre laden zuerst den Server (und geben bei Bedarf das Sprachmodell oder einen anderen Server frei). Leer: keine Sperre.");
+        ko(GPU_LOCK_HELP, "관리자가 이 서버의 GPU에 설정한 GPU 잠금입니다. 각 이미지는 GPU 차례를 기다리고, 잠금의 단계가 먼저 서버를 로드합니다(필요하면 언어 모델이나 다른 서버를 해제합니다). 비워 두면 잠금 없음.");
+        it(GPU_LOCK_HELP, "Il blocco GPU che l'amministratore ha configurato per la GPU di questo server: ogni immagine attende il suo turno sulla GPU e i passi del blocco caricano prima il server (liberando il modello linguistico o un altro server se serve). Vuoto: nessun blocco.");
     }
 }

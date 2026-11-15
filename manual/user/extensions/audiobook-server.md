@@ -13,9 +13,9 @@ with 32 GB, LiteLLM in front of everything, `llama-server` in router mode); your
 
 | Your situation | What to do |
 |---|---|
-| The speech server runs on **another machine**, on the CPU, or on a card with room for it **next to the language model** | Run the server, put its address into a backend, **leave the requests before and after a batch empty**. Nothing else is needed. |
-| The speech server and the language model **share one card** and do not fit together | You need the requests before and after a batch: **before** frees the card and starts the speech server, **after** stops it. The rest of this page. |
-| The language model is a cloud model | Nothing to free: run the speech server where you like and leave the requests empty. |
+| The speech server runs on **another machine**, on the CPU, or on a card with room for it **next to the language model** | Run the server, put its address into a backend, **pick no GPU lock**. Nothing else is needed. |
+| The speech server and the language model **share one card** and do not fit together | You need a [GPU lock](../administration/gpus.md): its **acquire** steps free the card and start the speech server, its **release** steps stop it. The rest of this page. |
+| The language model is a cloud model | Nothing to free: run the speech server where you like and pick no GPU lock. |
 
 So: **yes, pre and post requests are needed only when the two models take turns on one GPU.** They are what makes the turns: the plugin makes
 them once around a *batch* (everything you started with one click), not around every part.
@@ -25,7 +25,7 @@ them once around a *batch* (everything you started with one click), not around e
 Run Chatterbox-TTS-Server in a container (or from source) so that `GET /api/model-info` answers. Things that matter:
 
 - **The model.** Turbo (`chatterbox-turbo`) is the default of the extension and the best sounding in the tests; the multilingual model is needed only for text in another language than the book's. The model is set in the server's `config.yaml`
-  (or `POST /save_settings` and `POST /restart_server`). The *Speech model* of the backend must be the model the server has loaded after the requests before a batch.
+  (or `POST /save_settings` and `POST /restart_server`). The *Speech model* of the backend must be the model the server has loaded after the acquire steps of its GPU lock.
 - **Japanese needs `pykakasi` in the image.** Without it the server logs *pykakasi not available - Japanese text processing skipped* and reads kanji wrongly. Add `RUN python3 -m pip install --no-cache-dir pykakasi` to its Dockerfile (before `COPY . .`). The same silent skip exists for Hebrew, Russian and Chinese packages.
 - **Voices** are files in the server's `reference_audio/` folder (mount it, so they survive). The extension uploads the clips of your actors itself (`POST /upload_reference`) before a batch, under a name made from the hash of the clip. The server has no delete call: clips pile up there.
 - The server has **no authentication**. Do not publish its port; put a proxy in front of it if it is not on a private network.
@@ -67,26 +67,35 @@ research and non-commercial licence.
 
 ## One GPU for the model and the speech
 
-A card that holds the language model has no room for the speech model. The plan is the same for any proxy:
+A card that holds the language model has no room for the speech model. The administrator sets up the swap once under
+[Admin → GPUs](../administration/gpus.md), with a GPU and a lock for each thing that can be loaded on it, and picks the lock in the AI of the
+language model and in the speech backend. The plan is the same for any proxy:
 
 ```
-before a batch:  1. unload the language model
-                 2. start the speech server (and wait until it is ready; load its model if it starts empty)
-the speech:      all the pieces of all the parts of the batch
-after a batch:   3. stop the speech server (the language model loads again by itself with the next request)
+lock "Speech (Chatterbox)"  acquire: 1. unload the language model
+                                     2. start the speech server (and wait until it is ready; load its model if it starts empty)
+                            release: 3. stop the speech server
+lock "Language model"       acquire: nothing (the router loads the model by itself with the next request)
+                            release: nothing (the speech lock unloads it first)
 ```
+
+A batch (or a sample) of the speech backend runs the acquire steps of the speech lock when the GPU holds the language model, then all the
+pieces; the GPU stays loaded with the speech server after it. The next request to the language model waits for the batch, runs the release
+step of the speech lock (stop the server) and goes on. Several batches and samples in a row pay for the swap once.
 
 **The order is not negotiable.** Starting the speech container while the language model holds the card filled the host's memory in the test
-(30 GB of RAM, the swap, then the OOM killer took other services): the unload **must come first**, and the first failing request ends the
-list, so nothing starts on a full card. The requests *after* a batch all run, whatever happens to one of them.
+(30 GB of RAM, the swap, then the OOM killer took other services): the unload **must come first**. The first failing acquire step ends the
+list, so nothing starts on a full card; and when a release step fails, the next lock is not loaded at all (the GPU may still be full) and the
+job fails with the error. The release steps all run, whatever happens to one of them.
 
 Why *stop* the container instead of unloading the model inside the server: an unload inside the server left about 1 GB of the card taken after
 many model swaps; stopping the container frees everything.
 
-### The requests
+### The steps
 
-Each request of the lists is a method, an address, headers, a body and a wait afterwards (seconds). Do not write the key into the headers (the form shows headers as typed): put it into **Key of the requests around a batch**, or leave that empty and the *Api key* of the backend is sent. It goes out as `Authorization: Bearer` with every request below that has none of its own. With a LiteLLM
-in front of everything and one key, the lists are:
+Each step is a method, an address, headers, a body, a timeout and a wait afterwards (seconds); the headers are stored encrypted, so the key of the
+proxy can be written into them (`Authorization: Bearer ...`). With a LiteLLM in front of everything, the steps of the speech lock are (*Before 1*
+to *3* are its acquire steps, *After 1* its release step):
 
 | | Method and address | Headers | Body | Does |
 |---|---|---|---|---|
@@ -129,7 +138,7 @@ Without LiteLLM the same requests go to whatever starts and stops your container
 ## Checking it
 
 1. `curl http://<speech server>/api/model-info` answers (`loaded` true after a start).
-2. *Test connection* in the backend says the model is loaded. If the requests before a batch are the only thing that starts the server, test it with the lists in place: *the server answers, no model is loaded* is the answer of a stopped-and-started one that still has to load.
+2. *Test connection* in the backend says the model is loaded. If the GPU lock is the only thing that starts the server, test it with the lock picked: *the server answers, no model is loaded* is the answer of a stopped-and-started one that still has to load.
 3. Convert one short part in **Convert to audio**. The window shows the pieces being made; afterwards the speech container should be stopped and `nvidia-smi` / `nvtop` / `rocm-smi` show the card free again.
 4. If the first call after a model load takes long, that is the engine warming up (once, 28 s in the first run, not seen again).
 
@@ -137,11 +146,11 @@ Without LiteLLM the same requests go to whatever starts and stops your container
 
 | Symptom | Cause |
 |---|---|
-| *No model is loaded* / 503 "TTS engine model is not currently loaded" | The server started empty (a start wrapper that unloads the model once): add the request **Before 3**. |
-| The first pieces are made, then the server says *Model not loaded* and its log shows `Request received for /api/unload` | Something other than Marginalia unloads the model (the extension never calls `/api/unload`): typically a startup wrapper in the container that waits for the server to answer and then unloads the model "to keep boot cheap". Its wait can end only after the first piece, because the single-threaded server was busy, and the unload then lands in the middle of the batch (a `urllib` timeout traceback in the container log is that wrapper waiting). The pattern to look for in the compose file is a `command: sh -c "python3 server.py & ... until python3 -c \"...urlopen('.../api/model-info'...)\"; do sleep 3; done; python3 -c \"...urlopen(Request('.../api/unload', method='POST')...)\"; wait"`. Replace it with `command: ["python3", "server.py"]`: a start alone gives a loaded Turbo, and the unload only ever served to keep the card free after a boot, which a container that the controller starts and stops does not need. To tell who sent it, read the log of the extension (*Admin → Extensions → Log*): it lists every request before and after a batch with its address and the time it was answered, and when the pieces start and end. An unload that comes while the log says the batch is running, or from an address that is not in the list, is not the extension's. |
-| The batch stops in the middle (the log of the extension says *Cannot reach*, or the server's log just ends) and a restart by hand works | The server died, typically killed by the system for taking all the memory (`dmesg \| grep -i oom` on the host: a `python3` process of many GB). The extension then restarts it itself (the requests after the batch, then those before it) and makes the piece again once; when the server cannot be brought back, or is gone again at once, the rest of the batch fails at once and the log says why. To keep a leaking server from getting that far set **Restart the server after (pieces)** in the backend (for example 100), and a `mem_limit` on the container so that the system kills only it. |
-| The conversion fails at once with the answer of the proxy | The first request before the batch failed (a wrong key, the unload route not found); the list stops there on purpose. |
-| The host runs out of memory when the batch starts | The language model was still on the card: the unload request is missing or is not first. |
+| *No model is loaded* / 503 "TTS engine model is not currently loaded" | The server started empty (a start wrapper that unloads the model once): add the step **Before 3** to the acquire steps of the lock. |
+| The first pieces are made, then the server says *Model not loaded* and its log shows `Request received for /api/unload` | Something other than Marginalia unloads the model (the extension never calls `/api/unload`): typically a startup wrapper in the container that waits for the server to answer and then unloads the model "to keep boot cheap". Its wait can end only after the first piece, because the single-threaded server was busy, and the unload then lands in the middle of the batch (a `urllib` timeout traceback in the container log is that wrapper waiting). The pattern to look for in the compose file is a `command: sh -c "python3 server.py & ... until python3 -c \"...urlopen('.../api/model-info'...)\"; do sleep 3; done; python3 -c \"...urlopen(Request('.../api/unload', method='POST')...)\"; wait"`. Replace it with `command: ["python3", "server.py"]`: a start alone gives a loaded Turbo, and the unload only ever served to keep the card free after a boot, which a container that the controller starts and stops does not need. To tell who sent it, read the log of the extension (*Admin → Extensions → Log*): it lists every request before and after a batch with its address and the time it was answered, and when the pieces start and end; the steps of the GPU lock are in the application log. An unload that comes while the log says the batch is running, or from an address that is not in the list, is not the extension's. |
+| The batch stops in the middle (the log of the extension says *Cannot reach*, or the server's log just ends) and a restart by hand works | The server died, typically killed by the system for taking all the memory (`dmesg \| grep -i oom` on the host: a `python3` process of many GB). The extension then restarts it itself (the requests after the batch, the release and acquire steps of the GPU lock, then the requests before it) and makes the piece again once; when the server cannot be brought back, or is gone again at once, the rest of the batch fails at once and the log says why. To keep a leaking server from getting that far set **Restart the server after (pieces)** in the backend (for example 100), and a `mem_limit` on the container so that the system kills only it. |
+| The conversion fails at once with the answer of the proxy | The first acquire step of the GPU lock failed (a wrong key, the unload route not found); the list stops there on purpose. |
+| The host runs out of memory when the batch starts | The language model was still on the card: the unload step is missing from the speech lock or is not first, or the AI of the language model has no lock of the same GPU. |
 | Japanese is read as nonsense | `pykakasi` is missing in the image of the server; the backend must also be the multilingual one for that piece. |
 | The upload of a clip fails behind a proxy | The proxy has to pass a multipart body (`/upload_reference`) unchanged. Not tested through LiteLLM pass-through; use a voice file of the server (`predefined:Name.wav`) until it works. |
-| Another user's batch unloads the model under yours | Batches on one server address share a gate inside Marginalia, and a batch for another speech model waits until the others are done. A speech server and, say, an image server on one card need the same name in **GPU (name)** on both backends to wait for each other (the Image Generator's too). Two Marginalia installations on one card do not share a gate. |
+| Another user's batch unloads the model under yours | Every backend and AI on one card must name a lock of the same [GPU](../administration/gpus.md): only then do they take turns. A backend without a lock does not wait for anyone. Two Marginalia installations on one card do not share a GPU. |

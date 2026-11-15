@@ -47,7 +47,7 @@ server is on this machine or on my network* is off) every address the host resol
 The host is resolved by the guard and again by the HTTP client at connect time. Java caches a lookup for 30 seconds by default (`networkaddress.cache.ttl`), so the client gets
 the answer the guard checked; a JVM configured without that cache would let a name that changes its address in between through. That is not closed in the library.
 
-`UrlGuard.origin(url)` is `scheme://host:port` in lower case, the key of a gate.
+`UrlGuard.origin(url)` is `scheme://host:port` in lower case: what two settings that call the same server have in common.
 
 ## The hook: `HttpHook` and `HookRunner`
 
@@ -69,27 +69,13 @@ A swap is usually **several requests** (unload the language model, start a conta
 The Image Generator's `BackendConfig` keeps `beforeHooks` and `afterHooks` as lists and reads the single `before` / `after` hook of an older setting as a list of one (setting a list
 drops the old one).
 
-## The gate: `GpuGate`
+## Taking turns on a GPU: not here
 
-With one GPU, a hook of one user must not run in the middle of the work of another: the *after* hook of a window that closed unloads the model, and the image of the other user
-fails. `GpuGate.forBackend(gpuName, url)` returns the gate of the GPU: the one the backend names in its *GPU* setting (the same name, case aside, gives the same gate in every plugin), else the gate of the server (`GpuGate.forAddress(url)`: the same `scheme://host:port` gives the same gate, however many users' settings name it):
-
-```java
-gate.acquire(mode, cancelled, before);   // the first holder runs the before hook; the others of the same mode wait for it, then run none; another mode waits for the holders to be gone
-try {
-    gate.exclusive(cancelled, () -> backend.generate(...));   // one piece of work at a time, in the order they came
-} finally {
-    String error = gate.release(after);                       // the last holder runs the after hook
-}
-```
-
-`acquire` that fails holds nothing; a failed `release` hook is returned as the message (the GPU is free anyway). `exclusive` takes a `BooleanSupplier` that is asked while it waits,
-so a user who aborts does not wait for the others. The hooks that run are those of the user who comes first and last.
-
-The **mode** is what the before hook leaves loaded (the Audiobook: its address and speech model; the Image Generator: address, type, model and workflow), written with the name of the plugin so that two plugins never share a load. Holders of one mode share it; somebody who needs another waits until they are gone and runs their own before hook. The line is fair: once somebody waits for another mode, nobody else joins the holders. The gates are kept by the application (`SharedGate`, in `com.github.enerccio.marginalia.extensions`), not by the class that each plugin embeds, so two plugins on one GPU find the same gate when their backends name the same GPU.
-
-In the Image Generator the `ImageSession` (one per window: it holds the backend while the user rerolls, and ends on accept, close or idle time) calls `acquire` before its first
-image and `release` when it ends; every image is made in `exclusive`.
+Up to 1.8 the library had `GpuGate` (over the application's `SharedGate`), a gate keyed by a GPU name or a server address that the plugins
+held around their hooks. Both are gone: taking turns on a shared GPU is a feature of the application, `GpuService` with the GPUs, locks and
+steps the administrator sets up (see [GPU locks](../gpu-locks.md)). A backend stores the uuid of a lock, takes it for each job
+(`gpuService.acquire(lockUuid, cancelled)`) and runs its own hooks **inside** it. The Image Generator does that per image (`ImageJob`), the
+Audiobook per batch or sample (`SpeechBatch`).
 
 ## A key for the requests: `HookKeys`
 

@@ -1101,6 +1101,29 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_SEND_LORE_IMAGES, "发送设定图片");
         setValue(L.LABEL_LORE_IMAGES_IN_SYSTEM, "将图片放入系统消息");
         setValue(L.LABEL_PROMPT_LANGUAGE, "提示词语言");
+        setValue(L.LABEL_GPU_LOCK, "GPU 锁");
+        setValue(L.LABEL_NO_GPU_LOCK, "无 GPU 锁");
+        setValue(L.LABEL_GPUS, "GPU");
+        setValue(L.LABEL_GPU, "GPU");
+        setValue(L.LABEL_GPU_LOCKS, "GPU 锁");
+        setValue(L.LABEL_GPU_STEPS, "GPU 步骤");
+        setValue(L.LABEL_ADD_GPU, "添加 GPU");
+        setValue(L.LABEL_ADD_GPU_LOCK, "添加锁");
+        setValue(L.LABEL_ADD_GPU_STEP, "添加步骤");
+        setValue(L.LABEL_ACQUIRE_STEPS, "获取步骤");
+        setValue(L.LABEL_RELEASE_STEPS, "释放步骤");
+        setValue(L.LABEL_MAX_CONCURRENT_JOBS, "同时作业数");
+        setValue(L.LABEL_HTTP_URL, "URL");
+        setValue(L.LABEL_HTTP_METHOD, "方法");
+        setValue(L.LABEL_HTTP_HEADERS, "请求头");
+        setValue(L.LABEL_HTTP_BODY, "请求体");
+        setValue(L.LABEL_WAIT_AFTER_SECONDS, "之后等待（秒）");
+        setValue(L.LABEL_LOADED_LOCK, "已加载");
+        setValue(L.LABEL_NOTHING_LOADED, "未知");
+        setValue(L.LABEL_GPU_JOBS, "作业（运行中 / 等待中）");
+        setValue(L.LABEL_UNLOAD_NOW, "立即卸载");
+        setValue(L.LABEL_TEST_STEP, "测试");
+        setValue(L.LABEL_REMOVE, "移除");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1407,6 +1430,8 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ERROR_COMMAND_LORE_RANGE_EMPTY, "范围为空：从第 %d 部分开始，到第 %d 部分结束。");
         setValue(L.ERROR_HELD_BY_RUN, "正在使用中：%s。请等待其完成，或将其停止。");
         setValue(L.ERROR_COMMAND_STILL_RUNNING, "命令 %s 仍在运行。请等待其完成，或将其停止。");
+        setValue(L.ERROR_GPU_STEP_FAILED, "步骤失败：%s");
+        setValue(L.ERROR_GPU_UNLOAD_FAILED, "释放步骤失败：%s");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "无法保存表单。");
@@ -1898,6 +1923,11 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_LAST_CHANGE_NOT_SAVED, "您最后的更改未保存。");
         setValue(L.MSG_ACTIVATION_PREVIEW_ENTRY_USED, "“%s”会被使用：%s。");
         setValue(L.MSG_ACTIVATION_PREVIEW_ENTRY_NOT_USED, "“%s”不会被使用：%s。");
+        setValue(L.MSG_GPU_STEP_OK, "步骤成功。");
+        setValue(L.MSG_GPU_UNLOADED, "GPU 已卸载。");
+        setValue(L.MSG_DELETE_GPU, "删除 GPU“%s”及其锁？");
+        setValue(L.MSG_DELETE_GPU_LOCK, "删除锁“%s”？使用它的 AI 和后端将在无锁状态下运行。");
+        setValue(L.MSG_DELETE_GPU_STEP, "删除步骤“%s”？它将从使用它的锁中移除。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");
@@ -2031,6 +2061,12 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_SEND_LORE_IMAGES, "将本轮使用的设定集条目内容中的图片与设定一起发送。仅适用于接受图片的模型：不支持视觉的模型会拒绝请求。");
         setValue(L.HELP_LORE_IMAGES_IN_SYSTEM, "将设定块的图片直接放入系统消息，而不是放在其后的单独消息中。仅适用于在系统消息中接受图片的服务器和聊天模板；大多数都不支持。");
         setValue(L.HELP_PROMPT_LANGUAGE, "内置提示词（生成、摘要、重写、批注、代笔、智能体）和插件提示词的语言。你自己写的提示词保持不变；界面语言另行设置。");
+        setValue(L.HELP_AI_GPU_LOCK, "当此模型所在的 GPU 与其他模型或图像、语音服务器共享时设置：每个请求都会等待轮到自己使用 GPU，并先用此锁加载 GPU。");
+        setValue(L.HELP_GPUS, "一块 GPU 一次只容纳一个模型。锁规定如何加载它（获取步骤）以及如何为另一个锁腾出 GPU（释放步骤）。AI 和扩展的后端选择一个锁；作业结束后 GPU 保持加载，直到另一个锁的作业到来。");
+        setValue(L.HELP_GPU_LOCK_MAX_CONCURRENT, "此锁的作业在 GPU 上同时运行的数量；0 表示不限。");
+        setValue(L.HELP_GPU_STEP_HEADERS, "每行一个请求头，名称: 值。加密存储。");
+        setValue(L.HELP_GPU_ACQUIRE_STEPS, "在此锁的第一个作业之前按顺序运行；第一次失败即停止。");
+        setValue(L.HELP_GPU_RELEASE_STEPS, "当另一个锁的作业需要 GPU 或点击“立即卸载”时运行；即使其中一个失败，也会全部运行。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");

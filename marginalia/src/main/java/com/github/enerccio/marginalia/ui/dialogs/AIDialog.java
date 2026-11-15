@@ -18,10 +18,7 @@ import com.github.enerccio.marginalia.extensions.ExtensionAIForm;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
-import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
-import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
-import com.github.enerccio.marginalia.ui.widgets.Notification;
-import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
+import com.github.enerccio.marginalia.ui.widgets.*;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.google.gson.*;
 import com.vaadin.flow.component.Component;
@@ -83,6 +80,7 @@ public class AIDialog extends Dialog implements LLMInteract {
     private IntegerField maxContextField;
     private IntegerField maxResponseField;
     private IntegerField maxConcurrentField;
+    private GpuLockSelect gpuLockSelect;
     private Checkbox needsJailbreakCheckbox;
     private Checkbox sendLoreImagesCheckbox;
     private Checkbox loreImagesInSystemCheckbox;
@@ -168,6 +166,7 @@ public class AIDialog extends Dialog implements LLMInteract {
         generalFormLayout.setColspan(jailbreakField, 2);
         generalFormLayout.add(enabledReasoningCheckbox, reasoningEffortCombo);
         generalFormLayout.add(maxConcurrentField, 2);
+        generalFormLayout.add(gpuLockSelect, 2);
         generalFormLayout.add(sendLoreImagesCheckbox, 2);
         generalFormLayout.add(loreImagesInSystemCheckbox, 2);
 
@@ -314,6 +313,9 @@ public class AIDialog extends Dialog implements LLMInteract {
         maxConcurrentField.setStepButtonsVisible(true);
         maxConcurrentField.setHelperText(loc.getValue(L.HELP_AI_CONNECTIONS));
         maxConcurrentField.setWidthFull();
+
+        gpuLockSelect = new GpuLockSelect();
+        gpuLockSelect.setHelperText(loc.getValue(L.HELP_AI_GPU_LOCK));
 
         sendLoreImagesCheckbox = new Checkbox(loc.getValue(L.LABEL_SEND_LORE_IMAGES));
         sendLoreImagesCheckbox.setHelperText(loc.getValue(L.HELP_SEND_LORE_IMAGES));
@@ -520,6 +522,9 @@ public class AIDialog extends Dialog implements LLMInteract {
         maxResponseField.setValue(ai.getMaxCompletionTokens() != null && ai.getMaxCompletionTokens() > 0 ? ai.getMaxCompletionTokens() : DEFAULT_MAX_RESPONSE);
         // an AI without the setting has one connection, the field shows it
         maxConcurrentField.setValue(ai.getConnections());
+        gpuLockSelect.setLockUuid(ai.getGpuLock());
+        // a lock that is chosen shows even when the administrator removed all of them meanwhile
+        gpuLockSelect.setVisible(gpuLockSelect.isVisible() || ai.getGpuLock() != null);
         sendLoreImagesCheckbox.setValue(ai.isSendLoreImages());
         loreImagesInSystemCheckbox.setValue(ai.isLoreImagesInSystem());
         jailbreakField.setValue(StringUtils.defaultString(ai.getJailbreak()));
@@ -926,6 +931,10 @@ public class AIDialog extends Dialog implements LLMInteract {
             ai.setMaxCompletionTokens(maxResponse);
             // one connection at least, an emptied field is the default one
             ai.setMaxConcurrentRequests(Math.max(1, Objects.requireNonNullElse(maxConcurrentField.getValue(), 1)));
+            // a lock the administrator deleted is not shown: keep it rather than drop it silently when the box is hidden
+            if (gpuLockSelect.isVisible()) {
+                ai.setGpuLock(gpuLockSelect.getLockUuid());
+            }
             ai.setSendLoreImages(sendLoreImagesCheckbox.getValue());
             // only the OpenAI-compatible request carries images in the system message
             ai.setLoreImagesInSystem(type == AIType.OPEN_AI_COMPATIBLE && loreImagesInSystemCheckbox.getValue());

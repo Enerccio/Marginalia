@@ -5,6 +5,8 @@ import com.github.enerccio.marginalia.domain.model.ImageAttachment;
 import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.*;
+import com.github.enerccio.marginalia.domain.service.gpu.GpuException;
+import com.github.enerccio.marginalia.domain.service.gpu.GpuLease;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LorebookEntryVerdict;
@@ -13,7 +15,6 @@ import com.github.enerccio.marginalia.domain.templates.TemplateContext;
 import com.github.enerccio.marginalia.domain.templates.TemplateVariables;
 import com.github.enerccio.marginalia.extensions.PartTextRegistry;
 import com.github.enerccio.marginalia.extensions.httphooks.BackendException;
-import com.github.enerccio.marginalia.extensions.httphooks.GpuGate;
 import com.github.enerccio.marginalia.extensions.httphooks.HookKeys;
 import com.github.enerccio.marginalia.extensions.httphooks.HookRunner;
 import com.github.enerccio.marginalia.extensions.imagegenerator.ImageGeneratorLocalization;
@@ -29,17 +30,17 @@ import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 
 /**
  * What the image generator does with the book: keeps the backends of the user, asks the language model for the prompt of a part,
- * makes the sessions of a backend and stores the image the user accepts.
+ * makes the images on a backend and stores the image the user accepts.
  */
 @Configurable
 public class ImageGeneratorService {
+
+    @Autowired
+    private GpuService gpuService;
 
     @Autowired
     private SettingService settingService;
@@ -78,12 +79,6 @@ public class ImageGeneratorService {
     private SummaryService summaryService;
 
     private final Gson gson = new Gson();
-
-    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
-        Thread t = new Thread(r, "image-generator-idle");
-        t.setDaemon(true);
-        return t;
-    });
 
     /** Receives the prompt from the inference thread. */
     public interface PromptListener {
@@ -498,29 +493,44 @@ public class ImageGeneratorService {
     }
 
     /**
-     * A session of the backend; {@code onIdleEnd} is told when the idle time ended it. The sessions of everyone who calls the same
-     * server (or GPU name, whatever extension) go through one {@link GpuGate}: the hooks run for the first and the last of them, and the images are made one at a time.
+     * Makes one image on the backend (see {@link ImageJob}): the GPU lock the backend names is taken for the length of the image, the
+     * requests before and after it run around it. Called from a worker thread.
      */
-    public ImageSession createSession(BackendConfig config, Consumer<String> onIdleEnd) {
+    public byte[] generate(BackendConfig config, ImageRequest request, ImageBackend.Cancel cancel) throws BackendException {
         UnaryOperator<String> reveal = this::reveal;
         // a proxy (LiteLLM) wants its key on the unload request too: the key of the requests, else the api key
         String protectedKey = StringUtils.isNotBlank(config.getProtectedHooksKey()) ? config.getProtectedHooksKey() : config.getProtectedApiKey();
         String key = protectedKey == null ? null : reveal(protectedKey);
-        return new ImageSession(createBackend(config),
-                // before: in order, the first failure stops the image (the next request must not load a model on a full GPU)
+        return ImageJob.run(
+                c -> takeGpu(config.getGpuLock(), c),
+                createBackend(config),
+                // before: in order, the first failure stops the image
                 () -> HookRunner.runAll(HookKeys.withBearer(config.getBeforeHooks(), key, reveal), config.isLocal(), reveal),
-                // after: every request is made, also when one failed (every container must be stopped); the first failure is reported
+                // after: every request is made, also when one failed; the first failure is reported
                 () -> {
                     String error = HookRunner.runAllRegardless(HookKeys.withBearer(config.getAfterHooks(), key, reveal), config.isLocal(), reveal);
                     if (error != null) {
                         throw new BackendException(error);
                     }
                 },
-                config.getIdleSeconds(), scheduler, onIdleEnd, config.gate(), config.gateMode());
+                request, cancel);
+    }
+
+    private ImageJob.Lease takeGpu(String lockUuid, ImageBackend.Cancel cancel) throws BackendException {
+        if (gpuService == null || StringUtils.isBlank(lockUuid)) {
+            return () -> {
+            };
+        }
+        try {
+            GpuLease lease = gpuService.acquire(lockUuid, cancel == null ? null : cancel::isCancelled);
+            return lease::close;
+        } catch (GpuException e) {
+            throw new BackendException(e.getMessage(), e);
+        }
     }
 
     public void shutdown() {
-        scheduler.shutdownNow();
+        // nothing runs between the images
     }
 
     // --- the result ---

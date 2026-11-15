@@ -87,6 +87,7 @@ public class AdminPart implements WorkspaceComponent {
     private final StatisticsPanel statisticsPanel = new StatisticsPanel();
     private final JobsPanel jobsPanel = new JobsPanel();
     private final UpdatePanel updatePanel = new UpdatePanel();
+    private final GpuPanel gpuPanel = new GpuPanel();
 
     public AdminPart(Workspace workspace) {
         this(workspace, false);
@@ -100,7 +101,7 @@ public class AdminPart implements WorkspaceComponent {
         this.resourceGarbagePanel = new ResourceGarbagePanel(phone);
     }
 
-    @PublicAPI(from = "1.8.0",
+    @PublicAPI(from = "1.9.0",
             returns = @APIReturn(type = Component.class),
             locals = {@APILocals(name = "tabSheet", type = TabSheet.class),
                     @APILocals(name = "usersTab", type = Tab.class),
@@ -112,6 +113,7 @@ public class AdminPart implements WorkspaceComponent {
                     @APILocals(name = "agentsTab", type = Tab.class),
                     @APILocals(name = "statisticsTab", type = Tab.class),
                     @APILocals(name = "jobsTab", type = Tab.class),
+                    @APILocals(name = "gpusTab", type = Tab.class),
                     @APILocals(name = "updateTab", type = Tab.class),
                     @APILocals(name = "extensionsTab", type = Tab.class),
                     @APILocals(name = "extensionsContent", type = Component.class),
@@ -146,6 +148,9 @@ public class AdminPart implements WorkspaceComponent {
         Tab jobsTab = new Tab(loc.getValue(L.LABEL_JOBS));
         tabSheet.add(jobsTab, jobsPanel.create());
 
+        Tab gpusTab = new Tab(loc.getValue(L.LABEL_GPUS));
+        tabSheet.add(gpusTab, gpuPanel.create());
+
         Tab updateTab = new Tab(loc.getValue(L.LABEL_UPDATE));
         tabSheet.add(updateTab, updatePanel.create());
 
@@ -157,6 +162,7 @@ public class AdminPart implements WorkspaceComponent {
         adminPanels.put(agentsTab, agentSettingsPanel);
         adminPanels.put(statisticsTab, statisticsPanel);
         adminPanels.put(jobsTab, jobsPanel);
+        adminPanels.put(gpusTab, gpuPanel);
         adminPanels.put(updateTab, updatePanel);
 
         Tab extensionsTab = new Tab(loc.getValue(L.LABEL_EXTENSIONS));
@@ -181,7 +187,7 @@ public class AdminPart implements WorkspaceComponent {
             return "";
         }
         Tab selected = adminTabs.getSelectedTab();
-        return "The Admin page, for administrators. Its tabs: Users, Database Backups, Cleanup, Resource Files, Help assistant, Agents, Statistics, Jobs, Extensions. "
+        return "The Admin page, for administrators. Its tabs: Users, Database Backups, Cleanup, Resource Files, Help assistant, Agents, Statistics, Jobs, GPUs, Update, Extensions. "
                 + "The open tab is **" + (selected == null ? "" : selected.getLabel()) + "**."
                 + (selected != null && !adminPanels.containsKey(selected)
                 ? " (The user and extension lists are tables with buttons to add, edit and delete.)" : "");
