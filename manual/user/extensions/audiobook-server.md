@@ -67,6 +67,13 @@ banging became eleven knocks) or in a wrong voice, and changing the seed only mo
 **Precision** is fp32 by default; it needs about 16 GB of the card. The Granite speech recognition of the suite has the same problem in bf16 (gibberish from
 the second recognition on), so the extension runs it in float32 as well.
 
+**The cleanup of clips** ([Cleanup of clips](audiobook.md#cleanup-of-clips)) uses two more nodes of the same suite, `VocalRemovalNode` (separation
+models) and `VoiceFixerNode`, with `LoadAudio` and `SaveAudio` of ComfyUI; nothing else needs installing. The suite downloads a model the first time it is
+used (the MelBand Roformer models are about 900 MB each). On the R9700 the MelBand models (vocals, denoise) and the voice fixer worked, about 25 seconds
+for a 16-second clip. The UVR models did not: `UVR-DeNoise` failed to download (the address of the suite answered 404) and `UVR-DeEcho-DeReverb` failed with
+`module 'samplerate' has no attribute 'resample'` (the Python package `samplerate` in the container is not the one the suite expects). The default
+cleanups use only the models that worked.
+
 The **Fish Audio S2 Pro** engine of the suite did not work on that card: its audio came out as invalid numbers (NaN). The Higgs Audio v3 weights are under a
 research and non-commercial licence.
 
@@ -92,6 +99,11 @@ step of the speech lock (stop the server) and goes on. Several batches and sampl
 (30 GB of RAM, the swap, then the OOM killer took other services): the unload **must come first**. The first failing acquire step ends the
 list, so nothing starts on a full card; and when a release step fails, the next lock is not loaded at all (the GPU may still be full) and the
 job fails with the error. The release steps all run, whatever happens to one of them.
+
+**Higgs, the speech recognition and the cleanup of clips on one ComfyUI** each get a lock of their own, all three with the same steps (unload the
+language model, start ComfyUI; release: stop ComfyUI). ComfyUI keeps a model it unloaded in the server's memory (fp32 Higgs is about 16 GB), and loading
+the speech recognition next to it ran the server out of memory in the test; with three locks every switch restarts ComfyUI, so only one of them is ever
+loaded.
 
 Why *stop* the container instead of unloading the model inside the server: an unload inside the server left about 1 GB of the card taken after
 many model swaps; stopping the container frees everything.

@@ -67,6 +67,7 @@ public class AudiobookSettingsForm extends VerticalLayout {
     private final BackendEditor editor;
     private final VerticalLayout ownSection = new VerticalLayout();
     private final RecognizerEditor recognizer;
+    private final CleanupEditor cleanup;
     private final Select<BackendConfig> inUse = new Select<>();
     private final Span ownDisabled = new Span(T.localized(OWN_SPEECH_SERVERS_ARE_OFF));
 
@@ -74,6 +75,7 @@ public class AudiobookSettingsForm extends VerticalLayout {
         this.service = service;
         this.editor = new BackendEditor(service);
         this.recognizer = new RecognizerEditor(service);
+        this.cleanup = new CleanupEditor(service);
 
         setWidthFull();
         setPadding(true);
@@ -176,7 +178,7 @@ public class AudiobookSettingsForm extends VerticalLayout {
         ownSection.setSpacing(true);
         ownSection.add(bar, editor);
 
-        add(help, inUse, ownSection, ownDisabled, actorSection, recognizer, autoSection, normalizeSection, labelSection);
+        add(help, inUse, ownSection, ownDisabled, actorSection, recognizer, cleanup, autoSection, normalizeSection, labelSection);
         if (service.isAdmin()) {
             add(sharedSection(), storageSection());
         }
@@ -231,7 +233,7 @@ public class AudiobookSettingsForm extends VerticalLayout {
         ownDisabled.setVisible(!own);
         binding = true;
         try {
-            picker.setItems(backends);
+            picker.setItems(BackendConfig.byName(backends));
             BackendConfig first = settings.find(settings.getSelectedBackendId());
             current = first != null ? first : backends.stream().findFirst().orElse(null);
             picker.setValue(current);
@@ -246,6 +248,7 @@ public class AudiobookSettingsForm extends VerticalLayout {
         normalize.setValue(settings.isNormalizeLoudness());
         targetLufs.setValue(settings.getTargetLufs());
         recognizer.show(settings.getRecognizer());
+        cleanup.show(settings.getCleanup());
     }
 
     /** Fills the box of the backend in use: the shared ones the user may use and their own (those on the form, saved or not). */
@@ -256,7 +259,7 @@ public class AudiobookSettingsForm extends VerticalLayout {
         if (service.usersMayAddOwn()) {
             items.addAll(backends);
         }
-        inUse.setItems(items);
+        inUse.setItems(BackendConfig.byName(items));
         BackendConfig value = items.stream().filter(b -> b.getId().equals(keptId)).findFirst().orElse(items.stream().findFirst().orElse(null));
         inUse.setValue(value);
     }
@@ -314,6 +317,7 @@ public class AudiobookSettingsForm extends VerticalLayout {
         stored.setTargetLufs(targetLufs.getValue());
         stored.setSelectedBackendId(inUse.getValue() == null ? null : inUse.getValue().getId());
         stored.setRecognizer(recognizer.commit());
+        stored.setCleanup(cleanup.commit());
         return stored;
     }
 
@@ -326,7 +330,7 @@ public class AudiobookSettingsForm extends VerticalLayout {
         backends.add(created);
         binding = true;
         try {
-            picker.setItems(backends);
+            picker.setItems(BackendConfig.byName(backends));
             picker.setValue(created);
         } finally {
             binding = false;
@@ -344,7 +348,7 @@ public class AudiobookSettingsForm extends VerticalLayout {
         backends.add(created);
         binding = true;
         try {
-            picker.setItems(backends);
+            picker.setItems(BackendConfig.byName(backends));
             picker.setValue(created);
         } finally {
             binding = false;
@@ -361,7 +365,7 @@ public class AudiobookSettingsForm extends VerticalLayout {
         current = null;
         binding = true;
         try {
-            picker.setItems(backends);
+            picker.setItems(BackendConfig.byName(backends));
             BackendConfig next = backends.isEmpty() ? null : backends.getFirst();
             picker.setValue(next);
             current = next;

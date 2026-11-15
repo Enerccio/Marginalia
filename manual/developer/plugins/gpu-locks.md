@@ -72,6 +72,9 @@ try (GpuLease lease = gpuService.acquire(config.getGpuLock(), cancel::isCancelle
 }
 ```
 
+`GpuLockSelect` reads the locks again in `setLockUuid` and when it is attached (`reload()` does it by hand), so a form built once per page
+shows the locks the administrator added later; call `setLockUuid` every time the form shows a backend.
+
 `acquireAsync(lockUuid, position)` is the non-blocking form (a `CompletableFuture<GpuLease>`, cancelling it leaves the queue; `position`
 hears how many jobs are ahead). `lockChoices()` / `lockChoice(uuid)` give every user the names for a picker, without steps or secrets.
 

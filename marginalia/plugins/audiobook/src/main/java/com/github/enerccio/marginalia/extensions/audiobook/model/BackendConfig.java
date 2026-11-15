@@ -327,4 +327,13 @@ public class BackendConfig implements Cloneable {
     public String toString() {
         return getName();
     }
+
+    /** The backends by name, as the user reads them (the case and the accents do not count), for a picker. */
+    public static <T extends BackendConfig> java.util.List<T> byName(java.util.Collection<T> backends) {
+        java.text.Collator collator = java.text.Collator.getInstance();
+        collator.setStrength(java.text.Collator.PRIMARY);
+        java.util.List<T> sorted = new java.util.ArrayList<>(backends);
+        sorted.sort((a, b) -> collator.compare(a.getName() == null ? "" : a.getName(), b.getName() == null ? "" : b.getName()));
+        return sorted;
+    }
 }

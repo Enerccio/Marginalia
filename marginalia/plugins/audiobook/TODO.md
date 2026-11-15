@@ -192,6 +192,27 @@ Tested on the author's ComfyUI (R9700, ROCm 7.2, TTS Audio Suite), seed 42 unles
   share the RAM.
 - The suite caches identical requests even with `enable_audio_cache: false` ("Using cached Higgs Audio v3 audio"): vary the text or seed when testing.
 
+## Cleanup of clips on ComfyUI (2026-11-15)
+
+Done: clips have a name, a folder and versions (`ClipInfo` in the user settings, keyed by the resource uuid); a version is made with ffmpeg or with a
+cleanup preset (`CleanupConfig`/`CleanupPreset`/`CleanupStep`, `clean.ComfyCleaner` over `comfy.ComfyClient`) under its own GPU lock; Voices and
+clips is a `TabDock` (Actors | Clips | Clip) whose layout is kept in `AudiobookSettings.voicesLayout`. Unit tests; **not tried in a running
+application** (the window, the tree, the dock layout).
+
+Tried on the author's ComfyUI (R9700, TTS Audio Suite `VocalRemovalNode` / `VoiceFixerNode`) with the user's 16 s narrator clip and a copy with pink
+noise, 50 Hz hum and an echo added:
+
+- `MELBAND/MelBandRoformer_fp32` (vocals): the voice is output 0 (*extracted*), 27 s with the download of 900 MB, then about 15 s. The node logs "Model
+  with inverted outputs detected - swapping", so the suite already fixes the order for that model.
+- `MELBAND/denoise_mel_band_roformer_sdr_27.99`: the voice is output 1 (*remaining*); the download ran at about 3 MB/s (10 min).
+- `UVR/UVR-DeNoise`: the download of the suite answered 404. `UVR/UVR-DeEcho-DeReverb`: `module 'samplerate' has no attribute 'resample'` (another
+  package named `samplerate` in the container). Left out of the default presets; the de-echo would need the right package in the container.
+- `VoiceFixerNode` mode 0: 34 s, a very low floor (-69 dB) but it changes the voice more; a preset of its own, not in *Film or game clip*.
+- The plugin's *Film or game clip* (vocals → denoise) through `ComfyCleaner`: the noisy copy went from floor -38 dB (*Poor*, background) to -89 dB
+  (*Clean*), the original clip from -46 dB to -64 dB, about 25 s a clip. Not judged by ear yet.
+
+Open: whether a separated clip clones better with Higgs (a sample with the original and the cleaned clip), the de-echo models.
+
 ## Open
 
 - **The audio as a `Resource` (done):** `ResourceAudioStore` stores every piece and every joined part as a `Resource` linked to its part; the index (cache key -> resource uuid) is in the part's `attributes` under the plugin's key, so the audio travels with the book; a replaced audio is soft deleted (the files stay until the *Resource Files* garbage collection); wav is stored as well as mp3. The readers of a published book are served by `ResourceService.readForReader` (the book is viewable by the user at every request, the resource is the owner's and linked to a part of that book; the content type is told from the bytes). Still to check by hand: how the Resources tab shows a non-image file and how a backup of a long audiobook behaves (size).

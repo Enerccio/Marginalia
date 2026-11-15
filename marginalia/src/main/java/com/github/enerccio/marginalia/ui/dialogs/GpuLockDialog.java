@@ -53,7 +53,7 @@ public class GpuLockDialog extends Dialog {
 
         ComboBox<Gpu> gpu = new ComboBox<>(loc.getValue(L.LABEL_GPU));
         gpu.setRequired(true);
-        gpu.setItems(gpus);
+        gpu.setItems(gpus.stream().sorted(java.util.Comparator.comparing(Gpu::getName, String.CASE_INSENSITIVE_ORDER)).toList());
         gpu.setItemLabelGenerator(Gpu::getName);
         gpu.setValue(lock.getGpu() == null ? (gpus.size() == 1 ? gpus.getFirst() : null)
                 : gpus.stream().filter(g -> Objects.equals(g.getId(), lock.getGpu().getId())).findFirst().orElse(null));
@@ -115,7 +115,8 @@ public class GpuLockDialog extends Dialog {
             rows.setSpacing(false);
 
             ComboBox<GpuStep> pick = new ComboBox<>();
-            pick.setItems(all);
+            // by name; the lists of the lock keep their order: it is the order the steps run in
+            pick.setItems(all.stream().sorted(java.util.Comparator.comparing(GpuStep::getName, String.CASE_INSENSITIVE_ORDER)).toList());
             pick.setItemLabelGenerator(GpuStep::getName);
             pick.setPlaceholder(loc.getValue(L.LABEL_ADD_GPU_STEP));
             pick.addValueChangeListener(event -> {

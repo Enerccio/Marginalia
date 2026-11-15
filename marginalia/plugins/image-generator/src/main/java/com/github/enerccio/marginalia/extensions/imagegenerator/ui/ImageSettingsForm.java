@@ -203,7 +203,7 @@ public class ImageSettingsForm extends VerticalLayout {
         defaultNegative.setValue(settings.getNegativePrompt().isBlank() ? legacyNegative(settings) : settings.getNegativePrompt());
         binding = true;
         try {
-            picker.setItems(backends);
+            picker.setItems(BackendConfig.byName(backends));
             current = settings.find(settings.getSelectedBackendId());
             if (current == null && !backends.isEmpty()) {
                 current = backends.getFirst();
@@ -249,7 +249,7 @@ public class ImageSettingsForm extends VerticalLayout {
         backends.add(created);
         binding = true;
         try {
-            picker.setItems(backends);
+            picker.setItems(BackendConfig.byName(backends));
             picker.setValue(created);
         } finally {
             binding = false;
@@ -265,7 +265,7 @@ public class ImageSettingsForm extends VerticalLayout {
         current = null;
         binding = true;
         try {
-            picker.setItems(backends);
+            picker.setItems(BackendConfig.byName(backends));
             BackendConfig next = backends.isEmpty() ? null : backends.getFirst();
             picker.setValue(next);
             current = next;

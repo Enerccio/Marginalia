@@ -73,6 +73,7 @@ proxy that starts and stops containers:
 | Language model | (none: the router loads it with the next request) | (none) | 0 |
 | ComfyUI | Unload the language model, Start ComfyUI | Stop ComfyUI | 1 |
 | Speech | Unload the language model, Start speech | Stop speech | 1 |
+| Clip cleanup | Unload the language model, Start ComfyUI | Stop ComfyUI | 1 |
 
-The AI of the language model picks *Language model*, the image backend *ComfyUI*, the speech backend *Speech*. A batch of speech after a
+The AI of the language model picks *Language model*, the image backend *ComfyUI*, the speech backend *Speech*. The [cleanup of clips](../extensions/audiobook.md#cleanup-of-clips) of the Audiobook picks *Clip cleanup*: it runs on the same ComfyUI as the images, but a lock of its own restarts ComfyUI between them, so the image model and the cleanup models are never in its memory together. A batch of speech after a
 chat runs *Unload the language model* and *Start speech*; the next chat message runs *Stop speech* first.

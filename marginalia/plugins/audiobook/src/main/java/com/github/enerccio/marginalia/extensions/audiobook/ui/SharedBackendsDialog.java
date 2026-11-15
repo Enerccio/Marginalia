@@ -116,7 +116,7 @@ public class SharedBackendsDialog extends Dialog {
         DialogFocus.onOpen(this, editor.nameField());
         DialogShortcuts.submitWith(save, editor.nameField(), editor.addressField());
 
-        picker.setItems(settings.getBackends());
+        picker.setItems(byName(settings.getBackends()));
         SharedBackend first = settings.getBackends().stream().findFirst().orElse(null);
         binding = true;
         try {
@@ -185,7 +185,7 @@ public class SharedBackendsDialog extends Dialog {
     private void refreshPicker(SharedBackend selected) {
         binding = true;
         try {
-            picker.setItems(settings.getBackends());
+            picker.setItems(byName(settings.getBackends()));
             picker.setValue(selected);
         } finally {
             binding = false;
@@ -212,5 +212,12 @@ public class SharedBackendsDialog extends Dialog {
         Notification.success(T.localized(THE_SHARED_SPEECH_SERVERS_ARE_SAVED));
         close();
         saved.run();
+    }
+
+    private static List<SharedBackend> byName(List<SharedBackend> shared) {
+        java.text.Collator collator = com.github.enerccio.marginalia.extensions.audiobook.model.AudiobookSettings.collator();
+        List<SharedBackend> sorted = new java.util.ArrayList<>(shared);
+        sorted.sort((a, b) -> collator.compare(a.getConfig() == null ? "" : a.getConfig().getName(), b.getConfig() == null ? "" : b.getConfig().getName()));
+        return sorted;
     }
 }

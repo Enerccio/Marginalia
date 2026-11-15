@@ -24,8 +24,12 @@ public class AudiobookSettings {
     private List<Actor> actors = new ArrayList<>();
     /** The speech recognition (checks the pieces, recognises the text of a clip); null: none. */
     private RecognizerConfig recognizer;
-    /** The words spoken in a reference clip, by the uuid of its resource (typed by the user or recognised). */
-    private Map<String, String> clipTexts = new LinkedHashMap<>();
+    /** What the plugin keeps of the reference clips (name, folder, the clip a version was made from, the words), by the uuid of the resource. */
+    private Map<String, ClipInfo> clips = new LinkedHashMap<>();
+    /** The cleanup of clips on a ComfyUI; null: none. */
+    private CleanupConfig cleanup;
+    /** The arrangement of the tabs of Voices and clips ({@code TabDock.getLayout()}); null: the default. */
+    private com.google.gson.JsonObject voicesLayout;
 
     public List<BackendConfig> getBackends() {
         if (backends == null) {
@@ -88,8 +92,7 @@ public class AudiobookSettings {
             actors = new ArrayList<>();
         }
         // by name, as the user reads them (the case and the accents do not count)
-        java.text.Collator collator = java.text.Collator.getInstance();
-        collator.setStrength(java.text.Collator.PRIMARY);
+        java.text.Collator collator = collator();
         actors.sort((a, b) -> collator.compare(a.getName() == null ? "" : a.getName(), b.getName() == null ? "" : b.getName()));
         return actors;
     }
@@ -193,25 +196,61 @@ public class AudiobookSettings {
         return recognizer != null && recognizer.isConfigured() ? recognizer : null;
     }
 
+    public CleanupConfig getCleanup() {
+        return cleanup;
+    }
+
+    public void setCleanup(CleanupConfig cleanup) {
+        this.cleanup = cleanup;
+    }
+
+    /** The cleanup of clips when it is set up, else null. */
+    public CleanupConfig cleanup() {
+        return cleanup != null && cleanup.isConfigured() ? cleanup : null;
+    }
+
+    public com.google.gson.JsonObject getVoicesLayout() {
+        return voicesLayout;
+    }
+
+    public void setVoicesLayout(com.google.gson.JsonObject voicesLayout) {
+        this.voicesLayout = voicesLayout;
+    }
+
+    /** What is kept of the clip, null when nothing is. */
+    public ClipInfo clipInfo(String clipUuid) {
+        return clipUuid == null || clips == null ? null : clips.get(clipUuid);
+    }
+
+    /** The entry of the clip, made when there is none. */
+    private ClipInfo infoFor(String clipUuid) {
+        if (clips == null) {
+            clips = new LinkedHashMap<>();
+        }
+        return clips.computeIfAbsent(clipUuid, u -> new ClipInfo());
+    }
+
+    /** Drops the entry when nothing is kept in it any more. */
+    private void tidy(String clipUuid) {
+        ClipInfo info = clipInfo(clipUuid);
+        if (info != null && info.isEmpty()) {
+            clips.remove(clipUuid);
+        }
+    }
+
     /** The words spoken in the clip, null when they are not known. */
     public String clipText(String clipUuid) {
-        if (clipUuid == null || clipTexts == null) {
-            return null;
-        }
-        String text = clipTexts.get(clipUuid);
-        return text == null || text.isBlank() ? null : text;
+        ClipInfo info = clipInfo(clipUuid);
+        return info == null ? null : info.getText();
     }
 
     /** Sets (or with a blank text removes) the words spoken in the clip. */
     public void setClipText(String clipUuid, String text) {
-        if (clipTexts == null) {
-            clipTexts = new LinkedHashMap<>();
+        if (clipUuid == null) {
+            return;
         }
-        if (text == null || text.isBlank()) {
-            clipTexts.remove(clipUuid);
-        } else {
-            clipTexts.put(clipUuid, text.strip());
-        }
+        infoFor(clipUuid).setText(text);
+        tidy(clipUuid);
     }
 
     /** The text of a clip goes with its replacement (a cleaned copy says the same words). */
@@ -220,6 +259,91 @@ public class AudiobookSettings {
         if (text != null && clipText(toUuid) == null) {
             setClipText(toUuid, text);
         }
+    }
+
+    /** Gives the clip a name of the user's (blank: back to the name of the file). */
+    public void renameClip(String clipUuid, String name) {
+        if (clipUuid == null) {
+            return;
+        }
+        infoFor(clipUuid).setName(name);
+        tidy(clipUuid);
+    }
+
+    /** The original the clip is a version of (itself for an original); a broken or circular chain ends where it breaks. */
+    public String rootOf(String clipUuid) {
+        String current = clipUuid;
+        java.util.Set<String> seen = new java.util.HashSet<>();
+        seen.add(current);
+        while (true) {
+            ClipInfo info = clipInfo(current);
+            String parent = info == null ? null : info.getParent();
+            if (parent == null || !seen.add(parent)) {
+                return current;
+            }
+            current = parent;
+        }
+    }
+
+    /** The folder of the clip: that of its original (a version is shown under it); null for none. */
+    public String folderOf(String clipUuid) {
+        ClipInfo root = clipInfo(rootOf(clipUuid));
+        return root == null ? null : root.getFolder();
+    }
+
+    /** Puts the clip (its original, with every version) into the folder; blank: no folder. */
+    public void moveClip(String clipUuid, String folder) {
+        if (clipUuid == null) {
+            return;
+        }
+        String root = rootOf(clipUuid);
+        infoFor(root).setFolder(folder);
+        tidy(root);
+    }
+
+    /** Marks the clip as a version of the parent, made the way {@code madeWith} says; it takes the parent's words. */
+    public void addVersion(String parentUuid, String versionUuid, String name, String madeWith) {
+        ClipInfo info = infoFor(versionUuid);
+        info.setParent(parentUuid);
+        info.setName(name);
+        info.setMadeWith(madeWith);
+        if (info.getText() == null) {
+            info.setText(clipText(parentUuid));
+        }
+    }
+
+    /** The folders of the clips, by name (the case and the accents do not count). */
+    public List<String> folders() {
+        java.util.TreeSet<String> folders = new java.util.TreeSet<>(collator());
+        if (clips != null) {
+            clips.values().stream().map(ClipInfo::getFolder).filter(java.util.Objects::nonNull).forEach(folders::add);
+        }
+        return new ArrayList<>(folders);
+    }
+
+    /** Forgets a deleted clip: its versions become versions of its parent (originals when it had none) and keep their folder. */
+    public void forgetClip(String clipUuid) {
+        if (clipUuid == null || clips == null) {
+            return;
+        }
+        ClipInfo gone = clips.remove(clipUuid);
+        String parent = gone == null ? null : gone.getParent();
+        String folder = gone == null ? null : gone.getFolder();
+        for (var entry : clips.entrySet()) {
+            if (clipUuid.equals(entry.getValue().getParent())) {
+                entry.getValue().setParent(parent);
+                if (parent == null && entry.getValue().getFolder() == null) {
+                    entry.getValue().setFolder(folder);
+                }
+            }
+        }
+    }
+
+    /** Compares names as the user reads them (the case and the accents do not count). */
+    public static java.text.Collator collator() {
+        java.text.Collator collator = java.text.Collator.getInstance();
+        collator.setStrength(java.text.Collator.PRIMARY);
+        return collator;
     }
 
     public BackendConfig find(String id) {

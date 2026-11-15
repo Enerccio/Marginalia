@@ -147,7 +147,7 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
     public static final String ADD_A_CLIP = "Add a clip";
     public static final String THE_CLIP_COULD_NOT_BE_ADDED = "The clip could not be added: %s";
     public static final String VOICES_AND_CLIPS = "Voices and clips";
-    public static final String VOICES_AND_CLIPS_HELP = "Your actors and the reference clips their voices are cloned from. A voice model copies the recording, not only the voice: a clip with background sound (a film, a room, music) gives every line a whoosh or a room. Use a clean recording with real pauses, and clean a clip by hand for the best result (the noise reduction of Audacity, or a vocal remover for a clip from a film).";
+    public static final String VOICES_AND_CLIPS_HELP = "Your actors and the reference clips their voices are cloned from, in folders, with the versions made from a clip under it. A voice model copies the recording, not only the voice: a clip with background sound (a film, a room, music) gives every line a whoosh or a room. Use a clean recording with real pauses, or clean a clip here: with ffmpeg, or with AI on ComfyUI when a cleanup is set up in the settings.";
     public static final String CLIPS = "Clips";
     public static final String LENGTH = "Length";
     public static final String QUALITY = "Quality";
@@ -172,7 +172,7 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
     public static final String REPLACE_WITH = "Replace it with";
     public static final String REPLACE_HELP = "Every voice of your actors and every narrator of your backends that uses the clip gets the new one; the parts are made again with it. The old clip stays until you delete it.";
     public static final String THE_CLIP_WAS_REPLACED = "%d voices now use %s.";
-    public static final String THE_CLEANED_CLIP_IS_READY = "The cleaned copy %s is among the clips (%s). Play it, and replace the clip with it if it sounds better.";
+    public static final String THE_CLEANED_CLIP_IS_READY = "The cleaned version %s is under its clip (%s). Play it, and use it in place of the clip if it sounds better.";
     public static final String THE_CLIP_COULD_NOT_BE_CLEANED = "The clip could not be cleaned: %s";
     public static final String A_CLIP_WITH_PROBLEMS = "%s: %s. For the best result clean the recording by hand, or clean it with ffmpeg in Voices and clips (Audiobook Settings).";
     public static final String ADD_A_CHARACTER = "Add a character";
@@ -348,6 +348,41 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
     public static final String THE_SPEECH_RECOGNITION_WORKS = "The speech recognition works.";
     public static final String RECOGNITION_FAILED = "Recognizing failed: %s";
     public static final String THE_TEXT_OF_THE_CLIP_IS_SAVED = "The text of the clip is saved.";
+    public static final String CLIP = "Clip";
+    public static final String PICK_A_CLIP = "Pick a clip in Clips.";
+    public static final String FOLDER = "Folder";
+    public static final String NO_FOLDER = "No folder";
+    public static final String A_VERSION_IS_IN_THE_FOLDER_OF_ITS_ORIGINAL = "A version is in the folder of the clip it was made from.";
+    public static final String MADE_FROM = "Made from %s with %s";
+    public static final String NOT_USED = "Not used";
+    public static final String USE_THIS_VERSION = "Use this version";
+    public static final String USE_THIS_VERSION_HELP = "Puts this version wherever the clip it was made from is used";
+    public static final String USE_THIS_VERSION_CONFIRM = "Use %s wherever %s is used? The lines made with the old clip are made again.";
+    public static final String CLEAN_WITH_AI = "Clean with AI";
+    public static final String CLEAN_WITH_AI_HELP = "Makes a new version of the clip with the chosen cleanup on ComfyUI (separation models: voice from music, noise, echo)";
+    public static final String CLEANING = "Cleaning…";
+    public static final String NO_CLEANUP = "No cleanup of clips is set up (Audiobook settings).";
+    public static final String CLEANUP_OF_CLIPS = "Cleanup of clips";
+    public static final String CLEANUP_OF_CLIPS_HELP = "A ComfyUI with the TTS Audio Suite cleans reference clips: a preset runs its steps one after the other (a separation model keeps the voice and drops music, noise or echo; the voice fixer restores a degraded voice; ffmpeg lowers a steady hiss). The result is a new version of the clip, the clip itself stays. The models are downloaded by ComfyUI on first use.";
+    public static final String CLEANUP_GPU_LOCK_HELP = "Give the cleanup a lock of its own, not the one of the speech or the speech recognition: its steps should restart ComfyUI, so that its models are not loaded next to theirs.";
+    public static final String CLEANUP_PRESET = "Cleanup";
+    public static final String NEW_PRESET = "New cleanup";
+    public static final String DELETE_THE_PRESET = "Delete the cleanup";
+    public static final String DEFAULT_PRESETS = "Default cleanups";
+    public static final String ADD_A_STEP = "Add a step";
+    public static final String REMOVE_THE_STEP = "Remove the step";
+    public static final String STEP_SEPARATE = "Separation model";
+    public static final String STEP_VOICE_FIXER = "Voice fixer";
+    public static final String STEP_FFMPEG = "ffmpeg (here)";
+    public static final String SEPARATION_MODEL = "Model";
+    public static final String KEEP_THE_EXTRACTED = "Keep the extracted";
+    public static final String KEEP_THE_REMAINING = "Keep the remaining";
+    public static final String AGGRESSIVENESS = "Aggressiveness (0–20)";
+    public static final String FIXER_MODE_ORIGINAL = "Restore (default)";
+    public static final String FIXER_MODE_HIGH_FREQUENCIES = "Restore, high frequencies removed";
+    public static final String FIXER_MODE_DEGRADED = "Seriously degraded voice";
+    public static final String THE_CLEANUP_WORKS = "The cleanup works: ComfyUI offers %d separation models.";
+    public static final String KEEP_HELP = "Which output holds the voice depends on the model: a vocals model extracts the voice, a denoise model extracts the noise (keep the remaining). Listen to the result once.";
     public static final String GPU_LOCK_HELP = "The GPU lock the administrator set up for the GPU of this server: every batch and sample waits for its turn on the GPU, and the lock's steps load the server first (freeing the language model or another server when needed). Empty: no lock.";
 
     @Override
@@ -1270,13 +1305,13 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
         ko(VOICES_AND_CLIPS, "목소리와 클립");
         it(VOICES_AND_CLIPS, "Voci e clip");
 
-        ja(VOICES_AND_CLIPS_HELP, "アクターと、その声の元になる参照クリップです。音声モデルは声だけでなく録音そのものを真似ます。背景音 (映画、部屋の響き、音楽) のあるクリップでは、どのセリフにもノイズや響きが乗ります。本当の間 (ま) がある綺麗な録音を使い、最良の結果のためにはクリップを手で整えてください (Audacity のノイズ除去、映画のクリップならボーカル抽出ツール)。");
-        zh(VOICES_AND_CLIPS_HELP, "您的演员及其声音所克隆的参考片段。语音模型复制的是录音本身，而不只是声音：带有背景声（电影、房间回响、音乐）的片段会让每一句都带上杂音或回响。请使用带有真正停顿的干净录音，并手动清理片段以获得最佳效果（Audacity 的降噪，或对电影片段使用人声分离工具）。");
-        fr(VOICES_AND_CLIPS_HELP, "Vos acteurs et les extraits de référence dont leurs voix sont clonées. Un modèle de voix copie l'enregistrement, pas seulement la voix : un extrait avec un fond sonore (un film, une pièce, de la musique) donne à chaque réplique un souffle ou une acoustique. Utilisez un enregistrement propre avec de vraies pauses, et nettoyez un extrait à la main pour le meilleur résultat (la réduction de bruit d'Audacity, ou un séparateur de voix pour un extrait de film).");
-        es(VOICES_AND_CLIPS_HELP, "Tus actores y los clips de referencia de los que se clonan sus voces. Un modelo de voz copia la grabación, no solo la voz: un clip con sonido de fondo (una película, una sala, música) da a cada frase un soplido o una acústica. Usa una grabación limpia con pausas reales y limpia el clip a mano para el mejor resultado (la reducción de ruido de Audacity, o un separador de voz para un clip de película).");
-        de(VOICES_AND_CLIPS_HELP, "Deine Schauspieler und die Referenzclips, aus denen ihre Stimmen geklont werden. Ein Stimmmodell kopiert die Aufnahme, nicht nur die Stimme: Ein Clip mit Hintergrundgeräuschen (ein Film, ein Raum, Musik) gibt jeder Zeile ein Rauschen oder einen Raumklang. Nimm eine saubere Aufnahme mit echten Pausen und bereinige einen Clip für das beste Ergebnis von Hand (die Rauschunterdrückung von Audacity oder ein Stimmentrenner für einen Filmclip).");
-        ko(VOICES_AND_CLIPS_HELP, "배우와 그 목소리를 복제할 참조 클립입니다. 음성 모델은 목소리만이 아니라 녹음 자체를 따라 합니다. 배경음(영화, 방의 울림, 음악)이 있는 클립은 모든 대사에 잡음이나 울림을 남깁니다. 실제 쉼이 있는 깨끗한 녹음을 쓰고, 가장 좋은 결과를 위해 클립을 직접 정리하세요(Audacity의 노이즈 감소, 영화 클립에는 보컬 분리 도구).");
-        it(VOICES_AND_CLIPS_HELP, "I tuoi attori e le clip di riferimento da cui si clonano le loro voci. Un modello vocale copia la registrazione, non solo la voce: una clip con suoni di fondo (un film, una stanza, musica) dà a ogni battuta un fruscio o un ambiente. Usa una registrazione pulita con pause vere e pulisci la clip a mano per il miglior risultato (la riduzione del rumore di Audacity, o un separatore vocale per una clip da un film).");
+        ja(VOICES_AND_CLIPS_HELP, "アクターと、その声の元になる参照クリップです。クリップはフォルダーに分けられ、クリップから作ったバージョンはその下に表示されます。音声モデルは声だけでなく録音そのものを真似ます。背景音 (映画、部屋の響き、音楽) のあるクリップでは、どのセリフにもノイズや響きが乗ります。本当の間 (ま) がある綺麗な録音を使うか、ここでクリップを整えてください: ffmpeg で、または設定でクリーンアップを用意すれば ComfyUI の AI で。");
+        zh(VOICES_AND_CLIPS_HELP, "您的演员及其声音所克隆的参考片段，按文件夹整理，由片段生成的版本显示在其下方。语音模型复制的是录音本身，而不只是声音：带有背景声（电影、房间回响、音乐）的片段会让每一句都带上杂音或回响。请使用带有真正停顿的干净录音，或在此清理片段：用 ffmpeg，或在设置中配置清理后用 ComfyUI 上的 AI。");
+        fr(VOICES_AND_CLIPS_HELP, "Vos acteurs et les extraits de référence dont leurs voix sont clonées, rangés en dossiers, avec sous chaque extrait les versions qui en sont faites. Un modèle de voix copie l'enregistrement, pas seulement la voix : un extrait avec un fond sonore (un film, une pièce, de la musique) donne à chaque réplique un souffle ou une acoustique. Utilisez un enregistrement propre avec de vraies pauses, ou nettoyez un extrait ici : avec ffmpeg, ou par IA sur ComfyUI quand un nettoyage est configuré dans les réglages.");
+        es(VOICES_AND_CLIPS_HELP, "Tus actores y los clips de referencia de los que se clonan sus voces, en carpetas, con las versiones hechas de un clip debajo de él. Un modelo de voz copia la grabación, no solo la voz: un clip con sonido de fondo (una película, una sala, música) da a cada frase un soplido o una acústica. Usa una grabación limpia con pausas reales, o limpia un clip aquí: con ffmpeg, o con IA en ComfyUI cuando hay una limpieza configurada en los ajustes.");
+        de(VOICES_AND_CLIPS_HELP, "Deine Sprecher und die Referenzclips, aus denen ihre Stimmen geklont werden, in Ordnern, mit den aus einem Clip gemachten Versionen darunter. Ein Stimmmodell kopiert die Aufnahme, nicht nur die Stimme: Ein Clip mit Hintergrundgeräuschen (ein Film, ein Raum, Musik) gibt jedem Satz ein Rauschen oder einen Raumklang. Verwende eine saubere Aufnahme mit echten Pausen oder säubere einen Clip hier: mit ffmpeg oder mit KI auf ComfyUI, wenn in den Einstellungen eine Bereinigung eingerichtet ist.");
+        ko(VOICES_AND_CLIPS_HELP, "배우와 그 목소리를 복제하는 참조 클립입니다. 클립은 폴더로 정리되고, 클립에서 만든 버전은 그 아래에 표시됩니다. 음성 모델은 목소리뿐 아니라 녹음 자체를 따라 합니다. 배경음(영화, 방의 울림, 음악)이 있는 클립은 모든 대사에 잡음이나 울림을 남깁니다. 실제 쉼이 있는 깨끗한 녹음을 쓰거나 여기서 클립을 정리하세요: ffmpeg로, 또는 설정에서 정리를 준비했다면 ComfyUI의 AI로.");
+        it(VOICES_AND_CLIPS_HELP, "I tuoi attori e le clip di riferimento da cui sono clonate le loro voci, in cartelle, con sotto ogni clip le versioni ricavate da essa. Un modello vocale copia la registrazione, non solo la voce: una clip con suoni di fondo (un film, una stanza, musica) dà a ogni battuta un fruscio o un ambiente. Usa una registrazione pulita con pause vere, oppure pulisci una clip qui: con ffmpeg, o con l'IA su ComfyUI quando nelle impostazioni è configurata una pulizia.");
 
         ja(CLIPS, "クリップ");
         zh(CLIPS, "片段");
@@ -1470,13 +1505,13 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
         ko(THE_CLIP_WAS_REPLACED, "이제 %d개의 목소리가 %s을(를) 사용합니다.");
         it(THE_CLIP_WAS_REPLACED, "%d voci ora usano %s.");
 
-        ja(THE_CLEANED_CLIP_IS_READY, "整えたコピー %s がクリップに加わりました (%s)。再生して、良ければ元のクリップと置き換えてください。");
-        zh(THE_CLEANED_CLIP_IS_READY, "清理后的副本 %s 已加入片段（%s）。请播放试听，若效果更好就用它替换原片段。");
-        fr(THE_CLEANED_CLIP_IS_READY, "La copie nettoyée %s est parmi les extraits (%s). Écoutez-la et remplacez l'extrait par elle si elle sonne mieux.");
-        es(THE_CLEANED_CLIP_IS_READY, "La copia limpia %s está entre los clips (%s). Reprodúcela y reemplaza el clip con ella si suena mejor.");
-        de(THE_CLEANED_CLIP_IS_READY, "Die bereinigte Kopie %s ist bei den Clips (%s). Spiele sie ab und ersetze den Clip durch sie, wenn sie besser klingt.");
-        ko(THE_CLEANED_CLIP_IS_READY, "정리된 사본 %s이(가) 클립에 추가되었습니다(%s). 재생해 보고 더 낫다면 원래 클립을 이것으로 교체하세요.");
-        it(THE_CLEANED_CLIP_IS_READY, "La copia pulita %s è tra le clip (%s). Ascoltala e sostituisci la clip con essa se suona meglio.");
+        ja(THE_CLEANED_CLIP_IS_READY, "整えたバージョン %s が元のクリップの下にあります (%s)。再生して、良ければ元のクリップの代わりに使ってください。");
+        zh(THE_CLEANED_CLIP_IS_READY, "清理后的版本 %s 已位于其片段下方（%s）。播放试听，如果更好就用它替换原片段。");
+        fr(THE_CLEANED_CLIP_IS_READY, "La version nettoyée %s est sous son extrait (%s). Écoutez-la, et utilisez-la à la place de l'extrait si elle sonne mieux.");
+        es(THE_CLEANED_CLIP_IS_READY, "La versión limpia %s está bajo su clip (%s). Escúchala y úsala en lugar del clip si suena mejor.");
+        de(THE_CLEANED_CLIP_IS_READY, "Die gesäuberte Version %s liegt unter ihrem Clip (%s). Hör sie dir an und verwende sie statt des Clips, wenn sie besser klingt.");
+        ko(THE_CLEANED_CLIP_IS_READY, "정리된 버전 %s이(가) 원래 클립 아래에 있습니다(%s). 들어 보고 더 좋으면 클립 대신 사용하세요.");
+        it(THE_CLEANED_CLIP_IS_READY, "La versione pulita %s è sotto la sua clip (%s). Ascoltala e usala al posto della clip se suona meglio.");
 
         ja(THE_CLIP_COULD_NOT_BE_CLEANED, "クリップを整えられませんでした: %s");
         zh(THE_CLIP_COULD_NOT_BE_CLEANED, "无法清理该片段：%s");
@@ -2822,5 +2857,285 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
         de(THE_TEXT_OF_THE_CLIP_IS_SAVED, "Der Text des Clips ist gespeichert.");
         ko(THE_TEXT_OF_THE_CLIP_IS_SAVED, "클립의 텍스트를 저장했습니다.");
         it(THE_TEXT_OF_THE_CLIP_IS_SAVED, "Il testo della clip è salvato.");
+
+        ja(CLIP, "クリップ");
+        zh(CLIP, "片段");
+        fr(CLIP, "Extrait");
+        es(CLIP, "Clip");
+        de(CLIP, "Clip");
+        ko(CLIP, "클립");
+        it(CLIP, "Clip");
+
+        ja(PICK_A_CLIP, "「クリップ」でクリップを選んでください。");
+        zh(PICK_A_CLIP, "请在“片段”中选择一个片段。");
+        fr(PICK_A_CLIP, "Choisissez un extrait dans Extraits.");
+        es(PICK_A_CLIP, "Elige un clip en Clips.");
+        de(PICK_A_CLIP, "Wähle einen Clip unter Clips.");
+        ko(PICK_A_CLIP, "클립에서 클립을 선택하세요.");
+        it(PICK_A_CLIP, "Scegli una clip in Clip.");
+
+        ja(FOLDER, "フォルダー");
+        zh(FOLDER, "文件夹");
+        fr(FOLDER, "Dossier");
+        es(FOLDER, "Carpeta");
+        de(FOLDER, "Ordner");
+        ko(FOLDER, "폴더");
+        it(FOLDER, "Cartella");
+
+        ja(NO_FOLDER, "フォルダーなし");
+        zh(NO_FOLDER, "无文件夹");
+        fr(NO_FOLDER, "Sans dossier");
+        es(NO_FOLDER, "Sin carpeta");
+        de(NO_FOLDER, "Kein Ordner");
+        ko(NO_FOLDER, "폴더 없음");
+        it(NO_FOLDER, "Nessuna cartella");
+
+        ja(A_VERSION_IS_IN_THE_FOLDER_OF_ITS_ORIGINAL, "バージョンは元のクリップと同じフォルダーに入ります。");
+        zh(A_VERSION_IS_IN_THE_FOLDER_OF_ITS_ORIGINAL, "版本位于其来源片段的文件夹中。");
+        fr(A_VERSION_IS_IN_THE_FOLDER_OF_ITS_ORIGINAL, "Une version est dans le dossier de l'extrait dont elle est issue.");
+        es(A_VERSION_IS_IN_THE_FOLDER_OF_ITS_ORIGINAL, "Una versión está en la carpeta del clip del que se hizo.");
+        de(A_VERSION_IS_IN_THE_FOLDER_OF_ITS_ORIGINAL, "Eine Version liegt im Ordner des Clips, aus dem sie gemacht wurde.");
+        ko(A_VERSION_IS_IN_THE_FOLDER_OF_ITS_ORIGINAL, "버전은 원본 클립과 같은 폴더에 있습니다.");
+        it(A_VERSION_IS_IN_THE_FOLDER_OF_ITS_ORIGINAL, "Una versione sta nella cartella della clip da cui è stata ricavata.");
+
+        ja(MADE_FROM, "%s から %s で作成");
+        zh(MADE_FROM, "由 %s 经 %s 生成");
+        fr(MADE_FROM, "Faite à partir de %s avec %s");
+        es(MADE_FROM, "Hecha a partir de %s con %s");
+        de(MADE_FROM, "Aus %s gemacht mit %s");
+        ko(MADE_FROM, "%s에서 %s(으)로 만듦");
+        it(MADE_FROM, "Ricavata da %s con %s");
+
+        ja(NOT_USED, "未使用");
+        zh(NOT_USED, "未使用");
+        fr(NOT_USED, "Non utilisé");
+        es(NOT_USED, "Sin usar");
+        de(NOT_USED, "Nicht verwendet");
+        ko(NOT_USED, "사용 안 함");
+        it(NOT_USED, "Non usata");
+
+        ja(USE_THIS_VERSION, "このバージョンを使う");
+        zh(USE_THIS_VERSION, "使用此版本");
+        fr(USE_THIS_VERSION, "Utiliser cette version");
+        es(USE_THIS_VERSION, "Usar esta versión");
+        de(USE_THIS_VERSION, "Diese Version verwenden");
+        ko(USE_THIS_VERSION, "이 버전 사용");
+        it(USE_THIS_VERSION, "Usa questa versione");
+
+        ja(USE_THIS_VERSION_HELP, "元のクリップが使われているすべての場所にこのバージョンを入れます");
+        zh(USE_THIS_VERSION_HELP, "在来源片段被使用的所有地方换成此版本");
+        fr(USE_THIS_VERSION_HELP, "Met cette version partout où l'extrait d'origine est utilisé");
+        es(USE_THIS_VERSION_HELP, "Pone esta versión en todos los sitios donde se usa el clip original");
+        de(USE_THIS_VERSION_HELP, "Setzt diese Version überall ein, wo der ursprüngliche Clip verwendet wird");
+        ko(USE_THIS_VERSION_HELP, "원본 클립이 쓰이는 모든 곳에 이 버전을 넣습니다");
+        it(USE_THIS_VERSION_HELP, "Mette questa versione ovunque sia usata la clip di origine");
+
+        ja(USE_THIS_VERSION_CONFIRM, "%s を、%s が使われているすべての場所で使いますか? 古いクリップで作ったセリフは作り直されます。");
+        zh(USE_THIS_VERSION_CONFIRM, "将 %s 用于所有使用 %s 的地方？用旧片段生成的台词会重新生成。");
+        fr(USE_THIS_VERSION_CONFIRM, "Utiliser %s partout où %s est utilisé ? Les répliques faites avec l'ancien extrait seront refaites.");
+        es(USE_THIS_VERSION_CONFIRM, "¿Usar %s en todos los sitios donde se usa %s? Las frases hechas con el clip anterior se volverán a hacer.");
+        de(USE_THIS_VERSION_CONFIRM, "%s überall verwenden, wo %s verwendet wird? Die mit dem alten Clip gemachten Sätze werden neu gemacht.");
+        ko(USE_THIS_VERSION_CONFIRM, "%s을(를) %s이(가) 쓰이는 모든 곳에 사용할까요? 이전 클립으로 만든 대사는 다시 만들어집니다.");
+        it(USE_THIS_VERSION_CONFIRM, "Usare %s ovunque sia usata %s? Le battute fatte con la vecchia clip verranno rifatte.");
+
+        ja(CLEAN_WITH_AI, "AI で整える");
+        zh(CLEAN_WITH_AI, "用 AI 清理");
+        fr(CLEAN_WITH_AI, "Nettoyer par IA");
+        es(CLEAN_WITH_AI, "Limpiar con IA");
+        de(CLEAN_WITH_AI, "Mit KI säubern");
+        ko(CLEAN_WITH_AI, "AI로 정리");
+        it(CLEAN_WITH_AI, "Pulisci con l'IA");
+
+        ja(CLEAN_WITH_AI_HELP, "選んだクリーンアップを ComfyUI で実行し、クリップの新しいバージョンを作ります (分離モデル: 音楽・ノイズ・残響から声を取り出す)");
+        zh(CLEAN_WITH_AI_HELP, "在 ComfyUI 上用所选清理方案生成片段的新版本（分离模型：从音乐、噪声、回声中提取人声）");
+        fr(CLEAN_WITH_AI_HELP, "Crée une nouvelle version de l'extrait avec le nettoyage choisi sur ComfyUI (modèles de séparation : la voix hors de la musique, du bruit, de l'écho)");
+        es(CLEAN_WITH_AI_HELP, "Crea una nueva versión del clip con la limpieza elegida en ComfyUI (modelos de separación: la voz sin música, ruido ni eco)");
+        de(CLEAN_WITH_AI_HELP, "Macht mit der gewählten Bereinigung auf ComfyUI eine neue Version des Clips (Trennmodelle: Stimme aus Musik, Rauschen, Hall)");
+        ko(CLEAN_WITH_AI_HELP, "선택한 정리 방식으로 ComfyUI에서 클립의 새 버전을 만듭니다(분리 모델: 음악·잡음·울림에서 목소리 추출)");
+        it(CLEAN_WITH_AI_HELP, "Crea una nuova versione della clip con la pulizia scelta su ComfyUI (modelli di separazione: la voce da musica, rumore, eco)");
+
+        ja(CLEANING, "整えています…");
+        zh(CLEANING, "正在清理…");
+        fr(CLEANING, "Nettoyage…");
+        es(CLEANING, "Limpiando…");
+        de(CLEANING, "Wird gesäubert…");
+        ko(CLEANING, "정리 중…");
+        it(CLEANING, "Pulizia in corso…");
+
+        ja(NO_CLEANUP, "クリップのクリーンアップが設定されていません (オーディオブックの設定)。");
+        zh(NO_CLEANUP, "尚未设置片段清理（有声书设置）。");
+        fr(NO_CLEANUP, "Aucun nettoyage d'extraits n'est configuré (réglages du livre audio).");
+        es(NO_CLEANUP, "No hay ninguna limpieza de clips configurada (ajustes del audiolibro).");
+        de(NO_CLEANUP, "Keine Bereinigung von Clips eingerichtet (Hörbuch-Einstellungen).");
+        ko(NO_CLEANUP, "클립 정리가 설정되지 않았습니다(오디오북 설정).");
+        it(NO_CLEANUP, "Nessuna pulizia delle clip è configurata (impostazioni dell'audiolibro).");
+
+        ja(CLEANUP_OF_CLIPS, "クリップのクリーンアップ");
+        zh(CLEANUP_OF_CLIPS, "片段清理");
+        fr(CLEANUP_OF_CLIPS, "Nettoyage des extraits");
+        es(CLEANUP_OF_CLIPS, "Limpieza de clips");
+        de(CLEANUP_OF_CLIPS, "Bereinigung der Clips");
+        ko(CLEANUP_OF_CLIPS, "클립 정리");
+        it(CLEANUP_OF_CLIPS, "Pulizia delle clip");
+
+        ja(CLEANUP_OF_CLIPS_HELP, "TTS Audio Suite を入れた ComfyUI が参照クリップを整えます。プリセットは手順を順に実行します (分離モデルは声を残して音楽・ノイズ・残響を除き、ボイスフィクサーは劣化した声を復元し、ffmpeg は一定のヒスノイズを下げます)。結果はクリップの新しいバージョンになり、元のクリップは残ります。モデルは初回使用時に ComfyUI がダウンロードします。");
+        zh(CLEANUP_OF_CLIPS_HELP, "装有 TTS Audio Suite 的 ComfyUI 可清理参考片段：方案按顺序执行各步骤（分离模型保留人声，去除音乐、噪声或回声；VoiceFixer 修复受损人声；ffmpeg 降低持续的嘶声）。结果是片段的新版本，原片段保留。模型在首次使用时由 ComfyUI 下载。");
+        fr(CLEANUP_OF_CLIPS_HELP, "Un ComfyUI avec la TTS Audio Suite nettoie les extraits de référence : un préréglage exécute ses étapes l'une après l'autre (un modèle de séparation garde la voix et retire la musique, le bruit ou l'écho ; le voice fixer restaure une voix dégradée ; ffmpeg atténue un souffle constant). Le résultat est une nouvelle version de l'extrait, l'extrait lui-même reste. ComfyUI télécharge les modèles à la première utilisation.");
+        es(CLEANUP_OF_CLIPS_HELP, "Un ComfyUI con TTS Audio Suite limpia los clips de referencia: un preajuste ejecuta sus pasos uno tras otro (un modelo de separación conserva la voz y quita música, ruido o eco; el voice fixer restaura una voz degradada; ffmpeg reduce un siseo constante). El resultado es una nueva versión del clip; el clip original se queda. ComfyUI descarga los modelos la primera vez que se usan.");
+        de(CLEANUP_OF_CLIPS_HELP, "Ein ComfyUI mit der TTS Audio Suite säubert Referenzclips: Eine Vorlage führt ihre Schritte nacheinander aus (ein Trennmodell behält die Stimme und entfernt Musik, Rauschen oder Hall; der Voice Fixer stellt eine beschädigte Stimme wieder her; ffmpeg senkt gleichmäßiges Rauschen). Das Ergebnis ist eine neue Version des Clips, der Clip selbst bleibt. ComfyUI lädt die Modelle bei der ersten Verwendung herunter.");
+        ko(CLEANUP_OF_CLIPS_HELP, "TTS Audio Suite가 설치된 ComfyUI가 참조 클립을 정리합니다. 프리셋은 단계를 차례로 실행합니다(분리 모델은 목소리를 남기고 음악·잡음·울림을 없애고, 보이스 픽서는 손상된 목소리를 복원하며, ffmpeg는 일정한 잡음을 줄입니다). 결과는 클립의 새 버전이며 원래 클립은 남습니다. 모델은 처음 사용할 때 ComfyUI가 내려받습니다.");
+        it(CLEANUP_OF_CLIPS_HELP, "Un ComfyUI con la TTS Audio Suite pulisce le clip di riferimento: un preset esegue i suoi passi uno dopo l'altro (un modello di separazione tiene la voce e toglie musica, rumore o eco; il voice fixer ripristina una voce degradata; ffmpeg attenua un fruscio costante). Il risultato è una nuova versione della clip, la clip stessa resta. ComfyUI scarica i modelli al primo uso.");
+
+        ja(CLEANUP_GPU_LOCK_HELP, "クリーンアップには音声や音声認識とは別のロックを割り当ててください。そのステップで ComfyUI を再起動し、モデルが同時に読み込まれないようにします。");
+        zh(CLEANUP_GPU_LOCK_HELP, "请为清理设置单独的锁，不要与语音或语音识别共用：其步骤应重启 ComfyUI，避免模型同时加载。");
+        fr(CLEANUP_GPU_LOCK_HELP, "Donnez au nettoyage un verrou à lui, pas celui de la parole ni de la reconnaissance vocale : ses étapes doivent redémarrer ComfyUI, pour que ses modèles ne soient pas chargés à côté des leurs.");
+        es(CLEANUP_GPU_LOCK_HELP, "Dale a la limpieza un bloqueo propio, no el de la voz ni el del reconocimiento de voz: sus pasos deben reiniciar ComfyUI, para que sus modelos no se carguen junto a los de ellos.");
+        de(CLEANUP_GPU_LOCK_HELP, "Gib der Bereinigung eine eigene Sperre, nicht die der Sprache oder der Spracherkennung: Ihre Schritte sollten ComfyUI neu starten, damit ihre Modelle nicht neben deren geladen sind.");
+        ko(CLEANUP_GPU_LOCK_HELP, "정리에는 음성이나 음성 인식과 다른 별도의 잠금을 지정하세요. 그 단계에서 ComfyUI를 다시 시작해 모델이 함께 올라가지 않게 합니다.");
+        it(CLEANUP_GPU_LOCK_HELP, "Dai alla pulizia un blocco suo, non quello della voce né del riconoscimento vocale: i suoi passi dovrebbero riavviare ComfyUI, così i suoi modelli non vengono caricati accanto ai loro.");
+
+        ja(CLEANUP_PRESET, "クリーンアップ");
+        zh(CLEANUP_PRESET, "清理方案");
+        fr(CLEANUP_PRESET, "Nettoyage");
+        es(CLEANUP_PRESET, "Limpieza");
+        de(CLEANUP_PRESET, "Bereinigung");
+        ko(CLEANUP_PRESET, "정리 방식");
+        it(CLEANUP_PRESET, "Pulizia");
+
+        ja(NEW_PRESET, "新しいクリーンアップ");
+        zh(NEW_PRESET, "新建清理方案");
+        fr(NEW_PRESET, "Nouveau nettoyage");
+        es(NEW_PRESET, "Nueva limpieza");
+        de(NEW_PRESET, "Neue Bereinigung");
+        ko(NEW_PRESET, "새 정리 방식");
+        it(NEW_PRESET, "Nuova pulizia");
+
+        ja(DELETE_THE_PRESET, "クリーンアップを削除");
+        zh(DELETE_THE_PRESET, "删除清理方案");
+        fr(DELETE_THE_PRESET, "Supprimer le nettoyage");
+        es(DELETE_THE_PRESET, "Eliminar la limpieza");
+        de(DELETE_THE_PRESET, "Bereinigung löschen");
+        ko(DELETE_THE_PRESET, "정리 방식 삭제");
+        it(DELETE_THE_PRESET, "Elimina la pulizia");
+
+        ja(DEFAULT_PRESETS, "既定のクリーンアップ");
+        zh(DEFAULT_PRESETS, "默认清理方案");
+        fr(DEFAULT_PRESETS, "Nettoyages par défaut");
+        es(DEFAULT_PRESETS, "Limpiezas predeterminadas");
+        de(DEFAULT_PRESETS, "Standard-Bereinigungen");
+        ko(DEFAULT_PRESETS, "기본 정리 방식");
+        it(DEFAULT_PRESETS, "Pulizie predefinite");
+
+        ja(ADD_A_STEP, "ステップを追加");
+        zh(ADD_A_STEP, "添加步骤");
+        fr(ADD_A_STEP, "Ajouter une étape");
+        es(ADD_A_STEP, "Añadir un paso");
+        de(ADD_A_STEP, "Schritt hinzufügen");
+        ko(ADD_A_STEP, "단계 추가");
+        it(ADD_A_STEP, "Aggiungi un passo");
+
+        ja(REMOVE_THE_STEP, "ステップを削除");
+        zh(REMOVE_THE_STEP, "移除步骤");
+        fr(REMOVE_THE_STEP, "Retirer l'étape");
+        es(REMOVE_THE_STEP, "Quitar el paso");
+        de(REMOVE_THE_STEP, "Schritt entfernen");
+        ko(REMOVE_THE_STEP, "단계 제거");
+        it(REMOVE_THE_STEP, "Rimuovi il passo");
+
+        ja(STEP_SEPARATE, "分離モデル");
+        zh(STEP_SEPARATE, "分离模型");
+        fr(STEP_SEPARATE, "Modèle de séparation");
+        es(STEP_SEPARATE, "Modelo de separación");
+        de(STEP_SEPARATE, "Trennmodell");
+        ko(STEP_SEPARATE, "분리 모델");
+        it(STEP_SEPARATE, "Modello di separazione");
+
+        ja(STEP_VOICE_FIXER, "ボイスフィクサー");
+        zh(STEP_VOICE_FIXER, "VoiceFixer 修复");
+        fr(STEP_VOICE_FIXER, "Voice fixer");
+        es(STEP_VOICE_FIXER, "Voice fixer");
+        de(STEP_VOICE_FIXER, "Voice Fixer");
+        ko(STEP_VOICE_FIXER, "보이스 픽서");
+        it(STEP_VOICE_FIXER, "Voice fixer");
+
+        ja(STEP_FFMPEG, "ffmpeg (このサーバー)");
+        zh(STEP_FFMPEG, "ffmpeg（本机）");
+        fr(STEP_FFMPEG, "ffmpeg (ici)");
+        es(STEP_FFMPEG, "ffmpeg (aquí)");
+        de(STEP_FFMPEG, "ffmpeg (hier)");
+        ko(STEP_FFMPEG, "ffmpeg(여기)");
+        it(STEP_FFMPEG, "ffmpeg (qui)");
+
+        ja(SEPARATION_MODEL, "モデル");
+        zh(SEPARATION_MODEL, "模型");
+        fr(SEPARATION_MODEL, "Modèle");
+        es(SEPARATION_MODEL, "Modelo");
+        de(SEPARATION_MODEL, "Modell");
+        ko(SEPARATION_MODEL, "모델");
+        it(SEPARATION_MODEL, "Modello");
+
+        ja(KEEP_THE_EXTRACTED, "抽出側を残す");
+        zh(KEEP_THE_EXTRACTED, "保留提取部分");
+        fr(KEEP_THE_EXTRACTED, "Garder l'extrait");
+        es(KEEP_THE_EXTRACTED, "Conservar lo extraído");
+        de(KEEP_THE_EXTRACTED, "Extrahiertes behalten");
+        ko(KEEP_THE_EXTRACTED, "추출된 쪽 유지");
+        it(KEEP_THE_EXTRACTED, "Tieni l'estratto");
+
+        ja(KEEP_THE_REMAINING, "残り側を残す");
+        zh(KEEP_THE_REMAINING, "保留剩余部分");
+        fr(KEEP_THE_REMAINING, "Garder le reste");
+        es(KEEP_THE_REMAINING, "Conservar el resto");
+        de(KEEP_THE_REMAINING, "Rest behalten");
+        ko(KEEP_THE_REMAINING, "나머지 쪽 유지");
+        it(KEEP_THE_REMAINING, "Tieni il resto");
+
+        ja(AGGRESSIVENESS, "強さ (0–20)");
+        zh(AGGRESSIVENESS, "强度（0–20）");
+        fr(AGGRESSIVENESS, "Agressivité (0–20)");
+        es(AGGRESSIVENESS, "Agresividad (0–20)");
+        de(AGGRESSIVENESS, "Stärke (0–20)");
+        ko(AGGRESSIVENESS, "강도(0–20)");
+        it(AGGRESSIVENESS, "Aggressività (0–20)");
+
+        ja(FIXER_MODE_ORIGINAL, "復元 (既定)");
+        zh(FIXER_MODE_ORIGINAL, "修复（默认）");
+        fr(FIXER_MODE_ORIGINAL, "Restaurer (par défaut)");
+        es(FIXER_MODE_ORIGINAL, "Restaurar (predeterminado)");
+        de(FIXER_MODE_ORIGINAL, "Wiederherstellen (Standard)");
+        ko(FIXER_MODE_ORIGINAL, "복원(기본)");
+        it(FIXER_MODE_ORIGINAL, "Ripristina (predefinito)");
+
+        ja(FIXER_MODE_HIGH_FREQUENCIES, "復元、高域を除去");
+        zh(FIXER_MODE_HIGH_FREQUENCIES, "修复，去除高频");
+        fr(FIXER_MODE_HIGH_FREQUENCIES, "Restaurer, aigus retirés");
+        es(FIXER_MODE_HIGH_FREQUENCIES, "Restaurar, sin agudos");
+        de(FIXER_MODE_HIGH_FREQUENCIES, "Wiederherstellen, Höhen entfernt");
+        ko(FIXER_MODE_HIGH_FREQUENCIES, "복원, 고음역 제거");
+        it(FIXER_MODE_HIGH_FREQUENCIES, "Ripristina, alte frequenze rimosse");
+
+        ja(FIXER_MODE_DEGRADED, "大きく劣化した声");
+        zh(FIXER_MODE_DEGRADED, "严重受损的人声");
+        fr(FIXER_MODE_DEGRADED, "Voix très dégradée");
+        es(FIXER_MODE_DEGRADED, "Voz muy degradada");
+        de(FIXER_MODE_DEGRADED, "Stark beschädigte Stimme");
+        ko(FIXER_MODE_DEGRADED, "심하게 손상된 목소리");
+        it(FIXER_MODE_DEGRADED, "Voce molto degradata");
+
+        ja(THE_CLEANUP_WORKS, "クリーンアップは動作します: ComfyUI には分離モデルが %d 個あります。");
+        zh(THE_CLEANUP_WORKS, "清理可用：ComfyUI 提供 %d 个分离模型。");
+        fr(THE_CLEANUP_WORKS, "Le nettoyage fonctionne : ComfyUI propose %d modèles de séparation.");
+        es(THE_CLEANUP_WORKS, "La limpieza funciona: ComfyUI ofrece %d modelos de separación.");
+        de(THE_CLEANUP_WORKS, "Die Bereinigung funktioniert: ComfyUI bietet %d Trennmodelle.");
+        ko(THE_CLEANUP_WORKS, "정리가 작동합니다. ComfyUI에 분리 모델이 %d개 있습니다.");
+        it(THE_CLEANUP_WORKS, "La pulizia funziona: ComfyUI offre %d modelli di separazione.");
+
+        ja(KEEP_HELP, "どちらの出力に声が入るかはモデルによります: ボーカルモデルは声を抽出し、ノイズ除去モデルはノイズを抽出します (残り側を残す)。一度結果を聞いて確かめてください。");
+        zh(KEEP_HELP, "人声在哪个输出中取决于模型：人声模型提取的是人声，降噪模型提取的是噪声（保留剩余部分）。请试听一次结果。");
+        fr(KEEP_HELP, "La sortie qui contient la voix dépend du modèle : un modèle de voix extrait la voix, un modèle de débruitage extrait le bruit (gardez le reste). Écoutez le résultat une fois.");
+        es(KEEP_HELP, "La salida que contiene la voz depende del modelo: un modelo de voces extrae la voz, un modelo de reducción de ruido extrae el ruido (conserva el resto). Escucha el resultado una vez.");
+        de(KEEP_HELP, "Welcher Ausgang die Stimme enthält, hängt vom Modell ab: Ein Gesangsmodell extrahiert die Stimme, ein Entrauschungsmodell das Rauschen (Rest behalten). Hör dir das Ergebnis einmal an.");
+        ko(KEEP_HELP, "목소리가 어느 출력에 담기는지는 모델에 따라 다릅니다. 보컬 모델은 목소리를, 잡음 제거 모델은 잡음을 추출합니다(나머지 쪽 유지). 결과를 한 번 들어 보세요.");
+        it(KEEP_HELP, "Quale uscita contiene la voce dipende dal modello: un modello di voce estrae la voce, un modello di riduzione del rumore estrae il rumore (tieni il resto). Ascolta il risultato una volta.");
     }
 }

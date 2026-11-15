@@ -224,7 +224,9 @@ public class AudiobookService {
     public List<com.github.enerccio.marginalia.domain.security.model.User> usersToShareWith() {
         try {
             adminGuard.requireAdmin();
-            return userService.findAll();
+            List<com.github.enerccio.marginalia.domain.security.model.User> users = new ArrayList<>(userService.findAll());
+            users.sort(Comparator.comparing(u -> u.getLogin() == null ? "" : u.getLogin(), String.CASE_INSENSITIVE_ORDER));
+            return users;
         } catch (Exception e) {
             throw new IllegalStateException(e.getMessage(), e);
         }
@@ -255,7 +257,7 @@ public class AudiobookService {
         if (shared.isUsersMayAddOwn()) {
             available.addAll(getSettings().getBackends());
         }
-        return available;
+        return BackendConfig.byName(available);
     }
 
     /** The backend of the id among {@link #backends()}, null when there is none or it is not for the user. */
@@ -379,28 +381,103 @@ public class AudiobookService {
         writeBook(manuscript, "spoken", spoken);
     }
 
-    /** A reference clip the user can give a character: an audio resource of theirs, not the audio this plugin made. */
-    public record Clip(String uuid, String name) {
+    /**
+     * A reference clip the user can give a character: an audio resource of theirs, not the audio this plugin made, with what the plugin keeps of it.
+     *
+     * @param name     the name the user gave it, else the file name
+     * @param fileName the file name of the resource (the kind of audio)
+     * @param folder   the folder of its original, null for none
+     * @param parent   the clip it was made from (a version), null for an original
+     * @param madeWith how it was made from the parent, null when uploaded
+     * @param label    what a picker shows: {@code folder / original › name}
+     */
+    public record Clip(String uuid, String name, String fileName, String folder, String parent, String madeWith, String label) {
+
+        public Clip(String uuid, String name) {
+            this(uuid, name, name, null, null, null, name);
+        }
+
+        /** The order of the pickers: by folder (the clips without one last), then by label. */
+        public static java.util.Comparator<Clip> order() {
+            java.text.Collator collator = AudiobookSettings.collator();
+            return java.util.Comparator.comparing((Clip c) -> c.folder() == null)
+                    .thenComparing(c -> c.folder() == null ? "" : c.folder(), collator)
+                    .thenComparing(Clip::label, collator);
+        }
     }
 
-    /** The audio resources of the user that are not the plugin's own pieces. */
+    /** The audio resources of the user that are not the plugin's own pieces, by folder and name. */
     public List<Clip> clips() {
         try {
-            List<Clip> clips = new ArrayList<>();
+            AudiobookSettings settings = getSettings();
+            Map<String, String> files = new LinkedHashMap<>();
             for (com.github.enerccio.marginalia.domain.model.impl.Resource resource : resourceService.findAllForUser()) {
                 String name = resource.getOriginalName() == null ? "" : resource.getOriginalName();
                 String lower = name.toLowerCase(java.util.Locale.ROOT);
                 boolean audio = (resource.getMimeType() != null && resource.getMimeType().startsWith("audio/")) || lower.endsWith(".wav")
                         || lower.endsWith(".mp3");
                 if (audio && !name.startsWith(ResourceAudioStore.FILE_PREFIX)) {
-                    clips.add(new Clip(resource.getUuid(), name));
+                    files.put(resource.getUuid(), name);
                 }
             }
-            clips.sort(java.util.Comparator.comparing(Clip::name, String.CASE_INSENSITIVE_ORDER));
+            List<Clip> clips = new ArrayList<>();
+            for (var file : files.entrySet()) {
+                String uuid = file.getKey();
+                ClipInfo info = settings.clipInfo(uuid);
+                String name = info == null || info.getName() == null ? file.getValue() : info.getName();
+                // a version of a clip that is gone is shown as an original
+                String parent = info == null || info.getParent() == null || !files.containsKey(info.getParent()) ? null : info.getParent();
+                String folder = settings.folderOf(uuid);
+                String label = name;
+                if (parent != null) {
+                    String root = settings.rootOf(uuid);
+                    ClipInfo rootInfo = settings.clipInfo(root);
+                    String rootName = rootInfo == null || rootInfo.getName() == null ? files.getOrDefault(root, "?") : rootInfo.getName();
+                    label = rootName + " › " + name;
+                }
+                if (folder != null) {
+                    label = folder + " / " + label;
+                }
+                clips.add(new Clip(uuid, name, file.getValue(), folder, parent, info == null ? null : info.getMadeWith(), label));
+            }
+            clips.sort(Clip.order());
             return clips;
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    /** Changes the settings of the user at once (the clips, the layout of a window: what a window keeps apart from the settings form). */
+    private void changeSettings(java.util.function.Consumer<AudiobookSettings> change) {
+        try {
+            UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
+            AudiobookSettings settings = getSettings();
+            change.accept(settings);
+            saveSettings(settings, userSetting);
+            settingService.save(userSetting);
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    /** Gives the clip a name (blank: the file name again). */
+    public void renameClip(String uuid, String name) {
+        changeSettings(settings -> settings.renameClip(uuid, name));
+    }
+
+    /** Puts the clip, its original and every version into the folder (blank: none). */
+    public void moveClip(String uuid, String folder) {
+        changeSettings(settings -> settings.moveClip(uuid, folder));
+    }
+
+    /** The folders of the user's clips, by name. */
+    public List<String> clipFolders() {
+        return getSettings().folders();
+    }
+
+    /** Keeps how the tabs of Voices and clips are arranged. */
+    public void saveVoicesLayout(com.google.gson.JsonObject layout) {
+        changeSettings(settings -> settings.setVoicesLayout(layout));
     }
 
     // --- the speech recognition ---
@@ -438,8 +515,7 @@ public class AudiobookService {
                     done.accept(null, "The clip is gone");
                     return;
                 }
-                String name = clips().stream().filter(c -> c.uuid().equals(clipUuid)).map(Clip::name).findFirst().orElse("");
-                String ext = name.toLowerCase(java.util.Locale.ROOT).endsWith(".mp3") ? "mp3" : "wav";
+                String ext = AudioKind.of(bytes).extension();
                 String[] text = new String[1];
                 boolean ran = withRecognizer(() -> false, recognizer -> text[0] = recognizer.transcribe(bytes, ext, null, () -> false));
                 if (!ran) {
@@ -479,15 +555,7 @@ public class AudiobookService {
 
     /** Stores (or with a blank text removes) the words spoken in the clip, at once. */
     public void saveClipText(String clipUuid, String text) {
-        try {
-            UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
-            AudiobookSettings settings = getSettings();
-            settings.setClipText(clipUuid, text);
-            saveSettings(settings, userSetting);
-            settingService.save(userSetting);
-        } catch (Exception e) {
-            throw new IllegalStateException(e);
-        }
+        changeSettings(settings -> settings.setClipText(clipUuid, text));
     }
 
     /** The bytes of a clip of the user, null when it is gone. */
@@ -515,8 +583,8 @@ public class AudiobookService {
     }
 
     /**
-     * A cleaned copy of the clip as a new clip of the user ({@code <name> (cleaned).wav}), made with ffmpeg ({@code Ffmpeg.cleanVoice}); the clip itself is
-     * left as it is, so the copy can be heard before it replaces it.
+     * A cleaned copy of the clip as a new version of it (named "ffmpeg"), made with ffmpeg ({@code Ffmpeg.cleanVoice}); the clip itself is left as it is,
+     * so the version can be heard before it replaces it.
      */
     public Clip cleanClip(String uuid) throws BackendException {
         byte[] bytes = clipBytes(uuid);
@@ -528,14 +596,81 @@ public class AudiobookService {
             throw new BackendException("The clip can't be read without ffmpeg");
         }
         byte[] cleaned = com.github.enerccio.marginalia.extensions.audiobook.audio.Ffmpeg.cleanVoice(bytes, quality.floorDb());
-        String name = clips().stream().filter(c -> c.uuid().equals(uuid)).map(Clip::name).findFirst().orElse("clip");
-        String base = name.replaceFirst("(?i)\\.(wav|mp3)$", "");
-        Clip copy = uploadClip(base + " (cleaned).wav", cleaned, "audio/wav");
-        String text = clipText(uuid);
-        if (text != null) {
-            saveClipText(copy.uuid(), text);
-        }
-        return copy;
+        return storeVersion(uuid, cleaned, "wav", "ffmpeg", "ffmpeg");
+    }
+
+    /** Puts the audio among the resources as a version of the clip and returns it as the pickers show it. */
+    private Clip storeVersion(String parentUuid, byte[] audio, String extension, String name, String madeWith) {
+        String file = clips().stream().filter(c -> c.uuid().equals(parentUuid)).map(Clip::fileName).findFirst().orElse("clip");
+        String base = file.replaceFirst("(?i)\\.(wav|mp3)$", "");
+        Clip copy = uploadClip(base + " (" + name.replaceAll("[^\\p{L}\\p{N} _-]", "") + ")." + extension, audio,
+                "mp3".equals(extension) ? "audio/mpeg" : "audio/wav");
+        changeSettings(settings -> settings.addVersion(parentUuid, copy.uuid(), name, madeWith));
+        return clips().stream().filter(c -> c.uuid().equals(copy.uuid())).findFirst().orElse(copy);
+    }
+
+    /**
+     * Cleans the clip with a preset of the cleanup of the user under its GPU lock, from a thread of its own; the result is a new version of the clip.
+     *
+     * @param done called with the version, or with the message of what failed
+     */
+    public void cleanClipWith(String uuid, String presetName, java.util.function.BiConsumer<Clip, String> done) {
+        inBackground("audiobook-clean", () -> {
+            try {
+                com.github.enerccio.marginalia.extensions.audiobook.model.CleanupConfig config = getSettings().cleanup();
+                if (config == null) {
+                    done.accept(null, T.localized(NO_CLEANUP));
+                    return;
+                }
+                com.github.enerccio.marginalia.extensions.audiobook.model.CleanupPreset preset = config.preset(presetName);
+                if (preset == null) {
+                    done.accept(null, "No cleanup " + presetName);
+                    return;
+                }
+                byte[] bytes = clipBytes(uuid);
+                if (bytes == null) {
+                    done.accept(null, "The clip is gone");
+                    return;
+                }
+                com.github.enerccio.marginalia.extensions.audiobook.clean.ComfyCleaner.Result result;
+                // its own lock: the cleanup models must not be loaded next to the speech or the recognition models
+                try (SpeechBatch.Lease _ = takeGpu(config.getGpuLock(), null)) {
+                    result = new com.github.enerccio.marginalia.extensions.audiobook.clean.ComfyCleaner(config,
+                            config.getProtectedApiKey() == null ? null : reveal(config.getProtectedApiKey()))
+                            .clean(bytes, AudioKind.of(bytes).extension(), preset, null);
+                }
+                done.accept(storeVersion(uuid, result.audio(), result.extension(), preset.getName(), preset.describe()), null);
+            } catch (BackendException | RuntimeException e) {
+                AudiobookLog.get().warn("Cleaning a clip failed: {}", e.getMessage(), e);
+                done.accept(null, com.github.enerccio.marginalia.extensions.httphooks.Http.describe(e));
+            }
+        });
+    }
+
+    /**
+     * Tries the cleanup as it is in the form (under its GPU lock: reading the nodes may start the server), from a thread of its own.
+     *
+     * @param done called with the separation models ComfyUI offers when it works, else with the message of what failed
+     */
+    public void testCleanup(com.github.enerccio.marginalia.extensions.audiobook.model.CleanupConfig config,
+                            java.util.function.BiConsumer<List<String>, String> done) {
+        inBackground("audiobook-cleanup-test", () -> {
+            try (SpeechBatch.Lease _ = takeGpu(config.getGpuLock(), null)) {
+                var cleaner = new com.github.enerccio.marginalia.extensions.audiobook.clean.ComfyCleaner(config,
+                        config.getProtectedApiKey() == null ? null : reveal(config.getProtectedApiKey()));
+                cleaner.test();
+                done.accept(cleaner.separationModels(), null);
+            } catch (BackendException | RuntimeException e) {
+                AudiobookLog.get().warn("Testing the cleanup failed: {}", e.getMessage(), e);
+                done.accept(null, com.github.enerccio.marginalia.extensions.httphooks.Http.describe(e));
+            }
+        });
+    }
+
+    /** Puts the version wherever its parent is used (see {@link #replaceClip}); 0 for an original. */
+    public int useVersion(String versionUuid) {
+        String parent = clips().stream().filter(c -> c.uuid().equals(versionUuid)).map(Clip::parent).findFirst().orElse(null);
+        return parent == null ? 0 : replaceClip(parent, versionUuid);
     }
 
     /** The places of the actors and own backends that use the clip. */
@@ -577,10 +712,12 @@ public class AudiobookService {
             return false;
         }
         try {
-            if (clipText(uuid) != null) {
-                saveClipText(uuid, null);
+            boolean deleted = resourceService.softDelete(List.of(uuid)) > 0;
+            if (deleted) {
+                // its versions move up to its parent, its name and words go
+                changeSettings(settings -> settings.forgetClip(uuid));
             }
-            return resourceService.softDelete(List.of(uuid)) > 0;
+            return deleted;
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }

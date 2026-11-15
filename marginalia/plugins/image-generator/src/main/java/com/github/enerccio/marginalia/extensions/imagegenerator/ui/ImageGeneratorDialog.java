@@ -137,7 +137,7 @@ public class ImageGeneratorDialog extends Dialog {
         initModelPicker();
 
         backendSelect.setLabel(T.localized(BACKEND));
-        backendSelect.setItems(settings.getBackends());
+        backendSelect.setItems(BackendConfig.byName(settings.getBackends()));
         backendSelect.setItemLabelGenerator(b -> StringUtils.defaultIfBlank(b.getName(), T.localized(NEW_BACKEND)));
         backendSelect.setWidth("12em");
         BackendConfig selected = settings.find(settings.getSelectedBackendId());
@@ -372,6 +372,7 @@ public class ImageGeneratorDialog extends Dialog {
         if (selected != null && !items.contains(selected)) {
             items.add(selected);
         }
+        items.sort(String.CASE_INSENSITIVE_ORDER);
         loraItems = items;
         loraBox.setItems(items);
         loraBox.setValue(selected);

@@ -100,6 +100,30 @@ recognition**) and recognises the [text of a voice clip](#voices-and-clips). Cho
 **Test connection** checks that ComfyUI has the nodes, or that the server answers. The pieces of a batch are checked after the batch, when the speech
 server is given back, so the recognition and the speech model never need the card at the same time.
 
+### Cleanup of clips
+
+**Cleanup of clips** cleans a reference clip on a ComfyUI with the [TTS Audio Suite](audiobook-server.md#higgs-audio-v3-in-comfyui) (the same
+one as for Higgs works). The result is a new **version** of the clip in [Voices and clips](#voices-and-clips); the clip itself stays.
+
+| Setting | What it does |
+|---|---|
+| Address, Api key | The address of ComfyUI; the key is stored encrypted. Empty address: no cleanup. |
+| GPU lock | The [GPU lock](../administration/gpus.md) the cleanup takes. Give it a lock of its own, not the one of the speech or of the speech recognition, whose steps restart ComfyUI, so that the cleanup models are never loaded next to the speech model. |
+| Timeout, The server is on this machine or on my network | As for a backend (the timeout is for one cleanup, 10 minutes by default: ComfyUI downloads a model the first time it is used). |
+| Cleanup | The cleanups (presets) to choose from in Voices and clips, by name. Each is a list of steps run one after the other. **Default cleanups** brings back the ones it comes with. |
+
+A step is one of:
+
+- **Separation model**: a model of the suite that splits the audio in two, the *extracted* part and the *remaining* part, and keeps one of them. Which
+  part holds the voice depends on the model: a vocals model (`MelBandRoformer`) extracts the voice, a denoise model extracts the noise, so keep the
+  remaining. **Aggressiveness** (0 to 20) decides how much is taken away.
+- **Voice fixer**: restores a degraded voice (a phone, an old recording). It changes the sound of the voice more than a separation does.
+- **ffmpeg (here)**: the filter of **Clean with ffmpeg**, run by the application between the steps on ComfyUI.
+
+The cleanups it comes with: *Voice from music* (the voice out of a film or a song), *Remove noise*, *Restore the voice* and *Film or game clip* (the
+voice out of the music, then the noise removed). **Test connection** checks that ComfyUI has the nodes and fills the list of models with those of your
+server. The models are downloaded by ComfyUI the first time a cleanup uses them.
+
 ### Shared speech servers
 
 On an installation with several users the administrator can keep speech servers for everybody, so that one GPU machine is set up once and nobody needs an address or a key. The administrator does it in the same panel (the last sections, seen only by administrators): **Shared speech servers** opens a window with the same fields as a backend of your own, plus who may use it: **all users**, or the users picked in the list. A switch there, **Users may add speech servers of their own**, decides whether the backends below are still allowed.
@@ -127,18 +151,29 @@ Each sample takes the GPU for itself only. The GPU stays loaded with the speech 
 
 ### Voices and clips
 
-**Voices and clips** (next to the actors) is one window for your actors and the clips their voices are cloned from:
+**Voices and clips** (next to the actors) is one window for your actors and the clips their voices are cloned from. It has three tabs, side by
+side at first: **Actors**, **Clips** and **Clip**. Drag a tab to put it beside, under or together with another one; the window opens again the way
+you left it.
 
 - **Actors**: each with its voice, how many other voices (moods, languages) it has and the worst quality of its clips; add, edit or delete one.
-- **Clips**: each with its length, its **quality** and where it is used (actors, with the mood or language, and the narrators of your backends).
-  Select a clip to read what is wrong with it, **Play** it, **Replace...** it, **Clean with ffmpeg** (with ffmpeg) or delete it (only when nothing uses it).
-- **Replace...** puts another clip, one of yours or one you upload there, everywhere the clip is used. The parts are made again with the new voice;
-  the old clip stays until you delete it.
-- **Text of the clip**: the words spoken in the selected clip. Type them, or press **Recognize** to have the [speech recognition](#speech-recognition)
-  write them down, correct them and **Save**. The actor dialog shows the same field for the clip of the actor's voice. A cleaned copy and a replacement
-  take the text over. Higgs is given it only when the backend sends it (off by default).
-- **Clean with ffmpeg** makes a cleaned copy beside the clip (less steady hiss and hum), measured again, to play and compare; replace the clip with it if
-  it sounds better. It does not remove music, effects or other voices.
+- **Clips**: your clips in **folders** (for example one per character), with the **versions** made from a clip under it, each with its length,
+  its **quality** and where it is used (actors, with the mood or language, and the narrators of your backends). **Add a clip** uploads one.
+- **Clip**: the selected clip.
+  - **Name** and **Folder**: rename the clip (the file keeps its name) and put it into a folder, a new one by typing its name. A version stays in the
+    folder of the clip it was made from, and says what it was made from and how.
+  - **Play** it, read what is wrong with it, **Replace...** it, or **Delete** it (only when nothing uses it; its versions move up to the clip it was
+    made from).
+  - **Clean with ffmpeg** makes a version that is less steady hiss and hum. It does not remove music, effects or other voices.
+  - **Clean with AI** makes a version with the chosen [cleanup](#cleanup-of-clips) on ComfyUI. It runs in the background: you can go on working,
+    and a message says when the version is ready.
+  - **Use this version** puts a version wherever the clip it was made from is used. The parts are made again with the new voice, and the old clip stays
+    until you delete it.
+  - **Text of the clip**: the words spoken in the clip. Type them, or press **Recognize** to have the [speech recognition](#speech-recognition) write
+    them down, correct them and **Save**. The actor dialog shows the same field for the clip of the actor's voice. A version and a replacement take the
+    text over. Higgs is given it only when the backend sends it (off by default).
+- **Replace...** puts another clip, one of yours or one you upload there, everywhere the clip is used.
+
+Pickers of a voice (the actor, the narrator of a backend) show a clip as *folder / clip › version*.
 
 #### A good clip
 
@@ -149,9 +184,11 @@ A voice model copies the **recording**, not only the voice: the room, a hiss, th
   from a film or a series is the worst case.
 - The quality marks are measured from the clip: **Clean** (the pauses are at least 45 dB under the speech), **Fair** (35 to 45 dB, or longer than 30 s,
   which Chatterbox cuts), **Poor** (background sound, under 35 dB; distorted; shorter than 8 s). A clip that is not clean is reported when you add it.
-- For the best result clean a clip by hand: the noise reduction of [Audacity](https://www.audacityteam.org/) with a noise profile taken from a pause of the
-  clip, or a vocal remover such as [Ultimate Vocal Remover](https://github.com/Anjok07/ultimatevocalremovergui) for a clip with music. The ffmpeg cleanup only
-  lowers a steady noise: on a film clip it gained about 3 dB in the test and the clip stayed *Poor*.
+- Clean a clip with AI ([Cleanup of clips](#cleanup-of-clips)): in the test the *Film or game clip* cleanup took a clip with hiss, hum and an echo from
+  *Poor* to *Clean* (the pauses went from 38 to 89 dB under the speech). Listen to the version before you use it: a separation model can also take
+  away a breath or the end of a soft word. The ffmpeg cleanup only lowers a steady noise: on a film clip it gained about 3 dB and the clip stayed *Poor*.
+- Without a ComfyUI, clean a clip by hand: the noise reduction of [Audacity](https://www.audacityteam.org/) with a noise profile taken from a pause of
+  the clip, or a vocal remover such as [Ultimate Vocal Remover](https://github.com/Anjok07/ultimatevocalremovergui) for a clip with music.
 
 ### Converting new parts by itself
 
