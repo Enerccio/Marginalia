@@ -374,6 +374,7 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
     public static final String STEP_SEPARATE = "Separation model";
     public static final String STEP_VOICE_FIXER = "Voice fixer";
     public static final String STEP_FFMPEG = "ffmpeg (here)";
+    public static final String STEP_NORMALIZE = "Normalize loudness (here)";
     public static final String SEPARATION_MODEL = "Model";
     public static final String KEEP_THE_EXTRACTED = "Keep the extracted";
     public static final String KEEP_THE_REMAINING = "Keep the remaining";
@@ -3094,6 +3095,14 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
         de(STEP_FFMPEG, "ffmpeg (hier)");
         ko(STEP_FFMPEG, "ffmpeg(여기)");
         it(STEP_FFMPEG, "ffmpeg (qui)");
+
+        ja(STEP_NORMALIZE, "音量の正規化 (このサーバー)");
+        zh(STEP_NORMALIZE, "响度标准化（本机）");
+        fr(STEP_NORMALIZE, "Normaliser le volume (ici)");
+        es(STEP_NORMALIZE, "Normalizar el volumen (aquí)");
+        de(STEP_NORMALIZE, "Lautheit normalisieren (hier)");
+        ko(STEP_NORMALIZE, "음량 정규화(여기)");
+        it(STEP_NORMALIZE, "Normalizza il volume (qui)");
 
         ja(SEPARATION_MODEL, "モデル");
         zh(SEPARATION_MODEL, "模型");

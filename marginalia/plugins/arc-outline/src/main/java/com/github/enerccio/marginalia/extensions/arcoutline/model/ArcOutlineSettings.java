@@ -22,6 +22,8 @@ public class ArcOutlineSettings {
     private WizardOptions wizard;
     /** The tools the model may use, chosen in the tool dialog; none checked means no tools. */
     private ToolSelection tools;
+    /** How the chapter headings were last written into the story. */
+    private HeadingOptions headings;
     /** The name categories (with the prefix of their source) saved before the tools were chosen in the tool dialog; read once. */
     private List<String> nameCategories;
     /** The hint the user wrote for the name generator, saved before the tool dialog; read once. */
@@ -67,6 +69,14 @@ public class ArcOutlineSettings {
 
     public void setTools(ToolSelection tools) {
         this.tools = tools;
+    }
+
+    public HeadingOptions getHeadings() {
+        return headings;
+    }
+
+    public void setHeadings(HeadingOptions headings) {
+        this.headings = headings;
     }
 
     /**

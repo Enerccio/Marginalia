@@ -658,7 +658,8 @@ public class AudiobookService {
                     }
                     com.github.enerccio.marginalia.extensions.audiobook.clean.ComfyCleaner.Result result;
                     // its own lock: the cleanup models must not be loaded next to the speech or the recognition models
-                    try (SpeechBatch.Lease _ = takeGpu(config.getGpuLock(), null)) {
+                    // a preset of ffmpeg steps only needs no GPU (taking the lock could restart ComfyUI for nothing)
+                    try (SpeechBatch.Lease _ = takeGpu(preset.usesComfy() ? config.getGpuLock() : null, null)) {
                         result = new com.github.enerccio.marginalia.extensions.audiobook.clean.ComfyCleaner(config,
                                 config.getProtectedApiKey() == null ? null : reveal(config.getProtectedApiKey()))
                                 .clean(bytes, AudioKind.of(bytes).extension(), preset, null);

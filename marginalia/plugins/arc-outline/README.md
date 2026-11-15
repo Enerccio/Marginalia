@@ -78,9 +78,22 @@ edited prompt and specification. The *Model* and *Protocols* lists at the top of
 
 An arc or chapter has an optional *Linked part*: its place in the active branch, from 1, as the outline of the story numbers the
 parts (`OutlineNode.part`, stored with the outline). The dialog has the field, a button that fills it with the part that is the
-most visible in the story, and one that scrolls the story to it; a linked card has the scroll button too. The story is reached
+most visible in the story, and one that scrolls the story to it; a linked card has the scroll button too, and every card a thumbtack that
+links it to the most visible part without the dialog. The story is reached
 through `ArcOutlineView.StoryTarget` (`visiblePart`, `showPart`), which the extension implements on the story part it decorates:
 `StoryLazyLoader.mostVisible` and `scrollTo`, and the drawer of the phone is closed first.
+
+## Chapter headings in the text
+
+*Chapter headings in the text* in the menu of the wand opens `ChapterHeadingsDialog`. `ChapterHeadings` (pure functions) plans the headings
+from the linked arcs and chapters and `HeadingOptions` (stored in the user settings as `headings`): chapters only (`#`) or arcs (`#`) with their
+chapters below (`##`), a prefix for each, Arabic, Roman or no numbers, numbered through the book or per arc, with or without the titles. An arc
+without a part takes the part of its first linked chapter; chapters are numbered by their place in the outline. `ArcOutlineService.writeHeadings`
+replaces the headings each linked part starts with (`ChapterHeadings.withHeadings`), optionally after removing every heading line of the branch
+(`wipe`); `wipeHeadings` only removes them. The texts are stored with `ChatMessageService.storeResponse` (a `PLUGIN` version "Arc Outline" in
+the history). With *Keep the summaries valid* the summaries that were valid before the change and are outdated after it get their hash again
+(`SummaryService.collectBlocks` before and after, `SummaryService.revalidate`). The story is shown again through `StoryTarget.reloadStory`
+(`StoryEditor.reloadStory` of the story part).
 
 ## Importing an arc from the story
 
@@ -196,5 +209,5 @@ extension is loaded (`ExtensionHasCss`).
 The arcs, with their chapters inside, are stored with the book (`com.github.enerccio.marginalia.extensions.arcoutline`
 in its attributes: `arcs`), so they are included in book backups and copies. Every arc and chapter has a stable `uuid`;
 a generated arc or chapter also has `generationReasoning` and `generationResult` (the raw reasoning and JSON of the
-model). The prompts and the chosen tools (`tools`) are in the user settings
+model). The prompts, the chosen tools (`tools`) and the heading options (`headings`) are in the user settings
 (`com.github.enerccio.marginalia.extensions.arcoutline.settings` in their attributes).

@@ -36,6 +36,9 @@ public class ComfyCleaner {
         /** The noise filter of the ffmpeg step. */
         byte[] clean(byte[] audio) throws BackendException;
 
+        /** Levels the loudness (normalize step). */
+        byte[] normalize(byte[] audio, double lufs) throws BackendException;
+
         /** A wav of a flac. */
         byte[] toWav(byte[] flac) throws BackendException;
 
@@ -52,6 +55,11 @@ public class ComfyCleaner {
                     throw new BackendException("The clip can't be read without ffmpeg");
                 }
                 return Ffmpeg.cleanVoice(audio, quality.floorDb());
+            }
+
+            @Override
+            public byte[] normalize(byte[] audio, double lufs) throws BackendException {
+                return Ffmpeg.normalizeLoudness(audio, lufs);
             }
 
             @Override
@@ -100,6 +108,9 @@ public class ComfyCleaner {
         if (preset.getSteps().isEmpty()) {
             throw new BackendException("The cleanup has no steps");
         }
+        if (!preset.usesComfy()) {
+            return run(clip, extension, preset, cancel);
+        }
         return JobCalls.track(JobCallType.AUDIO, "audiobook", baseUrl, preset.describe(), () -> run(clip, extension, preset, cancel));
     }
 
@@ -108,7 +119,7 @@ public class ComfyCleaner {
         String ext = extension;
         List<CleanupStep> pending = new ArrayList<>();
         for (CleanupStep step : preset.getSteps()) {
-            if (step.getType() != CleanupStep.Type.FFMPEG) {
+            if (!step.getType().isLocal()) {
                 pending.add(step);
                 continue;
             }
@@ -119,10 +130,16 @@ public class ComfyCleaner {
                 pending.clear();
             }
             if (!local.available()) {
-                throw new BackendException("The ffmpeg step needs ffmpeg on the machine of the application");
+                throw new BackendException("The " + step.describe() + " step needs ffmpeg on the machine of the application");
             }
-            audio = local.clean(audio);
-            ext = "wav";
+            if (step.getType() == CleanupStep.Type.NORMALIZE) {
+                // keeps the kind of the audio (an mp3 stays an mp3)
+                audio = local.normalize(audio, step.getLoudness());
+                ext = AudioKind.of(audio) == AudioKind.WAV ? "wav" : "mp3";
+            } else {
+                audio = local.clean(audio);
+                ext = "wav";
+            }
         }
         if (!pending.isEmpty()) {
             return onComfy(audio, pending, cancel);
@@ -175,7 +192,7 @@ public class ComfyCleaner {
                     workflow.add(id, ComfyClient.node(FIXER_NODE, inputs));
                     output = 0;
                 }
-                case FFMPEG -> throw new IllegalArgumentException("ffmpeg does not run on ComfyUI");
+                case FFMPEG, NORMALIZE -> throw new IllegalArgumentException("ffmpeg does not run on ComfyUI");
             }
             previous = id;
         }

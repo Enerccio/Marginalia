@@ -203,3 +203,35 @@
     color: var(--lumo-error-text-color);
 }
 
+
+/* The chapter headings dialog: what it says it does, and the headings it would write */
+.arc-outline-headings-help {
+    font-size: var(--lumo-font-size-s);
+    color: var(--lumo-secondary-text-color);
+    margin-bottom: var(--lumo-space-s);
+}
+
+.arc-outline-headings-preview {
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: var(--lumo-space-m);
+    padding: var(--lumo-space-s) var(--lumo-space-m);
+    border-radius: var(--lumo-border-radius-m);
+    background: var(--lumo-contrast-5pct);
+    font-family: var(--lumo-font-family-monospace, monospace);
+    font-size: var(--lumo-font-size-s);
+    max-height: 14em;
+    overflow-y: auto;
+}
+
+.arc-outline-headings-line {
+    display: flex;
+    gap: var(--lumo-space-m);
+    overflow-wrap: anywhere;
+}
+
+.arc-outline-headings-part {
+    flex: none;
+    min-width: 6em;
+    color: var(--lumo-secondary-text-color);
+}

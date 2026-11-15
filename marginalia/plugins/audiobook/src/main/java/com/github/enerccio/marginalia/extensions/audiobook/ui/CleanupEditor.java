@@ -22,6 +22,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.IntegerField;
+import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
 
@@ -191,6 +192,7 @@ public class CleanupEditor extends VerticalLayout {
             case SEPARATE -> T.localized(STEP_SEPARATE);
             case VOICE_FIXER -> T.localized(STEP_VOICE_FIXER);
             case FFMPEG -> T.localized(STEP_FFMPEG);
+            case NORMALIZE -> T.localized(STEP_NORMALIZE);
         });
         type.setValue(step.getType());
         type.setWidth("14em");
@@ -249,12 +251,26 @@ public class CleanupEditor extends VerticalLayout {
             touched(e.isFromClient());
         });
 
+        NumberField loudness = new NumberField();
+        loudness.setMin(AudiobookSettings.MIN_TARGET_LUFS);
+        loudness.setMax(AudiobookSettings.MAX_TARGET_LUFS);
+        loudness.setStep(1);
+        loudness.setStepButtonsVisible(true);
+        loudness.setValue(step.getLoudness());
+        loudness.setWidth("10em");
+        loudness.setTooltipText(T.localized(TARGET_LOUDNESS_LUFS));
+        loudness.addValueChangeListener(e -> {
+            step.setLoudness(e.getValue());
+            touched(e.isFromClient());
+        });
+
         Runnable visibility = () -> {
             CleanupStep.Type t = type.getValue();
             model.setVisible(t == CleanupStep.Type.SEPARATE);
             keep.setVisible(t == CleanupStep.Type.SEPARATE);
             aggressiveness.setVisible(t == CleanupStep.Type.SEPARATE);
             mode.setVisible(t == CleanupStep.Type.VOICE_FIXER);
+            loudness.setVisible(t == CleanupStep.Type.NORMALIZE);
         };
         visibility.run();
         type.addValueChangeListener(e -> {
@@ -276,7 +292,7 @@ public class CleanupEditor extends VerticalLayout {
             b.setThemeName("tertiary small");
         }
         Span number = new Span((index + 1) + ".");
-        HorizontalLayout row = new HorizontalLayout(number, type, model, keep, aggressiveness, mode, up, down, remove);
+        HorizontalLayout row = new HorizontalLayout(number, type, model, keep, aggressiveness, mode, loudness, up, down, remove);
         row.setWrap(true);
         row.setAlignItems(FlexComponent.Alignment.CENTER);
         return row;

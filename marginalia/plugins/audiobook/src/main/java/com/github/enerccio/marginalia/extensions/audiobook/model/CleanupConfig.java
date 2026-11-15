@@ -106,6 +106,7 @@ public class CleanupConfig {
         list.add(new CleanupPreset("Voice from music", List.of(CleanupStep.separate(MODEL_VOCALS, CleanupStep.Keep.EXTRACTED))));
         list.add(new CleanupPreset("Remove noise", List.of(CleanupStep.separate(MODEL_DENOISE, CleanupStep.Keep.REMAINING))));
         list.add(new CleanupPreset("Remove echo", List.of(CleanupStep.separate(MODEL_DEREVERB, CleanupStep.Keep.REMAINING))));
+        list.add(new CleanupPreset("Raise a quiet voice", List.of(CleanupStep.normalize(CleanupStep.DEFAULT_LOUDNESS))));
         list.add(new CleanupPreset("Restore the voice", List.of(CleanupStep.voiceFixer(0))));
         list.add(new CleanupPreset("Film or game clip", List.of(CleanupStep.separate(MODEL_VOCALS, CleanupStep.Keep.EXTRACTED),
                 CleanupStep.separate(MODEL_DEREVERB, CleanupStep.Keep.REMAINING), CleanupStep.separate(MODEL_DENOISE, CleanupStep.Keep.REMAINING))));

@@ -119,9 +119,12 @@ A step is one of:
   room, so keep the remaining. **Aggressiveness** (0 to 20) decides how much is taken away.
 - **Voice fixer**: restores a degraded voice (a phone, an old recording). It changes the sound of the voice more than a separation does.
 - **ffmpeg (here)**: the filter of **Clean with ffmpeg**, run by the application between the steps on ComfyUI.
+- **Normalize loudness (here)**: raises (or lowers) the level of the clip to the loudness you give (-18 LUFS, as the audiobook, by default), with
+  ffmpeg in the application. Only the level changes, the peaks are kept below clipping. Put it last, after the steps that take something away (they
+  leave the voice quieter). A cleanup of only this step (and the ffmpeg filter) does not use ComfyUI or its GPU lock.
 
 The cleanups it comes with: *Voice from music* (the voice out of a film or a song), *Remove noise*, *Remove echo* (the room and the echo),
-*Restore the voice* and *Film or game clip* (the voice out of the music, then the room, then the noise: removing the noise first made the room
+*Raise a quiet voice* (the loudness step alone), *Restore the voice* and *Film or game clip* (the voice out of the music, then the room, then the noise: removing the noise first made the room
 of a film clip stand out). *Remove echo* needs a fix in some ComfyUI setups, see [the speech server](audiobook-server.md#higgs-audio-v3-in-comfyui). **Test connection** checks that ComfyUI has the nodes and fills the list of models with those of your
 server. The models are downloaded by ComfyUI the first time a cleanup uses them.
 

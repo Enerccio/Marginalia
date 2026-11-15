@@ -33,6 +33,11 @@ class ComfyCleanerTest {
         }
 
         @Override
+        public byte[] normalize(byte[] audio, double lufs) {
+            throw new AssertionError();
+        }
+
+        @Override
         public byte[] toWav(byte[] flac) {
             throw new AssertionError();
         }
@@ -50,6 +55,12 @@ class ComfyCleanerTest {
             public byte[] clean(byte[] audio) {
                 did.add("clean");
                 return "RIFF....WAVEcleaned".getBytes(StandardCharsets.US_ASCII);
+            }
+
+            @Override
+            public byte[] normalize(byte[] audio, double lufs) {
+                did.add("normalize:" + lufs);
+                return audio;
             }
 
             @Override
@@ -116,6 +127,23 @@ class ComfyCleanerTest {
             assertTrue(server.calls.stream().anyMatch(c -> c.path().equals("/free") && c.body().contains("unload_models")));
             FakeServer.Call view = server.calls.stream().filter(c -> c.path().startsWith("/view")).findFirst().orElseThrow();
             assertEquals("Bearer key", view.authorization());
+        }
+    }
+
+    @Test
+    void aPresetOfLocalStepsOnlyNeverCallsComfyUi() throws Exception {
+        try (FakeServer server = new FakeServer()) {
+            List<String> did = new ArrayList<>();
+            CleanupPreset preset = new CleanupPreset("Louder", List.of(CleanupStep.normalize(-20)));
+
+            ComfyCleaner.Result result = cleaner(server, fakeFfmpeg(did)).clean(WAV, "wav", preset, null);
+
+            assertFalse(preset.usesComfy());
+            assertEquals("wav", result.extension());
+            assertArrayEquals(WAV, result.audio());
+            assertEquals(List.of("normalize:-20.0"), did);
+            assertTrue(server.calls.isEmpty());
+            assertEquals("loudness -20 LUFS", preset.describe());
         }
     }
 

@@ -34,6 +34,7 @@ buttons of a card:
 | arrows | Move the arc or chapter up or down. |
 | plus (arcs) | Adds a chapter at the end of the arc. |
 | wand (arcs) | Asks the model to write chapters for the arc, see [below](#generating-chapters). |
+| thumbtack | Links (pins) the arc or chapter to the part that is the most visible in the story, see [below](#linking-to-the-story). |
 | target (arcs and chapters with a linked part) | Scrolls the story to the part it is linked to. |
 | pen | Opens it in the dialog. |
 | trash | Deletes it (an arc with all its chapters), after a confirmation. |
@@ -50,8 +51,30 @@ An arc or a chapter can be **linked to a part of the story**, so you can jump fr
 the field **Linked part**: the place of the part in the active branch, numbered from 1 as the *Outline* tab shows it (`#12`).
 Type it, or press the **link** button next to it to take the part that is the **most visible** in the story at that moment (scroll to
 the place first, then open the dialog); the **target** button scrolls the story to the part in the field. A linked arc or chapter also
-has the target button on its card. The link is the place in the branch, so it points to another part when parts before it are deleted
+has the target button on its card. The **thumbtack** on a card does the same as the link button without the dialog: scroll the story to
+where the chapter begins and press it. The link is the place in the branch, so it points to another part when parts before it are deleted
 or inserted; change it then. An import from the story links the chapters for you, see [below](#importing-an-arc-from-the-story).
+
+### Chapter headings in the text
+
+**Chapter headings in the text** in the menu of the wand at the top writes a heading at the start of the part every chapter is
+[linked](#linking-to-the-story) to, for example `# Chapter 4: The Storm`, so the text of the story carries its chapters (the
+Chapter Marker extension and exports pick them up). The dialog lists the headings it would write, with their part, as you change:
+
+| Option | |
+|---|---|
+| Arcs get headings too | Off: only chapters get a heading (`#`) and the arcs are left out. On: every arc gets a heading (`#`) and its chapters one level below (`##`). An arc that is not linked itself goes to the part of its first linked chapter. |
+| Prefix of the arcs / of the chapters | The word before the number, *Part* and *Chapter* at first. Empty gives `4. The Storm`. |
+| Numbers | Arabic (1, 2, 3), Roman (I, II, III) or none. Chapters are numbered by their place in the outline, linked or not, so a chapter not written yet keeps its number free. |
+| Number the chapters from 1 in every arc | Otherwise the chapters are numbered through the whole book. |
+| Put the titles into the headings | Off gives `Chapter 4` alone. |
+| Remove every other heading of the story first | Every heading line of the active branch is removed before the new headings are written, for when chapters were linked elsewhere since the last run. |
+| Keep the summaries valid | On at first. A heading does not change what happens, so the summaries that described the story before the change are marked valid again (the summaries that were outdated already stay outdated). |
+
+**Write the headings** puts them in; the headings a part already starts with are replaced, so running it again after a change of the
+outline does not add them twice. **Remove all headings** (after a confirmation) deletes every heading line from the text of the active
+branch. Each changed part keeps its old text in its history. A finished or current chapter without a link, and a link past the end of
+the active branch, get no heading and are reported. The options are remembered.
 
 ### The note of a chapter
 

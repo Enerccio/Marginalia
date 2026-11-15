@@ -76,6 +76,11 @@ public class ArcOutlineView extends VerticalLayout {
          * @return false when the branch has no such part
          */
         boolean showPart(int order);
+
+        /**
+         * Shows the story again as it is stored, after its text was changed (the chapter headings).
+         */
+        void reloadStory();
     }
 
     private final ArcOutlineService service;
@@ -167,6 +172,8 @@ public class ArcOutlineView extends VerticalLayout {
         generateMenu.addItem(UIUtils.menuItemWithIcon(Solid.FILE_IMPORT.create(), T.localized(IMPORT_FROM_STORY)), _ -> importFromStory());
         generateMenu.addItem(UIUtils.menuItemWithIcon(Solid.COMMENTS.create(), T.localized(DEVELOP_THE_PLOT)), _ ->
                 new PlotWizardDialog(service, manuscript, () -> outline, this::addGenerated).open());
+        generateMenu.addItem(UIUtils.menuItemWithIcon(Solid.HEADING.create(), T.localized(CHAPTER_HEADINGS_IN_THE_TEXT)), _ ->
+                new ChapterHeadingsDialog(service, manuscript, outline, storyTarget == null ? null : storyTarget::reloadStory).open());
 
         HorizontalLayout buttons = new HorizontalLayout(addArc, generate);
         if (storyTarget != null) {
@@ -346,7 +353,20 @@ public class ArcOutlineView extends VerticalLayout {
      * Adds the button that scrolls the story to the part the node is linked to, when it is linked.
      */
     private void addGoToPart(List<Component> actions, OutlineNode node) {
-        if (storyTarget == null || node.getPart() == null) {
+        if (storyTarget == null) {
+            return;
+        }
+        // pins the node to the part the author is reading, without the dialog
+        actions.add(iconButton(Solid.THUMBTACK.create(), T.localized(LINK_THE_PART), _ -> storyTarget.visiblePart(order -> {
+            if (order == null) {
+                Notification.warning(T.localized(NO_PART_OF_THE_STORY));
+            } else {
+                node.setPart(order);
+                persist();
+                Notification.success(T.localized(LINKED_TO_PART).formatted(order));
+            }
+        })));
+        if (node.getPart() == null) {
             return;
         }
         int part = node.getPart();

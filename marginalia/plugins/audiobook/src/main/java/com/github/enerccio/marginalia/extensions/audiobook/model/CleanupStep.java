@@ -9,7 +9,14 @@ public class CleanupStep {
         /** {@code VoiceFixerNode}: restores a degraded voice. */
         VOICE_FIXER,
         /** The noise filter of ffmpeg ({@code Ffmpeg.cleanVoice}), run by the application. */
-        FFMPEG
+        FFMPEG,
+        /** Levels the loudness with ffmpeg ({@code Ffmpeg.normalizeLoudness}, EBU R128), run by the application: raises a quiet clip. */
+        NORMALIZE;
+
+        /** Whether the step runs here, not on ComfyUI. */
+        public boolean isLocal() {
+            return this == FFMPEG || this == NORMALIZE;
+        }
     }
 
     /** Which of the two outputs of a separation is kept. */
@@ -23,6 +30,8 @@ public class CleanupStep {
     public static final int DEFAULT_AGGRESSIVENESS = 10;
     public static final int MAX_AGGRESSIVENESS = 20;
     public static final int DEFAULT_FIXER_MODE = 0;
+    /** The loudness a normalize step aims at: speech at -18 LUFS, as the audiobook is levelled. */
+    public static final double DEFAULT_LOUDNESS = AudiobookSettings.DEFAULT_TARGET_LUFS;
 
     private Type type = Type.SEPARATE;
     /** The model of a separation (one of the options of the node). */
@@ -31,6 +40,8 @@ public class CleanupStep {
     private Keep keep;
     /** The restoration mode of the voice fixer: 0 original, 1 with the high frequencies removed, 2 for a seriously degraded voice. */
     private Integer mode;
+    /** The loudness in LUFS of a normalize step, -30 to -10. */
+    private Double loudness;
 
     public CleanupStep() {
     }
@@ -56,6 +67,13 @@ public class CleanupStep {
         return step;
     }
 
+    public static CleanupStep normalize(double loudness) {
+        CleanupStep step = new CleanupStep();
+        step.setType(Type.NORMALIZE);
+        step.setLoudness(loudness);
+        return step;
+    }
+
     public CleanupStep copy() {
         CleanupStep copy = new CleanupStep();
         copy.type = type;
@@ -63,6 +81,7 @@ public class CleanupStep {
         copy.aggressiveness = aggressiveness;
         copy.keep = keep;
         copy.mode = mode;
+        copy.loudness = loudness;
         return copy;
     }
 
@@ -106,7 +125,16 @@ public class CleanupStep {
         this.mode = mode;
     }
 
-    /** A short description for the name of a version ("MelBandRoformer_fp32", "VoiceFixer", "ffmpeg"). */
+    public double getLoudness() {
+        return loudness == null ? DEFAULT_LOUDNESS
+                : Math.max(AudiobookSettings.MIN_TARGET_LUFS, Math.min(AudiobookSettings.MAX_TARGET_LUFS, loudness));
+    }
+
+    public void setLoudness(Double loudness) {
+        this.loudness = loudness;
+    }
+
+    /** A short description for the name of a version ("MelBandRoformer_fp32", "VoiceFixer", "ffmpeg", "loudness -18 LUFS"). */
     public String describe() {
         return switch (getType()) {
             case SEPARATE -> {
@@ -116,6 +144,7 @@ public class CleanupStep {
             }
             case VOICE_FIXER -> "VoiceFixer " + getMode();
             case FFMPEG -> "ffmpeg";
+            case NORMALIZE -> "loudness " + new java.text.DecimalFormat("0.#", java.text.DecimalFormatSymbols.getInstance(java.util.Locale.ROOT)).format(getLoudness()) + " LUFS";
         };
     }
 }

@@ -42,6 +42,11 @@ public class CleanupPreset {
     }
 
     /** The steps in a line, kept with a version as how it was made. */
+    /** Whether a step runs on ComfyUI (a preset of local steps only needs neither the server nor its GPU). */
+    public boolean usesComfy() {
+        return getSteps().stream().anyMatch(step -> !step.getType().isLocal());
+    }
+
     public String describe() {
         return getSteps().stream().map(CleanupStep::describe).collect(Collectors.joining(" → "));
     }

@@ -3,6 +3,8 @@ package com.github.enerccio.marginalia.extensions.arcoutline.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.enerccio.marginalia.domain.collections.DestructiveCommandMode;
+import com.github.enerccio.marginalia.domain.collections.RevisionSource;
+import com.github.enerccio.marginalia.domain.components.RevisionOrigin;
 import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.*;
@@ -765,6 +767,89 @@ public class ArcOutlineService {
                     .append(message.text().strip()).append("\n\n");
         }
         return text.toString().stripTrailing();
+    }
+
+    // --- chapter headings in the text ---
+
+    /** The version of the history a heading change makes. */
+    private static final RevisionOrigin HEADINGS_ORIGIN = new RevisionOrigin(RevisionSource.PLUGIN, "Arc Outline", false, null);
+
+    /**
+     * What writing or removing the headings did.
+     *
+     * @param changed     the parts whose text changed
+     * @param revalidated the summaries that the change made outdated and that were marked valid again
+     * @param unlinked    the chapters (and arcs) that got no heading because they are not linked to a part
+     * @param outside     the headings whose part is not in the active branch (it is shorter than the link)
+     */
+    public record HeadingResult(int changed, int revalidated, int unlinked, int outside) {
+    }
+
+    /**
+     * Writes the heading of every linked arc and chapter at the start of its part of the active branch (see
+     * {@link ChapterHeadings#plan}); the headings a part starts with are replaced, so running it again does not add them twice.
+     *
+     * @param arcPrefix     the word before the number of an arc
+     * @param chapterPrefix the word before the number of a chapter
+     */
+    public HeadingResult writeHeadings(Manuscript manuscript, ArcOutline outline, HeadingOptions options, String arcPrefix,
+                                       String chapterPrefix) throws Exception {
+        ChapterHeadings.Plan plan = ChapterHeadings.plan(outline, options, arcPrefix, chapterPrefix);
+        Map<Integer, List<String>> lines = new LinkedHashMap<>();
+        plan.headings().forEach(heading -> lines.computeIfAbsent(heading.part(), _ -> new ArrayList<>()).add(heading.line()));
+        return rewriteHeadings(manuscript, options.isWipeFirst(), lines, options.isRevalidateSummaries(), plan.unlinked());
+    }
+
+    /**
+     * Removes every heading line from the text of the active branch.
+     */
+    public HeadingResult wipeHeadings(Manuscript manuscript, boolean revalidateSummaries) throws Exception {
+        return rewriteHeadings(manuscript, true, Map.of(), revalidateSummaries, 0);
+    }
+
+    private HeadingResult rewriteHeadings(Manuscript manuscript, boolean wipe, Map<Integer, List<String>> headings,
+                                          boolean revalidateSummaries, int unlinked) throws Exception {
+        Manuscript current = manuscriptService.find(manuscript);
+        Manuscript book = current != null ? current : manuscript;
+        ChatMessage leaf = book.getActiveLeaf();
+        if (leaf == null) {
+            return new HeadingResult(0, 0, unlinked, headings.values().stream().mapToInt(List::size).sum());
+        }
+        List<ChatMessage> branch = chatMessageService.getBranchFromLeaf(leaf);
+        int outside = headings.entrySet().stream().filter(entry -> entry.getKey() < 1 || entry.getKey() > branch.size())
+                .mapToInt(entry -> entry.getValue().size()).sum();
+        // the summaries that describe the story now: only those are made valid again, not the ones outdated before
+        Set<Long> validBefore = new HashSet<>();
+        if (revalidateSummaries) {
+            summaryService.collectBlocks(new ArrayList<>(branch.reversed())).stream().filter(SummaryService.SummaryBlock::isValid)
+                    .forEach(block -> validBefore.add(block.summary().getId()));
+        }
+        int changed = 0;
+        for (int i = 0; i < branch.size(); i++) {
+            ChatMessage part = branch.get(i);
+            String text = StringUtils.defaultString(part.getResponse());
+            String rewritten = wipe ? ChapterHeadings.wipe(text) : text;
+            List<String> lines = headings.get(i + 1);
+            if (lines != null) {
+                rewritten = ChapterHeadings.withHeadings(rewritten, lines);
+            }
+            if (!rewritten.equals(text)) {
+                chatMessageService.storeResponse(book, part, rewritten, HEADINGS_ORIGIN);
+                changed++;
+            }
+        }
+        int revalidated = 0;
+        if (revalidateSummaries && changed > 0 && !validBefore.isEmpty()) {
+            Manuscript after = manuscriptService.find(book);
+            List<ChatMessage> newBranch = chatMessageService.getBranchFromLeaf((after != null ? after : book).getActiveLeaf());
+            List<SummaryService.SummaryBlock> outdated = summaryService.collectBlocks(new ArrayList<>(newBranch.reversed())).stream()
+                    .filter(block -> !block.isValid() && validBefore.contains(block.summary().getId())).toList();
+            if (!outdated.isEmpty()) {
+                summaryService.revalidate(book, outdated);
+                revalidated = outdated.size();
+            }
+        }
+        return new HeadingResult(changed, revalidated, unlinked, outside);
     }
 
     /**
