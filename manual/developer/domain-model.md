@@ -824,7 +824,7 @@ carries the uuids of both and the export packs the files, see *Resources in back
 | `path` | File name in the user's `images` folder (images) or `resources` folder (other files) of the data folder. The files are stored by content: uploading the same bytes again reuses the file. |
 | `hash` | Hash of the content; with the owner it is the key for that deduplication (`ix_resources_user_hash`). |
 | `mimeType`, `originalName` | Detected content type and the name the file was uploaded with. |
-| `objectId`, `clazz` | Loose link to the object that uses the file (class name and id, like `TagRelation`). Bookkeeping for the Resources tab (which groups the files by it) - not a cleanup reference, the object may be gone. |
+| `objectId`, `clazz` | Loose link to the object that uses the file (class name and id, like `TagRelation`). Bookkeeping for the Resources tab (which groups the files by it) - not a cleanup reference, the object may be gone. The cleanup uses it for *unused resources* (see [Cleanup references](#cleanup-references)). |
 | `servedFrom` | Not stored. Set by `ResourceService` on a file it gives to a reader of somebody else's published book: the owner, whose folder holds the file (`findImageForReader`, `readForReader`). |
 
 Deleting a resource is a soft delete like any other; files are never deleted from disk.
@@ -847,6 +847,19 @@ pointing to other entities ("soft references", including extended attributes) ar
 `target = SomeEntity.class` or, for polymorphic ones, `targetClassField = "clazz"`. On an entity class,
 `field = "..."` sets the policy of an inherited field (`OwnedEntity` makes `owner` `OWNED_BY`, so a deleted user
 is purged together with everything they own).
+
+### Unused resources
+
+A `Resource` that is not deleted is purged too when nothing uses it any more (`CleanupServiceImpl.unusedResources`, after the
+plan of the deleted rows is made): its loose link (`clazz`, `objectId`) names an entity that is no longer in the database or
+that the plan purges, and no other row names its uuid. The rows are read in chunks: every `String` and `byte[]` column of every
+entity (the `extendedContent` unzipped, where the `imageAttachments` of a part and the `attributes` of extensions are; not `uuid`
+and `_fulltext`, not the resources themselves), the uuids found by `BackupResources.uuidsIn`, case ignored. Rows in the trash
+count (restoring them keeps their files), rows the plan purges do not. A branch made from a part has the same pictures and clips,
+a lorebook entry names its images, so the link alone is never enough. A resource linked to nothing or to a class that is not an
+entity stays. Contributors can keep one (`collectReferences`, the candidates are `EntityKey(Resource.class, id)`); it is then
+left out without being listed as blocked. The purged resources count in *To purge* of `Resource` (`EntityStats.purgeable`), not
+in *Deleted*. The files stay on disk, as for a deleted resource, until *Resource Files* removes them.
 
 ### Trash
 

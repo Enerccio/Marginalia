@@ -36,6 +36,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Error notifications stay until they are closed.** They used to disappear after 6 to 10 seconds, often before they were read; success and warning messages still go away by themselves.
 - **`rebuild.sh` / `rebuild.bat` compile the application once.** The plugins are built by the stage `plugins` of the root `Dockerfile` (`marginalia/plugins/Dockerfile` is gone; `marginalia/plugins/docker-compose.yml` is used as before), which shares the application build with the image, so the second build takes it from Docker's cache.
 
+- **Cleanup removes the resources nobody uses any more.** The audio clips and pictures of story parts that are gone (shown as *(gone)* in the Resources tab) used to stay forever, since nobody deleted them; the cleanup now removes them once no other object names them (a branch made from the part, a deleted object still in the trash), and their files then show in *Resource Files*. They count in *To purge* of `Resource`.
+
 ### Fixed
 
 - **The story keeps its place after automatic annotation and redraft on another tab.** When a generation with automatic annotation and redraft finished while you were on another tab, the hidden story loaded all its earlier parts and you came back to its top. It no longer loads parts while it is not seen, and it is put back where you were reading.

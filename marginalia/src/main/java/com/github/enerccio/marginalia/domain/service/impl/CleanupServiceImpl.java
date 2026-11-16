@@ -48,6 +48,8 @@ public class CleanupServiceImpl implements CleanupService, TrashService {
     private static final int REMOVE_BATCH_SIZE = 200;
     private static final int MAX_REASONS = 5;
     private static final String[] LABEL_METHODS = {"getName", "getLogin", "getValue"};
+    // columns that never name a resource: the own uuid of a row, the text copy kept for the full text search
+    private static final Set<String> NOT_NAMING_RESOURCES = Set.of("uuid", "_fulltext");
 
     private final ExtendableEntityListener extendableEntityListener = new ExtendableEntityListener();
     private final List<CleanupContributor> contributors = new CopyOnWriteArrayList<>();
@@ -325,7 +327,131 @@ public class CleanupServiceImpl implements CleanupService, TrashService {
             blockedEntity.getReasons().addAll(reasons.getOrDefault(key, List.of()));
             plan.getBlocked().put(key, blockedEntity);
         }
+
+        Set<EntityKey> unused = unusedResources(m, closure.members);
+        if (!unused.isEmpty()) {
+            plan.getPurge().addAll(unused);
+            EntityStats stats = plan.getStats().computeIfAbsent(Resource.class, EntityStats::new);
+            stats.setPurgeable(stats.getPurgeable() + unused.size());
+        }
         return plan;
+    }
+
+    /**
+     * Resources that are not deleted but that nothing uses any more: the object they are linked to ({@code clazz} and
+     * {@code objectId}, a note kept by whoever added them: the audio of an audiobook, a picture of a part) is no longer in
+     * the database or is purged by this plan, and no other row names the uuid of the resource (a branch made from the
+     * part has the same pictures, a lorebook entry names its images). Rows in the trash count, so restoring them keeps
+     * their files; rows purged by this plan do not. A resource that is linked to nothing, or to a class that is not an
+     * entity, is kept: there is no telling whether it is needed.
+     *
+     * @param purged the soft deleted objects the plan purges
+     */
+    private Set<EntityKey> unusedResources(Model m, Set<EntityKey> purged) throws Exception {
+        Class<?> resourceRoot = m.classNameToRoot.get(Resource.class.getName());
+        if (resourceRoot == null) {
+            return Set.of();
+        }
+        List<Object[]> resources = entityManager.createQuery("SELECT r.id, r.uuid, r.clazz, r.objectId FROM "
+                        + m.rootEntities.get(resourceRoot) + " r WHERE r.deleted = false AND r.clazz IS NOT NULL AND r.objectId IS NOT NULL",
+                Object[].class).getResultList();
+        Map<Class<?>, Set<Long>> linked = new LinkedHashMap<>();
+        for (Object[] row : resources) {
+            Class<?> root = m.classNameToRoot.get((String) row[2]);
+            if (root != null && m.rootEntities.containsKey(root)) {
+                linked.computeIfAbsent(root, k -> new HashSet<>()).add((Long) row[3]);
+            }
+        }
+        Map<Class<?>, Set<Long>> existing = new HashMap<>();
+        for (Map.Entry<Class<?>, Set<Long>> group : linked.entrySet()) {
+            Set<Long> found = existing.computeIfAbsent(group.getKey(), k -> new HashSet<>());
+            for (List<Long> chunk : chunks(new ArrayList<>(group.getValue()))) {
+                found.addAll(entityManager.createQuery("SELECT e.id FROM " + m.rootEntities.get(group.getKey()) + " e WHERE e.id IN :ids", Long.class)
+                        .setParameter("ids", chunk)
+                        .getResultList());
+            }
+        }
+
+        // by uuid
+        Map<String, EntityKey> candidates = new HashMap<>();
+        for (Object[] row : resources) {
+            Class<?> root = m.classNameToRoot.get((String) row[2]);
+            if (root == null || !existing.containsKey(root)) {
+                continue;
+            }
+            Long objectId = (Long) row[3];
+            if (!existing.get(root).contains(objectId) || purged.contains(new EntityKey(root, objectId))) {
+                candidates.put(((String) row[1]).toLowerCase(Locale.ROOT), new EntityKey(resourceRoot, (Long) row[0]));
+            }
+        }
+        if (candidates.isEmpty()) {
+            return Set.of();
+        }
+        keepNamed(m, resourceRoot, candidates, purged);
+        Set<EntityKey> unused = new LinkedHashSet<>(candidates.values());
+        if (!unused.isEmpty()) {
+            unused.removeAll(findBlocked(m, unused).keySet());
+        }
+        return unused;
+    }
+
+    /**
+     * Removes from {@code candidates} the resources whose uuid is named in the text of a row (a text column or the extended
+     * content, where the images of a part and the data of extensions are), except the rows of the resources and the rows
+     * purged by the plan.
+     */
+    private void keepNamed(Model m, Class<?> resourceRoot, Map<String, EntityKey> candidates, Set<EntityKey> purged) {
+        for (EntityType<?> entityType : entityManager.getMetamodel().getEntities()) {
+            EntityType<?> rootType = rootOf(entityType);
+            Class<?> root = rootType.getJavaType();
+            if (root == resourceRoot || !m.rootEntities.containsKey(root)) {
+                continue;
+            }
+            // root sees inherited mapped superclass attributes, subclasses only add their own
+            Set<? extends Attribute<?, ?>> attributes = rootType == entityType ? entityType.getAttributes() : entityType.getDeclaredAttributes();
+            List<String> texts = new ArrayList<>();
+            for (Attribute<?, ?> attribute : attributes) {
+                Class<?> javaType = attribute.getJavaType();
+                if (!attribute.isAssociation() && !attribute.isCollection() && (javaType == String.class || javaType == byte[].class)
+                        && !NOT_NAMING_RESOURCES.contains(attribute.getName())) {
+                    texts.add(attribute.getName());
+                }
+            }
+            if (texts.isEmpty()) {
+                continue;
+            }
+            StringBuilder select = new StringBuilder("SELECT e.id");
+            for (String text : texts) {
+                select.append(", e.").append(text);
+            }
+            select.append(" FROM ").append(entityType.getName()).append(" e WHERE e.id > :last ORDER BY e.id");
+            long last = Long.MIN_VALUE;
+            while (true) {
+                List<Object[]> rows = entityManager.createQuery(select.toString(), Object[].class)
+                        .setParameter("last", last)
+                        .setMaxResults(CHUNK_SIZE)
+                        .getResultList();
+                for (Object[] row : rows) {
+                    last = (Long) row[0];
+                    if (purged.contains(new EntityKey(root, last))) {
+                        continue;
+                    }
+                    for (int i = 1; i < row.length; i++) {
+                        String text = row[i] instanceof byte[] bytes ? new String(ExtendableEntity.plain(bytes), StandardCharsets.UTF_8)
+                                : (String) row[i];
+                        for (String uuid : BackupResources.uuidsIn(text)) {
+                            candidates.remove(uuid.toLowerCase(Locale.ROOT));
+                        }
+                    }
+                    if (candidates.isEmpty()) {
+                        return;
+                    }
+                }
+                if (rows.size() < CHUNK_SIZE) {
+                    break;
+                }
+            }
+        }
     }
 
     /**

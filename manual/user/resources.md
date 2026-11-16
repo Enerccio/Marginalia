@@ -22,14 +22,15 @@ are first by default.
 
 | Row / column | |
 |---|---|
-| **Used by** | The object the files were added to. *nothing* groups the files that are not used by anything. *(gone)* behind the name means that the object was deleted or no longer exists, the files are probably not needed any more. Inside a group: a small preview of an image and the name of the file as it was uploaded. |
+| **Used by** | The object the files were added to. *nothing* groups the files that are not used by anything. *(gone)* behind the name means that the object was deleted or no longer exists, the files are probably not needed any more: the [cleanup](administration/cleanup.md) of the administrator removes them once nothing else uses them. Inside a group: a small preview of an image and the name of the file as it was uploaded. |
 | **Type** | The type of the file, e.g. `image/png`. |
 | **Size** | The size of the file, for a group the sum of its files. |
 | **Created** | When the file was uploaded, for a group the newest file. |
 
-This is only a note kept for you. Marginalia does not enforce it: a picture still works after the part it was added
-to is gone, and the same picture can be used by more parts (for example after you [branch](books/branches-and-story-tree.md)
-the story, the branch has the same pictures as the part it was made from).
+This is a note kept for you. A picture still works after the part it was added to is gone, and the same picture can
+be used by more parts (for example after you [branch](books/branches-and-story-tree.md)
+the story, the branch has the same pictures as the part it was made from); the cleanup keeps a file while any part
+still uses it.
 
 ## Play
 
