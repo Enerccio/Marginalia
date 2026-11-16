@@ -32,6 +32,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- **User settings: opening the Extension settings tab reported unsaved changes.** The GPU lock box of a backend (Audiobook, Image Generator) read the locks again when it was shown and set its value twice, which counted as an edit; it now does so only when the locks changed.
 - **Audiobook: Higgs Audio v3 read gibberish, sound effects or in a wrong voice on an AMD card.** The workflow left the precision to the engine (bf16 there), which broke many pieces; the same pieces in fp32 are word-perfect. A Higgs backend has a **Precision** (fp32 by default; bf16 and auto stay available). API (audiobook plugin): `BackendConfig.precision`, `HiggsPrecision`.
 - **Image Generator: the requests before and after the images got no key** (a LiteLLM proxy answered *No api key passed in*). A backend has a **Key of the requests around the images**, sent as `Authorization: Bearer` with every such request that has no `Authorization` header of its own; empty, the api key is used, as in the Audiobook. API: `HookKeys.withBearer` in `http-hooks` (the Audiobook uses it too).
 - **Image Generator: the built-in prompt texts were English only.** The instructions of the prompt writer and the labels of what it is sent (scene setting, point of view, characters present, text, details, style) now follow the prompt language like the other plugins (`ImageGeneratorLocalization.T.defaults()`, `ImageGeneratorDefaults*`); every language asks for the image prompt in English.

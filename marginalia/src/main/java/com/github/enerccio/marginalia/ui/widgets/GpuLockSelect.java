@@ -42,22 +42,31 @@ public class GpuLockSelect extends ComboBox<GpuLockChoice> {
         setItemLabelGenerator(GpuLockChoice::label);
         setWidthFull();
         reload();
-        // a form built once per page (the settings of an extension) sees the locks the administrator added since
+        // a form built once per page (the settings of an extension) sees the locks the administrator added since; only when they did change:
+        // setItems resets the value, and the value changes it fires would count as an edit of the settings (the settings page attaches a
+        // tab's content only when the tab is selected)
         addAttachListener(e -> {
+            if (readChoices().equals(choices)) {
+                return;
+            }
             String chosen = getLockUuid();
             reload();
             select(chosen);
         });
     }
 
-    /** Reads the locks again (they may have been added or deleted since the box was made); the box is shown when there is one. */
-    public void reload() {
+    private List<GpuLockChoice> readChoices() {
         try {
-            choices = gpuService == null ? List.of() : gpuService.lockChoices();
+            return gpuService == null ? List.of() : gpuService.lockChoices();
         } catch (Exception e) {
             log.warn("The GPU locks could not be read: {}", e.getMessage(), e);
-            choices = List.of();
+            return List.of();
         }
+    }
+
+    /** Reads the locks again (they may have been added or deleted since the box was made); the box is shown when there is one. */
+    public void reload() {
+        choices = readChoices();
         setItems(choices);
         setVisible(!choices.isEmpty());
     }
