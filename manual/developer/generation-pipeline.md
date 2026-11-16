@@ -1,7 +1,7 @@
 ---
 label: Generation pipeline
 order: 930
-verified: f7e7de02b
+verified: f337fe83d
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/generation
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/StoryGenerationServiceImpl.java
