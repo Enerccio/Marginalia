@@ -8,11 +8,16 @@ import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
 import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.google.gson.Gson;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
 
 import java.util.function.Consumer;
 
@@ -26,6 +31,7 @@ public class ActorDialog extends Dialog {
     private final Consumer<Actor> saved;
 
     private final TextField name = new TextField(T.localized(NAME));
+    private final TextField tagline = new TextField(T.localized(TAGLINE));
     private final RoleEditor role;
     private final ClipTextField clipText;
 
@@ -45,6 +51,11 @@ public class ActorDialog extends Dialog {
 
         name.setWidth("20em");
         name.setValue(this.actor.getName());
+        tagline.setWidth("20em");
+        tagline.setValue(this.actor.getTagline());
+        tagline.setPlaceholder(T.localized(A_CHARACTER_THEY_PLAY_OR_ANY_TAG));
+        HorizontalLayout names = new HorizontalLayout(name, tagline);
+        names.setPadding(false);
         role = new RoleEditor(this.actor, new VoiceChoices(service));
         Span help = new Span(T.localized(THE_ACTOR_HELP));
         help.addClassName(CssStyles.HINT_TEXT);
@@ -54,7 +65,7 @@ public class ActorDialog extends Dialog {
         clipText.show(this.actor.getVoice());
         role.onVoiceChange(clipText::show);
 
-        VerticalLayout content = new VerticalLayout(name, help, role, clipText);
+        VerticalLayout content = new VerticalLayout(names, help, role, clipText);
         content.setPadding(false);
         add(content);
 
@@ -62,11 +73,12 @@ public class ActorDialog extends Dialog {
         save.addThemeName("primary");
         getFooter().add(new Button(T.localized(CANCEL), e -> close()), save);
         DialogFocus.onOpen(this, name);
-        DialogShortcuts.submitWith(save, name, clipText.textArea());
+        DialogShortcuts.submitWith(save, name, tagline, clipText.textArea());
     }
 
     private void save() {
         actor.setName(name.getValue().strip().isEmpty() ? T.localized(NEW_ACTOR) : name.getValue().strip());
+        actor.setTagline(tagline.getValue().strip());
         role.read(actor);
         try {
             service.saveActor(actor);
@@ -95,6 +107,25 @@ public class ActorDialog extends Dialog {
             done.run();
         });
         confirm.open();
+    }
+
+    /**
+     * Shows the actors of a picker with their tagline under the name (smaller, grey); the picked actor shows only its name. The empty choice
+     * shows the caption of the picker.
+     */
+    static void showTaglines(Select<Actor> select) {
+        select.setRenderer(new ComponentRenderer<>(actor -> actor == null ? new Span(select.getEmptySelectionCaption()) : nameWithTagline(actor)));
+    }
+
+    /** The name of an actor with its tagline under it, for a list or a grid. */
+    static Component nameWithTagline(Actor actor) {
+        Div item = new Div(new Div(nameOf(actor)));
+        if (!actor.getTagline().isBlank()) {
+            Div line = new Div(actor.getTagline());
+            line.addClassNames(CssStyles.TEXT_XS, CssStyles.TEXT_SECONDARY);
+            item.add(line);
+        }
+        return item;
     }
 
     /** What the user sees for an actor in a box; the empty choice of a box has none. */

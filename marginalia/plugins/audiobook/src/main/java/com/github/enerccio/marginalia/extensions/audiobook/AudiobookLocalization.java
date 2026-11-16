@@ -437,6 +437,8 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
     public static final String TEMPO = "tempo";
     public static final String DARKER = "darker";
     public static final String BRIGHTER = "brighter";
+    public static final String TAGLINE = "Tagline";
+    public static final String A_CHARACTER_THEY_PLAY_OR_ANY_TAG = "A character they play, or any tag";
 
     @Override
     protected void loadKeys() {
@@ -3614,5 +3616,21 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
         de(BRIGHTER, "heller");
         ko(BRIGHTER, "더 밝게");
         it(BRIGHTER, "più brillante");
+
+        ja(TAGLINE, "タグライン");
+        zh(TAGLINE, "标签说明");
+        fr(TAGLINE, "Accroche");
+        es(TAGLINE, "Etiqueta");
+        de(TAGLINE, "Kurzinfo");
+        ko(TAGLINE, "태그라인");
+        it(TAGLINE, "Didascalia");
+
+        ja(A_CHARACTER_THEY_PLAY_OR_ANY_TAG, "演じるキャラクター、または任意のタグ");
+        zh(A_CHARACTER_THEY_PLAY_OR_ANY_TAG, "所扮演的角色，或任意标签");
+        fr(A_CHARACTER_THEY_PLAY_OR_ANY_TAG, "Un personnage joué, ou toute autre étiquette");
+        es(A_CHARACTER_THEY_PLAY_OR_ANY_TAG, "Un personaje que interpreta, o cualquier etiqueta");
+        de(A_CHARACTER_THEY_PLAY_OR_ANY_TAG, "Eine gesprochene Figur oder ein beliebiger Tag");
+        ko(A_CHARACTER_THEY_PLAY_OR_ANY_TAG, "맡은 캐릭터 또는 아무 태그");
+        it(A_CHARACTER_THEY_PLAY_OR_ANY_TAG, "Un personaggio che interpreta, o qualsiasi etichetta");
     }
 }

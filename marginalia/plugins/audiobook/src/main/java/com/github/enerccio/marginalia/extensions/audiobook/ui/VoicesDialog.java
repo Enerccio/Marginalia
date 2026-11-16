@@ -139,7 +139,7 @@ public class VoicesDialog extends Dialog {
     // --- the tabs ---
 
     private Component actorsTab() {
-        actors.addColumn(ActorDialog::nameOf).setHeader(T.localized(NAME)).setFlexGrow(2);
+        actors.addComponentColumn(ActorDialog::nameWithTagline).setHeader(T.localized(NAME)).setFlexGrow(2);
         actors.addColumn(a -> voiceLabel(a.getVoice())).setHeader(T.localized(VOICE)).setFlexGrow(2);
         actors.addColumn(a -> a.getVariants().size()).setHeader(T.localized(OTHER_VOICES)).setFlexGrow(0).setAutoWidth(true);
         actors.addColumn(this::worstOf).setHeader(T.localized(QUALITY)).setFlexGrow(1);

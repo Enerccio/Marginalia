@@ -133,6 +133,7 @@ public class CastDialog extends Dialog {
         select.setEmptySelectionAllowed(true);
         select.setEmptySelectionCaption(T.localized(NOT_SET));
         select.setItemLabelGenerator(ActorDialog::nameOf);
+        ActorDialog.showTaglines(select);
         select.setWidth("16em");
         return select;
     }

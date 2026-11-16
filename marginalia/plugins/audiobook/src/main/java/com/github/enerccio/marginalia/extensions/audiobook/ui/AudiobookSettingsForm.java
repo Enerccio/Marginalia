@@ -114,6 +114,7 @@ public class AudiobookSettingsForm extends VerticalLayout {
 
         actorPicker.setLabel(T.localized(ACTORS));
         actorPicker.setItemLabelGenerator(ActorDialog::nameOf);
+        ActorDialog.showTaglines(actorPicker);
         actorPicker.setWidth("20em");
         actorPicker.addValueChangeListener(e -> updateActorButtons());
         for (Button button : List.of(editActor, newActor, deleteActor)) {

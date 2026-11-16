@@ -147,6 +147,10 @@ voice file of the server, with voices of its own for a **mood** (a whisper, a sh
 Japanese). The language wins over the mood, and without a voice for them the voice of the actor reads. Your actors are kept in
 your account; any book can give an actor to its narrator and its characters.
 
+An actor can have a **tagline**, a short note of your own: the character they play, a book, *deep and old*, any tag that helps you
+pick the right one. The pickers of an actor (the settings, the cast) show it under the name, and *Voices and clips* under the name in
+the list of actors.
+
 **Preview** next to a voice (in the actor, the settings and the cast) has a few sentences spoken with it (a short one in the language of the voice for a language) and plays it; when the GPU holds something else, the GPU lock loads the speech server first. The arrow beside it offers other samples: **with sounds** (a sigh, a laugh, a gasp) for the models that voice them (Chatterbox Turbo, Higgs Audio v3), and for Higgs every **mood** of the labelling (sad, whispered, sarcastic...). The actors are listed by name.
 
 Each sample takes the GPU for itself only. The GPU stays loaded with the speech server after a sample, so the next samples come at once, until a request of the language model (or another server) needs the GPU.
