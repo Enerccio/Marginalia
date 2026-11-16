@@ -42,6 +42,12 @@ public class HiggsComfyBackend implements SpeechBackend {
 
     /** The node of the engine; its presence says that the suite is installed. */
     static final String ENGINE_NODE = "HiggsAudioV3EngineNode";
+    /** The core node that puts the info of the generation into the history. */
+    static final String PREVIEW_NODE = "PreviewAny";
+    static final String INFO_NODE_ID = "info";
+    /** How the suite starts the info of a generation that failed ("❌ TTS Text generation failed: ..."). */
+    static final String FAILURE_MARK = "❌";
+    static final String FAILURE_PREFIX = "TTS Text generation failed:";
     /** The model the suite downloads, and the name it lists once the files are in the models folder. */
     static final String MODEL = "higgs-audio-v3-tts-4b";
     static final String LOCAL_MODEL = "local:" + MODEL;
@@ -177,8 +183,14 @@ public class HiggsComfyBackend implements SpeechBackend {
             JsonObject all = parse(history).getAsJsonObject();
             if (all.has(promptId) && all.get(promptId).isJsonObject()) {
                 JsonObject entry = all.getAsJsonObject(promptId);
+                String failed = failureOf(entry);
+                if (failed != null) {
+                    // the suite catches its own errors (CUDA out of memory, ...) and returns a second of silence as if all went well
+                    throw new BackendException("Higgs failed on the server: " + failed);
+                }
                 JsonObject audio = firstAudio(entry);
-                if (audio != null) {
+                // the audio only together with the info of the generation (or at the end), which says whether the audio is the suite's silence of an error
+                if (audio != null && (infoOf(entry) != null || isFinished(entry))) {
                     return fetch(audio);
                 }
                 if (isFinished(entry)) {
@@ -258,6 +270,13 @@ public class HiggsComfyBackend implements SpeechBackend {
             text.add("opt_narrator", link("voice"));
         }
         workflow.add("text", node("UnifiedTTSTextNode", text));
+        // the second output of the TTS node (generation_info) into the history: the error of a generation that failed
+        JsonObject info = new JsonObject();
+        JsonArray infoLink = new JsonArray();
+        infoLink.add("text");
+        infoLink.add(1);
+        info.add("source", infoLink);
+        workflow.add(INFO_NODE_ID, node(PREVIEW_NODE, info));
         if (flac) {
             workflow.add("save", node("SaveAudio", save));
         } else {
@@ -339,6 +358,37 @@ public class HiggsComfyBackend implements SpeechBackend {
             }
         }
         return temp;
+    }
+
+    /** The text of the info node in the outputs, null when it is not there (yet). */
+    static String infoOf(JsonObject entry) {
+        if (!entry.has("outputs") || !entry.get("outputs").isJsonObject()) {
+            return null;
+        }
+        JsonElement output = entry.getAsJsonObject("outputs").get(INFO_NODE_ID);
+        if (output == null || !output.isJsonObject() || !output.getAsJsonObject().has("text") || !output.getAsJsonObject().get("text").isJsonArray()) {
+            return null;
+        }
+        StringBuilder all = new StringBuilder();
+        for (JsonElement text : output.getAsJsonObject().getAsJsonArray("text")) {
+            if (text.isJsonPrimitive()) {
+                all.append(all.isEmpty() ? "" : " ").append(text.getAsString());
+            }
+        }
+        return all.toString();
+    }
+
+    /** Why the suite failed the generation (it then returns silence and the run succeeds), null when it did not. */
+    static String failureOf(JsonObject entry) {
+        String info = infoOf(entry);
+        if (info == null || !info.strip().startsWith(FAILURE_MARK)) {
+            return null;
+        }
+        String reason = info.strip().substring(FAILURE_MARK.length()).strip();
+        if (reason.startsWith(FAILURE_PREFIX)) {
+            reason = reason.substring(FAILURE_PREFIX.length()).strip();
+        }
+        return reason.isEmpty() ? info.strip() : reason;
     }
 
     static boolean isFinished(JsonObject entry) {

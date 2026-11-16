@@ -168,6 +168,43 @@ class HiggsComfyBackendTest {
     }
 
     @Test
+    void aGenerationTheSuiteFailedIsAnErrorNotItsSecondOfSilence() throws Exception {
+        try (FakeServer server = new FakeServer()) {
+            // the suite catches the error, returns a second of silence and the run succeeds; the info output says what happened
+            comfy(server, """
+                    {"p1": {"status": {"status_str": "success", "completed": true, "messages": []},
+                            "outputs": {"save": {"audio": [{"filename": "audiobook_00001_.mp3", "subfolder": "marginalia", "type": "output"}]},
+                                        "info": {"text": ["❌ TTS Text generation failed: CUDA out of memory. Tried to allocate 1.45 GiB."]}}}}""");
+            BackendConfig config = config(server);
+
+            BackendException e = assertThrows(BackendException.class, () -> new HiggsComfyBackend(config, null, 1, false)
+                    .synthesize(SpeechRequest.of(config, "Text", VoiceMode.CLONE, "m-abc.wav"), null));
+
+            assertEquals("Higgs failed on the server: CUDA out of memory. Tried to allocate 1.45 GiB.", e.getMessage());
+            assertTrue(calls(server, "/view").isEmpty(), "the silence is not fetched");
+            assertEquals(1, calls(server, "/free").size());
+        }
+    }
+
+    @Test
+    void theInfoOfTheGenerationIsReadAndAGoodOneGivesTheAudio() throws Exception {
+        try (FakeServer server = new FakeServer()) {
+            comfy(server, """
+                    {"p1": {"status": {"status_str": "success", "completed": true, "messages": []},
+                            "outputs": {"save": {"audio": [{"filename": "audiobook_00001_.mp3", "subfolder": "marginalia", "type": "output"}]},
+                                        "info": {"text": ["Generated 3.2s audio with Higgs Audio v3"]}}}}""");
+            BackendConfig config = config(server);
+
+            byte[] audio = new HiggsComfyBackend(config, null, 1, false).synthesize(SpeechRequest.of(config, "Text", VoiceMode.CLONE, "m-abc.wav"), null);
+
+            assertArrayEquals(MP3, audio);
+            JsonObject info = posted(server).getAsJsonObject("info");
+            assertEquals("PreviewAny", info.get("class_type").getAsString());
+            assertEquals("[\"text\",1]", info.getAsJsonObject("inputs").get("source").toString());
+        }
+    }
+
+    @Test
     void aRefusedWorkflowSaysWhy() throws Exception {
         try (FakeServer server = new FakeServer()) {
             comfy(server, DONE);

@@ -409,7 +409,8 @@ public class ConversionQueue implements AutoCloseable {
             speak(group.getKey(), group.getValue());
         }
 
-        // 3. the parts
+        // 3. the parts; a part stopped by the user whose pieces were all made is joined too (that asks nothing of the speech server), else it would have
+        // every line and still no audio
         for (Plan plan : plans) {
             if (plan.job().state() == State.RUNNING) {
                 if (plan.job().mode() == ConversionJob.Mode.SEGMENTS_ONLY) {
@@ -417,8 +418,14 @@ public class ConversionQueue implements AutoCloseable {
                 } else {
                     join(plan);
                 }
+            } else if (plan.job().state() == State.CANCELLED && plan.job().mode() == ConversionJob.Mode.PART && allStored(plan)) {
+                join(plan);
             }
         }
+    }
+
+    private boolean allStored(Plan plan) {
+        return plan.script().entries().stream().allMatch(entry -> env.store().segment(plan.job().partId(), entry.key()) != null);
     }
 
     /** The start of the message of a job while the model labels its part. */

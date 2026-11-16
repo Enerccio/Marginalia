@@ -483,6 +483,29 @@ class ConversionQueueTest {
     }
 
     @Test
+    void aStoppedPartWhosePiecesWereAllMadeIsStillJoined() throws Exception {
+        queue(Set.of(BackendConfig.MODEL_TURBO));
+        // the user stops the run while the first piece of the second part is made
+        audioOf = request -> {
+            if (request.text().equals("Two.")) {
+                queue.cancelAll();
+            }
+            return null;
+        };
+
+        List<ConversionJob> jobs = queue.submitAll(List.of(new ConversionQueue.Task("p1", "Part 1", () -> script("One.")),
+                new ConversionQueue.Task("p2", "Part 2", () -> script("Two.\n\nThree."))));
+        ConversionJob first = jobs.get(0);
+        ConversionJob second = jobs.get(1);
+        assertTrue(queue.awaitIdle(10, TimeUnit.SECONDS), "the queue is still busy: " + queue.jobs());
+
+        assertEquals(State.DONE, first.snapshot().state(), first.snapshot().message());
+        assertNotNull(partBytes.get("p1"));
+        assertEquals(State.CANCELLED, second.snapshot().state(), second.snapshot().message());
+        assertNull(parts.get("p2"));
+    }
+
+    @Test
     void aWaitingJobIsCancelledAtOnceAndRetried() throws Exception {
         queue(Set.of(BackendConfig.MODEL_TURBO));
         holdSpeech = new CountDownLatch(1);

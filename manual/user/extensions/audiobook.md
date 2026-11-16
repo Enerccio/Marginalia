@@ -302,7 +302,7 @@ How a part is made, so you know what to expect:
 - While a generation of yours runs, the speech waits, so the language model is not unloaded under it.
 - A part that you marked **final** in the studio is left alone, and the dialog says how many were.
 - **The whole audiobook** joins every part that has up to date audio into one mp3 with a chapter mark for each part and shows a download link under the list (the parts left out are named). The same file is the export format *one mp3 with chapter marks*.
-- **Stop all** cancels the waiting parts and stops the running one at once: the request to the language model (the labelling) or to the speech server (the piece being spoken) is dropped, not waited for. A batch stopped before it began does not send the requests before it, so the language model stays loaded. **Download** gives the mp3 of a done part.
+- **Stop all** cancels the waiting parts and stops the running one at once: the request to the language model (the labelling) or to the speech server (the piece being spoken) is dropped, not waited for. A batch stopped before it began does not send the requests before it, so the language model stays loaded. A part whose pieces were all made before the stop still gets its audio (it is only joined); the others keep the pieces they have, and the next run makes only the missing ones. **Download** gives the mp3 of a done part.
 
 ## The Audiobook studio
 
