@@ -1,18 +1,9 @@
 package com.github.enerccio.marginalia.extensions.knowledgetracker.block;
 
-import com.github.enerccio.marginalia.extensions.knowledgetracker.model.ItemKind;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.model.KnowledgeItem;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.model.KnowledgeState;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.model.MetPerson;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.model.TrackedCharacter;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.scene.PresentCharacters;
+import com.github.enerccio.marginalia.extensions.knowledgetracker.model.*;
+import com.github.enerccio.marginalia.extensions.storytracker.scene.PresentCharacters;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**

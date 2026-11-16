@@ -146,6 +146,14 @@
     text-decoration: line-through;
 }
 
+/* Why an old item is old (and the part that retracted it): small, after the text, not struck through */
+.knowledge-tracker-old-reason {
+    margin-left: var(--lumo-space-s);
+    color: var(--lumo-secondary-text-color);
+    font-size: var(--lumo-font-size-xxs);
+    white-space: nowrap;
+}
+
 /* The number of the part an item was learned in: tiny, after the text; a click scrolls the story to the part */
 .knowledge-tracker-source {
     margin-left: var(--lumo-space-xs);
@@ -287,4 +295,16 @@
     overflow-wrap: anywhere;
     color: var(--lumo-secondary-text-color);
     font-size: var(--lumo-font-size-s);
+}
+
+/* The icon-only Process now / Process next part / Tidy knowledge in the top bar: shown only while the buttons of the Processing
+   panel are scrolled out of sight (the view's observer sets the attribute "docked" on the bar) */
+.knowledge-tracker-dock {
+    display: none;
+    margin-inline-start: auto;
+    align-items: center;
+}
+
+.knowledge-tracker-toolbar[docked] .knowledge-tracker-dock {
+    display: flex;
 }

@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.extensions.knowledgetracker.model;
 
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
+import com.github.enerccio.marginalia.extensions.storytracker.llm.LoreMode;
 
 import java.util.ArrayList;
 import java.util.List;

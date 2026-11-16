@@ -1,31 +1,29 @@
 package com.github.enerccio.marginalia.extensions.knowledgetracker.service;
 
-import com.github.enerccio.marginalia.domain.model.impl.*;
-import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
-import com.github.enerccio.marginalia.domain.service.*;
-import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
-import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
-import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
-import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LorebookEntryVerdict;
-import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
-import com.github.enerccio.marginalia.domain.templates.TemplateContext;
-import com.github.enerccio.marginalia.domain.templates.TemplateVariables;
-import com.github.enerccio.marginalia.extensions.PartTextRegistry;
+import com.github.enerccio.marginalia.domain.model.impl.AI;
+import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.model.impl.Protocol;
+import com.github.enerccio.marginalia.domain.service.InferenceService;
+import com.github.enerccio.marginalia.domain.service.InferenceServices;
+import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.block.KnowledgeBlockBuilder;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.*;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.model.BookSettings;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.model.KnowledgeState;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.model.LoreMode;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.process.BranchProcessor;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.process.Part;
-import org.apache.commons.lang3.StringUtils;
+import com.github.enerccio.marginalia.extensions.storytracker.llm.Live;
+import com.github.enerccio.marginalia.extensions.storytracker.llm.ModelCall;
+import com.github.enerccio.marginalia.extensions.storytracker.llm.StoryLore;
+import com.github.enerccio.marginalia.extensions.storytracker.llm.TrackerModels;
+import com.github.enerccio.marginalia.extensions.storytracker.llm.TrackerModels.ModelSelection;
+import com.github.enerccio.marginalia.extensions.storytracker.process.BranchProcessor;
+import com.github.enerccio.marginalia.extensions.storytracker.process.Part;
+import com.github.enerccio.marginalia.extensions.storytracker.process.PartReader;
+import com.github.enerccio.marginalia.extensions.storytracker.run.TrackerRun;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
-import java.util.*;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Asks the model what the tracked characters learned in the next parts of the story, and commits what the user (or the
@@ -35,42 +33,22 @@ import java.util.concurrent.ExecutionException;
 @Configurable
 public class ExtractionService {
 
-    /** Tokens kept free below the context of the model for the parts of the request this class cannot count. */
-    private static final long MARGIN_TOKENS = 300;
-    /** What one read of an earlier part may take at most (characters), and the least that is worth offering the function for. */
+    /** The longest text a read of an earlier part gives back. */
     private static final int MAX_READ_CHARS = 12000;
+    /** Below this, a read is not worth it and the model gets no function to read. */
     private static final int MIN_READ_CHARS = 1500;
-    /** About how many characters a token is, to turn the room that is left in the context into characters. */
+    /** Characters per token, roughly, to turn the room that is left into the length of a read. */
     private static final int CHARS_PER_TOKEN = 3;
-    /** The answer of a model that thinks first is long; this is assumed when the model has no limit of its own. */
-    private static final long DEFAULT_ANSWER_TOKENS = 4096;
 
     @Autowired
     private InferenceServices inferenceServices;
-    @Autowired
-    private AIService aiService;
-    @Autowired
-    private ProtocolService protocolService;
-    @Autowired
-    private SettingService settingService;
+
     @Autowired
     private ManuscriptService manuscriptService;
-    @Autowired
-    private ChatMessageService chatMessageService;
 
-    @Autowired
-    private PartTextRegistry partTexts;
-    @Autowired
-    private LorebookService lorebookService;
-    @Autowired
-    private LorebookEntryService lorebookEntryService;
-    @Autowired
-    private LorebookActivationService activationService;
-    @Autowired
-    private TagRelationService tagRelationService;
-    @Autowired
-    private SummaryService summaryService;
-
+    private final TrackerModels models = new TrackerModels();
+    private final ModelCall modelCall = new ModelCall();
+    private final StoryLore storyLore = new StoryLore();
     private final KnowledgeStateService stateService;
     private final KnowledgeProcessService processService;
 
@@ -81,16 +59,12 @@ public class ExtractionService {
 
     /** The models of the user, for the settings. */
     public List<AI> availableModels() throws Exception {
-        return aiService.findAllForUser().stream().filter(ai -> !ai.isDeleted()).toList();
+        return models.availableModels();
     }
 
     /** The protocols of the user, for the settings. */
     public List<Protocol> availableProtocols() throws Exception {
-        return protocolService.findAllForUser().stream().filter(p -> !p.isDeleted()).toList();
-    }
-
-    /** The model and the protocol a run uses. */
-    public record ModelSelection(AI ai, Protocol protocol) {
+        return models.availableProtocols();
     }
 
     /**
@@ -107,7 +81,7 @@ public class ExtractionService {
      * @param tidy    a proposal of the tidy pass (it has no parts and moves no cursor)
      */
     public record Proposal(List<Part> parts, ChangeSet changes, boolean asked, String note, String raw, int pending, String reasoning,
-                           boolean tidy) {
+                           boolean tidy) implements TrackerRun.Proposal {
 
         public Proposal(List<Part> parts, ChangeSet changes, boolean asked, String note, String raw, int pending) {
             this(parts, changes, asked, note, raw, pending, "", false);
@@ -117,8 +91,19 @@ public class ExtractionService {
             this(parts, changes, asked, note, raw, pending, reasoning, false);
         }
 
+        @Override
         public boolean isEmpty() {
             return parts.isEmpty();
+        }
+
+        @Override
+        public int changeCount() {
+            return changes.changes().size();
+        }
+
+        @Override
+        public int dropped() {
+            return changes.dropped().size();
         }
     }
 
@@ -129,23 +114,7 @@ public class ExtractionService {
      * @return null when there is none
      */
     public ModelSelection resolveModel(Manuscript manuscript, BookSettings settings) throws Exception {
-        Manuscript current = manuscriptService.find(manuscript);
-        Manuscript book = current != null ? current : manuscript;
-        AI ai = settings.getAiUuid() != null ? aiService.findForUser(settings.getAiUuid()) : null;
-        Protocol protocol = settings.getProtocolUuid() != null ? protocolService.findForUser(settings.getProtocolUuid()) : null;
-        if (ai == null || ai.isDeleted()) {
-            ai = book.getAi();
-            protocol = protocol != null && !protocol.isDeleted() ? protocol : book.getProtocol();
-        }
-        if (ai == null || ai.isDeleted()) {
-            UserSetting user = settingService.getOrCreate(UserSetting.class);
-            ai = user.getDefaultModel() != null ? aiService.find(user.getDefaultModel()) : null;
-            protocol = user.getDefaultProtocol() != null ? protocolService.find(user.getDefaultProtocol()) : protocol;
-        }
-        if (ai == null || ai.isDeleted()) {
-            return null;
-        }
-        return new ModelSelection(ai, protocol != null && !protocol.isDeleted() ? protocol : null);
+        return models.resolve(manuscript, settings.getAiUuid(), settings.getProtocolUuid());
     }
 
     /**
@@ -159,20 +128,6 @@ public class ExtractionService {
      */
     public Proposal propose(Manuscript manuscript, int maxParts, boolean lastSettled, String excludeFrom) throws Exception {
         return propose(manuscript, maxParts, lastSettled, excludeFrom, null);
-    }
-
-    /** What arrives from the model while it writes, to be shown at once. */
-    public interface Live {
-
-        /**
-         * @param reasoning whether the piece is reasoning (else the answer)
-         * @param piece     the text, as it arrives
-         */
-        void chunk(boolean reasoning, String piece);
-
-        /** A new request starts: what was shown belongs to the one before. */
-        default void started() {
-        }
     }
 
     /** As above; {@code live} (may be {@code null}) is told what the model writes while it writes it. */
@@ -202,7 +157,7 @@ public class ExtractionService {
             throw new IllegalStateException("There is no model for the extraction: the book has none and neither have your defaults");
         }
         InferenceService service = inferenceServices.forAIOrThrow(model.ai());
-        long budget = promptBudget(model.ai());
+        long budget = TrackerModels.promptBudget(model.ai());
 
         // as many parts as fit, at least one
         int count = wanted.size();
@@ -225,7 +180,7 @@ public class ExtractionService {
             return new Proposal(List.copyOf(run), new ChangeSet(List.of(), List.of()), false, note.toString().strip(), "", left);
         }
 
-        String lore = lore(manuscript, settings.getLoreMode(), run, budget - tokens(service, request), service, note);
+        String lore = storyLore.lore(manuscript, settings.getLoreMode(), run, budget - tokens(service, request), service, note);
         request = ExtractionPrompt.build(state, lore, run, separators, readable, systemPrompt);
 
         // what is left of the context is what the reads may take: a part is cut to its share, and with no room for a useful read there is none
@@ -237,7 +192,7 @@ public class ExtractionService {
                 reader = new PartReader(branch, readable.readable(), maxChars, null);
             }
         }
-        Answered answered = ask(model, manuscript, request, live, reader);
+        ModelCall.Answered answered = ask(model, manuscript, request, live, reader);
         String raw = answered.text();
         ExtractionAnswer answer;
         try {
@@ -304,7 +259,7 @@ public class ExtractionService {
             throw new IllegalStateException("There is no model for the tidy pass: the book has none and neither have your defaults");
         }
         InferenceService service = inferenceServices.forAIOrThrow(model.ai());
-        long budget = promptBudget(model.ai());
+        long budget = TrackerModels.promptBudget(model.ai());
         StringBuilder note = new StringBuilder();
         // the context goes first when the request does not fit; the items are what is asked about
         while (!recent.isEmpty() && tokens(service, request) > budget) {
@@ -314,7 +269,7 @@ public class ExtractionService {
             note.append("Only the last ").append(recent.size()).append(" part(s) fit as context.");
         }
 
-        Answered answered = ask(model, manuscript, request, live, null);
+        ModelCall.Answered answered = ask(model, manuscript, request, live, null);
         TidyAnswer answer;
         try {
             answer = com.github.enerccio.marginalia.domain.service.structured.StructuredOutputs.parse(answered.text(), TidyAnswer.class);
@@ -352,265 +307,13 @@ public class ExtractionService {
     // --- the request ---
 
     private long tokens(InferenceService service, ExtractionPrompt.Request request) throws Exception {
-        return service.countTokensApprox(request.system() + "\n" + request.user());
+        return TrackerModels.tokens(service, request.system(), request.user());
     }
 
-    /** What the request may take: the context minus the room for the answer (which includes the reasoning) and a margin. */
-    private long promptBudget(AI ai) {
-        long context = ai.getMaxContext() != null && ai.getMaxContext() > 0 ? ai.getMaxContext() : 8192;
-        long answer = ai.getMaxCompletionTokens() != null && ai.getMaxCompletionTokens() > 0 ? ai.getMaxCompletionTokens() : DEFAULT_ANSWER_TOKENS;
-        return Math.max(1000, context - answer - MARGIN_TOKENS);
-    }
-
-    /** What the model sent: the answer and, when the provider reports it, what it thought first. */
-    private record Answered(String text, String reasoning) {
-    }
-
-    /**
-     * Asks the model and waits for the whole answer. The request is streamed so that the reasoning of the model, which a plain
-     * {@code infer} drops, can be kept for the review.
-     */
-    private Answered ask(ModelSelection model, Manuscript book, ExtractionPrompt.Request request, Live live, PartReader reader) throws Exception {
-        List<LLMChatMessage> payload = List.of(LLMChatMessage.of(LLMRole.SYSTEM, request.system()),
-                LLMChatMessage.of(LLMRole.USER, request.user()));
-        CompletableFuture<Answered> answer = new CompletableFuture<>();
-        StringBuilder text = new StringBuilder();
-        StringBuilder reasoning = new StringBuilder();
-        CancellationToken token;
-        if (live != null) {
-            live.started();
-        }
-        // what the model reads is shown like its reasoning and kept with it for the review
-        PartReader noted = reader == null ? null : reader.listening(number -> {
-            String line = "\n[The model read part " + number + ".]\n";
-            synchronized (reasoning) {
-                reasoning.append(line);
-            }
-            if (live != null) {
-                try {
-                    live.chunk(true, line);
-                } catch (RuntimeException e) {
-                    // showing it must never fail the request
-                }
-            }
-        });
-        InferenceService.InferenceAsyncCallback callback = new InferenceService.InferenceAsyncCallback() {
-                        @Override
-                        public void onChunk(InferenceService.InferenceAsyncController controller,
-                                            InferenceService.ChunkType chunkType, String chunk) throws Exception {
-                            boolean thinking = chunkType == InferenceService.ChunkType.REASONING;
-                            (thinking ? reasoning : text).append(chunk);
-                            if (live != null) {
-                                try {
-                                    live.chunk(thinking, chunk);
-                                } catch (RuntimeException e) {
-                                    // showing it must never fail the request
-                                }
-                            }
-                            controller.continueInference();
-                        }
-
-                        @Override
-                        public void onCompletion() {
-                            answer.complete(new Answered(text.toString(), reasoning.toString().strip()));
-                        }
-
-                        @Override
-                        public void onCancel() {
-                            answer.cancel(false);
-                        }
-
-                        @Override
-                        public void onError(Throwable exception) {
-                            answer.completeExceptionally(exception);
-                        }
-
-                        @Override
-                        public boolean isDead() {
-                            return answer.isDone();
-                        }
-                    };
-        try (InferenceSession _ = InferenceSession.open("knowledge-tracker"); UsageContext _ = UsageContext.open(book)) {
-            InferenceService service = inferenceServices.forAIOrThrow(model.ai());
-            if (noted != null) {
-                try {
-                    FunctionSet functions = inferenceServices.getFunctionRegistry().bind(StoryFunctions.class, new StoryFunctionsImpl(noted));
-                    token = service.stream(payload, model.protocol(), functions, callback);
-                } catch (UnsupportedOperationException e) {
-                    // the provider can not call functions: the model reads the request as it is
-                    token = service.stream(payload, model.protocol(), callback);
-                }
-            } else {
-                token = service.stream(payload, model.protocol(), callback);
-            }
-        }
-        try {
-            return answer.get();
-        } catch (InterruptedException e) {
-            token.cancel();
-            Thread.currentThread().interrupt();
-            throw new CancellationException("The request was stopped");
-        } catch (ExecutionException e) {
-            throw e.getCause() instanceof Exception cause ? cause : e;
-        }
-    }
-
-    // --- the lorebook ---
-
-    /**
-     * The lore for the request. {@link LoreMode#WHOLE} that does not fit becomes {@link LoreMode#RESOLVE}, and entries that
-     * do not fit the budget are left out (the note says so).
-     */
-    private String lore(Manuscript manuscript, LoreMode mode, List<Part> run, long budget, InferenceService service,
-                        StringBuilder note) throws Exception {
-        if (mode == LoreMode.NONE || budget <= 0) {
-            return "";
-        }
-        Manuscript current = manuscriptService.find(manuscript);
-        Manuscript book = current != null ? current : manuscript;
-        Lorebook root = book.getLorebook() != null ? lorebookService.find(book.getLorebook()) : null;
-        if (root == null) {
-            return "";
-        }
-        List<ChatMessage> branch = new ArrayList<>(chatMessageService.getBranchFromLeaf(book.getActiveLeaf()));
-        int last = -1;
-        for (int i = 0; i < branch.size(); i++) {
-            if (branch.get(i).getUuid().equals(run.getLast().uuid())) {
-                last = i;
-            }
-        }
-        List<ChatMessage> upToRun = last >= 0 ? branch.subList(0, last + 1) : branch;
-        LorebookTemplateData data = templateData(book, upToRun);
-
-        if (mode == LoreMode.WHOLE) {
-            String whole = wholeLore(root, data);
-            if (service.countTokensApprox(whole) <= budget) {
-                return whole;
-            }
-            note.append("The whole lorebook does not fit the context, only the entries of these parts are sent. ");
-        }
-        return resolvedLore(book, root, upToRun, data, budget, service, note);
-    }
-
-    private String wholeLore(Lorebook root, LorebookTemplateData data) throws Exception {
-        List<LorebookEntry> entries = new ArrayList<>();
-        Set<Long> seen = new HashSet<>();
-        Queue<Lorebook> queue = new ArrayDeque<>();
-        queue.add(root);
-        while (!queue.isEmpty()) {
-            Lorebook lorebook = queue.remove();
-            if (lorebook.isDeleted() || !seen.add(lorebook.getId())) {
-                continue;
-            }
-            lorebookEntryService.getEntriesForLorebook(lorebook).stream().filter(e -> !e.isDeleted()).forEach(entries::add);
-            queue.addAll(lorebookService.getSubbooks(lorebook));
-        }
-        entries.sort(Comparator.comparingInt(LorebookEntry::getOrder));
-        StringBuilder lore = new StringBuilder();
-        for (LorebookEntry entry : entries) {
-            String payload = activationService.renderPayload(entry, data);
-            if (StringUtils.isNotBlank(payload)) {
-                lore.append('[').append(entry.getName()).append("]:\n").append(payload.strip()).append("\n\n");
-            }
-        }
-        return lore.toString().strip();
-    }
-
-    private String resolvedLore(Manuscript book, Lorebook root, List<ChatMessage> upToRun, LorebookTemplateData data, long budget,
-                                InferenceService service, StringBuilder note) throws Exception {
-        List<Lorebook> books = activationService.collectLorebooks(root);
-        List<String> tags = tagRelationService.getTagsForObject(book).stream().map(Tag::getValue).toList();
-        StringBuilder matched = new StringBuilder();
-        // the parts of the run are the ones after the cursor: the last ones of upToRun; matching on all of the run is enough
-        for (ChatMessage message : upToRun.subList(Math.max(0, upToRun.size() - 10), upToRun.size())) {
-            for (String piece : new String[]{partTexts.forModel(message), message.getInstructions(), message.getSceneSetting(),
-                    message.getPovCharacter(), message.getPresentCharacters()}) {
-                if (StringUtils.isNotBlank(piece)) {
-                    matched.append(piece.strip()).append('\n');
-                }
-            }
-        }
-        StringBuilder lore = new StringBuilder();
-        long used = 0;
-        int skipped = 0;
-        for (LorebookEntryVerdict verdict : activationService.evaluateAll(root, books, tags, matched.toString())) {
-            if (!verdict.verdict().activated()) {
-                continue;
-            }
-            String payload = activationService.renderPayload(verdict.entry(), data);
-            if (StringUtils.isBlank(payload)) {
-                continue;
-            }
-            String entry = "[" + verdict.entry().getName() + "]:\n" + payload.strip();
-            long tokens = service.countTokensApprox(entry);
-            if (skipped > 0 || used + tokens > budget) {
-                skipped++;
-                continue;
-            }
-            lore.append(entry).append("\n\n");
-            used += tokens;
-        }
-        if (skipped > 0) {
-            note.append(skipped).append(" lorebook entries did not fit and were left out. ");
-        }
-        return lore.toString().strip();
-    }
-
-    /** Template data for the entries, set up like a quiet generation after the last part of the run. */
-    private LorebookTemplateData templateData(Manuscript manuscript, List<ChatMessage> branch) throws Exception {
-        TemplateContext context = new TemplateContext();
-        ChatMessage last = branch.isEmpty() ? null : branch.getLast();
-        if (last != null) {
-            context.setPovCharacter(last.getPovCharacter());
-            context.setPresentCharacters(last.getPresentCharacters());
-            context.setSceneSetting(last.getSceneSetting());
-            context.setInstructions(last.getInstructions());
-            context.setLastInstructions(last.getInstructions());
-            context.setLastMessageTime(last.getRequest());
-        }
-        String pov = manuscriptService.getPov(manuscript);
-        String tense = manuscriptService.getTense(manuscript);
-        String style = manuscriptService.getStyle(manuscript);
-        context.setNarrativePov(pov);
-        context.setNarrativeTense(tense);
-        context.setStyle(style);
-        context.setManuscriptName(manuscript.getName());
-        context.setManuscriptDescription(manuscript.getDescription());
-        context.setPickSeed(String.valueOf(manuscript.getId()));
-        context.setGenerationType("quiet");
-        List<String> story = new ArrayList<>();
-        for (ChatMessage message : branch) {
-            String text = partTexts.forModel(message);
-            if (StringUtils.isNotBlank(text)) {
-                story.add(text);
-            }
-        }
-        context.setStoryMessages(story);
-        for (ChatMessage message : branch.reversed()) {
-            if (message.getSummary() != null) {
-                Summary summary = summaryService.find(message.getSummary());
-                if (summary != null) {
-                    context.setLatestSummary(summary.getSummary());
-                }
-                break;
-            }
-        }
-        if (last != null) {
-            context.getVariables().loadFrom(TemplateVariables.Scope.LOCAL, last.getAttributes());
-        }
-        context.getVariables().loadFrom(TemplateVariables.Scope.GLOBAL, manuscript.getAttributes());
-
-        LorebookTemplateData data = new LorebookTemplateData();
-        if (last != null) {
-            data.setPovCharacter(last.getPovCharacter());
-            data.setSceneSetting(last.getSceneSetting());
-            data.setPresentCharacters(last.getPresentCharacters());
-            data.setInstructions(last.getInstructions());
-        }
-        data.setNarrativePov(pov);
-        data.setNarrativeTense(tense);
-        data.setStyle(style);
-        data.setTemplateContext(context);
-        return data;
+    /** Asks the model (streamed, the reasoning kept); the model may read earlier parts through {@code reader} when it is given. */
+    private ModelCall.Answered ask(ModelSelection model, Manuscript book, ExtractionPrompt.Request request, Live live, PartReader reader)
+            throws Exception {
+        return modelCall.ask(model, book, KnowledgeSteps.SOURCE, request.system(), request.user(), live,
+                reader == null ? null : new ModelCall.Reading<>(reader, StoryFunctions.class, StoryFunctionsImpl::new));
     }
 }

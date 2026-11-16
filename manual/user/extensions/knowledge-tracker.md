@@ -43,7 +43,7 @@ Open a character with the arrow on its card to see what it knows:
 | **Delete** | Removes an item for good, after a question. Retract keeps it, so use it when in doubt. |
 | **Select items** (next to **Add knowledge**) | Delete many items quickly: every item of the character, old ones included, gets a check box. **Select all** / **Deselect all** ticks or clears them, **Delete selected (n)** removes the ticked ones for good after one question, **Cancel** leaves the selection. |
 | **Has met** | The people the character has met, noted by [processing](#processing). Processing can note a name that is not a person (a note in the present characters field): open **Edit** and change the **Has met** list, one name after another separated by commas. The names you write stay when the story is read again; one you remove comes back only if the part it was seen in is read again. |
-| **Old knowledge (n)** | Collapsed by default. Each old item can be **copied**, **edited**, **restored** (it is active again, from now on) or deleted. |
+| **Old knowledge (n)** | Collapsed by default. Each old item says why it is old: *retracted* (with the number of the part whose reading retracted it, when the model did), *declined* in a review, or *tidied*. It can be **copied**, **edited**, **restored** (it is active again, from now on) or deleted. |
 
 ### Mass changes
 
@@ -126,6 +126,9 @@ annotation and redraft, if the book has them); if you add, edit or delete parts 
 - **Processed parts**: the latest parts that were read. A part whose text **changed since it was processed** (you edited or
   redrafted it) is marked; nothing is reprocessed by itself because of it. The button of a row, **Reprocess from here**,
   takes back what came from that part and the later ones (items and retractions you wrote by hand stay) and reads them again.
+
+When you scroll down the list of characters past these buttons, **Process now**, **Process next part** and **Tidy knowledge**
+are also offered in the bar at the top of the tab, so you can process without scrolling back up.
 
 What the plugin does by itself, when **Process new parts automatically** is on (it is off by default):
 

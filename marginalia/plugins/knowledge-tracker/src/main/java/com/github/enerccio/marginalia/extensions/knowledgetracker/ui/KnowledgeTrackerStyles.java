@@ -27,6 +27,7 @@ public final class KnowledgeTrackerStyles {
     public static final String KIND_NOT = "knowledge-tracker-kind-not";
     public static final String OLD = "knowledge-tracker-old";
     public static final String OLD_ITEM = "knowledge-tracker-old-item";
+    public static final String OLD_REASON = "knowledge-tracker-old-reason";
     public static final String SOURCE = "knowledge-tracker-source";
     public static final String SOURCE_LINK = "knowledge-tracker-source-link";
     public static final String MET = "knowledge-tracker-met";
@@ -44,6 +45,8 @@ public final class KnowledgeTrackerStyles {
     public static final String LOCKED = "knowledge-tracker-locked";
     public static final String SETTINGS = "knowledge-tracker-settings";
     public static final String SETTINGS_TITLE = "knowledge-tracker-settings-title";
+    public static final String TOOLBAR = "knowledge-tracker-toolbar";
+    public static final String DOCK = "knowledge-tracker-dock";
 
     private static final String RESOURCE = "/knowledgetracker.css";
 

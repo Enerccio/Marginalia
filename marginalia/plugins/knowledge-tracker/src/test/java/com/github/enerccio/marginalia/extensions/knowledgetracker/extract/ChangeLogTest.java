@@ -1,16 +1,11 @@
 package com.github.enerccio.marginalia.extensions.knowledgetracker.extract;
 
-import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.ChangeLog.Outcome;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.ExtractionAnswer.Addition;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.ExtractionAnswer.CharacterChanges;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.ExtractionAnswer.Retraction;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.model.ChangeLogEntry;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.model.ItemKind;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.model.KnowledgeItem;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.model.KnowledgeState;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.model.OldReason;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.model.TrackedCharacter;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.process.Part;
+import com.github.enerccio.marginalia.extensions.knowledgetracker.model.*;
+import com.github.enerccio.marginalia.extensions.storytracker.log.TrackerChangeLog.Outcome;
+import com.github.enerccio.marginalia.extensions.storytracker.process.Part;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;

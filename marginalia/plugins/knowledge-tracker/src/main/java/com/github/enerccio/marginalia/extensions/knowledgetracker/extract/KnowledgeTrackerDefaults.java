@@ -1,5 +1,7 @@
 package com.github.enerccio.marginalia.extensions.knowledgetracker.extract;
 
+import com.github.enerccio.marginalia.extensions.storytracker.process.PartReader;
+
 /**
  * The built-in system messages of the Knowledge Tracker, in English; a subclass translates them and
  * {@code KnowledgeTrackerLocalization.T.defaults()} is the one of the prompt language of the user. The wording of the English

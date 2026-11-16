@@ -581,8 +581,8 @@ inference. `Runs.check(entity, operation)` throws `Runs.HeldException`, a
   `infer` is put there whole. The callbacks of the request run with the run bound, so a request a callback starts (the next summary
   of a batch, the next round) reports to the same run, and a request sent later from the queue enters it on its thread. Bound today:
   the steps of the generation (`executeNextStep`), the summary batches and the resummary, `PartRuns` and `RangeRuns` of
-  `translator-common`, the annotate and redraft windows when they start a request (`FloatingWindow.bind`), the Knowledge Tracker's
-  `ExtractionRun`. `Runs.addTextListener` is told of every piece (on the thread of the
+  `translator-common`, the annotate and redraft windows when they start a request (`FloatingWindow.bind`), the `TrackerRun` of
+  `story-tracker-common` (the Knowledge Tracker, the State Tracker). `Runs.addTextListener` is told of every piece (on the thread of the
   request; `RunsOnPage.listenText` throttles it for a page). A plain change of a run (`addListener`) is not a piece of text.
 - **Waiting for the user** (`setWaitingForUser`: a proposal of the Knowledge Tracker to review), **stopping** (`isStopping()` from
   `stop()` until the end), `setOnStop` for a run whose stop exists only after it started (a batch makes its token later).

@@ -1,6 +1,6 @@
 package com.github.enerccio.marginalia.extensions.knowledgetracker.model;
 
-import com.github.enerccio.marginalia.extensions.knowledgetracker.scene.PresentCharacters;
+import com.github.enerccio.marginalia.extensions.storytracker.scene.PresentCharacters;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;

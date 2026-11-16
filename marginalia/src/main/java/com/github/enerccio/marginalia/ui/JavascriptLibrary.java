@@ -347,10 +347,18 @@ public final class JavascriptLibrary {
                 const el = $0;
                 const content = $1;
                 installSticky(el);
+                // a story drawn again before it was seen (several steps after a generation) keeps the place of the first time
+                const pending = el._restorePos;
                 if (el._restoreStop) el._restoreStop();
                 // read now: the new content is shorter, the browser moves the scroll up and tells it later
-                const stick = el._stick;
-                const top = el._lastTop;
+                const stick = pending ? pending.stick : el._stick;
+                const top = pending ? pending.top : el._lastTop;
+                // the edges load nothing until the story is back in place (see watchEdge)
+                el._restoring = true;
+                const settled = () => {
+                  el._restoring = false;
+                  requestAnimationFrame(() => ['_check-edge-top', '_check-edge-bottom'].forEach(k => el[k] && el[k]()));
+                };
                 const events = ['wheel', 'touchstart', 'pointerdown', 'keydown'];
                 let observer = null;
                 let timer = null;
@@ -361,6 +369,7 @@ public final class JavascriptLibrary {
                   clearTimeout(timer);
                   events.forEach(name => el.removeEventListener(name, stop));
                   el._restoreStop = null;
+                  if (el._restoring) settled();
                 };
                 el._restoreStop = stop;
                 const restore = () => {
@@ -374,12 +383,14 @@ public final class JavascriptLibrary {
                   }
                   const apply = () => {
                     if (Math.abs(el.scrollTop - top) > 1) el.scrollTop = top;
+                    el._lastTop = el.scrollTop;
                   };
                   events.forEach(name => el.addEventListener(name, stop, {passive: true}));
                   observer = new ResizeObserver(apply);
                   observer.observe(content);
                   timer = setTimeout(stop, 1500);
                   apply();
+                  settled();
                 };
                 const seen = () => !document.hidden && el.clientHeight > 0;
                 if (seen()) {
@@ -395,9 +406,11 @@ public final class JavascriptLibrary {
                 const watcher = new ResizeObserver(check);
                 watcher.observe(el);
                 document.addEventListener('visibilitychange', check);
+                el._restorePos = {stick: stick, top: top};
                 waiting = () => {
                   watcher.disconnect();
                   document.removeEventListener('visibilitychange', check);
+                  el._restorePos = null;
                   waiting = null;
                 };
                 """, element, content);
@@ -498,7 +511,9 @@ public final class JavascriptLibrary {
                 const check = '_check-' + name;
                 if (!el[check]) {
                   el[check] = () => {
-                    if (el[busy]) return;
+                    // a story that is not seen has no scroll (0 from both edges) and one being put back is not where the user
+                    // reads yet: loading there would fill it with parts the user is not near
+                    if (el[busy] || el._restoring || document.hidden || el.clientHeight === 0) return;
                     const bottomGap = el.scrollHeight - el.scrollTop - el.clientHeight;
                     const distance = top ? el.scrollTop : bottomGap;
                     if (distance < 400) {
@@ -508,6 +523,9 @@ public final class JavascriptLibrary {
                     }
                   };
                   el.addEventListener('scroll', el[check], {passive: true});
+                  // checked again when the story is seen again (the size of a hidden one is 0)
+                  new ResizeObserver(() => el[check]()).observe(el);
+                  document.addEventListener('visibilitychange', () => el[check]());
                 }
                 el[busy] = !$3;
                 requestAnimationFrame(() => requestAnimationFrame(el[check]));

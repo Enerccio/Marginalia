@@ -7,15 +7,10 @@ import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.TidyAn
 import com.github.enerccio.marginalia.extensions.knowledgetracker.model.ItemKind;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.model.KnowledgeItem;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.model.KnowledgeState;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.model.ProcessedPart;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.model.TrackedCharacter;
+import com.github.enerccio.marginalia.extensions.storytracker.process.ProcessedPart;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Turns the answer of the tidy pass into changes the user can review: a drop is a retraction (made by the tidy pass: the item becomes old

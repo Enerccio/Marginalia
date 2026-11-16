@@ -1,5 +1,7 @@
 package com.github.enerccio.marginalia.extensions.knowledgetracker.extract;
 
+import com.github.enerccio.marginalia.extensions.storytracker.process.PartReader;
+
 /**
  * The built-in system messages of the Knowledge Tracker in Korean; the JSON of the answer, its values ("knows",
  * "does-not-know"), the tool name and the marker "learned in part N" stay English.

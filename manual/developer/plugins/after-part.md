@@ -62,8 +62,8 @@ take turns anyway: every request waits for a connection of its AI.
 ## The handler
 
 `run(context)` is plain blocking code on a worker thread, in the request scope of the user who generated, with the run of the phase
-bound: the requests it makes to a model show in the panel of the runs, and a run of the registry it starts (`PartRuns.run`, an
-`ExtractionRun`) is a part of the phase's entry (its text goes there, the phase's Stop stops it). `appliesTo(book)` says whether the
+bound: the requests it makes to a model show in the panel of the runs, and a run of the registry it starts (`PartRuns.run`, a
+`TrackerRun` of the trackers) is a part of the phase's entry (its text goes there, the phase's Stop stops it). `appliesTo(book)` says whether the
 book uses the step (its switch); a step that does not apply is not shown. The context gives:
 
 | | |

@@ -15,6 +15,7 @@
   <modules>
     <module>marginalia</module>
     <module>marginalia/libs/http-hooks</module>
+    <module>marginalia/libs/story-tracker-common</module>
     <module>marginalia/libs/translator-common</module>
     <module>marginalia/plugins/anthropic</module>
     <module>marginalia/plugins/arc-outline</module>
@@ -43,6 +44,7 @@
     <module>marginalia/plugins/reviewer</module>
     <module>marginalia/plugins/sidequery</module>
     <module>marginalia/plugins/sillytavern-converter</module>
+    <module>marginalia/plugins/state-tracker</module>
     <module>marginalia/plugins/story-notes</module>
     <module>marginalia/plugins/tts-reader</module>
   </modules>

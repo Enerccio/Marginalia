@@ -1,6 +1,5 @@
 package com.github.enerccio.marginalia.extensions.knowledgetracker.service;
 
-import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
@@ -8,14 +7,15 @@ import com.github.enerccio.marginalia.extensions.PartTextRegistry;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.block.KnowledgeBlockBuilder;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.ChangeLog;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.model.KnowledgeState;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.process.BranchProcessor;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.process.BranchProcessor.Report;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.process.Part;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.process.RunEstimate;
+import com.github.enerccio.marginalia.extensions.storytracker.log.TrackerChangeLog;
+import com.github.enerccio.marginalia.extensions.storytracker.process.BranchProcessor;
+import com.github.enerccio.marginalia.extensions.storytracker.process.BranchProcessor.Report;
+import com.github.enerccio.marginalia.extensions.storytracker.process.Part;
+import com.github.enerccio.marginalia.extensions.storytracker.process.RunEstimate;
+import com.github.enerccio.marginalia.extensions.storytracker.process.StoryBranch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -62,17 +62,7 @@ public class KnowledgeProcessService {
      * book has no part.
      */
     public List<Part> branch(Manuscript manuscript) throws Exception {
-        Manuscript current = manuscriptService.find(manuscript);
-        ChatMessage leaf = (current != null ? current : manuscript).getActiveLeaf();
-        List<Part> parts = new ArrayList<>();
-        if (leaf != null) {
-            // the text as the model reads it: it is what the extraction quotes and what the hash of a processed part is made of
-            for (ChatMessage message : chatMessageService.getBranchFromLeaf(leaf)) {
-                parts.add(new Part(message.getUuid(), message.getPovCharacter(), message.getPresentCharacters(), partTexts.forModel(message),
-                        message.getId()));
-            }
-        }
-        return parts;
+        return StoryBranch.read(manuscript, manuscriptService, chatMessageService, partTexts);
     }
 
     /**
@@ -167,11 +157,11 @@ public class KnowledgeProcessService {
     /**
      * Takes back one change of the log of automatic runs, see {@link ChangeLog#revert}.
      */
-    public ChangeLog.Outcome revertChange(Manuscript manuscript, String entryId) throws Exception {
+    public TrackerChangeLog.Outcome revertChange(Manuscript manuscript, String entryId) throws Exception {
         synchronized (lock(manuscript)) {
             KnowledgeState state = stateService.load(manuscript);
-            ChangeLog.Outcome outcome = ChangeLog.revert(state, entryId);
-            if (outcome == ChangeLog.Outcome.REVERTED) {
+            TrackerChangeLog.Outcome outcome = ChangeLog.revert(state, entryId);
+            if (outcome == TrackerChangeLog.Outcome.REVERTED) {
                 stateService.save(manuscript, state);
             }
             return outcome;

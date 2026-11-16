@@ -20,6 +20,7 @@ that each plugin **embeds** in its own bundle.
 | Library | What it is | For |
 |---|---|---|
 | [`http-hooks`](http-hooks.md) | The HTTP call with a size cap and no redirects, the guard for private addresses, the request that frees or takes the GPU (headers stored protected) and the gate that lets several users share one GPU. The JDK only. | The Image Generator, the Audiobook, and any plugin that calls a server of the user. |
+| [`story-tracker-common`](story-tracker-common.md) | The parts of the active branch, the cursor and the processor that keeps a tracker's state in line with the branch, the lenient reading of the present characters field, the insertion of a block into the prompt, the reading of earlier parts by the model. | The Knowledge Tracker, the State Tracker, and any plugin that reads the story part by part and keeps a state of it. |
 | [`translator-common`](translator-common.md) | The data of a translated speech, the reverse to the text a model reads, the text of the export and of the reader, the run loops, the speakers and the screens built on them. | The Conlang Translator, the Real Language Translator, and anybody who writes a plugin that keeps a story in one language and lets the models read another. |
 
 ## Why embedded, and what that means

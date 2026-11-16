@@ -6,8 +6,8 @@ import com.github.enerccio.marginalia.extensions.AnnotationFactsRegistry;
 import com.github.enerccio.marginalia.extensions.PartTextRegistry;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.block.KnowledgeBlockBuilder;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.model.KnowledgeState;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.process.Part;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.service.KnowledgeStateService;
+import com.github.enerccio.marginalia.extensions.storytracker.process.Part;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 

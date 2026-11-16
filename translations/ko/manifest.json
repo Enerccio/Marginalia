@@ -355,6 +355,12 @@
       "source_sha": "d19febd3caaca6fbea68df126dc1532914aafd80fc2e84355899d5ee0e41f55d",
       "translated_at": "2026-11-13T22:57:46Z"
     },
+    "user/extensions/state-tracker.md": {
+      "chunks": 1,
+      "model": "haiku",
+      "source_sha": "6c3e1f9704f2d43e05688dac5eaf318579014fca94d23e4cc8277f1a28b67997",
+      "translated_at": "2026-11-16T14:09:24Z"
+    },
     "user/extensions/story-notes.md": {
       "chunks": 1,
       "model": "haiku",

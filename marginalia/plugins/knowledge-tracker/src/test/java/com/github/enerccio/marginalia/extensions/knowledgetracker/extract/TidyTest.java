@@ -7,7 +7,9 @@ import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.TidyAn
 import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.TidyAnswer.Drop;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.TidyAnswer.Merge;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.model.*;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.process.Part;
+import com.github.enerccio.marginalia.extensions.storytracker.log.TrackerChangeLog;
+import com.github.enerccio.marginalia.extensions.storytracker.process.Part;
+import com.github.enerccio.marginalia.extensions.storytracker.process.ProcessedPart;
 import com.google.gson.Gson;
 import org.junit.jupiter.api.Test;
 
@@ -200,7 +202,7 @@ class TidyTest {
         ChangeSet set = build(state, new CharacterTidy("Peter", List.of(new Drop(1, "shared")), List.of(new Merge(List.of(2, 3), "knows", "merged text", "same"))));
         ChangeApplier.apply(state, set, true, 1L);
         for (ChangeLogEntry entry : List.copyOf(state.getChangeLog())) {
-            assertEquals(ChangeLog.Outcome.REVERTED, ChangeLog.revert(state, entry.getId()), entry.getText());
+            assertEquals(TrackerChangeLog.Outcome.REVERTED, ChangeLog.revert(state, entry.getId()), entry.getText());
         }
         assertTrue(item(state, "the elevator stalled").isActive());
         assertTrue(item(state, "Miyu uses nya comments").isActive());

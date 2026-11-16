@@ -252,7 +252,7 @@ cd marginalia && mvn install -DskipTests
 cd plugins/reviewer && mvn package        # target/reviewer-1.9.0.jar
 ```
 
-A plugin that uses a shared library (the two translators, which embed `translator-common`; the Image Generator and the Audiobook, which embed `http-hooks`) needs the library installed first:
+A plugin that uses a shared library (the two translators, which embed `translator-common`; the Knowledge Tracker and the State Tracker, which embed `story-tracker-common`; the Image Generator and the Audiobook, which embed `http-hooks`) needs the library installed first:
 `cd marginalia/libs/translator-common && mvn install -DskipTests`. The workflows and the `plugins-build` stage of the `Dockerfile` do that for every folder of `marginalia/libs/`
 before they build the plugins ([Libraries for plugins](plugins/libraries/index.md)).
 

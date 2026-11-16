@@ -971,3 +971,47 @@ numbers of the older items stable), the rest is P3/P4.
      marks (generated text, search hits, annotation underlines) in both themes, and `prefers-reduced-motion`. A check
      list in `manual/developer/ui.md` keeps new widgets honest.
 
+
+## Proposed 2026-11-16 (not reviewed by the author yet)
+
+From a look over the feature list for what a writer would miss. Numbers continue the list above.
+
+### Prose quality
+
+103. 🧩 **Phrase watch list (clichés as annotations, not banned tokens).** A list of phrases and regular expressions per
+     book or folder (inherited like the prompts, `FolderService.findChain`), matched against every finished part with no
+     model call; every hit becomes an annotation of source *extension* (54, `/create-annotation`). The rest is what the
+     annotations already do: *Redraft to address the notes* rewrites only those passages, *Apply the redraft without
+     asking* makes it hands-off, *Dismiss* keeps a hit that is fine (in dialogue, say). A command scans a range of parts
+     of a book that is already written. The note is not given to the model on later generations by default (naming the
+     phrase in the prompt primes it), and a hands-off redraft needs a retry cap.
+     **Not** as banned tokens / `logit_bias`, and not as an option either:
+     - A phrase is known to be that phrase only after its first tokens are out. The ban then hits in the middle of a
+       cliché that has already begun, and the model has to bend the sentence to end it some other way, which reads worse
+       than the cliché. A check of the finished part rewrites the whole passage instead.
+     - A phrase is not a token: a ban takes its words out everywhere, or only its first token and the model writes the
+       nearest synonym.
+     - Token ids differ per model and `logit_bias` support differs per server, so a list would not survive a switch of
+       the model.
+104. 🧩 **Style samples.** A few passages of the author's own prose (per book or folder) put into the prompt as the
+     reference for the voice, the way Author's Note puts in a note. The useful half of 47 (style fingerprint) without
+     the metrics; the passages could be offered from the parts the author wrote or edited most (49 knows which).
+
+### Long-form continuity
+
+105. **Series: the next book knows the previous one.** Folders hand down the style and the prompts of a series and tags
+     its lore, but nothing carries the story over. A *previous book* link on a book: its summaries (or one meta summary
+     of the whole book) go into the prompt before the summaries of this one, and the trackers (knowledge, state,
+     characters) can start from where that book ended. Decide what is copied once and what is read live (a later edit of
+     book 1).
+106. 🧩 **Story timeline.** The State Tracker knows the state now and 40 proposes an in-world clock; nothing shows the
+     events in the order of story time. A date or offset per part (typed, or proposed by the model with the trackers'
+     batch), a timeline view over the active branch, and the current date and "how long ago" facts offered to the prompt
+     and to the annotation reviewer (`{{{facts}}}`): travel times, ages and "three days ago" are where long books break.
+
+### Sharing and distribution
+
+107. **Writing one book together.** 22 shares copies and the published view is read-only. Two users on one book, at
+     least by turns: the owner invites a user, both see the same tree, a part records who wrote its instructions, and
+     generation uses the AI of the one who asks (limits and usage stay per user). Ownership (`OwnedEntity`,
+     `findForUser`) is the hard part, so check what a second writer of one book means there before promising it.

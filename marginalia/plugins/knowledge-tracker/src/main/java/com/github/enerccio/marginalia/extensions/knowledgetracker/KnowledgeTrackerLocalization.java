@@ -138,9 +138,6 @@ public class KnowledgeTrackerLocalization extends PluginLocalizationBundle {
     public static final String PART_N = "Part %d";
     public static final String ADDED_TO = "Added to %s";
     public static final String RETRACTED_FROM = "Retracted from %s";
-    public static final String REVERTED = "Reverted";
-    public static final String REVERT_THIS_CHANGE = "Revert this change";
-    public static final String APPLIED_AUTOMATICALLY = "Applied automatically (%d)";
     public static final String THE_ITEM_HAS_BEEN_CHANGED_SINCE = "The item has been changed since, it was not touched";
     public static final String PROCESSED_N_PARTS = "Processed %d parts";
     public static final String NOTHING_NEW_TO_PROCESS = "Nothing new to process";
@@ -222,6 +219,9 @@ public class KnowledgeTrackerLocalization extends PluginLocalizationBundle {
     public static final String ADD_THE_COPIED_ITEMS_TO_THIS_CHARACTER = "Add the copied items to this character";
     public static final String N_ITEMS_COPIED = "%d item(s) copied";
     public static final String N_ITEMS_PASTED = "%d item(s) pasted to %s, %d already there";
+    public static final String RETRACTED = "retracted";
+    public static final String DECLINED = "declined";
+    public static final String TIDIED = "tidied";
 
     @Override
     protected void loadKeys() {
@@ -782,27 +782,6 @@ public class KnowledgeTrackerLocalization extends PluginLocalizationBundle {
         de(RETRACTED_FROM, "Zurückgezogen von %s");
         ko(RETRACTED_FROM, "%s에서 철회됨");
         it(RETRACTED_FROM, "Ritirato da %s");
-        ja(REVERTED, "元に戻しました");
-        zh(REVERTED, "已撤销");
-        fr(REVERTED, "Annulé");
-        es(REVERTED, "Revertido");
-        de(REVERTED, "Rückgängig gemacht");
-        ko(REVERTED, "되돌려짐");
-        it(REVERTED, "Annullato");
-        ja(REVERT_THIS_CHANGE, "この変更を元に戻す");
-        zh(REVERT_THIS_CHANGE, "撤销此更改");
-        fr(REVERT_THIS_CHANGE, "Annuler cette modification");
-        es(REVERT_THIS_CHANGE, "Revertir este cambio");
-        de(REVERT_THIS_CHANGE, "Diese Änderung rückgängig machen");
-        ko(REVERT_THIS_CHANGE, "이 변경 되돌리기");
-        it(REVERT_THIS_CHANGE, "Annulla questa modifica");
-        ja(APPLIED_AUTOMATICALLY, "自動で適用された変更 (%d)");
-        zh(APPLIED_AUTOMATICALLY, "自动应用的更改 (%d)");
-        fr(APPLIED_AUTOMATICALLY, "Appliqué automatiquement (%d)");
-        es(APPLIED_AUTOMATICALLY, "Aplicados automáticamente (%d)");
-        de(APPLIED_AUTOMATICALLY, "Automatisch angewendet (%d)");
-        ko(APPLIED_AUTOMATICALLY, "자동 적용됨 (%d)");
-        it(APPLIED_AUTOMATICALLY, "Applicato automaticamente (%d)");
         ja(THE_ITEM_HAS_BEEN_CHANGED_SINCE, "項目はその後変更されたため、そのままにしました");
         zh(THE_ITEM_HAS_BEEN_CHANGED_SINCE, "该项此后已被更改，未做任何改动");
         fr(THE_ITEM_HAS_BEEN_CHANGED_SINCE, "L'élément a été modifié depuis, il n'a pas été touché");
@@ -1766,6 +1745,30 @@ public class KnowledgeTrackerLocalization extends PluginLocalizationBundle {
         de(N_ITEMS_PASTED, "%d Element(e) bei %s eingefügt, %d bereits vorhanden");
         ko(N_ITEMS_PASTED, "항목 %d개를 %s에 붙여넣음, 이미 있던 항목 %d개");
         it(N_ITEMS_PASTED, "%d elemento/i incollato/i a %s, %d già presenti");
+
+        ja(RETRACTED, "撤回");
+        zh(RETRACTED, "已撤回");
+        fr(RETRACTED, "retiré");
+        es(RETRACTED, "retirado");
+        de(RETRACTED, "zurückgezogen");
+        ko(RETRACTED, "철회됨");
+        it(RETRACTED, "ritirato");
+
+        ja(DECLINED, "却下");
+        zh(DECLINED, "已拒绝");
+        fr(DECLINED, "refusé");
+        es(DECLINED, "rechazado");
+        de(DECLINED, "abgelehnt");
+        ko(DECLINED, "거부됨");
+        it(DECLINED, "rifiutato");
+
+        ja(TIDIED, "整理済み");
+        zh(TIDIED, "已整理");
+        fr(TIDIED, "rangé");
+        es(TIDIED, "ordenado");
+        de(TIDIED, "aufgeräumt");
+        ko(TIDIED, "정리됨");
+        it(TIDIED, "riordinato");
 
     }
 }
