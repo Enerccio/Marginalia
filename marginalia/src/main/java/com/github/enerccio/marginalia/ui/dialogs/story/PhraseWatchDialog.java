@@ -1,0 +1,168 @@
+package com.github.enerccio.marginalia.ui.dialogs.story;
+
+import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.service.ManuscriptService;
+import com.github.enerccio.marginalia.domain.service.PhraseWatchService;
+import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.widgets.Notification;
+import com.github.enerccio.marginalia.ui.widgets.WatchedPhrasesEditor;
+import com.github.enerccio.marginalia.utils.UIUtils;
+import com.vaadin.flow.component.ModalityMode;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Configurable;
+
+/**
+ * The phrase watch list of the book (the desktop and the phone story tab, Tools menu): whether the parts generated in it are scanned for
+ * the phrases (a step after the automatic annotation, see {@link AutoAnnotateSteps}), the book's own entries and what it inherits from
+ * the user settings and its folders, and a scan of the parts of the active branch that are already written.
+ */
+@Configurable(preConstruction = true)
+public class PhraseWatchDialog extends Dialog {
+
+    @Autowired
+    private Localization loc;
+
+    @Autowired
+    private ManuscriptService manuscriptService;
+
+    @Autowired
+    private PhraseWatchService phraseWatchService;
+
+    private final Manuscript manuscript;
+    private final Runnable onSaved;
+    private final Checkbox enabled = new Checkbox();
+    private final WatchedPhrasesEditor phrases;
+
+    /**
+     * @param manuscript the book
+     * @param onSaved    called after the settings were saved or the story was scanned
+     */
+    public static void open(Manuscript manuscript, Runnable onSaved) {
+        PhraseWatchDialog dialog = create(manuscript, onSaved);
+        if (dialog != null) {
+            dialog.open();
+        }
+    }
+
+    /**
+     * @return the dialog, not opened; null when the book is gone (the author was told)
+     */
+    static PhraseWatchDialog create(Manuscript manuscript, Runnable onSaved) {
+        PhraseWatchDialog dialog = new PhraseWatchDialog(manuscript, onSaved);
+        return dialog.load() ? dialog : null;
+    }
+
+    private PhraseWatchDialog(Manuscript manuscript, Runnable onSaved) {
+        this.manuscript = manuscript;
+        this.onSaved = onSaved;
+        this.phrases = new WatchedPhrasesEditor(loc);
+
+        setHeaderTitle(loc.getValue(L.LABEL_PHRASE_WATCH));
+        setWidth("min(900px, 95vw)");
+        setCloseOnEsc(false);
+        setCloseOnOutsideClick(false);
+        setModality(ModalityMode.STRICT);
+
+        Span info = new Span(loc.getValue(L.MSG_PHRASE_WATCH_INFO));
+        info.addClassName(CssStyles.HINT_TEXT);
+        enabled.setLabel(loc.getValue(L.LABEL_PHRASE_WATCH_ENABLE));
+
+        VerticalLayout content = new VerticalLayout(info, enabled, phrases);
+        content.setPadding(false);
+        content.setWidthFull();
+        content.addClassName(CssStyles.GAP_S);
+        add(content);
+
+        Button scan = new Button(loc.getValue(L.LABEL_PHRASE_WATCH_SCAN), _ -> scan());
+        Button save = new Button(loc.getValue(L.LABEL_SAVE), _ -> {
+            if (save()) {
+                Notification.success(loc.getValue(L.MSG_PHRASE_WATCH_SAVED));
+                close();
+            }
+        });
+        save.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        Button close = new Button(loc.getValue(L.LABEL_CLOSE), _ -> close());
+        getFooter().add(close, scan, save);
+    }
+
+    private boolean load() {
+        try {
+            Manuscript stored = manuscriptService.find(manuscript);
+            if (stored == null || stored.isDeleted()) {
+                Notification.warning(loc.getValue(L.MSG_MANUSCRIPT_NOT_FOUND));
+                return false;
+            }
+            enabled.setValue(stored.getPhraseWatch());
+            phrases.setTemplates(phraseWatchService.getTemplates());
+            phrases.setValue(stored.getWatchedPhrases());
+            phrases.setInherited(phraseWatchService.resolveInherited(stored.getFolder()));
+            return true;
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+            return false;
+        }
+    }
+
+    /**
+     * @return false when the list can't be saved (the author was told)
+     */
+    private boolean save() {
+        if (!phrases.validate()) {
+            return false;
+        }
+        try {
+            phraseWatchService.setForBook(manuscript, phrases.getValue(), enabled.getValue());
+            onSaved.run();
+            return true;
+        } catch (IllegalArgumentException e) {
+            Notification.warning(String.format(loc.getValue(L.ERROR_PHRASE_INVALID), e.getMessage()));
+            return false;
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+            return false;
+        }
+    }
+
+    /**
+     * Saves the list and annotates its hits in every part of the active branch.
+     */
+    private void scan() {
+        if (!save()) {
+            return;
+        }
+        try {
+            int made = phraseWatchService.scanBranch(manuscript);
+            Notification.success(String.format(loc.getValue(L.MSG_PHRASE_WATCH_SCANNED), made));
+            close();
+            onSaved.run();
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    // for the tests
+
+    Checkbox enabledField() {
+        return enabled;
+    }
+
+    WatchedPhrasesEditor phrasesEditor() {
+        return phrases;
+    }
+
+    boolean saveForTest() {
+        return save();
+    }
+
+    void scanForTest() {
+        scan();
+    }
+}

@@ -167,6 +167,43 @@ Every generated part costs at least one more request to the model (two with the 
 the review replaces the story in it and the next generation has to read the story again: choose another **Model** for the review, or
 a second server.
 
+## Watching for phrases
+
+A **phrase watch list** names the words you don't want in the prose: clichés (*a shiver ran down her spine*, *tapestry*), the tics of
+a model, a name you dropped. A part is checked for them **without a model**, and every place a phrase is found becomes an annotation of
+that passage (its source is *Phrase watch list*, and the entry it matched is named with it). From there it is a note like any other:
+let the [redraft](#redrafting-to-address-the-notes) deal with it, or **Dismiss** a hit that is fine (in dialogue, say).
+
+The phrases are not banned from the model's output. A ban would only stop a phrase after it has started and would push the model to the
+nearest synonym; a note on the finished text lets the passage be rewritten as a whole.
+
+**Where the lists are.** Your settings have a tab **Phrase watch list** with your list, which every book uses; a
+[folder](folders.md#folder-settings) adds a list for the books in it and the folders below it, and a book its own, in **Phrase watch
+list** of the settings menu (⚙) of the story. The lists add up. An entry with the same phrase as an inherited one replaces it (to give it
+another template, say), and one marked **Off here** takes it out for that folder or book; the inherited phrases are listed under your own,
+each with **Switch off here**.
+
+**How a phrase is found.** Without regard to case and only as whole words (*tapestry* is not found in *tapestries*); any space or line
+break matches any other, and straight and curly quotes and apostrophes match each other. Check **Regular expression** to write a
+[regular expression](../regular-expressions.md) instead, also without regard to case. An expression that can't be used is refused when
+you save. At most 100 notes are made in one part.
+
+**Annotation templates.** What a note says is an **annotation template** of your settings (the same tab): a name, the **Note**, where
+`{%{{{match}}}%}` is the words found and `{%{{{phrase}}}%}` the entry of the list, a **Type** (the colour of the mark) and **Give to the model
+with the part** (see [Giving a note to the model](#giving-a-note-to-the-model)). Each entry of a list picks one; an entry without one
+gets a built-in note (*Watched phrase: "…"*), with no type, not given to the model.
+
+**When the parts are checked.** In **Phrase watch list** of the book:
+
+| Option | |
+|---|---|
+| **Annotate the watched phrases in every generated part** | After a part was generated, it is checked right after the [automatic annotation](#annotating-every-new-part-automatically) (a step of [what follows the part](story-editor.md#what-follows-a-generated-part), whether the automatic annotation is on or not). When the book also redrafts automatically (**Add the annotations without asking** and **Then redraft the part…** of the automatic annotation), the redraft deals with these notes too. |
+| **Save and scan the story** | Saves the list and checks every part of the active branch now, for a book that is already written. |
+
+A place that already has a note of the list for the same phrase gets no second one, also when you dismissed or resolved it, so the story
+can be scanned again after it changed. The annotation templates belong to your settings: a book exported with what it inherits takes
+the phrases along, and on another installation their notes are the built-in one.
+
 ## Giving a note to the model
 
 Check **Give to the model with the part** on a note and it becomes a note to the model too: the notes of the parts that are

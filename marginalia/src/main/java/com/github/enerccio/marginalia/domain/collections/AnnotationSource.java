@@ -14,6 +14,10 @@ public enum AnnotationSource {
     /**
      * An extension (the checkers), named in the label of the annotation.
      */
-    PLUGIN
+    PLUGIN,
+    /**
+     * A hit of the phrase watch list ({@code PhraseWatchService}), the entry of the list in the label of the annotation.
+     */
+    PHRASE
 
 }

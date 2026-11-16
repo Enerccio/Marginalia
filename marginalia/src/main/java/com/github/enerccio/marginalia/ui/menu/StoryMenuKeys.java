@@ -30,6 +30,7 @@ public final class StoryMenuKeys {
     public static final String CREATE_SUMMARIES = "tools.createSummaries";
     public static final String LORE_NOTES = "tools.loreNotes";
     public static final String AUTO_ANNOTATE = "tools.autoAnnotate";
+    public static final String PHRASE_WATCH = "tools.phraseWatch";
     public static final String BRANCH_TOKENS = "tools.branchTokens";
     public static final String LORE_USAGE = "tools.loreUsage";
     public static final String STATISTICS = "tools.statistics";

@@ -1125,6 +1125,19 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_TEST_STEP, "测试");
         setValue(L.LABEL_REMOVE, "移除");
         setValue(L.LABEL_USED_OUTSIDE_MARGINALIA, "也在 Marginalia 之外使用");
+        setValue(L.LABEL_PHRASE_WATCH, "监视短语列表");
+        setValue(L.LABEL_PHRASE_WATCH_RUN, "标记短语");
+        setValue(L.LABEL_PHRASE_WATCH_ENABLE, "在每个生成的部分中为监视短语添加批注");
+        setValue(L.LABEL_PHRASE_WATCH_SCAN, "保存并扫描故事");
+        setValue(L.LABEL_WATCHED_PHRASE, "短语");
+        setValue(L.LABEL_REGULAR_EXPRESSION, "正则表达式");
+        setValue(L.LABEL_PHRASE_OFF, "此处关闭");
+        setValue(L.LABEL_ADD_PHRASE, "添加短语");
+        setValue(L.LABEL_INHERITED_PHRASES, "继承的短语");
+        setValue(L.LABEL_SWITCH_OFF_HERE, "在此关闭");
+        setValue(L.LABEL_ANNOTATION_TEMPLATE, "批注模板");
+        setValue(L.LABEL_ANNOTATION_TEMPLATES, "批注模板");
+        setValue(L.LABEL_ADD_ANNOTATION_TEMPLATE, "添加模板");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1321,6 +1334,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ENUM_SUMMARY_SPLIT_TOKENS, "令牌数");
         setValue(L.ENUM_SUMMARY_SPLIT_CHAPTERS, "章节");
         setValue(L.ENUM_SUMMARY_SPLIT_PARTS, "段落数");
+        setValue(L.ENUM_ANNOTATION_SOURCE_PHRASE, "监视短语列表");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部服务器错误");
@@ -1433,6 +1447,8 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ERROR_COMMAND_STILL_RUNNING, "命令 %s 仍在运行。请等待其完成，或将其停止。");
         setValue(L.ERROR_GPU_STEP_FAILED, "步骤失败：%s");
         setValue(L.ERROR_GPU_UNLOAD_FAILED, "释放步骤失败：%s");
+        setValue(L.ERROR_PHRASE_INVALID, "无法使用此短语：%s");
+        setValue(L.ERROR_ANNOTATION_TEMPLATE_INCOMPLETE, "每个批注模板都需要名称和备注。");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "无法保存表单。");
@@ -1929,6 +1945,11 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_DELETE_GPU, "删除 GPU“%s”及其锁？");
         setValue(L.MSG_DELETE_GPU_LOCK, "删除锁“%s”？使用它的 AI 和后端将在无锁状态下运行。");
         setValue(L.MSG_DELETE_GPU_STEP, "删除步骤“%s”？它将从使用它的锁中移除。");
+        setValue(L.MSG_PHRASE_WATCH_NOTE, "监视短语：“{{match}}”");
+        setValue(L.MSG_PHRASE_BUILTIN_NOTE, "内置备注");
+        setValue(L.MSG_PHRASE_WATCH_INFO, "无需模型，在部分的正文中查找这些短语：每次命中都会成为该段落的批注。你的设置、书所在的上级文件夹和书本身的短语会合并在一起。生成部分的扫描在自动批注之后进行；当书自动重写时，重写也会处理这些批注。");
+        setValue(L.MSG_PHRASE_WATCH_SAVED, "监视短语列表已保存。");
+        setValue(L.MSG_PHRASE_WATCH_SCANNED, "已添加批注：%d");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");
@@ -2069,6 +2090,8 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_GPU_ACQUIRE_STEPS, "在此锁的第一个作业之前按顺序运行；第一次失败即停止。");
         setValue(L.HELP_GPU_RELEASE_STEPS, "当另一个锁的作业需要 GPU 或点击“立即卸载”时运行；即使其中一个失败，也会全部运行。");
         setValue(L.HELP_GPU_USED_OUTSIDE, "其他程序或人员也使用此 GPU：由于 Marginalia 无法知道加载了什么，它会在每个作业之前运行锁的获取步骤，而不仅是在 GPU 切换锁时。此时每个锁的获取步骤必须自行腾出空间（卸载其他模型），并且可以安全地重复执行。");
+        setValue(L.HELP_PHRASE_WATCH_LIST, "查找短语时不区分大小写，并按整词匹配；任何空白都与任何空白匹配，直引号与弯引号相互匹配。正则表达式按原样使用（同样不区分大小写）。与继承条目短语相同的条目会替换它，关闭的条目会将其移除。");
+        setValue(L.HELP_ANNOTATION_TEMPLATES, "监视短语列表命中时批注的内容。备注中 {{match}} 是找到的文字，{{phrase}} 是列表中的条目。没有模板的条目会使用内置备注。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");

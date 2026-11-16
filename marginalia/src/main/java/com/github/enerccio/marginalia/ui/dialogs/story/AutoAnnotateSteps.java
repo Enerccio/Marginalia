@@ -14,6 +14,7 @@ import com.github.enerccio.marginalia.domain.service.AnnotationService;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.NotificationService;
+import com.github.enerccio.marginalia.domain.service.PhraseWatchService;
 import com.github.enerccio.marginalia.domain.service.ProtocolService;
 import com.github.enerccio.marginalia.domain.service.RedraftService;
 import com.github.enerccio.marginalia.domain.service.StoryGenerationService;
@@ -49,6 +50,8 @@ public class AutoAnnotateSteps implements InitializingBean, DisposableBean {
     /** The steps' ids, the same as their notification sources. */
     public static final String ANNOTATE = NotificationService.ANNOTATE;
     public static final String REDRAFT = NotificationService.REDRAFT;
+    /** The step of the phrase watch list (no notification: there is no model to wait for). */
+    public static final String PHRASES = "phraseWatch";
     /** How many notes the annotation added (a property of the phase), for the redraft. */
     static final String NOTES_ADDED = AutoAnnotateSteps.class.getName() + ".notesAdded";
 
@@ -66,6 +69,9 @@ public class AutoAnnotateSteps implements InitializingBean, DisposableBean {
 
     @Autowired
     private AnnotationService annotationService;
+
+    @Autowired
+    private PhraseWatchService phraseWatchService;
 
     @Autowired
     private ChatMessageService chatMessageService;
@@ -92,11 +98,24 @@ public class AutoAnnotateSteps implements InitializingBean, DisposableBean {
                 annotate(context);
             }
         })));
+        // after the model's notes, before the redraft: the redraft addresses the hits too
+        registrations.add(storyGenerationService.addAfterPartBinding(new AfterPart.Binding(PHRASES,
+                () -> loc.getValue(L.LABEL_PHRASE_WATCH_RUN), AfterPart.Stage.REVIEW, AfterPart.Mode.SEQUENTIAL, new AfterPart.Handler() {
+            @Override
+            public boolean appliesTo(Manuscript book) {
+                return book.getPhraseWatch();
+            }
+
+            @Override
+            public void run(AfterPart.Context context) throws Exception {
+                markPhrases(context);
+            }
+        })));
         registrations.add(storyGenerationService.addAfterPartBinding(new AfterPart.Binding(REDRAFT,
                 () -> loc.getValue(L.LABEL_REDRAFT), AfterPart.Stage.REWRITE, AfterPart.Mode.SEQUENTIAL, new AfterPart.Handler() {
             @Override
             public boolean appliesTo(Manuscript book) {
-                return AutoAnnotate.isEnabled(book) && book.getAutoAnnotateAccept() && book.getAutoAnnotateRedraft();
+                return (AutoAnnotate.isEnabled(book) || book.getPhraseWatch()) && book.getAutoAnnotateAccept() && book.getAutoAnnotateRedraft();
             }
 
             @Override
@@ -194,6 +213,23 @@ public class AutoAnnotateSteps implements InitializingBean, DisposableBean {
         review(context, (taken, closed) -> AnnotateDialog.openResult(book, part, auto, found.proposals(), found.raw(), modelName,
                 context.getRun(), taken, closed));
         context.changed();
+    }
+
+    /**
+     * The hits of the phrase watch list in the part are annotated (no model); they count as notes for the redraft.
+     */
+    void markPhrases(AfterPart.Context context) throws Exception {
+        ChatMessage part = context.getPart();
+        if (StringUtils.isBlank(part.getResponse())) {
+            context.skip();
+            return;
+        }
+        int made = phraseWatchService.scan(context.getManuscript(), part).size();
+        Object before = context.getProperties().get(NOTES_ADDED);
+        context.getProperties().put(NOTES_ADDED, (before instanceof Integer count ? count : 0) + made);
+        if (made > 0) {
+            context.changed();
+        }
     }
 
     /**

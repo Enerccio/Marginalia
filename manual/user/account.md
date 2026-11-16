@@ -296,6 +296,12 @@ Notifications need an `https://` address or `localhost`: on a plain `http://` ad
 offer them, and the tab says so. A tab the browser has put to sleep (usually on a phone) can't show them either. The tab is saved with the
 **Save** of the settings, like the others.
 
+### Phrase watch list
+
+Your [phrase watch list](books/annotations.md#watching-for-phrases), which every book uses (folders and books add theirs), and the
+**annotation templates** its entries and the entries of the folders and books pick from: what the note of a phrase that was found says,
+its type and whether it is given to the model. Saved with the **Save** of the settings, like the other tabs.
+
 ### Extension Settings
 
 Settings of the installed [extensions](extensions/index.md), one section per extension (for example *Reviewer Settings*

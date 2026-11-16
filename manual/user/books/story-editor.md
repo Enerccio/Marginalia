@@ -259,7 +259,7 @@ The settings menu (⚙) in the bottom bar groups what acts on the whole story. *
 | Sub menu | Items |
 |---|---|
 | **Appearance** | **Change Styles For Text**, **Highlight Generated Text** and **Annotations in the margin** (desktop only, the last one) |
-| **Analysis** | **Annotate a range of parts with AI**, **Create summaries**, **Take lore notes with an agent**, **Automatic annotation**, **Branch Tokens**, **Lore Usage**, **Statistics** |
+| **Analysis** | **Annotate a range of parts with AI**, **Create summaries**, **Take lore notes with an agent**, **Automatic annotation**, **Phrase watch list**, **Branch Tokens**, **Lore Usage**, **Statistics** |
 | **Import & export** | **Import**, **Export story** (and the items of extensions that import or export, such as **Export instructions**) |
 | **Cleanup** | **Clear history of the book**, **Empty trash of the history**, **Mass delete** |
 | **Layout** (desktop only) | **Save layout as my default**, **Restore default layout** |
@@ -497,10 +497,11 @@ and you select it again. While the part is edited the selection in the editor is
 When a part you generated (from the page or the command bar) is complete, the book may do more with it by itself, in this order:
 
 1. **Annotate**: the [automatic annotation](annotations.md#annotating-every-new-part-automatically) reviews the part.
-2. **Redraft**: the part is written again to address the notes.
-3. **Translate**: the [Real language](../extensions/real-language-translator.md) and [Conlang](../extensions/conlang-translator.md) translators translate its speeches.
-4. **Knowledge**: the [Knowledge Tracker](../extensions/knowledge-tracker.md) reads it.
-5. **Audio**: the [Audiobook](../extensions/audiobook.md) makes it into audio.
+2. **Mark phrases**: the [phrase watch list](annotations.md#watching-for-phrases) annotates the phrases it finds (no model).
+3. **Redraft**: the part is written again to address the notes.
+4. **Translate**: the [Real language](../extensions/real-language-translator.md) and [Conlang](../extensions/conlang-translator.md) translators translate its speeches.
+5. **Knowledge**: the [Knowledge Tracker](../extensions/knowledge-tracker.md) reads it.
+6. **Audio**: the [Audiobook](../extensions/audiobook.md) makes it into audio.
 
 Only the steps the book has switched on run. They run on the server, so the page can be closed, and they are one entry in the
 [panel of the runs](#the-panel-of-the-runs): *After part 14: Annotate ✓ · Redraft … · Translate*, with the model's text and one

@@ -41,6 +41,7 @@ import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -182,6 +183,10 @@ public class UserPart implements WorkspaceComponent {
     // Notifications: the switch and the list of what notifies, saved and discarded with the page like the styles
     private NotificationSettingsEditor notificationsEditor;
 
+    // Phrase watch list: the annotation templates and the user's phrases, saved and discarded with the page like the styles
+    private AnnotationTemplatesEditor annotationTemplatesEditor;
+    private WatchedPhrasesEditor watchedPhrasesEditor;
+
     // Tab 5 Extensions
     @PublicAPI(from = "1.1.0", type = Accordion.class)
     private Accordion extensionSettings;
@@ -301,6 +306,8 @@ public class UserPart implements WorkspaceComponent {
 
         tabSheet.add(loc.getValue(L.LABEL_NOTIFICATIONS), createNotificationsTab());
 
+        tabSheet.add(loc.getValue(L.LABEL_PHRASE_WATCH), createPhraseWatchTab());
+
         extensionSettings = new Accordion();
         extensionSettings.setSizeFull();
         // the first panel is open by default; the panels are added by the extensions and the user opens the one wanted
@@ -385,6 +392,39 @@ public class UserPart implements WorkspaceComponent {
         });
         notificationsEditor = editor;
         return editor;
+    }
+
+    /**
+     * The phrase watch list of the user (the books and folders add theirs) and the annotation templates its entries name. Like the styles
+     * the editors keep their changes in their fields and tell this part; {@link #save} stores them and {@link #refresh} reloads them.
+     */
+    @PublicAPI(from = "1.9.0",
+            returns = @APIReturn(type = Component.class),
+            locals = {@APILocals(name = "layout", type = VerticalLayout.class),
+                    @APILocals(name = "phrasesTitle", type = H4.class),
+                    @APILocals(name = "templatesTitle", type = H4.class)})
+    private Component createPhraseWatchTab() {
+        VerticalLayout layout = new VerticalLayout();
+        layout.setPadding(false);
+        layout.setWidthFull();
+        annotationTemplatesEditor = new AnnotationTemplatesEditor(loc);
+        watchedPhrasesEditor = new WatchedPhrasesEditor(loc);
+        annotationTemplatesEditor.setOnChange(() -> {
+            // the entries choose among the templates as they are edited
+            watchedPhrasesEditor.setTemplates(annotationTemplatesEditor.getValue());
+            if (!loading) {
+                setChanged(true);
+            }
+        });
+        watchedPhrasesEditor.setOnChange(() -> {
+            if (!loading) {
+                setChanged(true);
+            }
+        });
+        H4 phrasesTitle = new H4(loc.getValue(L.LABEL_PHRASE_WATCH));
+        H4 templatesTitle = new H4(loc.getValue(L.LABEL_ANNOTATION_TEMPLATES));
+        layout.add(phrasesTitle, watchedPhrasesEditor, templatesTitle, annotationTemplatesEditor);
+        return layout;
     }
 
     /**
@@ -826,6 +866,11 @@ public class UserPart implements WorkspaceComponent {
             if (notificationsEditor != null) {
                 notificationsEditor.reload();
             }
+            if (annotationTemplatesEditor != null) {
+                annotationTemplatesEditor.setValue(userSetting.getAnnotationTemplates());
+                watchedPhrasesEditor.setTemplates(userSetting.getAnnotationTemplates());
+                watchedPhrasesEditor.setValue(userSetting.getWatchedPhrases());
+            }
 
             List<AI> allModels = aiService.findAllForUser();
             defaultModelCombo.setItems(allModels);
@@ -971,8 +1016,9 @@ public class UserPart implements WorkspaceComponent {
             locals = {@APILocals(name = "field", type = HasValue.class)})
     private void trackChanges(Component component) {
         if (component instanceof PartStyleEditor || component instanceof ExportSettingsEditor
-                || component instanceof NotificationSettingsEditor) {
-            // reports its changes itself, see createStylesTab, createExportsTab and createNotificationsTab
+                || component instanceof NotificationSettingsEditor || component instanceof AnnotationTemplatesEditor
+                || component instanceof WatchedPhrasesEditor) {
+            // reports its changes itself, see createStylesTab, createExportsTab, createNotificationsTab and createPhraseWatchTab
             return;
         }
         if (component instanceof HasValue<?, ?> field && ComponentUtil.getData(component, CHANGE_TRACKED_KEY) == null) {
@@ -1064,6 +1110,9 @@ public class UserPart implements WorkspaceComponent {
         if (exportsEditor != null && !exportsEditor.validate()) {
             return;
         }
+        if (annotationTemplatesEditor != null && (!annotationTemplatesEditor.validate() || !watchedPhrasesEditor.validate())) {
+            return;
+        }
 
         String masterTemplate = masterTemplateField.getValue();
         String userPrompt = defaultUserPromptField.getValue();
@@ -1132,6 +1181,10 @@ public class UserPart implements WorkspaceComponent {
             }
 
             userSetting.setKeyBindings(KeyBindings.toStored(userSetting.getKeyBindings(), keyBindingsEditor.getValue()));
+            if (annotationTemplatesEditor != null) {
+                userSetting.setAnnotationTemplates(annotationTemplatesEditor.getValue());
+                userSetting.setWatchedPhrases(watchedPhrasesEditor.getValue());
+            }
 
             settingService.save(userSetting);
             sessionPoint.setPromptLanguage(promptLanguage);

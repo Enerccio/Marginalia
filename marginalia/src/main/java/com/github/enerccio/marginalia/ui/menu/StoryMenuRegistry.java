@@ -419,6 +419,8 @@ public class StoryMenuRegistry implements InitializingBean {
                 .icon(Solid.FILE_ALT::create).path(StoryMenuKeys.GROUP_ANALYSIS));
         application(StoryMenuItem.tools(StoryMenuKeys.AUTO_ANNOTATE, L.LABEL_AUTO_ANNOTATE, StoryEditor::openAutoAnnotateDialog)
                 .icon(Solid.ROBOT::create).checkedWhen(StoryEditor::isAutoAnnotate).path(StoryMenuKeys.GROUP_ANALYSIS));
+        application(StoryMenuItem.tools(StoryMenuKeys.PHRASE_WATCH, L.LABEL_PHRASE_WATCH, StoryEditor::openPhraseWatchDialog)
+                .icon(Solid.HIGHLIGHTER::create).checkedWhen(StoryEditor::isPhraseWatch).path(StoryMenuKeys.GROUP_ANALYSIS));
         application(StoryMenuItem.tools(StoryMenuKeys.BRANCH_TOKENS, L.LABEL_BRANCH_TOKENS, StoryEditor::openBranchTokensDialog)
                 .icon(Solid.CHART_BAR::create).path(StoryMenuKeys.GROUP_ANALYSIS));
         application(StoryMenuItem.tools(StoryMenuKeys.LORE_USAGE, L.LABEL_LORE_USAGE, StoryEditor::openLoreUsageDialog)

@@ -1117,6 +1117,19 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_TEST_STEP, "Test");
         setValue(L.LABEL_REMOVE, "Remove");
         setValue(L.LABEL_USED_OUTSIDE_MARGINALIA, "Also used outside Marginalia");
+        setValue(L.LABEL_PHRASE_WATCH, "Phrase watch list");
+        setValue(L.LABEL_PHRASE_WATCH_RUN, "Mark phrases");
+        setValue(L.LABEL_PHRASE_WATCH_ENABLE, "Annotate the watched phrases in every generated part");
+        setValue(L.LABEL_PHRASE_WATCH_SCAN, "Save and scan the story");
+        setValue(L.LABEL_WATCHED_PHRASE, "Phrase");
+        setValue(L.LABEL_REGULAR_EXPRESSION, "Regular expression");
+        setValue(L.LABEL_PHRASE_OFF, "Off here");
+        setValue(L.LABEL_ADD_PHRASE, "Add phrase");
+        setValue(L.LABEL_INHERITED_PHRASES, "Inherited phrases");
+        setValue(L.LABEL_SWITCH_OFF_HERE, "Switch off here");
+        setValue(L.LABEL_ANNOTATION_TEMPLATE, "Annotation template");
+        setValue(L.LABEL_ANNOTATION_TEMPLATES, "Annotation templates");
+        setValue(L.LABEL_ADD_ANNOTATION_TEMPLATE, "Add template");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1313,6 +1326,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ENUM_SUMMARY_SPLIT_TOKENS, "Number of tokens");
         setValue(L.ENUM_SUMMARY_SPLIT_CHAPTERS, "Chapters");
         setValue(L.ENUM_SUMMARY_SPLIT_PARTS, "Number of parts");
+        setValue(L.ENUM_ANNOTATION_SOURCE_PHRASE, "Phrase watch list");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
@@ -1425,6 +1439,8 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ERROR_COMMAND_STILL_RUNNING, "The command %s is still running. Wait until it is done, or stop it.");
         setValue(L.ERROR_GPU_STEP_FAILED, "The step failed: %s");
         setValue(L.ERROR_GPU_UNLOAD_FAILED, "A release step failed: %s");
+        setValue(L.ERROR_PHRASE_INVALID, "This phrase can't be used: %s");
+        setValue(L.ERROR_ANNOTATION_TEMPLATE_INCOMPLETE, "Every annotation template needs a name and a note.");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "Cannot save form.");
@@ -1921,6 +1937,11 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_DELETE_GPU, "Delete the GPU \"%s\" and its locks?");
         setValue(L.MSG_DELETE_GPU_LOCK, "Delete the lock \"%s\"? The AIs and backends that use it run without a lock.");
         setValue(L.MSG_DELETE_GPU_STEP, "Delete the step \"%s\"? It is taken out of the locks that run it.");
+        setValue(L.MSG_PHRASE_WATCH_NOTE, "Watched phrase: “{{match}}”");
+        setValue(L.MSG_PHRASE_BUILTIN_NOTE, "Built-in note");
+        setValue(L.MSG_PHRASE_WATCH_INFO, "The phrases are looked for in the text of a part, with no model: every hit becomes an annotation of the passage. The phrases of your settings, of the folders above the book and of the book add up. The scan of generated parts runs after the automatic annotation; when the book redrafts automatically, the redraft addresses these notes too.");
+        setValue(L.MSG_PHRASE_WATCH_SAVED, "Phrase watch list saved.");
+        setValue(L.MSG_PHRASE_WATCH_SCANNED, "Annotations added: %d");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -2061,6 +2082,8 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_GPU_ACQUIRE_STEPS, "Run in order before the first job of this lock; the first failure stops them.");
         setValue(L.HELP_GPU_RELEASE_STEPS, "Run when a job of another lock needs the GPU, or with Unload now; all of them run, also when one fails.");
         setValue(L.HELP_GPU_USED_OUTSIDE, "Other programs or people use this GPU too: Marginalia then runs the acquire steps of a lock before every job, not only when the GPU changes locks, as it can't know what is loaded. The acquire steps of each lock must then make room by themselves (unload the other models) and be safe to repeat.");
+        setValue(L.HELP_PHRASE_WATCH_LIST, "A phrase is found regardless of case and as whole words, any white space matches any white space and straight and curly quotes match each other; a regular expression is used as written (also regardless of case). An entry with the same phrase as an inherited one replaces it, and one that is off takes it out.");
+        setValue(L.HELP_ANNOTATION_TEMPLATES, "What the annotation of a hit of the phrase watch list says. In the note {{match}} is the words found and {{phrase}} the entry of the list. An entry without a template gets a built-in note.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

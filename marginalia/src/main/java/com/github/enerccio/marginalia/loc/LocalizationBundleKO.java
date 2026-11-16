@@ -1117,6 +1117,19 @@ public class LocalizationBundleKO extends LocalizationBundleBase {
         setValue(L.LABEL_TEST_STEP, "테스트");
         setValue(L.LABEL_REMOVE, "제거");
         setValue(L.LABEL_USED_OUTSIDE_MARGINALIA, "Marginalia 밖에서도 사용");
+        setValue(L.LABEL_PHRASE_WATCH, "주의 문구 목록");
+        setValue(L.LABEL_PHRASE_WATCH_RUN, "문구 표시");
+        setValue(L.LABEL_PHRASE_WATCH_ENABLE, "생성된 모든 파트의 주의 문구에 주석 달기");
+        setValue(L.LABEL_PHRASE_WATCH_SCAN, "저장하고 이야기 검사");
+        setValue(L.LABEL_WATCHED_PHRASE, "문구");
+        setValue(L.LABEL_REGULAR_EXPRESSION, "정규식");
+        setValue(L.LABEL_PHRASE_OFF, "여기서 끄기");
+        setValue(L.LABEL_ADD_PHRASE, "문구 추가");
+        setValue(L.LABEL_INHERITED_PHRASES, "상속된 문구");
+        setValue(L.LABEL_SWITCH_OFF_HERE, "여기서 끄기");
+        setValue(L.LABEL_ANNOTATION_TEMPLATE, "주석 템플릿");
+        setValue(L.LABEL_ANNOTATION_TEMPLATES, "주석 템플릿");
+        setValue(L.LABEL_ADD_ANNOTATION_TEMPLATE, "템플릿 추가");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 호환");
@@ -1313,6 +1326,7 @@ public class LocalizationBundleKO extends LocalizationBundleBase {
         setValue(L.ENUM_SUMMARY_SPLIT_TOKENS, "토큰 수");
         setValue(L.ENUM_SUMMARY_SPLIT_CHAPTERS, "챕터");
         setValue(L.ENUM_SUMMARY_SPLIT_PARTS, "파트 수");
+        setValue(L.ENUM_ANNOTATION_SOURCE_PHRASE, "주의 문구 목록");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "내부 서버 오류");
@@ -1425,6 +1439,8 @@ public class LocalizationBundleKO extends LocalizationBundleBase {
         setValue(L.ERROR_COMMAND_STILL_RUNNING, "%s 명령이 아직 실행 중입니다. 끝날 때까지 기다리거나 중지하세요.");
         setValue(L.ERROR_GPU_STEP_FAILED, "단계가 실패했습니다: %s");
         setValue(L.ERROR_GPU_UNLOAD_FAILED, "해제 단계가 실패했습니다: %s");
+        setValue(L.ERROR_PHRASE_INVALID, "이 문구는 사용할 수 없습니다: %s");
+        setValue(L.ERROR_ANNOTATION_TEMPLATE_INCOMPLETE, "모든 주석 템플릿에는 이름과 메모가 필요합니다.");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "양식을 저장할 수 없습니다.");
@@ -1921,6 +1937,11 @@ public class LocalizationBundleKO extends LocalizationBundleBase {
         setValue(L.MSG_DELETE_GPU, "GPU \"%s\"와 그 잠금을 삭제할까요?");
         setValue(L.MSG_DELETE_GPU_LOCK, "잠금 \"%s\"을(를) 삭제할까요? 이를 쓰는 AI와 백엔드는 잠금 없이 동작합니다.");
         setValue(L.MSG_DELETE_GPU_STEP, "단계 \"%s\"을(를) 삭제할까요? 이를 실행하는 잠금에서 빠집니다.");
+        setValue(L.MSG_PHRASE_WATCH_NOTE, "주의 문구: “{{match}}”");
+        setValue(L.MSG_PHRASE_BUILTIN_NOTE, "기본 메모");
+        setValue(L.MSG_PHRASE_WATCH_INFO, "문구는 모델 없이 파트의 본문에서 찾으며, 찾을 때마다 해당 구절의 주석이 됩니다. 설정, 책 위의 폴더, 책 자체의 문구가 합쳐집니다. 생성된 파트 검사는 자동 주석 다음에 실행되며, 책이 자동으로 다시 쓸 때는 다시 쓰기에서 이 메모도 반영합니다.");
+        setValue(L.MSG_PHRASE_WATCH_SAVED, "주의 문구 목록을 저장했습니다.");
+        setValue(L.MSG_PHRASE_WATCH_SCANNED, "추가된 주석: %d");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "분 시 일 월 요일 - 예: \"0 3 * * *\"은 매일 3:00, \"0 */6 * * *\"은 6시간마다, \"30 2 * * 1\"은 월요일 2:30. @daily, @weekly, @monthly도 사용할 수 있습니다.");
@@ -2061,6 +2082,8 @@ public class LocalizationBundleKO extends LocalizationBundleBase {
         setValue(L.HELP_GPU_ACQUIRE_STEPS, "이 잠금의 첫 작업 전에 순서대로 실행됩니다. 첫 실패에서 멈춥니다.");
         setValue(L.HELP_GPU_RELEASE_STEPS, "다른 잠금의 작업이 GPU를 필요로 할 때나 '지금 해제'로 실행됩니다. 하나가 실패해도 모두 실행됩니다.");
         setValue(L.HELP_GPU_USED_OUTSIDE, "다른 프로그램이나 사람도 이 GPU를 사용합니다. Marginalia는 무엇이 로드되어 있는지 알 수 없으므로 GPU의 잠금이 바뀔 때뿐 아니라 모든 작업 전에 잠금의 획득 단계를 실행합니다. 이때 각 잠금의 획득 단계는 스스로 자리를 비우고(다른 모델 해제) 반복해도 안전해야 합니다.");
+        setValue(L.HELP_PHRASE_WATCH_LIST, "문구는 대소문자를 구분하지 않고 단어 단위로 찾으며, 모든 공백은 어떤 공백과도 일치하고 곧은 따옴표와 둥근 따옴표는 서로 일치합니다. 정규식은 작성된 그대로 사용됩니다(역시 대소문자 구분 없음). 상속된 항목과 같은 문구의 항목은 그것을 대체하고, 꺼진 항목은 그것을 제외합니다.");
+        setValue(L.HELP_ANNOTATION_TEMPLATES, "주의 문구 목록에 걸린 항목의 주석 내용입니다. 메모에서 {{match}}는 찾은 단어, {{phrase}}는 목록의 항목입니다. 템플릿이 없는 항목에는 기본 메모가 붙습니다.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "배경 로어와 세계관 컨텍스트.");

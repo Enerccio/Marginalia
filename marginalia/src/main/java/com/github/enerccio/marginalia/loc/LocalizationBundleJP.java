@@ -1117,6 +1117,19 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_TEST_STEP, "テスト");
         setValue(L.LABEL_REMOVE, "削除");
         setValue(L.LABEL_USED_OUTSIDE_MARGINALIA, "Marginalia の外でも使用");
+        setValue(L.LABEL_PHRASE_WATCH, "要注意フレーズ一覧");
+        setValue(L.LABEL_PHRASE_WATCH_RUN, "フレーズに印を付ける");
+        setValue(L.LABEL_PHRASE_WATCH_ENABLE, "生成したパートごとに要注意フレーズへ注釈を付ける");
+        setValue(L.LABEL_PHRASE_WATCH_SCAN, "保存して物語を走査");
+        setValue(L.LABEL_WATCHED_PHRASE, "フレーズ");
+        setValue(L.LABEL_REGULAR_EXPRESSION, "正規表現");
+        setValue(L.LABEL_PHRASE_OFF, "ここでは無効");
+        setValue(L.LABEL_ADD_PHRASE, "フレーズを追加");
+        setValue(L.LABEL_INHERITED_PHRASES, "継承したフレーズ");
+        setValue(L.LABEL_SWITCH_OFF_HERE, "ここで無効にする");
+        setValue(L.LABEL_ANNOTATION_TEMPLATE, "注釈テンプレート");
+        setValue(L.LABEL_ANNOTATION_TEMPLATES, "注釈テンプレート");
+        setValue(L.LABEL_ADD_ANNOTATION_TEMPLATE, "テンプレートを追加");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1313,6 +1326,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ENUM_SUMMARY_SPLIT_TOKENS, "トークン数");
         setValue(L.ENUM_SUMMARY_SPLIT_CHAPTERS, "章");
         setValue(L.ENUM_SUMMARY_SPLIT_PARTS, "パート数");
+        setValue(L.ENUM_ANNOTATION_SOURCE_PHRASE, "要注意フレーズ一覧");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部サーバーエラー");
@@ -1425,6 +1439,8 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ERROR_COMMAND_STILL_RUNNING, "コマンド %s はまだ実行中です。終わるまで待つか、停止してください。");
         setValue(L.ERROR_GPU_STEP_FAILED, "ステップが失敗しました: %s");
         setValue(L.ERROR_GPU_UNLOAD_FAILED, "解放ステップが失敗しました: %s");
+        setValue(L.ERROR_PHRASE_INVALID, "このフレーズは使用できません: %s");
+        setValue(L.ERROR_ANNOTATION_TEMPLATE_INCOMPLETE, "注釈テンプレートには名前とメモが必要です。");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "フォームを保存できません。");
@@ -1921,6 +1937,11 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_DELETE_GPU, "GPU「%s」とそのロックを削除しますか？");
         setValue(L.MSG_DELETE_GPU_LOCK, "ロック「%s」を削除しますか？これを使う AI とバックエンドはロックなしで動きます。");
         setValue(L.MSG_DELETE_GPU_STEP, "ステップ「%s」を削除しますか？これを使うロックから外されます。");
+        setValue(L.MSG_PHRASE_WATCH_NOTE, "要注意フレーズ:「{{match}}」");
+        setValue(L.MSG_PHRASE_BUILTIN_NOTE, "既定のメモ");
+        setValue(L.MSG_PHRASE_WATCH_INFO, "フレーズはモデルを使わずにパートの本文から探され、見つかるたびにその箇所への注釈になります。設定、本の上位フォルダー、本自体のフレーズが合算されます。生成されたパートの走査は自動注釈の後に行われ、本が自動で再執筆する場合はこれらの注釈も再執筆で対処されます。");
+        setValue(L.MSG_PHRASE_WATCH_SAVED, "要注意フレーズ一覧を保存しました。");
+        setValue(L.MSG_PHRASE_WATCH_SCANNED, "追加した注釈: %d");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
@@ -2061,6 +2082,8 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_GPU_ACQUIRE_STEPS, "このロックの最初のジョブの前に順番に実行されます。最初の失敗で止まります。");
         setValue(L.HELP_GPU_RELEASE_STEPS, "別のロックのジョブが GPU を必要とするとき、または「今すぐ解放」で実行されます。一つが失敗してもすべて実行されます。");
         setValue(L.HELP_GPU_USED_OUTSIDE, "他のプログラムや人もこの GPU を使います。Marginalia は何が読み込まれているか分からないため、GPU のロックが切り替わるときだけでなく、すべてのジョブの前にロックの取得ステップを実行します。各ロックの取得ステップは自分で場所を空け (他のモデルを解放し)、繰り返しても安全である必要があります。");
+        setValue(L.HELP_PHRASE_WATCH_LIST, "フレーズは大文字小文字を区別せず単語単位で探され、空白はどの空白にも、直線引用符と曲線引用符は互いに一致します。正規表現はそのまま使われます(大文字小文字は区別しません)。継承したものと同じフレーズのエントリーはそれを置き換え、無効にしたエントリーはそれを除外します。");
+        setValue(L.HELP_ANNOTATION_TEMPLATES, "要注意フレーズ一覧に一致したときの注釈の内容です。メモの中の {{match}} は見つかった語句、{{phrase}} は一覧のエントリーです。テンプレートのないエントリーには既定のメモが付きます。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");

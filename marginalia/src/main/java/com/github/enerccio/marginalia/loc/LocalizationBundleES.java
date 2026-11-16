@@ -1117,6 +1117,19 @@ public class LocalizationBundleES extends LocalizationBundleBase {
         setValue(L.LABEL_TEST_STEP, "Probar");
         setValue(L.LABEL_REMOVE, "Quitar");
         setValue(L.LABEL_USED_OUTSIDE_MARGINALIA, "También se usa fuera de Marginalia");
+        setValue(L.LABEL_PHRASE_WATCH, "Lista de frases vigiladas");
+        setValue(L.LABEL_PHRASE_WATCH_RUN, "Marcar frases");
+        setValue(L.LABEL_PHRASE_WATCH_ENABLE, "Anotar las frases vigiladas en cada parte generada");
+        setValue(L.LABEL_PHRASE_WATCH_SCAN, "Guardar y revisar la historia");
+        setValue(L.LABEL_WATCHED_PHRASE, "Frase");
+        setValue(L.LABEL_REGULAR_EXPRESSION, "Expresión regular");
+        setValue(L.LABEL_PHRASE_OFF, "Desactivada aquí");
+        setValue(L.LABEL_ADD_PHRASE, "Añadir frase");
+        setValue(L.LABEL_INHERITED_PHRASES, "Frases heredadas");
+        setValue(L.LABEL_SWITCH_OFF_HERE, "Desactivar aquí");
+        setValue(L.LABEL_ANNOTATION_TEMPLATE, "Plantilla de anotación");
+        setValue(L.LABEL_ANNOTATION_TEMPLATES, "Plantillas de anotación");
+        setValue(L.LABEL_ADD_ANNOTATION_TEMPLATE, "Añadir plantilla");
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "Compatible con OpenAI");
         setValue(L.ENUM_PROTOCOL_TYPE_OPEN_CHAT_COMPLETION, "Chat Completion");
@@ -1312,6 +1325,7 @@ public class LocalizationBundleES extends LocalizationBundleBase {
         setValue(L.ENUM_SUMMARY_SPLIT_TOKENS, "Número de tokens");
         setValue(L.ENUM_SUMMARY_SPLIT_CHAPTERS, "Capítulos");
         setValue(L.ENUM_SUMMARY_SPLIT_PARTS, "Número de partes");
+        setValue(L.ENUM_ANNOTATION_SOURCE_PHRASE, "Lista de frases vigiladas");
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Error interno del servidor");
         setValue(L.ERROR_AI_NOT_SET, "Al libro le falta el modelo.");
@@ -1423,6 +1437,8 @@ public class LocalizationBundleES extends LocalizationBundleBase {
         setValue(L.ERROR_COMMAND_STILL_RUNNING, "El comando %s sigue en ejecución. Espera a que termine o deténlo.");
         setValue(L.ERROR_GPU_STEP_FAILED, "El paso falló: %s");
         setValue(L.ERROR_GPU_UNLOAD_FAILED, "Un paso de liberación falló: %s");
+        setValue(L.ERROR_PHRASE_INVALID, "Esta frase no se puede usar: %s");
+        setValue(L.ERROR_ANNOTATION_TEMPLATE_INCOMPLETE, "Cada plantilla de anotación necesita un nombre y una nota.");
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "No se puede guardar el formulario.");
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE_EXT, "No se puede guardar el formulario. Campos no válidos: ");
@@ -1918,6 +1934,11 @@ public class LocalizationBundleES extends LocalizationBundleBase {
         setValue(L.MSG_DELETE_GPU, "¿Eliminar la GPU «%s» y sus bloqueos?");
         setValue(L.MSG_DELETE_GPU_LOCK, "¿Eliminar el bloqueo «%s»? Las IA y los servidores que lo usan funcionan sin bloqueo.");
         setValue(L.MSG_DELETE_GPU_STEP, "¿Eliminar el paso «%s»? Se quita de los bloqueos que lo ejecutan.");
+        setValue(L.MSG_PHRASE_WATCH_NOTE, "Frase vigilada: «{{match}}»");
+        setValue(L.MSG_PHRASE_BUILTIN_NOTE, "Nota predeterminada");
+        setValue(L.MSG_PHRASE_WATCH_INFO, "Las frases se buscan en el texto de una parte, sin modelo: cada coincidencia se convierte en una anotación del pasaje. Se suman las frases de tus ajustes, de las carpetas por encima del libro y del propio libro. La revisión de las partes generadas se hace después de la anotación automática; cuando el libro reescribe automáticamente, la reescritura atiende también estas notas.");
+        setValue(L.MSG_PHRASE_WATCH_SAVED, "Lista de frases vigiladas guardada.");
+        setValue(L.MSG_PHRASE_WATCH_SCANNED, "Anotaciones añadidas: %d");
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minuto hora día-del-mes mes día-de-la-semana - p. ej. \"0 3 * * *\" todos los días a las 3:00, \"0 */6 * * *\" cada 6 horas, \"30 2 * * 1\" los lunes a las 2:30. También funcionan @daily, @weekly y @monthly.");
         setValue(L.HELP_BACKUP_KEEP, "Las copias programadas más antiguas se eliminan; 0 las conserva todas. Las copias manuales nunca se eliminan.");
@@ -2057,6 +2078,8 @@ public class LocalizationBundleES extends LocalizationBundleBase {
         setValue(L.HELP_GPU_ACQUIRE_STEPS, "Se ejecutan en orden antes del primer trabajo de este bloqueo; el primer fallo los detiene.");
         setValue(L.HELP_GPU_RELEASE_STEPS, "Se ejecutan cuando un trabajo de otro bloqueo necesita la GPU, o con Descargar ahora; se ejecutan todos, aunque uno falle.");
         setValue(L.HELP_GPU_USED_OUTSIDE, "Otros programas o personas también usan esta GPU: Marginalia ejecuta entonces los pasos de adquisición de un bloqueo antes de cada trabajo, no solo cuando la GPU cambia de bloqueo, porque no puede saber qué está cargado. Los pasos de adquisición de cada bloqueo deben entonces hacer sitio por sí mismos (descargar los otros modelos) y poder repetirse sin riesgo.");
+        setValue(L.HELP_PHRASE_WATCH_LIST, "Una frase se encuentra sin distinguir mayúsculas y como palabras completas, cualquier espacio coincide con cualquier espacio y las comillas rectas y tipográficas coinciden entre sí; una expresión regular se usa tal cual (también sin distinguir mayúsculas). Una entrada con la misma frase que una heredada la sustituye, y una desactivada la quita.");
+        setValue(L.HELP_ANNOTATION_TEMPLATES, "Lo que dice la anotación de una coincidencia de la lista de frases vigiladas. En la nota, {{match}} es el texto encontrado y {{phrase}} la entrada de la lista. Una entrada sin plantilla recibe una nota predeterminada.");
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Lore de fondo y contexto del mundo.");
         setValue(L.DESC_TEMPLATE_MANUSCRIPT, "El contenido del manuscrito en curso para el resumen.");

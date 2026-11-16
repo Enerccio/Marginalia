@@ -216,7 +216,8 @@ public class StoryAnnotations {
         return switch (source) {
             case AI -> CssStyles.ANNOTATION_MARK_AI;
             case AGENT -> CssStyles.ANNOTATION_MARK_AGENT;
-            case PLUGIN -> CssStyles.ANNOTATION_MARK_PLUGIN;
+            // a checker without a model, as the ones of the extensions
+            case PLUGIN, PHRASE -> CssStyles.ANNOTATION_MARK_PLUGIN;
             default -> CssStyles.ANNOTATION_MARK_AUTHOR;
         };
     }

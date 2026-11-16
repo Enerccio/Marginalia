@@ -1117,6 +1117,19 @@ public class LocalizationBundleFR extends LocalizationBundleBase {
         setValue(L.LABEL_TEST_STEP, "Tester");
         setValue(L.LABEL_REMOVE, "Retirer");
         setValue(L.LABEL_USED_OUTSIDE_MARGINALIA, "Utilisé aussi hors de Marginalia");
+        setValue(L.LABEL_PHRASE_WATCH, "Liste de phrases à surveiller");
+        setValue(L.LABEL_PHRASE_WATCH_RUN, "Marquer les phrases");
+        setValue(L.LABEL_PHRASE_WATCH_ENABLE, "Annoter les phrases surveillées de chaque partie générée");
+        setValue(L.LABEL_PHRASE_WATCH_SCAN, "Enregistrer et analyser l'histoire");
+        setValue(L.LABEL_WATCHED_PHRASE, "Phrase");
+        setValue(L.LABEL_REGULAR_EXPRESSION, "Expression régulière");
+        setValue(L.LABEL_PHRASE_OFF, "Désactivée ici");
+        setValue(L.LABEL_ADD_PHRASE, "Ajouter une phrase");
+        setValue(L.LABEL_INHERITED_PHRASES, "Phrases héritées");
+        setValue(L.LABEL_SWITCH_OFF_HERE, "Désactiver ici");
+        setValue(L.LABEL_ANNOTATION_TEMPLATE, "Modèle d'annotation");
+        setValue(L.LABEL_ANNOTATION_TEMPLATES, "Modèles d'annotation");
+        setValue(L.LABEL_ADD_ANNOTATION_TEMPLATE, "Ajouter un modèle");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "Compatible OpenAI");
@@ -1313,6 +1326,7 @@ public class LocalizationBundleFR extends LocalizationBundleBase {
         setValue(L.ENUM_SUMMARY_SPLIT_TOKENS, "Nombre de jetons");
         setValue(L.ENUM_SUMMARY_SPLIT_CHAPTERS, "Chapitres");
         setValue(L.ENUM_SUMMARY_SPLIT_PARTS, "Nombre de parties");
+        setValue(L.ENUM_ANNOTATION_SOURCE_PHRASE, "Liste de phrases à surveiller");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Erreur interne du serveur");
@@ -1425,6 +1439,8 @@ public class LocalizationBundleFR extends LocalizationBundleBase {
         setValue(L.ERROR_COMMAND_STILL_RUNNING, "La commande %s est toujours en cours. Attendez la fin ou arrêtez-la.");
         setValue(L.ERROR_GPU_STEP_FAILED, "L'étape a échoué : %s");
         setValue(L.ERROR_GPU_UNLOAD_FAILED, "Une étape de libération a échoué : %s");
+        setValue(L.ERROR_PHRASE_INVALID, "Cette phrase ne peut pas être utilisée : %s");
+        setValue(L.ERROR_ANNOTATION_TEMPLATE_INCOMPLETE, "Chaque modèle d'annotation doit avoir un nom et une note.");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "Impossible d'enregistrer le formulaire.");
@@ -1921,6 +1937,11 @@ public class LocalizationBundleFR extends LocalizationBundleBase {
         setValue(L.MSG_DELETE_GPU, "Supprimer le GPU « %s » et ses verrous ?");
         setValue(L.MSG_DELETE_GPU_LOCK, "Supprimer le verrou « %s » ? Les IA et les serveurs qui l'utilisent fonctionnent sans verrou.");
         setValue(L.MSG_DELETE_GPU_STEP, "Supprimer l'étape « %s » ? Elle est retirée des verrous qui l'exécutent.");
+        setValue(L.MSG_PHRASE_WATCH_NOTE, "Phrase surveillée : « {{match}} »");
+        setValue(L.MSG_PHRASE_BUILTIN_NOTE, "Note intégrée");
+        setValue(L.MSG_PHRASE_WATCH_INFO, "Les phrases sont cherchées dans le texte d'une partie, sans modèle : chaque occurrence devient une annotation du passage. Les phrases de vos paramètres, des dossiers au-dessus du livre et du livre s'additionnent. L'analyse des parties générées a lieu après l'annotation automatique ; quand le livre réécrit automatiquement, la réécriture traite aussi ces notes.");
+        setValue(L.MSG_PHRASE_WATCH_SAVED, "Liste de phrases à surveiller enregistrée.");
+        setValue(L.MSG_PHRASE_WATCH_SCANNED, "Annotations ajoutées : %d");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute heure jour-du-mois mois jour-de-la-semaine - p. ex. \"0 3 * * *\" tous les jours à 3 h 00, \"0 */6 * * *\" toutes les 6 heures, \"30 2 * * 1\" le lundi à 2 h 30. @daily, @weekly et @monthly fonctionnent aussi.");
@@ -2061,6 +2082,8 @@ public class LocalizationBundleFR extends LocalizationBundleBase {
         setValue(L.HELP_GPU_ACQUIRE_STEPS, "Exécutées dans l'ordre avant la première tâche de ce verrou ; le premier échec les arrête.");
         setValue(L.HELP_GPU_RELEASE_STEPS, "Exécutées quand une tâche d'un autre verrou a besoin du GPU, ou avec Décharger maintenant ; toutes s'exécutent, même si l'une échoue.");
         setValue(L.HELP_GPU_USED_OUTSIDE, "D'autres programmes ou personnes utilisent aussi ce GPU : Marginalia exécute alors les étapes d'acquisition d'un verrou avant chaque tâche, pas seulement quand le GPU change de verrou, car il ne peut pas savoir ce qui est chargé. Les étapes d'acquisition de chaque verrou doivent alors faire de la place elles-mêmes (décharger les autres modèles) et pouvoir être répétées sans risque.");
+        setValue(L.HELP_PHRASE_WATCH_LIST, "Une phrase est trouvée sans tenir compte de la casse et en mots entiers, tout espace correspond à tout espace et les guillemets droits et typographiques se correspondent ; une expression régulière est utilisée telle quelle (elle aussi sans tenir compte de la casse). Une entrée ayant la même phrase qu'une entrée héritée la remplace, et une entrée désactivée la retire.");
+        setValue(L.HELP_ANNOTATION_TEMPLATES, "Ce que dit l'annotation d'une occurrence de la liste de phrases à surveiller. Dans la note, {{match}} est le texte trouvé et {{phrase}} l'entrée de la liste. Une entrée sans modèle reçoit une note intégrée.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Lore de fond et contexte du monde.");

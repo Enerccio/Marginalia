@@ -1,10 +1,12 @@
 package com.github.enerccio.marginalia.backup;
 
 import com.github.enerccio.marginalia.domain.collections.Language;
+import com.github.enerccio.marginalia.domain.model.WatchedPhrase;
 import com.github.enerccio.marginalia.domain.model.impl.Folder;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.BackupService.ManuscriptBackup;
 import com.github.enerccio.marginalia.domain.service.FolderService;
+import com.github.enerccio.marginalia.domain.service.PhraseWatchService;
 import com.github.enerccio.marginalia.domain.service.PromptField;
 import com.google.gson.JsonObject;
 import org.apache.commons.io.FileUtils;
@@ -14,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,6 +29,9 @@ class BackupFoldersTest extends BackupTestBase {
 
     @Autowired
     private FolderService folderService;
+
+    @Autowired
+    private PhraseWatchService phraseWatchService;
 
     private Folder scifi;
     private Folder expanse;
@@ -118,6 +124,18 @@ class BackupFoldersTest extends BackupTestBase {
         assertThat(made.getLanguage()).isEqualTo(Language.CZECH);
         assertThat(PromptField.STYLE.ofFolder(made)).isEqualTo("sparse");
         assertThat(manuscriptService.getLanguage(book)).isEqualTo(Language.CZECH);
+    }
+
+    @Test
+    void theFolderKeepsItsPhraseWatchListInTheBackup() throws Exception {
+        phraseWatchService.setForFolder(scifi, List.of(new WatchedPhrase("tapestry", false, null)));
+        backup = backupService.takeBackup(original);
+        forgetTheFolders();
+
+        restored();
+
+        Folder made = folderService.findChild(null, "Sci-fi");
+        assertThat(made.getWatchedPhrases()).extracting(WatchedPhrase::getPhrase).containsExactly("tapestry");
     }
 
     @Test

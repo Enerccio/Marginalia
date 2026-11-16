@@ -2,11 +2,15 @@ package com.github.enerccio.marginalia.domain.model.impl;
 
 import com.github.enerccio.marginalia.domain.collections.Language;
 import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
+import com.github.enerccio.marginalia.domain.model.WatchedPhrase;
 import com.github.enerccio.marginalia.domain.traits.CleanupReference;
 import com.github.enerccio.marginalia.domain.traits.CleanupReference.Policy;
 import com.github.enerccio.marginalia.domain.traits.ExtendedAttribute;
 import com.github.enerccio.marginalia.domain.traits.Fulltextable;
 import jakarta.persistence.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A group of books, nested in other folders. The books in it (and in the folders below it) inherit the settings that are
@@ -115,6 +119,13 @@ public class Folder extends ExtendableEntity {
     @ExtendedAttribute
     @Transient
     private Integer historyMaxVersions;
+
+    /**
+     * The phrase watch list the folder sets for the books in it and the folders below it ({@code PhraseWatchService}): added to the lists above, an entry with the same phrase replaces theirs.
+     */
+    @ExtendedAttribute(inject = true, injectPrefix = "watchedPhrases")
+    @Transient
+    private List<WatchedPhrase> watchedPhrases = new ArrayList<>();
 
     public String getName() {
         return name;
@@ -277,5 +288,16 @@ public class Folder extends ExtendableEntity {
 
     public void setHistoryMaxVersions(Integer historyMaxVersions) {
         this.historyMaxVersions = historyMaxVersions;
+    }
+
+    public List<WatchedPhrase> getWatchedPhrases() {
+        if (watchedPhrases == null) {
+            watchedPhrases = new ArrayList<>();
+        }
+        return watchedPhrases;
+    }
+
+    public void setWatchedPhrases(List<WatchedPhrase> watchedPhrases) {
+        this.watchedPhrases = watchedPhrases == null ? new ArrayList<>() : new ArrayList<>(watchedPhrases);
     }
 }

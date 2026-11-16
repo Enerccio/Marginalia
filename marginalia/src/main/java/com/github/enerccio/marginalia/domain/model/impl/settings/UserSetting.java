@@ -2,7 +2,9 @@ package com.github.enerccio.marginalia.domain.model.impl.settings;
 
 import com.github.enerccio.marginalia.domain.collections.ThemeMode;
 import com.github.enerccio.marginalia.domain.collections.WebhookFormat;
+import com.github.enerccio.marginalia.domain.model.AnnotationTemplate;
 import com.github.enerccio.marginalia.domain.model.Setting;
+import com.github.enerccio.marginalia.domain.model.WatchedPhrase;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
@@ -233,6 +235,20 @@ public class UserSetting extends Setting {
     @ExtendedAttribute(inject = true, injectPrefix = "favoriteBooks")
     @Transient
     private List<String> favoriteBooks = new ArrayList<>();
+
+    /**
+     * The phrase watch list of the user, which every book uses (with the lists of its folders and its own, {@code PhraseWatchService}).
+     */
+    @ExtendedAttribute(inject = true, injectPrefix = "watchedPhrases")
+    @Transient
+    private List<WatchedPhrase> watchedPhrases = new ArrayList<>();
+
+    /**
+     * The annotation templates the entries of the phrase watch lists name (by uuid): what the annotation of a hit says.
+     */
+    @ExtendedAttribute(inject = true, injectPrefix = "annotationTemplates")
+    @Transient
+    private List<AnnotationTemplate> annotationTemplates = new ArrayList<>();
 
     /**
      * The keys of the user for the keyboard shortcuts of the story editor: action id to key combination, only the ones
@@ -633,5 +649,27 @@ public class UserSetting extends Setting {
 
     public void setKeyBindings(JsonObject keyBindings) {
         this.keyBindings = keyBindings == null ? new JsonObject() : keyBindings;
+    }
+
+    public List<WatchedPhrase> getWatchedPhrases() {
+        if (watchedPhrases == null) {
+            watchedPhrases = new ArrayList<>();
+        }
+        return watchedPhrases;
+    }
+
+    public void setWatchedPhrases(List<WatchedPhrase> watchedPhrases) {
+        this.watchedPhrases = watchedPhrases == null ? new ArrayList<>() : new ArrayList<>(watchedPhrases);
+    }
+
+    public List<AnnotationTemplate> getAnnotationTemplates() {
+        if (annotationTemplates == null) {
+            annotationTemplates = new ArrayList<>();
+        }
+        return annotationTemplates;
+    }
+
+    public void setAnnotationTemplates(List<AnnotationTemplate> annotationTemplates) {
+        this.annotationTemplates = annotationTemplates == null ? new ArrayList<>() : new ArrayList<>(annotationTemplates);
     }
 }

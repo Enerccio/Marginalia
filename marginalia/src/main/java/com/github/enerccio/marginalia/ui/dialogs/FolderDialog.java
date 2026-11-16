@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Folder;
 import com.github.enerccio.marginalia.domain.service.FolderService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptLockedException;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
+import com.github.enerccio.marginalia.domain.service.PhraseWatchService;
 import com.github.enerccio.marginalia.extensions.InheritedSettingValues;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
@@ -11,6 +12,7 @@ import com.github.enerccio.marginalia.ui.widgets.*;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -43,6 +45,9 @@ public class FolderDialog extends Dialog {
     @Autowired
     private ManuscriptService manuscriptService;
 
+    @Autowired
+    private PhraseWatchService phraseWatchService;
+
     private final Folder folder;
     private final Consumer<Folder> done;
 
@@ -52,6 +57,7 @@ public class FolderDialog extends Dialog {
     private HistoryLimitField historyLimitField;
     private PromptSettingsForm form;
     private ExtensionSettingsForm extensionForm;
+    private WatchedPhrasesEditor phrasesEditor;
 
     /**
      * @param done called with the saved folder after the dialog saved it and closed
@@ -120,10 +126,23 @@ public class FolderDialog extends Dialog {
         extensionForm = new ExtensionSettingsForm("120px", null).create();
         extensionForm.load(key -> InheritedSettingValues.get(stored, key), stored.getParent());
 
+        phrasesEditor = new WatchedPhrasesEditor(loc);
+        try {
+            phrasesEditor.setTemplates(phraseWatchService.getTemplates());
+            phrasesEditor.setValue(stored.getWatchedPhrases());
+            phrasesEditor.setInherited(phraseWatchService.resolveInherited(stored.getParent()));
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+        Details phrases = new Details(loc.getValue(L.LABEL_PHRASE_WATCH), phrasesEditor);
+        phrases.setWidthFull();
+        phrases.setOpened(!stored.getWatchedPhrases().isEmpty());
+
         VerticalLayout content = new VerticalLayout(nameField, descriptionField, tags, help, languageCombo, historyLimitField, form.formLayout());
         if (!extensionForm.isEmpty()) {
             content.add(extensionForm.layout());
         }
+        content.add(phrases);
         content.setPadding(false);
         add(content);
 
@@ -146,11 +165,14 @@ public class FolderDialog extends Dialog {
             nameField.setErrorMessage(loc.getValue(L.ERROR_NAME_CANT_BE_EMPTY));
             return;
         }
-        if (!form.validate()) {
+        if (!form.validate() || !phrasesEditor.validate()) {
             return;
         }
         try {
             Folder saved = folderService.update(folder, new FolderService.Details(nameField.getValue(), descriptionField.getValue(), languageCombo.getValue(), form.values(), historyLimitField.getValue(), extensionForm.values()));
+            if (saved != null) {
+                saved = phraseWatchService.setForFolder(saved, phrasesEditor.getValue());
+            }
             if (saved == null) {
                 Notification.warning(loc.getValue(L.ERROR_FOLDER_GONE));
                 return;

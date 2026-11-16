@@ -978,7 +978,7 @@ From a look over the feature list for what a writer would miss. Numbers continue
 
 ### Prose quality
 
-103. 🧩 **Phrase watch list (clichés as annotations, not banned tokens).** A list of phrases and regular expressions per
+103. ✅ **Phrase watch list (clichés as annotations, not banned tokens).** Done in core (see the CHANGELOG): lists in the user settings, folders and books (added up, an entry can replace or switch off an inherited one), annotation templates in the user settings, a step after the automatic annotation and *Save and scan the story* for the active branch. Open: a scan of a chosen range of parts (only the whole active branch now), the parts an agent generates are not scanned, and the text of the automatic redraft is not scanned again (a phrase the redraft brings back gets no note; scanning it again would need a retry cap). A list of phrases and regular expressions per
      book or folder (inherited like the prompts, `FolderService.findChain`), matched against every finished part with no
      model call; every hit becomes an annotation of source *extension* (54, `/create-annotation`). The rest is what the
      annotations already do: *Redraft to address the notes* rewrites only those passages, *Apply the redraft without

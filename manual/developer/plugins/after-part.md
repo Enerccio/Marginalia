@@ -48,8 +48,8 @@ afterPart.unregister();
 
 | Stage | For | Bound in the application |
 |---|---|---|
-| `REVIEW` | notes on the new text | the automatic annotation (`AutoAnnotateSteps`) |
-| `REWRITE` | the text is written again; **a new generation of the book is refused while it runs** | the automatic redraft (`AutoAnnotateSteps`) |
+| `REVIEW` | notes on the new text | the automatic annotation, then the phrase watch list (`AutoAnnotateSteps`, ids `annotate` and `phraseWatch`; the hits count as notes for the redraft) |
+| `REWRITE` | the text is written again; **a new generation of the book is refused while it runs** | the automatic redraft (`AutoAnnotateSteps`; runs when the automatic annotation or the phrase watch list of the book is on, with its redraft switches, and notes were added) |
 | `TRANSFORM` | passages of the final text are replaced | Real Language and Conlang translators (sequential) |
 | `EXTRACT` | data is read out of the final text | Knowledge Tracker (parallel) |
 | `MEDIA` | what is made of the final text | Audiobook (parallel) |

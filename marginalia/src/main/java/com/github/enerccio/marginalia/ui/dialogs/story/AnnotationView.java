@@ -162,6 +162,7 @@ public class AnnotationView extends VerticalLayout {
             case AI -> L.ENUM_ANNOTATION_SOURCE_AI;
             case AGENT -> L.ENUM_ANNOTATION_SOURCE_AGENT;
             case PLUGIN -> L.ENUM_ANNOTATION_SOURCE_PLUGIN;
+            case PHRASE -> L.ENUM_ANNOTATION_SOURCE_PHRASE;
             default -> L.ENUM_ANNOTATION_SOURCE_AUTHOR;
         });
         return StringUtils.isBlank(annotation.getLabel()) ? source : source + " · " + annotation.getLabel();

@@ -85,7 +85,7 @@ class StoryMenuRegistryTest extends MarginaliaTestBase {
                         yield null;
                     }
                     case "isAnnotationsInMargin" -> Boolean.FALSE;
-                    case "isAutoAnnotate" -> Boolean.FALSE;
+                    case "isAutoAnnotate", "isPhraseWatch" -> Boolean.FALSE;
                     case "isMassDelete" -> Boolean.FALSE;
                     // no book: nothing is generated
                     case "getCurrentManuscript" -> null;
@@ -133,13 +133,13 @@ class StoryMenuRegistryTest extends MarginaliaTestBase {
         assertThat(keys(registry.definition(MenuKind.TOOLS, false, null))).containsExactly(
                 StoryMenuKeys.SEARCH_REPLACE,
                 StoryMenuKeys.CHANGE_STYLES, StoryMenuKeys.HIGHLIGHT_GENERATED, StoryMenuKeys.ANNOTATIONS_IN_MARGIN,
-                StoryMenuKeys.ANNOTATE_RANGE, StoryMenuKeys.CREATE_SUMMARIES, StoryMenuKeys.LORE_NOTES, StoryMenuKeys.AUTO_ANNOTATE, StoryMenuKeys.BRANCH_TOKENS, StoryMenuKeys.LORE_USAGE, StoryMenuKeys.STATISTICS,
+                StoryMenuKeys.ANNOTATE_RANGE, StoryMenuKeys.CREATE_SUMMARIES, StoryMenuKeys.LORE_NOTES, StoryMenuKeys.AUTO_ANNOTATE, StoryMenuKeys.PHRASE_WATCH, StoryMenuKeys.BRANCH_TOKENS, StoryMenuKeys.LORE_USAGE, StoryMenuKeys.STATISTICS,
                 StoryMenuKeys.IMPORT_ARCHIVE, StoryMenuKeys.EXPORT,
                 StoryMenuKeys.CLEAR_BOOK_HISTORY, StoryMenuKeys.EMPTY_HISTORY_TRASH, StoryMenuKeys.MASS_DELETE,
                 StoryMenuKeys.SAVE_LAYOUT_AS_DEFAULT, StoryMenuKeys.RESTORE_LAYOUT);
         assertThat(keys(registry.definition(MenuKind.TOOLS, true, null))).containsExactly(
                 StoryMenuKeys.SEARCH_REPLACE, StoryMenuKeys.CHANGE_STYLES, StoryMenuKeys.HIGHLIGHT_GENERATED,
-                StoryMenuKeys.ANNOTATE_RANGE, StoryMenuKeys.CREATE_SUMMARIES, StoryMenuKeys.LORE_NOTES, StoryMenuKeys.AUTO_ANNOTATE, StoryMenuKeys.BRANCH_TOKENS, StoryMenuKeys.LORE_USAGE, StoryMenuKeys.STATISTICS,
+                StoryMenuKeys.ANNOTATE_RANGE, StoryMenuKeys.CREATE_SUMMARIES, StoryMenuKeys.LORE_NOTES, StoryMenuKeys.AUTO_ANNOTATE, StoryMenuKeys.PHRASE_WATCH, StoryMenuKeys.BRANCH_TOKENS, StoryMenuKeys.LORE_USAGE, StoryMenuKeys.STATISTICS,
                 StoryMenuKeys.IMPORT_ARCHIVE, StoryMenuKeys.EXPORT,
                 StoryMenuKeys.CLEAR_BOOK_HISTORY, StoryMenuKeys.EMPTY_HISTORY_TRASH, StoryMenuKeys.MASS_DELETE);
         assertThat(ids(registry.definition(MenuKind.TOOLS, false, null).getRoots())).containsExactly(
