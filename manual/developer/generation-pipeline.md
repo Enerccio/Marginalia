@@ -425,8 +425,11 @@ caller hears `onPartChanged` (a step changed the part: the story tab shows it ag
 over, or there were none; the tab calls the deprecated `AutoAnnotate.finished` there), and `onWarning` with the stop or the failure.
 A regeneration of a part ends the phase of its earlier generation (`endAfterPart` in `generateNextTurn`).
 
-The core binds two steps, `AutoAnnotateSteps` (`ui.dialogs.story`, a bean of `services-config.xml`): the automatic annotation
-(`REVIEW`) and the redraft that addresses its notes (`REWRITE`), with the settings of the book (`Manuscript.autoAnnotate*`); a result
+The core binds three steps, `AutoAnnotateSteps` (`ui.dialogs.story`, a bean of `services-config.xml`): the automatic annotation
+(`REVIEW`), the [phrase watch list](../user/books/annotations.md#watching-for-phrases) (`phraseWatch`, `REVIEW`, when
+`Manuscript.phraseWatch`: `PhraseWatchService.scan` turns the hits of `PhraseMatcher` (`domain.components`, no model) into
+annotations of source `PHRASE`, counted in `NOTES_ADDED`) and the redraft that addresses the notes of both (`REWRITE`), with the
+settings of the book (`Manuscript.autoAnnotate*`); a result
 the book does not take without asking opens `AnnotateDialog.openResult` / `RedraftDialog.openResult` in the page that generated and
 from the panel's Review, a window that is a part of the phase's entry (`FloatingWindow.partOf`).
 

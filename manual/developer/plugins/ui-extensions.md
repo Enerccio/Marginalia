@@ -533,7 +533,7 @@ public class MyPanel extends VerticalLayout implements LLMInteract {
   `AIDialog` (`getLLMProblems`); the other elements use the defaults of the interface.
 - What a user was shown that went wrong is recorded for you: your `Notification.error` / `warning` (the application's
   `ui.widgets.Notification`) and `UIUtils.showError` / `showValidationErrors` / `inferenceError` write it to the session's problem
-  log, which the model reads with `read_last_errors` ([What went wrong](../ui.md#what-went-wrong-the-problem-log)). Say what is wrong in the message (the model gets the text the user saw).
+  log, which the model reads with `read_last_errors` ([What went wrong](../ui.md#what-went-wrong-the-problem-log)). Say what is wrong in the message (the model gets the text the user saw). An error stays on the screen until the user closes it (the duration given to `Notification.error` is ignored).
 
 ## Styles of a plugin
 

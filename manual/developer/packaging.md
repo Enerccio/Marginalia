@@ -243,7 +243,8 @@ in CI.
 ## Plugins
 
 Each plugin in `marginalia/plugins/` is a Maven project with `bundle` packaging (Apache Felix
-`maven-bundle-plugin`) that depends on the application's classes JAR with `provided` scope. They are built against
+`maven-bundle-plugin`) that depends on the application's classes JAR with `provided` scope. The parent POM gives every module the servlet API (`provided`): a provided
+dependency of the application does not pass to the plugins, and their AspectJ compiler needs the servlet types the Vaadin classes refer to. They are built against
 one exact version of the application:
 
 ```sh

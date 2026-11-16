@@ -78,7 +78,7 @@ erDiagram
     TagRelation }o--|| Folder : "objectId + clazz"
 ```
 
-Every entity except `User` has an owner (the [job log](#the-job-log-job-jobcall) is the one place where it can be empty), so each user has a separate set of books, lorebooks, providers, protocols
+Every entity except `User` and the [GPUs](#gpus-gpu-gpulock-gpustep) of the installation has an owner (the [job log](#the-job-log-job-jobcall) is the one place where it can be empty), so each user has a separate set of books, lorebooks, providers, protocols
 and settings. The relationships between them never cross users: a book can only use the owner's provider, protocol
 and lorebook.
 
@@ -570,6 +570,7 @@ Both use joined inheritance: a base table with the common fields and one table p
 | `extensionId` | column (`ais_extension`, `ExtensionAI` only) | The extension that provides the AI, the id of its `ExtensionAIFactory`. The settings of the provider are in `getSettings()`, the object under that id in the dynamic attributes (`attributes_<id>`); secrets in it are encrypted with `InferenceServices.protectSecret`. See [Inference providers from a plugin](plugins/ai-providers.md). |
 | `additionalParameters` | JSON (`additionalParameters_*`) | Extra fields added to every request; they win over the protocol's settings. |
 | `maxConcurrentRequests` | JSON | The connections of the AI (the field *Connections*): how many requests of any kind and user may be on the way to it at once, the rest waits in order (`AIGate`, see [Services](services.md)). `getConnections()` is what applies: one when it is not set. |
+| `gpuLock` | JSON | The uuid of the `GpuLock` every request to this AI takes (`GatedInferenceService`, after the connection of `AIGate`): the model runs on a GPU it shares with other AIs or servers. `null` (blank is stored as `null`) or a uuid that names no lock any more: no lock. See [GPU locks](plugins/gpu-locks.md). |
 | `sendLoreImages`, `loreImagesInSystem` | JSON | *Send lore images*: whether the images in the content of the activated lorebook entries (`![caption](resource:<uuid>)`, see `LoreImages`) go to this model with the lore (the model must take images). `loreImagesInSystem` (*Images in the system message*, used only with the first, OpenAI-compatible only) puts them into the system message itself instead of a user message of their own after it. Both are `false` when never set (stored as nothing), `isSendLoreImages()` / `isLoreImagesInSystem()` read them, `AIServiceImpl` copies them with the AI, and the AI dialog has a checkbox for each. See [Generation pipeline](generation-pipeline.md). |
 | `requestTimeoutSeconds`, `maxRetries` | JSON | Wait for the API (read timeout) and retries of a request; `null` = the defaults of `OpenAICompatibleInferenceService` (300 s, 2 retries). |
 | `reasoningPassthrough` | JSON (`OpenAICompatible` only) | `ReasoningPassthrough` (`domain.collections`): `NONE` (the default, stored as nothing), `TOOL_CALLS` or `ALWAYS`. Whether the thinking of an answer goes back to the model as `reasoning_content` of its message: with `TOOL_CALLS` only while the tool calls of one answer go on, with `ALWAYS` also with earlier answers that have it. Read by `OpenAICompatibleInferenceService.toAssistantMessage`; cloned with the AI; the AI dialog shows it in the per type tab. |
@@ -804,6 +805,13 @@ is in memory only, the rows are written by the writer thread of `JobServiceImpl`
 Neither is an `ExtendableEntity` and neither is part of a backup of a book. The rows are not soft deleted:
 `JobService.purge(JobFilter)` deletes the jobs of a filter and their calls for good, and nothing else ever deletes
 them, except the cleanup of a purged user, which takes the user's jobs along (`owner` is `OWNED_BY`).
+
+## GPUs (`Gpu`, `GpuLock`, `GpuStep`)
+
+The GPUs of the installation and the ways to use them, set up by the administrator (*Admin → GPUs*) and picked by every user for an AI
+(`AI.gpuLock`) or a backend of an extension. All three are `BaseEntity`, not owned by a user and not part of a backup (migrations V29, V30):
+`Gpu` (a name, `usedOutside`), `GpuStep` (an HTTP request with encrypted headers) and `GpuLock` (a GPU, `maxConcurrent`, the ordered acquire
+and release steps). Deletes are hard. The fields and the turns are described in [GPU locks](plugins/gpu-locks.md#the-model).
 
 ## Resources
 

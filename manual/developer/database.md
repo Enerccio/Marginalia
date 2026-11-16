@@ -160,6 +160,8 @@ To add one: implement `Migration`, register the bean in the `migrations` list of
 | V26 | `V26__anchored_passages.sql` | `annotations` is rebuilt (SQLite cannot drop `NOT NULL`): `kind` (discriminator, existing rows `EDITORIAL`) and `passageKind` are added, `status` and `source` allow `NULL`, the two indexes are made again and `ix_annotations_kind (passageKind, part_id, is_deleted)` is new. `Annotation` extends the new `AnchoredPassage`, see [`AnchoredPassage`](domain-model.md#anchoredpassage). Data stays as it is. |
 | V27 | `V27__drop_message_edited.sql` | `messages.edited` is dropped: whether the author touched a part is no longer a flag, it is worked out from the versions of the part's history (`MessageRevisionService.authorship`), see [Who wrote the words](version-history.md#who-wrote-the-words). |
 | V28 | `V28__jobs.sql` | New tables `jobs` (owner `userId`, nullable: a job of a thread without a user; `ownerLogin`, `kind`, `label`, `status`, `startedAt`, `endedAt`, `callCount`, `failedCalls`, the standard columns without extended content) and `job_calls` (`job_id`, `callType`, `backend`, `model`, `status`, `startedAt`, `endedAt`, `error`) with their `_SEQ` tables and the indexes `ix_jobs_started`, `ix_jobs_user` and `ix_job_calls_job`: the entities `Job` and `JobCall`, the administrator's log of the work that talked to an external AI, see [The job log](domain-model.md#the-job-log-job-jobcall). |
+| V29 | `V29__gpus.sql` | New tables `gpus` (`name`), `gpu_steps` (`name`, `url`, `method`, `headers` encrypted, `body`, `timeoutSeconds`, `waitSeconds`) and `gpu_locks` (`name`, `gpu_id`, `maxConcurrent`) with their `_SEQ` tables, the index `ix_gpu_locks_gpu`, and the ordered join tables `gpu_lock_acquire_steps` / `gpu_lock_release_steps` (`lock_id`, `step_id`, `ordinal`): the entities `Gpu`, `GpuStep` and `GpuLock` of the installation, not owned (no `userId`, no extended content), see [GPU locks](plugins/gpu-locks.md#the-model). |
+| V30 | `V30__gpu_used_outside.sql` | `gpus.used_outside boolean not null default 0`: a GPU that is also used outside Marginalia runs the acquire steps of a lock before every job. |
 
 ### Rules
 
@@ -285,7 +287,7 @@ field name (`maxTokens`, `lastOpened`); relations end in `_id` (`lorebook_id`, `
 which is `userId`, and the soft delete flag, `is_deleted`. Indexes exist only in the migrations, see
 [Indexes](#indexes).
 
-**No foreign key constraints.** The tables have no `REFERENCES` clauses (V2's `summary_id` and V28's `job_calls.job_id` declare one, but SQLite
+**No foreign key constraints.** The tables have no `REFERENCES` clauses (V2's `summary_id`, V28's `job_calls.job_id` and the GPU tables of V29 declare some, but SQLite
 doesn't enforce them because `PRAGMA foreign_keys` is off). Integrity is kept by the application: rows are soft
 deleted, so references stay valid, and the admin *Cleanup* follows the
 [cleanup references](domain-model.md#cleanup-references) to decide what may be purged. Code that hard deletes must
@@ -323,6 +325,7 @@ Index what the queries filter on, in the order of the `WHERE` clause, with the e
 | `activity_intervals (userId, day)`, `activity_intervals (bookUuid, day)` | The stretches of a range of days of a user or a book. |
 | `manuscript_sizes (bookUuid, day)` (unique), `manuscript_sizes (userId, day)` | The size of a book on a day, the latest size at or before a day. |
 | `jobs (startedAt)`, `jobs (userId, startedAt)`, `job_calls (job_id, startedAt)` | The job log of the administrator, newest first, of everybody or of one user; the calls of a job in order. |
+| `gpu_locks (gpu_id)` | The locks of a GPU. |
 | `entries (lorebook_id, ordinal)` | Entries of a lorebook in order. |
 | `messages (parentScript_id, creation)`, `messages (parent_id)` | Parts of a book in order, children of a part. |
 | `messages (summary_id)` | Parts using a summary (cleanup references). |

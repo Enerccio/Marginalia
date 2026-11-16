@@ -36,7 +36,7 @@ are faster.
 ## Building the application
 
 The repository root holds the parent POM (`pom.xml`): it carries the version, which the application and all plugins
-inherit, and lists them as modules, so `mvn package` there builds the application and every plugin in one go. The
+inherit, the servlet API (`provided`) every module compiles against, and lists them as modules, so `mvn package` there builds the application and every plugin in one go. The
 application is the Maven project in `marginalia/`:
 
 ```sh
@@ -313,7 +313,7 @@ Code that two plugins share lives in `marginalia/libs/` (see [Libraries for plug
 Maven jar that **each plugin embeds** in its bundle (`<Embed-Dependency>translator-common;inline=true</Embed-Dependency>`): plugins do not see each other's classes, so this is
 shared source, not shared runtime, and a library holds no state the plugins would have to share. It is **not** an extension and never goes into the extensions folder (that is why it
 is not under `marginalia/plugins/`, the folder every script and workflow loops over to collect the JARs). A plugin that uses a library needs it in the local Maven repository before it
-builds: `mvn install -DskipTests` in `marginalia/libs/<library>`. The scripts (`install-plugins.sh`, `marginalia/plugins/Dockerfile`, the workflows `server.yml` and `desktop.yml`) do this.
+builds: `mvn install -DskipTests` in `marginalia/libs/<library>`. The scripts (`install-plugins.sh`, the `plugins-build` stage of the root `Dockerfile`, the workflows `server.yml` and `desktop.yml`) do this.
 
 Load the JAR in *Admin → Extensions* of your running instance, or copy it into `.marginalia/extensions` of your
 development home before starting. Rebuild the plugins whenever you change classes they use - they are built for one

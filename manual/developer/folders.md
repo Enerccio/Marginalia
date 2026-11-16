@@ -49,6 +49,8 @@ purge of the folder unlinks the books that are still alive instead of deleting t
 
 The limit of the [version history](version-history.md#the-limit-and-the-pruning) is a setting of the folder too, `historyMaxVersions` (an `Integer`, null is not set), carried by `FolderService.Details` (its four-argument constructor leaves it null, which clears it) and copied by `copyTree`.
 
+The [phrase watch list](../user/books/annotations.md#watching-for-phrases) of the folder is `watchedPhrases` (a list of `WatchedPhrase`, an extended attribute, set by `PhraseWatchService.setForFolder`, which checks the entries). It does not follow the first-non-blank rule below: the lists of the user, the folders (top down) and the book add up, a nearer entry of the same phrase (`WatchedPhrase.key()`) replaces the one above, and an entry that is off removes it (`PhraseWatchService.resolve` / `resolveInherited`, see [Services](services.md)).
+
 The settings are extended attributes and not columns because nothing queries them in SQL; the price is the usual one, they
 are persisted only by `FolderService.save`/`update`. The name is a column because the lists sort and filter on it.
 
@@ -158,12 +160,12 @@ Plugins that name a changed method or variable must follow `@PublicAPI`, see [Ex
 ## Other places that know about folders
 
 - **Backups.** `BackupServiceImpl.takeBackup` writes the optional key `folder` (the folder's uuid and the `path` from the top, each
-  with name, uuid, description, language, text settings and, as `extensions`, the values of the extension settings by key, kept whether the extension is loaded or not) from `findChain`; `BackupFolders.resolve` finds the folder by uuid, else
+  with name, uuid, description, language, text settings, the phrase watch list (`watchedPhrases`) and, as `extensions`, the values of the extension settings by key, kept whether the extension is loaded or not) from `findChain`; `BackupFolders.resolve` finds the folder by uuid, else
   by the name path (creating the missing levels with the saved settings), else returns null (the top level, also on any failure).
   `createBackup`, which the agents' snapshots and `cloneManuscript` share, is unchanged and writes no folder.
   `exportBackup(backup, withImages, includeInherited, progress)` rewrites the stored file on its way out through
   `BackupInheritance`: it drops `folder` and, with the option, writes the values the book inherits (from the backup's own folder
-  path, then the user settings, never the built-in defaults) as the book's own; the settings of extensions too (`InheritedSettingRegistry`): a value the book does not set comes from the nearest folder that sets it, else from the user level of the extension (a registered setting, and only when the user settings are written), and the values the book sets itself go along, because they are stored in one object that replaces the book's. The old three-argument overload exports with the
+  path, then the user settings, never the built-in defaults) as the book's own; the settings of extensions too (`InheritedSettingRegistry`): a value the book does not set comes from the nearest folder that sets it, else from the user level of the extension (a registered setting, and only when the user settings are written), and the values the book sets itself go along, because they are stored in one object that replaces the book's. With the option the phrase watch list is written too: the entries the book uses (the user's, the folders' and its own, the ones that are off left out) become the book's own list (`inlinePhrases`). The old three-argument overload exports with the
   option on.
 - **Agents.** The working copy (`agentic = true`) used to have no folder and so ignored the folders' settings. It is put in the
   folder of the original: `createAgenticCopy`, `replaceWorkingCopy` (restore of a checkpoint) and `AgentMergeServiceImpl.sync`
