@@ -15,6 +15,7 @@ import com.github.enerccio.marginalia.extensions.audiobook.service.AudiobookServ
 import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.html.Span;
@@ -41,11 +42,11 @@ public class CastDialog extends Dialog {
     private final Cast cast;
     private final Runnable saved;
 
-    private final Select<Actor> narrator = actorSelect(T.localized(NARRATOR));
-    private final Select<Actor> fallback = actorSelect(T.localized(OTHER_SPEAKERS));
-    private final Select<Actor> men = actorSelect(T.localized(OTHER_MEN));
-    private final Select<Actor> women = actorSelect(T.localized(OTHER_WOMEN));
-    private final Select<Actor> children = actorSelect(T.localized(CHILDREN));
+    private final ComboBox<Actor> narrator = actorSelect(T.localized(NARRATOR));
+    private final ComboBox<Actor> fallback = actorSelect(T.localized(OTHER_SPEAKERS));
+    private final ComboBox<Actor> men = actorSelect(T.localized(OTHER_MEN));
+    private final ComboBox<Actor> women = actorSelect(T.localized(OTHER_WOMEN));
+    private final ComboBox<Actor> children = actorSelect(T.localized(CHILDREN));
     private final VerticalLayout characters = new VerticalLayout();
     private final List<CharacterRow> rows = new ArrayList<>();
     private final VerticalLayout extras = new VerticalLayout();
@@ -89,7 +90,7 @@ public class CastDialog extends Dialog {
         women.setValue(service.getSettings().findActor(cast.getWomenActorId()));
         children.setValue(service.getSettings().findActor(cast.getChildrenActorId()));
         // what an unnamed speaker gets depends on every base (and on the fallback)
-        for (Select<Actor> base : List.of(men, women, children, fallback, narrator)) {
+        for (ComboBox<Actor> base : List.of(men, women, children, fallback, narrator)) {
             base.addValueChangeListener(e -> extraRows.forEach(ExtraRow::showVariation));
         }
         HorizontalLayout bases = new HorizontalLayout(men, previewOf(men), women, previewOf(women), children, previewOf(children));
@@ -123,25 +124,25 @@ public class CastDialog extends Dialog {
     }
 
     /** A button that has the voice of the actor of the box spoken. */
-    private VoicePreview previewOf(Select<Actor> select) {
+    private VoicePreview previewOf(ComboBox<Actor> select) {
         VoicePreview preview = new VoicePreview(service, () -> select.getValue() == null ? "" : select.getValue().getVoice(), () -> null);
         select.addValueChangeListener(e -> preview.refresh());
         return preview;
     }
 
-    private static Select<Actor> actorSelect(String label) {
-        Select<Actor> select = new Select<>();
-        select.setLabel(label);
-        select.setEmptySelectionAllowed(true);
-        select.setEmptySelectionCaption(T.localized(NOT_SET));
+    private static ComboBox<Actor> actorSelect(String label) {
+        ComboBox<Actor> select = new ComboBox<>(label);
+        // the clear button stands for "not set"
+        select.setClearButtonVisible(true);
+        select.setPlaceholder(T.localized(NOT_SET));
         select.setItemLabelGenerator(ActorDialog::nameOf);
-        ActorDialog.showTaglines(select);
+        select.setRenderer(new com.vaadin.flow.data.renderer.ComponentRenderer<>(ActorDialog::nameWithTagline));
         select.setWidth("16em");
         return select;
     }
 
-    private List<Select<Actor>> selects() {
-        List<Select<Actor>> all = new ArrayList<>(List.of(narrator, fallback, men, women, children));
+    private List<ComboBox<Actor>> selects() {
+        List<ComboBox<Actor>> all = new ArrayList<>(List.of(narrator, fallback, men, women, children));
         rows.forEach(r -> all.add(r.actor));
         return all;
     }
@@ -149,15 +150,15 @@ public class CastDialog extends Dialog {
     /** Gives every box the actors of the user; each keeps its pick when the actor still exists. */
     private void reloadActors() {
         List<Actor> actors = service.getSettings().getActors();
-        for (Select<Actor> select : selects()) {
+        for (ComboBox<Actor> select : selects()) {
             Actor picked = select.getValue();
-            select.setItems(actors);
+            ActorDialog.setSearchableItems(select, actors);
             select.setValue(picked == null ? null : actors.stream().filter(a -> a.getId().equals(picked.getId())).findFirst().orElse(null));
         }
     }
 
     /** Opens the dialog of a new actor; the one that is made is put into the box (null for none). */
-    private void newActor(Select<Actor> into) {
+    private void newActor(ComboBox<Actor> into) {
         new ActorDialog(service, new Actor(), actor -> {
             reloadActors();
             if (into != null) {
@@ -332,7 +333,7 @@ public class CastDialog extends Dialog {
         private final CastMember member;
         private final TextField name = new TextField(T.localized(NAME));
         private final TextField aliases = new TextField(T.localized(OTHER_NAMES));
-        private final Select<Actor> actor = actorSelect(T.localized(ACTOR));
+        private final ComboBox<Actor> actor = actorSelect(T.localized(ACTOR));
         private HorizontalLayout layout;
 
         CharacterRow(CastMember member) {
@@ -341,7 +342,7 @@ public class CastDialog extends Dialog {
             name.setWidth("12em");
             aliases.setValue(member.getAliases());
             aliases.setWidth("12em");
-            actor.setItems(service.getSettings().getActors());
+            ActorDialog.setSearchableItems(actor, service.getSettings().getActors());
             actor.setValue(service.getSettings().findActor(member.getActorId()));
             Button remove = new Button(Solid.TRASH.create(), e -> {
                 rows.remove(this);

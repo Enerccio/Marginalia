@@ -117,6 +117,15 @@ public class ActorDialog extends Dialog {
         select.setRenderer(new ComponentRenderer<>(actor -> actor == null ? new Span(select.getEmptySelectionCaption()) : nameWithTagline(actor)));
     }
 
+    /** Puts the actors into a box that finds them by typing a part of the name or of the tagline (any case). */
+    static void setSearchableItems(com.vaadin.flow.component.combobox.ComboBox<Actor> box, java.util.List<Actor> actors) {
+        box.setItems((actor, typed) -> {
+            String needle = typed == null ? "" : typed.strip().toLowerCase(java.util.Locale.ROOT);
+            return needle.isEmpty() || nameOf(actor).toLowerCase(java.util.Locale.ROOT).contains(needle)
+                    || actor.getTagline().toLowerCase(java.util.Locale.ROOT).contains(needle);
+        }, actors);
+    }
+
     /** The name of an actor with its tagline under it, for a list or a grid. */
     static Component nameWithTagline(Actor actor) {
         Div item = new Div(new Div(nameOf(actor)));
