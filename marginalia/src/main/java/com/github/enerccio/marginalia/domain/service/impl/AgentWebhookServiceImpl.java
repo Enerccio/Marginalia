@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.domain.collections.WebhookFormat;
 import com.github.enerccio.marginalia.domain.model.impl.settings.AppSettings;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.security.AdminGuard;
+import com.github.enerccio.marginalia.domain.security.OutboundAddressGuard;
 import com.github.enerccio.marginalia.domain.security.model.Permission;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.permissions.PermissionType;
@@ -23,7 +24,6 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 
-import java.net.InetAddress;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -40,6 +40,8 @@ public class AgentWebhookServiceImpl implements AgentWebhookService, DisposableB
     static final int MAX_URL_LENGTH = 2000;
     private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(5);
     private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(10);
+    // one answer for a local address and for a name that does not resolve, so the answer says nothing about internal names
+    private static final String ONLY_PUBLIC = "Only addresses on the internet are called: this one is on the machine of the server, in a private network or can not be found";
 
     @Autowired
     @Lazy
@@ -66,6 +68,11 @@ public class AgentWebhookServiceImpl implements AgentWebhookService, DisposableB
     // a redirect would send the message somewhere the user did not type
     private final HttpClient client = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NEVER)
             .connectTimeout(CONNECT_TIMEOUT).build();
+
+    // for a user who may not call local addresses: the host is looked up once, when the connection opens, and the checked address
+    // is the one it connects to (a name whose DNS answer changes after the check does not reach the network of the server)
+    private final HttpClient publicClient = OutboundAddressGuard.DEFAULT.publicOnly(HttpClient.newBuilder()
+            .followRedirects(HttpClient.Redirect.NEVER).connectTimeout(CONNECT_TIMEOUT)).build();
 
     // one thread, so the messages of a run arrive in the order they were made and a slow service holds up nobody else
     private final ExecutorService delivery = Executors.newSingleThreadExecutor(task -> {
@@ -111,7 +118,7 @@ public class AgentWebhookServiceImpl implements AgentWebhookService, DisposableB
             return;
         }
         Language language = loc.resolveLanguage(setting.getLanguage());
-        String problem = send(url.strip(), setting.getAgentWebhookFormat(), notice.agentName(), text(language, notice));
+        String problem = send(clientFor(user), url.strip(), setting.getAgentWebhookFormat(), notice.agentName(), text(language, notice));
         if (problem != null) {
             log.warn("The message to the webhook of user {} was not accepted: {}", notice.userId(), problem);
         }
@@ -144,7 +151,11 @@ public class AgentWebhookServiceImpl implements AgentWebhookService, DisposableB
         if (problem != null) {
             return problem;
         }
-        return send(url.strip(), format, "Marginalia", loc.getValue(L.MSG_AGENT_WEBHOOK_TEST_TEXT));
+        try {
+            return send(clientFor(currentUser), url.strip(), format, "Marginalia", loc.getValue(L.MSG_AGENT_WEBHOOK_TEST_TEXT));
+        } catch (Exception e) {
+            return "The permission could not be checked";
+        }
     }
 
     @Override
@@ -179,18 +190,10 @@ public class AgentWebhookServiceImpl implements AgentWebhookService, DisposableB
             if (mayUseLocalAddresses(user)) {
                 return null;
             }
-            // one answer for a local address and for a name that does not resolve, so the answer says nothing about internal names
-            String onlyPublic = "Only addresses on the internet are called: this one is on the machine of the server, in a private network or can not be found";
-            InetAddress[] addresses;
             try {
-                addresses = InetAddress.getAllByName(URI.create(url.strip()).getHost());
-            } catch (java.net.UnknownHostException e) {
-                return onlyPublic;
-            }
-            for (InetAddress address : addresses) {
-                if (isLocal(address)) {
-                    return onlyPublic;
-                }
+                OutboundAddressGuard.DEFAULT.resolvePublic(URI.create(url.strip()).getHost());
+            } catch (OutboundAddressGuard.RefusedAddressException e) {
+                return ONLY_PUBLIC;
             }
             return null;
         } catch (Exception e) {
@@ -198,23 +201,8 @@ public class AgentWebhookServiceImpl implements AgentWebhookService, DisposableB
         }
     }
 
-    /**
-     * Whether the address is not one of the internet: this machine, a private or link-local network (the address of the
-     * metadata service of a cloud host is one), the shared range of carriers, a unique local IPv6 address, multicast or
-     * unspecified.
-     */
-    public static boolean isLocal(InetAddress address) {
-        if (address.isAnyLocalAddress() || address.isLoopbackAddress() || address.isLinkLocalAddress()
-                || address.isSiteLocalAddress() || address.isMulticastAddress()) {
-            return true;
-        }
-        byte[] bytes = address.getAddress();
-        if (bytes.length == 4) {
-            int first = bytes[0] & 0xff;
-            int second = bytes[1] & 0xff;
-            return first == 0 || (first == 100 && second >= 64 && second <= 127);
-        }
-        return (bytes[0] & 0xfe) == 0xfc;
+    private HttpClient clientFor(User user) throws Exception {
+        return mayUseLocalAddresses(user) ? client : publicClient;
     }
 
     @Override
@@ -254,7 +242,7 @@ public class AgentWebhookServiceImpl implements AgentWebhookService, DisposableB
      *
      * @return null when the service answered with a success status
      */
-    private String send(String url, WebhookFormat format, String title, String message) {
+    private String send(HttpClient client, String url, WebhookFormat format, String title, String message) {
         try {
             HttpRequest.Builder request = HttpRequest.newBuilder(URI.create(url)).timeout(REQUEST_TIMEOUT);
             switch (format == null ? WebhookFormat.PLAIN : format) {
@@ -287,6 +275,10 @@ public class AgentWebhookServiceImpl implements AgentWebhookService, DisposableB
             Thread.currentThread().interrupt();
             return "Interrupted";
         } catch (Exception e) {
+            if (OutboundAddressGuard.refusal(e) != null) {
+                // the name pointed to the internet at the check and to a local address when it was called
+                return ONLY_PUBLIC;
+            }
             // the message of a connection error can hold the host, never the path with the secret
             return "The service could not be reached: " + e.getClass().getSimpleName();
         }

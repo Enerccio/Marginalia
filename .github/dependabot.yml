@@ -1,0 +1,53 @@
+# Dependency updates, weekly, grouped so a week brings a few pull requests and not one per library.
+#
+# Maven: the root pom.xml is the parent and aggregator of the application, the libraries and every plugin, so one entry covers
+# them all. marginalia/package.json is not listed: Vaadin writes it from the Java dependencies (it is not in git), the Vaadin
+# version in the poms is what updates it.
+version: 2
+updates:
+  - package-ecosystem: maven
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 10
+    groups:
+      # Vaadin, Spring, Hibernate, Jetty move together, a mixed set does not start
+      vaadin:
+        patterns: ['com.vaadin*', 'com.vaadin:*']
+      spring:
+        patterns: ['org.springframework*']
+      hibernate:
+        patterns: ['org.hibernate*']
+      jetty:
+        patterns: ['org.eclipse.jetty*']
+      maven-plugins:
+        patterns: ['org.apache.maven.plugins:*', 'org.codehaus.mojo:*', 'org.jacoco:*']
+      other-patch:
+        update-types: [patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      actions:
+        patterns: ['*']
+
+  # the base images of the Docker image (maven, jetty, alpine)
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+
+  # the screenshot pipeline (Playwright), screenshots/SCREENSHOTS.md
+  - package-ecosystem: npm
+    directory: /screenshots
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      screenshots:
+        patterns: ['*']

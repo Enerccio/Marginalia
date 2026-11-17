@@ -9,6 +9,11 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import org.springframework.web.util.HtmlUtils;
 
+/**
+ * The notifications of the application. The message is escaped unless {@code htmlEscape} is {@code false}; pass {@code false} only
+ * for markup the code wrote itself, never for a text that holds anything a user, a model, a file or a server gave (an error message
+ * of a server is one). Line breaks become {@code <br/>} either way.
+ */
 public class Notification extends com.vaadin.flow.component.notification.Notification {
     public static final int DURATION_DEFAULT = 6000;
     public static final int DURATION_LONGER = 10000;

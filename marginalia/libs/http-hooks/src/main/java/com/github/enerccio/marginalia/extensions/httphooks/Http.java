@@ -1,5 +1,7 @@
 package com.github.enerccio.marginalia.extensions.httphooks;
 
+import com.github.enerccio.marginalia.domain.security.OutboundAddressGuard;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -30,6 +32,16 @@ public final class Http {
             .connectTimeout(Duration.ofSeconds(10))
             .build();
 
+    /**
+     * The same, for the addresses {@link UrlGuard#check} passed for a backend that is not local: it looks the host up once when it
+     * connects, refuses a private address and connects to the one it checked ({@link OutboundAddressGuard}).
+     */
+    private static final HttpClient PUBLIC_CLIENT = OutboundAddressGuard.DEFAULT.publicOnly(HttpClient.newBuilder()
+                    .version(HttpClient.Version.HTTP_1_1)
+                    .followRedirects(HttpClient.Redirect.NEVER)
+                    .connectTimeout(Duration.ofSeconds(10)))
+            .build();
+
     private Http() {
     }
 
@@ -47,8 +59,10 @@ public final class Http {
      */
     public static HttpResponse<byte[]> send(HttpRequest request, int maxBytes) throws BackendException {
         try {
-            return CLIENT.send(request, info -> new CappedBody(maxBytes,
+            return client(request).send(request, info -> new CappedBody(maxBytes,
                     info.headers().firstValueAsLong("Content-Length").orElse(-1) > maxBytes));
+        } catch (OutboundAddressGuard.RefusedAddressException e) {
+            throw refused(e);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new BackendException("Interrupted", e);
@@ -69,8 +83,13 @@ public final class Http {
         if (cancelled == null) {
             return send(request, maxBytes);
         }
-        CompletableFuture<HttpResponse<byte[]>> future = CLIENT.sendAsync(request, info -> new CappedBody(maxBytes,
-                info.headers().firstValueAsLong("Content-Length").orElse(-1) > maxBytes));
+        CompletableFuture<HttpResponse<byte[]>> future;
+        try {
+            future = client(request).sendAsync(request, info -> new CappedBody(maxBytes,
+                    info.headers().firstValueAsLong("Content-Length").orElse(-1) > maxBytes));
+        } catch (OutboundAddressGuard.RefusedAddressException e) {
+            throw refused(e);
+        }
         try {
             while (true) {
                 try {
@@ -88,11 +107,24 @@ public final class Http {
             throw new BackendException("Interrupted", e);
         } catch (ExecutionException e) {
             Throwable cause = e.getCause() == null ? e : e.getCause();
+            OutboundAddressGuard.RefusedAddressException refusal = OutboundAddressGuard.refusal(cause);
+            if (refusal != null) {
+                throw refused(refusal);
+            }
             if (cause instanceof CappedBody.TooBig || cause.getCause() instanceof CappedBody.TooBig) {
                 throw new BackendException("The answer of " + request.uri().getHost() + " is too big", e);
             }
             throw new ServerGoneException("Cannot reach " + request.uri().getHost() + ": " + describe(cause), e);
         }
+    }
+
+    private static HttpClient client(HttpRequest request) {
+        return UrlGuard.mustBePublic(request.uri()) ? PUBLIC_CLIENT : CLIENT;
+    }
+
+    // not a ServerGoneException: the server is there, it is the address that may not be called
+    private static BackendException refused(OutboundAddressGuard.RefusedAddressException e) {
+        return new BackendException(e.getMessage() + "; mark the backend as local to use it", e);
     }
 
     /**

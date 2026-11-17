@@ -1,20 +1,27 @@
 package com.github.enerccio.marginalia.extensions.httphooks;
 
-import java.net.Inet6Address;
+import com.github.enerccio.marginalia.domain.security.OutboundAddressGuard;
+
 import java.net.InetAddress;
 import java.net.URI;
-import java.net.UnknownHostException;
+import java.util.Collections;
 import java.util.Locale;
+import java.util.Set;
+import java.util.WeakHashMap;
 
 /**
  * The addresses a backend or a hook may call. A server in the cloud must not be a way to reach the machine of the user, so
  * the loopback, local network and link-local addresses are refused unless the backend is marked as local.
  * <p>
- * The host is resolved here and again by the HTTP client when it connects. The JVM keeps a lookup for 30 seconds by default
- * (networkaddress.cache.ttl), so the client gets the same answer, but a JVM configured without that cache would let a name that
- * changes its address between the two lookups through.
+ * The judgement is the application's ({@link OutboundAddressGuard}). The check here gives the user an early, readable answer; the
+ * address the call goes to is checked again by {@link Http} when it connects: an address {@link #check} passed for a backend that
+ * is not local is sent by the client of {@link OutboundAddressGuard#publicOnly}, which looks the host up once and connects to the
+ * address it checked, so a name whose DNS answer changes after the check (DNS rebinding) does not reach the private network.
  */
 public final class UrlGuard {
+
+    /** The addresses {@link #check} passed for a backend that is not local (by value, held while a request holds the URI). */
+    private static final Set<URI> PUBLIC_ONLY = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
 
     private UrlGuard() {
     }
@@ -39,55 +46,32 @@ public final class UrlGuard {
         }
         if (!local) {
             try {
-                for (InetAddress address : InetAddress.getAllByName(uri.getHost())) {
-                    if (isPrivate(address)) {
-                        throw new BackendException("The address " + uri.getHost()
-                                + " is on this machine or its network; mark the backend as local to use it");
-                    }
-                }
-            } catch (UnknownHostException e) {
-                throw new BackendException("Unknown host " + uri.getHost(), e);
+                OutboundAddressGuard.DEFAULT.resolvePublic(uri.getHost());
+            } catch (OutboundAddressGuard.RefusedAddressException e) {
+                throw new BackendException(e.getMessage().startsWith("Unknown host") ? e.getMessage()
+                        : "The address " + uri.getHost() + " is on this machine or its network; mark the backend as local to use it", e);
             }
+            holdToPublic(uri);
         }
         return uri;
     }
 
-    /**
-     * Whether the address is the machine itself or a network that is not the internet: the loopback, the any address, the
-     * private, link-local, shared (100.64.0.0/10), unique-local (fc00::/7) and multicast ranges, and the IPv4 addresses that
-     * an IPv6 address carries (IPv4-compatible, NAT64 64:ff9b::/96).
-     */
+    /** Whether the address is the machine itself or a network that is not the internet ({@link OutboundAddressGuard#isPrivate}). */
     public static boolean isPrivate(InetAddress address) {
-        if (address.isAnyLocalAddress() || address.isLoopbackAddress() || address.isSiteLocalAddress()
-                || address.isLinkLocalAddress() || address.isMulticastAddress()) {
-            return true;
-        }
-        byte[] b = address.getAddress();
-        if (b.length == 4) {
-            int first = b[0] & 0xFF;
-            int second = b[1] & 0xFF;
-            return first == 0 || (first == 100 && (second & 0xC0) == 0x40);
-        }
-        if ((b[0] & 0xFE) == 0xFC) {
-            return true;
-        }
-        if (address instanceof Inet6Address v6 && v6.isIPv4CompatibleAddress()) {
-            return embedded(b);
-        }
-        // 64:ff9b::/96, the NAT64 prefix: the last four bytes are an IPv4 address
-        boolean nat64 = b[0] == 0 && b[1] == 0x64 && (b[2] & 0xFF) == 0xFF && (b[3] & 0xFF) == 0x9B;
-        for (int i = 4; nat64 && i < 12; i++) {
-            nat64 = b[i] == 0;
-        }
-        return nat64 && embedded(b);
+        return OutboundAddressGuard.isPrivate(address);
     }
 
-    private static boolean embedded(byte[] v6) {
-        try {
-            return isPrivate(InetAddress.getByAddress(new byte[]{v6[12], v6[13], v6[14], v6[15]}));
-        } catch (UnknownHostException e) {
-            return true;
-        }
+    /**
+     * Whether {@link #check} passed this address for a backend that is not local, so its call must connect to a public address
+     * (a URI equal to it, checked as local by another backend at the same time, is held to that as well: it fails, never the other
+     * way round).
+     */
+    static void holdToPublic(URI uri) {
+        PUBLIC_ONLY.add(uri);
+    }
+
+    static boolean mustBePublic(URI uri) {
+        return uri != null && PUBLIC_ONLY.contains(uri);
     }
 
     /**

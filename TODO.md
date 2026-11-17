@@ -837,20 +837,29 @@ numbers of the older items stable), the rest is P3/P4.
     readable existing one logs a warning. The data folder is left alone on purpose: in Docker it is a bind mount that the
     host user must open (backups). Original text: no `PosixFilePermission` anywhere in the core, so on a shared Linux host
     the key was world-readable under the usual umask.
-79. **One outbound address guard, resolved once.** The agent webhook (`AgentWebhookService`) and the image generator (35:
-    "resolves the host twice") both check the host and then let the HTTP client resolve it again, which a DNS-rebinding
-    host passes. Resolve once and connect to that address (or a custom `InetAddressResolver` for the client), in one shared
-    class (`http-hooks` already serves plugins), with a test class for the SSRF cases: `security/` holds one test now.
-    With it: audit the `new Html(...)` call sites that rely on the caller escaping (`OutdatedSummariesDialog`, `HtmlText`).
-80. **CI: dependency updates, vulnerability scan, coverage.** No Dependabot, no OWASP Dependency-Check and no JaCoCo in the
-    poms or `.github/workflows`, while the WAR carries POI, PDFBox, OpenPDF, Jetty, Hibernate and a Node toolchain.
-    Dependabot (Maven + GitHub Actions + the `screenshots` npm), a weekly scan job that does not block a build, and JaCoCo
-    as a report only, so "well tested" is a number.
-81. **A smoke test for every plugin.** 12 of the plugins have no tests, and the plugin API is the internals of the core. One
-    shared harness that installs each built JAR into a test context (the `extensions` tests already load bundles), checks
-    that `onExtensionLoad` passes, that every decorator names a method that exists with those arguments and locals
-    (`@PublicAPI` has the data) and that unload leaves nothing registered (decorators, CSS, shortcuts, commands). It turns
-    "a refactor broke a plugin" from a runtime surprise into a red build.
+79. ~~**One outbound address guard, resolved once.**~~ ✅ Done — `OutboundAddressGuard` (`domain.security`, plain JDK, plugins see it):
+    one `isPrivate` for the webhook and `http-hooks` (the webhook's lacked the IPv4-in-IPv6 cases), and `publicOnly(HttpClient.Builder)`, a proxy selector
+    that looks the host up once at the connection, refuses a private answer and for `http` connects to exactly that address (named as the proxy: the
+    request line carries the URL, the `Host` header stays). `https` is connected directly; the certificate check stands for the second lookup. The
+    webhook sends with it for users without local addresses, `Http.send` for every URI `UrlGuard.check(url, false)` passed. Tests:
+    `security/OutboundAddressGuardTest` (rebinding with a lookup the test controls), `UrlGuardTest`. The `new Html(...)` audit found nothing open: the
+    dialogs and the story tree escape, `HtmlText` (markup) is only used by `Notification`, which escapes unless told not to and no caller does; both
+    say so in their Javadoc now. Not done: a URI built anew after the check (not equal to the one `UrlGuard.check` returned) is sent by the plain
+    client, so a plugin must send what the guard returned.
+
+80. ✅ **CI: dependency updates, vulnerability scan, coverage.** Done — `.github/dependabot.yml` (Maven from the root pom, grouped; Actions;
+    the Docker base images; the npm of `screenshots/`), `.github/workflows/health.yml` (weekly and by hand: OWASP Dependency-Check `aggregate` over the
+    application, libraries and plugins, the findings by severity in the summary, never failing; the `coverage` profile of `marginalia/pom.xml`,
+    JaCoCo as a report only, the line and branch numbers in the summary). Not done: the repository secret `NVD_API_KEY` must be set by the owner (without
+    it the first database download takes an hour or more); the first runs on GitHub are still to be watched (the scan has not run there yet).
+
+81. ✅ **A smoke test for every plugin.** Done — `extensions/smoke/PluginSmokeTest` (only with `-Dmarginalia.plugins=<folder of JARs | plugins>`): the
+    JARs on a real Felix framework inside the test context (`OsgiServiceImpl` made by the context), each must verify (`verifyExtension`: the decorators
+    against the `@Extendable` methods, their arguments, locals, fields and returns), load, and unload without anything of the application still
+    pointing into its class loader (`PluginLeakFinder`: the singletons, their statics, collections, maps, arrays). Run by the `plugins` job of
+    `desktop.yml`. The plugins without their own tests are down to three (`chaptermarker`, `instructionexporter`, `tts-reader`); the smoke test
+    covers their loading only.
+
 82. **A few browser flows in CI.** The UI tests run on server-side components; everything in `JavascriptLibrary` (marks,
     selection, popovers, scroll, lazy loading) is checked by hand. The screenshot pipeline already drives the real app with
     Playwright and a fake model: reuse it for a handful of asserting flows (log in, generate with streaming, swipe, edit and

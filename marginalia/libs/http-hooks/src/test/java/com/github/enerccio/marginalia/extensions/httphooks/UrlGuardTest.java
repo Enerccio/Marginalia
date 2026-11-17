@@ -65,6 +65,28 @@ class UrlGuardTest {
     }
 
     @Test
+    void onlyAnAddressPassedForARemoteBackendIsHeldToPublicAddressesWhenItIsCalled() throws Exception {
+        assertTrue(UrlGuard.mustBePublic(UrlGuard.check("https://8.8.8.8/v1/images", false)));
+        assertFalse(UrlGuard.mustBePublic(UrlGuard.check("http://localhost:8188/prompt", true)));
+        assertFalse(UrlGuard.mustBePublic(java.net.URI.create("http://never-checked.example/")));
+    }
+
+    @Test
+    void theCallOfARemoteBackendIsRefusedWhenItsAddressIsPrivateAtTheConnection() throws Exception {
+        try (FakeServer server = new FakeServer()) {
+            server.json("/x", 200, "{}");
+            // the URI equal to one a remote backend passed is held to public addresses; the fake server is on 127.0.0.1
+            java.net.URI uri = java.net.URI.create(server.url() + "/x");
+            UrlGuard.holdToPublic(uri); // what check(url, false) does after a public answer; the real DNS answer can not be made to change
+
+            var e = assertThrows(BackendException.class, () -> Http.send(Http.request(uri, 5).GET().build()));
+            assertTrue(e.getMessage().contains("local"), e.getMessage());
+            assertFalse(e instanceof ServerGoneException);
+            assertTrue(server.calls.isEmpty());
+        }
+    }
+
+    @Test
     void theOriginIsTheServerNotTheLocationOnIt() {
         assertEquals("http://comfy.lan:8188", UrlGuard.origin("http://Comfy.LAN:8188/prompt"));
         assertEquals("http://comfy.lan:80", UrlGuard.origin("http://comfy.lan"));

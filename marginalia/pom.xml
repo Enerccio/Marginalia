@@ -32,6 +32,8 @@
     <!-- where everything is built: classes, woven classes, test home, WAR. -Dbuild.dir=/some/folder builds elsewhere, so a run does not
          share target/ with the IDE, which compiles into it too -->
     <build.dir>${project.basedir}/target</build.dir>
+    <!-- the agent of the coverage profile (JaCoCo sets it); empty otherwise, the test JVMs start without it -->
+    <argLine></argLine>
   </properties>
 
   <dependencyManagement>
@@ -501,7 +503,7 @@
           <!-- RuntimeInstrumentationTest installs the ByteBuddy agent (the fallback of development runs) into the test
                JVM. The headless flags keep AWT
                (ImageIO/Graphics2D in the image tests) from putting a Java icon in the macOS Dock and stealing focus -->
-          <argLine>${test.heap} -XX:+EnableDynamicAgentLoading -Djdk.attach.allowAttachSelf=true -Djava.awt.headless=true -Dapple.awt.UIElement=true</argLine>
+          <argLine>@{argLine} ${test.heap} -XX:+EnableDynamicAgentLoading -Djdk.attach.allowAttachSelf=true -Djava.awt.headless=true -Dapple.awt.UIElement=true</argLine>
           <systemPropertyVariables>
             <marginalia.test.home>${project.build.directory}/test-home</marginalia.test.home>
             <!-- BuildTimeWeaverTest: the classes under test went through the weave-extendable step above -->
@@ -666,6 +668,41 @@
     </plugins>
   </build>
   <profiles>
+    <!--
+      Test coverage, a report only: mvn clean test -Pcoverage
+
+      JaCoCo's agent goes into the test JVMs (the argLine property above), the report is written in the test phase after the
+      tests: HTML, XML and CSV in <build.dir>/site/jacoco. A failing test stops the build before the report, so the Health workflow
+      (.github/workflows/health.yml) adds -Dmaven.test.failure.ignore=true. No minimum: the number is to be watched, not to block a
+      build.
+    -->
+    <profile>
+      <id>coverage</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <version>0.8.16</version>
+            <executions>
+              <execution>
+                <id>coverage-agent</id>
+                <goals>
+                  <goal>prepare-agent</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>coverage-report</id>
+                <phase>test</phase>
+                <goals>
+                  <goal>report</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
     <!--
       Desktop distribution: mvn package -Pdesktop
 

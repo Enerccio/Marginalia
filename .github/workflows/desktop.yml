@@ -126,6 +126,22 @@ jobs:
           done
           ls -l ../../plugin-jars
 
+      - name: Smoke test of the plugins
+        # every JAR is loaded into the Spring context of the tests on a real OSGi framework: it must verify (its decorators name
+        # methods, arguments and locals that exist), load, and unload without leaving anything behind (PluginSmokeTest).
+        # clean: the install above left classes the test compile would not weave again
+        run: >-
+          mvn -Dvaadin.skip=true -Dtest=PluginSmokeTest -Dsurefire.failIfNoSpecifiedTests=false
+          -Dmarginalia.plugins=${{ github.workspace }}/plugin-jars clean test
+
+      - name: Upload the smoke test report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: plugin-smoke-test-report
+          path: marginalia/target/surefire-reports/
+          retention-days: 7
+
       - name: Upload plugins
         uses: actions/upload-artifact@v4
         with:

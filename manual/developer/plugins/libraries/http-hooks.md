@@ -44,8 +44,15 @@ server is on this machine or on my network* is off) every address the host resol
 (IPv4-compatible, NAT64 `64:ff9b::/96`) is judged by the IPv4 address. Call it for **every** address the plugin is about to use, also the ones a server hands back (the
 `url` of an image).
 
-The host is resolved by the guard and again by the HTTP client at connect time. Java caches a lookup for 30 seconds by default (`networkaddress.cache.ttl`), so the client gets
-the answer the guard checked; a JVM configured without that cache would let a name that changes its address in between through. That is not closed in the library.
+The judgement is the application's: `OutboundAddressGuard.isPrivate` (`domain.security`, the same class the agent webhook uses), seen by the plugin through boot
+delegation. The check of `UrlGuard` gives the user an early, readable error; the call itself is held to it again when it connects. An address `UrlGuard.check(url, false)`
+passed is remembered (by value, while a request holds the `URI`), and `Http.send` sends its request with a second client, the one of `OutboundAddressGuard.publicOnly`: its
+proxy selector looks the host up **once**, when the connection opens, refuses it when one of the addresses is private, and for `http` connects to exactly the address it
+checked (it names that address as the proxy, so the request line carries the whole URL and the `Host` header stays). A name whose DNS answer changes between the check and
+the connection (DNS rebinding) is refused with a `BackendException` "... mark the backend as local to use it", before anything is sent. For `https` the client connects
+directly and looks the host up a second time; a changed answer can't be used there, because the certificate must be valid for the host name, which a server of the private
+network can't show for someone else's name, and nothing is sent before that check. A `URI` that never went through `UrlGuard.check(url, false)` (a local backend, a
+call that is not checked) is sent by the plain client as before.
 
 `UrlGuard.origin(url)` is `scheme://host:port` in lower case: what two settings that call the same server have in common.
 

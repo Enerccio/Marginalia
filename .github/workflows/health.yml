@@ -1,0 +1,164 @@
+# Project health, weekly and by hand: what no build waits for.
+#
+#   scan      OWASP Dependency-Check over the application, the libraries and the plugins (the JARs the WAR and the plugin
+#             bundles carry), the report as an artifact and the findings by severity in the job summary.
+#   coverage  the whole test suite with JaCoCo (the coverage profile of marginalia/pom.xml), the report as an artifact and the
+#             line and branch numbers in the job summary.
+#
+# Neither fails on a finding or a low number: they report. A job fails only when it could not produce its report.
+#
+# The scan reads the National Vulnerability Database. Without an API key the NVD lets a client in slowly and the first download
+# takes an hour or more; with the repository secret NVD_API_KEY (free, https://nvd.nist.gov/developers/request-an-api-key) a few
+# minutes. The database is cached between runs.
+
+name: Health
+
+on:
+  schedule:
+    - cron: '17 4 * * 1'   # Monday morning, after Dependabot's pull requests of the week
+  workflow_dispatch:
+
+concurrency:
+  group: health-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  JAVA_VERSION: '25'
+  MAVEN_ARGS: '-B -ntp'
+  DEPENDENCY_CHECK_VERSION: '13.0.0'
+
+jobs:
+  scan:
+    name: Vulnerability scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+
+      - name: Cache the vulnerability database
+        uses: actions/cache@v4
+        with:
+          path: ~/.dependency-check-data
+          key: dependency-check-${{ github.run_id }}
+          restore-keys: dependency-check-
+
+      - name: Build everything
+        # the root pom builds the application, the libraries and the plugins; the frontend is not scanned (Vaadin's npm
+        # packages are generated, the screenshot tooling is not shipped), so it is not built
+        run: mvn -DskipTests -Dvaadin.skip=true install
+
+      - name: Scan
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+        run: |
+          key_arg=""
+          if [ -n "$NVD_API_KEY" ]; then key_arg="-DnvdApiKey=$NVD_API_KEY"; else echo "::warning::No NVD_API_KEY secret: the database download is slow"; fi
+          mvn org.owasp:dependency-check-maven:${DEPENDENCY_CHECK_VERSION}:aggregate \
+            $key_arg \
+            -DdataDirectory="$HOME/.dependency-check-data" \
+            -Dformats=HTML,JSON \
+            -DfailBuildOnCVSS=11 \
+            -DossindexAnalyzerEnabled=false \
+            -DretireJsAnalyzerEnabled=false \
+            -DnodeAnalyzerEnabled=false \
+            -DnodeAuditAnalyzerEnabled=false \
+            -DassemblyAnalyzerEnabled=false
+
+      - name: Summary
+        if: always()
+        run: |
+          report=target/dependency-check-report.json
+          if [ ! -f "$report" ]; then echo "No report was written." >> "$GITHUB_STEP_SUMMARY"; exit 1; fi
+          python3 - "$report" >> "$GITHUB_STEP_SUMMARY" <<'EOF'
+          import json, sys, collections
+          data = json.load(open(sys.argv[1]))
+          counts = collections.Counter()
+          rows = []
+          for dep in data.get("dependencies", []):
+              for vuln in dep.get("vulnerabilities", []) or []:
+                  severity = (vuln.get("severity") or "UNKNOWN").upper()
+                  counts[severity] += 1
+                  rows.append((severity, dep.get("fileName", "?"), vuln.get("name", "?")))
+          print("## Vulnerability scan\n")
+          if not rows:
+              print("No known vulnerabilities in the dependencies.")
+          else:
+              print("| Severity | Count |\n|---|---|")
+              for severity in ["CRITICAL", "HIGH", "MEDIUM", "LOW", "UNKNOWN"]:
+                  if counts[severity]:
+                      print(f"| {severity} | {counts[severity]} |")
+              print("\n<details><summary>Findings</summary>\n\n| Severity | Dependency | Vulnerability |\n|---|---|---|")
+              order = {"CRITICAL": 0, "HIGH": 1, "MEDIUM": 2, "LOW": 3}
+              for severity, file, name in sorted(set(rows), key=lambda r: (order.get(r[0], 9), r[1], r[2])):
+                  print(f"| {severity} | {file} | {name} |")
+              print("\n</details>")
+          EOF
+
+      - name: Upload the report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-check-report
+          path: target/dependency-check-report.*
+          retention-days: 30
+          if-no-files-found: ignore
+
+  coverage:
+    name: Test coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: marginalia
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+
+      - name: Test with coverage
+        # a failing test is the Desktop workflow's to report; here it must not stop the report of what ran
+        run: mvn -Pcoverage -Dmaven.test.failure.ignore=true test
+
+      - name: Summary
+        if: always()
+        run: |
+          report=target/site/jacoco/jacoco.csv
+          if [ ! -f "$report" ]; then echo "No coverage report was written." >> "$GITHUB_STEP_SUMMARY"; exit 1; fi
+          python3 - "$report" >> "$GITHUB_STEP_SUMMARY" <<'EOF'
+          import csv, sys
+          line = [0, 0]; branch = [0, 0]
+          for row in csv.DictReader(open(sys.argv[1])):
+              line[0] += int(row["LINE_COVERED"]); line[1] += int(row["LINE_COVERED"]) + int(row["LINE_MISSED"])
+              branch[0] += int(row["BRANCH_COVERED"]); branch[1] += int(row["BRANCH_COVERED"]) + int(row["BRANCH_MISSED"])
+          pct = lambda c: f"{100 * c[0] / c[1]:.1f} %" if c[1] else "-"
+          print("## Test coverage of the application\n")
+          print("| | Covered | Total | |\n|---|---|---|---|")
+          print(f"| Lines | {line[0]} | {line[1]} | {pct(line)} |")
+          print(f"| Branches | {branch[0]} | {branch[1]} | {pct(branch)} |")
+          EOF
+
+      - name: Upload the report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: marginalia/target/site/jacoco/
+          retention-days: 30
+          if-no-files-found: ignore

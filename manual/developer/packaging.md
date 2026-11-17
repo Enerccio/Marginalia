@@ -317,8 +317,9 @@ the commit of the running build (`BuildInfo`), so the application never names a 
 
 ## Continuous integration
 
-Three workflows: `desktop.yml` (tests and the desktop archives), `server.yml` (WAR, plugins, Docker image) and
-`manual.yml` (the manual, see [Publishing the manual](#publishing-the-manual)). The first two run
+Four workflows: `desktop.yml` (tests and the desktop archives), `server.yml` (WAR, plugins, Docker image),
+`manual.yml` (the manual, see [Publishing the manual](#publishing-the-manual)) and `health.yml` (a weekly vulnerability scan and coverage
+report, see [health.yml](#healthyml)). The first two run
 on pushes to `master`, on `v*` tags, on pull requests that change `marginalia/**` or the workflow, and by hand
 (*workflow_dispatch*). A newer run on the same ref cancels the running one.
 
@@ -341,7 +342,7 @@ flowchart LR
 | Job | Runs on | Does |
 |---|---|---|
 | `test` | `ubuntu-latest` | For `v*` tags, checks that the tag matches the POM version; `mvn test`; uploads `surefire-reports/` when a test fails. |
-| `plugins` | `ubuntu-latest` | Installs the application (`-Dvaadin.skip=true`: the plugins need only its classes JAR), installs the libraries of `marginalia/libs` and builds every plugin; uploads the JARs, which are the same on every platform (kept 14 days). |
+| `plugins` | `ubuntu-latest` | Installs the application (`-Dvaadin.skip=true`: the plugins need only its classes JAR), installs the libraries of `marginalia/libs` and builds every plugin; runs the [plugin smoke test](testing.md#the-plugin-smoke-test) on the JARs (each verifies, loads and unloads without leaving anything behind; `surefire-reports/` are uploaded when it fails); uploads the JARs, which are the same on every platform (kept 14 days). |
 | `desktop` | one runner per platform | downloads the plugin JARs to `target/desktop-plugins`, `mvn -Pdesktop -DskipTests -Ddesktop.installerRequired=true -Ddesktop.skipFull=false package`, a smoke test, uploads the archives and the installer (kept 14 days). |
 | `release` | `ubuntu-latest`, `v*` tags only | Downloads all archives and attaches them to the GitHub release of the tag. |
 
@@ -352,6 +353,21 @@ The **smoke test** starts the native app (and on Linux and macOS also the portab
 `--home`, a fixed port, `--no-browser --no-tray`, and waits up to three minutes until the start page contains
 `<title>Marginalia</title>`. On Linux it also installs the `.deb` (the package registers its menu entry with `xdg-desktop-menu`, which fails on a runner without a desktop, so the step first creates `/usr/share/desktop-directories`, `/usr/share/applications` and `/etc/xdg/menus/applications-merged`) and then the full `.deb` and starts the installed `/opt/marginalia/bin/Marginalia` each time; the plain package must install no plugin, the full one must have copied its plugins into the extensions folder. It fails and prints the launcher log otherwise. It catches broken packaging - a missing
 JDK module, a launcher that can't find `server/`, a WAR that doesn't deploy - but doesn't test any feature.
+
+### health.yml
+
+Weekly (Monday morning) and by hand, never on a push: what no build waits for. Neither job fails on a finding or a low number, only when it could not
+write its report.
+
+| Job | Does |
+|---|---|
+| `scan` | `mvn -DskipTests -Dvaadin.skip=true install` in the root (the application, the libraries, the plugins), then OWASP Dependency-Check (`dependency-check-maven`, `aggregate`) over all of them: the JARs the WAR and the plugin bundles carry. The findings by severity go into the job summary, the HTML and JSON report is an artifact (30 days). The database of the National Vulnerability Database is cached between runs; without the repository secret `NVD_API_KEY` (free from the NVD) its download takes an hour or more, with it a few minutes. The npm packages are not scanned: Vaadin's are generated, the screenshot tooling is not shipped. |
+| `coverage` | `mvn -Pcoverage -Dmaven.test.failure.ignore=true test` in `marginalia/` (see [Coverage](testing.md#coverage)): the line and branch numbers into the summary, the JaCoCo report as an artifact. A failing test is the Desktop workflow's to report. |
+
+**Dependabot** (`.github/dependabot.yml`) opens the update pull requests once a week: Maven from the root `pom.xml` (it is the parent and aggregator of the
+application, the libraries and every plugin; Vaadin, Spring, Hibernate, Jetty, the Maven plugins and the other patch updates each in one group), the GitHub
+Actions, the base images of the `Dockerfile` and the npm packages of `screenshots/`. `marginalia/package.json` is left out: Vaadin writes it from the Java
+dependencies.
 
 ### server.yml
 
