@@ -47,7 +47,7 @@ Marginalia/
 │   ├── src/desktop        desktop launcher (tray icon, starts Jetty) and launch scripts
 │   ├── src/test           tests
 │   ├── libs/              code that plugins share, embedded in their bundles (`translator-common`, `story-tracker-common`, `http-hooks`)
-│   └── plugins/           the twenty-nine bundled extensions, each a separate Maven project
+│   └── plugins/           the thirty bundled extensions, each a separate Maven project
 ├── manual/                this manual (Retype sources); manual/user and its translations are also packed into the WAR for the help assistant
 ├── Dockerfile, docker-compose.yml
 └── .github/workflows/     CI (desktop builds and releases)

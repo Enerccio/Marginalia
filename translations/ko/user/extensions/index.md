@@ -6,7 +6,7 @@ icon: plug
 
 # 확장 기능
 
-확장 기능은 Marginalia 자체를 바꾸지 않고 기능을 추가합니다. Marginalia에는 23개의 확장 기능이 함께 제공됩니다:
+확장 기능은 Marginalia 자체를 바꾸지 않고 기능을 추가합니다. Marginalia에는 30개의 확장 기능이 함께 제공됩니다:
 
 | 확장 기능 | 추가되는 것 |
 |---|---|
@@ -37,6 +37,7 @@ icon: plug
 | [Reviewer](reviewer.md) | 모델이 쓴 이야기 파트에 대한 검토입니다. 독자 반응과 비평을 제공합니다. |
 | [Side Query](side-query.md) | 이야기 옆에서 책에 대해 모델과 나누는 대화입니다. |
 | [Converter](sillytavern-converter.md) | 이야기 옆에 SillyTavern 대화를 띄우고, 모델이 그 대화로부터 준비한 턴 세부 정보를 보여 줘서 대화를 이야기로 다시 쓰게 합니다. 또는 오래된 책(백업이나 책 자체에서 가져온)의 파트들을 지시문과 함께 불러와 다시 고쳐 쓰게 합니다. |
+| [State Tracker](state-tracker.md) | 추적 대상 캐릭터의 현재 상태(옷차림, 지닌 물건, 손에 든 무기, 부상, 기분 또는 직접 정한 범주)를 프롬프트에 넣어 모델이 이를 지키도록 합니다. |
 | [Story Notes](story-notes.md) | 사이드바에 있는 작은 위키입니다. 여러분이 직접 쓰는 페이지들(태그, 페이지 간 링크 포함)로 줄거리, 아이디어, 세계관의 규칙을 정리합니다. 플롯 마법사와 에이전트는 여러분이 허용한 페이지를 읽고 바꿀 수 있습니다. |
 | [Read Aloud](tts-reader.md) | 게시된 책을 뷰어에서 여러분 기기의 목소리로 소리 내어 읽어 줍니다. |
 | [Chinese localization](chinese-localization.md) | 사용자 인터페이스의 언어로서의 간체 중국어입니다. |

@@ -6,7 +6,7 @@ icon: plug
 
 # Extensions
 
-Les extensions ajoutent des fonctionnalités à Marginalia sans modifier l'application elle-même. Vingt-trois extensions sont fournies avec Marginalia :
+Les extensions ajoutent des fonctionnalités à Marginalia sans modifier l'application elle-même. Trente extensions sont fournies avec Marginalia :
 
 | Extension | Ce qu'elle ajoute |
 |---|---|
@@ -37,6 +37,7 @@ Les extensions ajoutent des fonctionnalités à Marginalia sans modifier l'appli
 | [Reviewer](reviewer.md) | Critiques des parties de l'histoire rédigées par le modèle : réactions de lecteurs, critique. |
 | [Side Query](side-query.md) | Une discussion avec le modèle à propos de votre livre, à côté de l'histoire. |
 | [Converter](sillytavern-converter.md) | Une conversation SillyTavern à côté de l'histoire, et des détails de tours que le modèle prépare à partir de celle-ci, pour réécrire la conversation en histoire ; ou les parties d'un ancien livre (depuis une sauvegarde ou le livre lui-même) avec leurs instructions, pour le reformuler. |
+| [State Tracker](state-tracker.md) | L'état actuel des personnages suivis (vêtements, ce qu'ils portent sur eux, l'arme à portée de main, blessures, humeur ou vos propres catégories), intégré au prompt pour que le modèle s'y tienne. |
 | [Story Notes](story-notes.md) | Un petit wiki de vos propres pages (étiquettes, liens entre elles) dans la barre latérale, pour les intrigues, les idées et les règles du monde ; l'assistant d'intrigue et les agents peuvent lire et modifier les pages que vous autorisez. |
 | [Read Aloud](tts-reader.md) | Lit un livre publié à voix haute dans la visionneuse, avec la voix de votre appareil. |
 | [Chinese localization](chinese-localization.md) | Le chinois simplifié comme langue de l'interface utilisateur. |

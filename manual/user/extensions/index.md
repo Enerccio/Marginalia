@@ -6,7 +6,7 @@ icon: plug
 
 # Extensions
 
-Extensions add features to Marginalia without changing the application itself. Twenty-three extensions come with Marginalia:
+Extensions add features to Marginalia without changing the application itself. Thirty extensions come with Marginalia:
 
 | Extension | What it adds |
 |---|---|
