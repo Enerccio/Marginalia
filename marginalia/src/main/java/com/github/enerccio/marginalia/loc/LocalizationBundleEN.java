@@ -1130,6 +1130,13 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_ANNOTATION_TEMPLATE, "Annotation template");
         setValue(L.LABEL_ANNOTATION_TEMPLATES, "Annotation templates");
         setValue(L.LABEL_ADD_ANNOTATION_TEMPLATE, "Add template");
+        setValue(L.LABEL_API_KEYS, "API keys");
+        setValue(L.LABEL_NEW_API_KEY, "New API key");
+        setValue(L.LABEL_CREATE_KEY, "Create key");
+        setValue(L.LABEL_ACCESS, "Access");
+        setValue(L.LABEL_EXPIRES, "Expires");
+        setValue(L.LABEL_EXPIRES_AFTER_DAYS, "Expires after (days)");
+        setValue(L.LABEL_REVOKE, "Revoke");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1327,6 +1334,11 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ENUM_SUMMARY_SPLIT_CHAPTERS, "Chapters");
         setValue(L.ENUM_SUMMARY_SPLIT_PARTS, "Number of parts");
         setValue(L.ENUM_ANNOTATION_SOURCE_PHRASE, "Phrase watch list");
+        setValue(L.ENUM_PERMISSION_API, "API access");
+        setValue(L.ENUM_API_SCOPE_READ, "Read: books and the commands that only read");
+        setValue(L.ENUM_API_SCOPE_WRITE, "Write: every command");
+        setValue(L.ENUM_API_SCOPE_UPDATE, "Update the installation");
+        setValue(L.ENUM_API_SCOPE_EXTENSIONS, "Manage the extensions");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
@@ -1441,6 +1453,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ERROR_GPU_UNLOAD_FAILED, "A release step failed: %s");
         setValue(L.ERROR_PHRASE_INVALID, "This phrase can't be used: %s");
         setValue(L.ERROR_ANNOTATION_TEMPLATE_INCOMPLETE, "Every annotation template needs a name and a note.");
+        setValue(L.ERROR_API_KEY_CREATE_FAILED, "The key could not be created: %s");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "Cannot save form.");
@@ -1942,6 +1955,10 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_PHRASE_WATCH_INFO, "The phrases are looked for in the text of a part, with no model: every hit becomes an annotation of the passage. The phrases of your settings, of the folders above the book and of the book add up. The scan of generated parts runs after the automatic annotation; when the book redrafts automatically, the redraft addresses these notes too.");
         setValue(L.MSG_PHRASE_WATCH_SAVED, "Phrase watch list saved.");
         setValue(L.MSG_PHRASE_WATCH_SCANNED, "Annotations added: %d");
+        setValue(L.MSG_API_KEYS_INFO, "Programs and scripts use Marginalia through the HTTP API (/api/v1) as you, with a key in the header Authorization: Bearer <key>.");
+        setValue(L.MSG_API_NOT_ALLOWED, "An administrator has not allowed you to use the API.");
+        setValue(L.MSG_API_KEY_CREATED, "Copy the key now: it is not shown again.");
+        setValue(L.MSG_REVOKE_API_KEY, "Revoke the key %s? The programs that use it lose access.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -2084,6 +2101,8 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_GPU_USED_OUTSIDE, "Other programs or people use this GPU too: Marginalia then runs the acquire steps of a lock before every job, not only when the GPU changes locks, as it can't know what is loaded. The acquire steps of each lock must then make room by themselves (unload the other models) and be safe to repeat.");
         setValue(L.HELP_PHRASE_WATCH_LIST, "A phrase is found regardless of case and as whole words, any white space matches any white space and straight and curly quotes match each other; a regular expression is used as written (also regardless of case). An entry with the same phrase as an inherited one replaces it, and one that is off takes it out.");
         setValue(L.HELP_ANNOTATION_TEMPLATES, "What the annotation of a hit of the phrase watch list says. In the note {{match}} is the words found and {{phrase}} the entry of the list. An entry without a template gets a built-in note.");
+        setValue(L.HELP_API_ACCESS, "Any combination. The version can be read with every key. Write includes read. Updating and the extensions are for administrators only.");
+        setValue(L.HELP_EXPIRES_AFTER_DAYS, "Empty: the key does not expire.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

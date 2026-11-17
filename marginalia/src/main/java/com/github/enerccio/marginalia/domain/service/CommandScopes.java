@@ -39,4 +39,13 @@ public interface CommandScopes {
      */
     CommandScope forManuscript(Manuscript manuscript);
 
+    /**
+     * The scope of a call of the HTTP API: the given book, as it is stored at the moment, or no book for a command that needs none.
+     * Nobody can be asked: a question is answered with {@code confirm}, what the caller sent with the call.
+     *
+     * @param manuscript the book, null for none
+     * @throws IllegalArgumentException when the book is given and does not exist
+     */
+    CommandScope forApi(Manuscript manuscript, boolean confirm);
+
 }

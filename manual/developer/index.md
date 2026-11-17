@@ -89,6 +89,7 @@ the details.
 | [Version history](version-history.md) | The versions of the text of a part: data, recording, limit and pruning, restoring, search, backups, migrations, windows. |
 | [Generation pipeline](generation-pipeline.md) | How a story part is generated, step by step. |
 | [Agents](agents.md) | How agents work inside: runs and their states, the runner, the tools, references, the files, the screens. |
+| [HTTP API](api.md) | Bearer keys, the request context of a call, the calls (commands, runs, update, extensions), installing plugins without a full update. |
 | [Templating & macros](templating.md) | Prompt templates, template data, the macro translator. |
 | [User interface](ui.md) | Routes, workspace, dialogs, push and background threads. |
 | [Custom components](custom-components.md) | The components that draw with a JavaScript library (story tree, charts, graphs), how they work and how to add one. |

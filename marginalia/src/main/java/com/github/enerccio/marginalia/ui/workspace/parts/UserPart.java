@@ -19,6 +19,7 @@ import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.LLMInteraction;
+import com.github.enerccio.marginalia.ui.components.ApiKeysView;
 import com.github.enerccio.marginalia.ui.components.TagsView;
 import com.github.enerccio.marginalia.ui.dialogs.LorebookImportDialog;
 import com.github.enerccio.marginalia.ui.exports.ExportSettingsEditor;
@@ -307,6 +308,9 @@ public class UserPart implements WorkspaceComponent {
         tabSheet.add(loc.getValue(L.LABEL_NOTIFICATIONS), createNotificationsTab());
 
         tabSheet.add(loc.getValue(L.LABEL_PHRASE_WATCH), createPhraseWatchTab());
+
+        // the keys are stored at once, not by the Save of the settings
+        tabSheet.add(loc.getValue(L.LABEL_API_KEYS), new ApiKeysView());
 
         extensionSettings = new Accordion();
         extensionSettings.setSizeFull();

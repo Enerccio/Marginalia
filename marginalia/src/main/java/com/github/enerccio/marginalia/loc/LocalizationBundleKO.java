@@ -1130,6 +1130,13 @@ public class LocalizationBundleKO extends LocalizationBundleBase {
         setValue(L.LABEL_ANNOTATION_TEMPLATE, "주석 템플릿");
         setValue(L.LABEL_ANNOTATION_TEMPLATES, "주석 템플릿");
         setValue(L.LABEL_ADD_ANNOTATION_TEMPLATE, "템플릿 추가");
+        setValue(L.LABEL_API_KEYS, "API 키");
+        setValue(L.LABEL_NEW_API_KEY, "새 API 키");
+        setValue(L.LABEL_CREATE_KEY, "키 만들기");
+        setValue(L.LABEL_ACCESS, "접근 권한");
+        setValue(L.LABEL_EXPIRES, "만료");
+        setValue(L.LABEL_EXPIRES_AFTER_DAYS, "만료까지 (일)");
+        setValue(L.LABEL_REVOKE, "폐기");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 호환");
@@ -1327,6 +1334,11 @@ public class LocalizationBundleKO extends LocalizationBundleBase {
         setValue(L.ENUM_SUMMARY_SPLIT_CHAPTERS, "챕터");
         setValue(L.ENUM_SUMMARY_SPLIT_PARTS, "파트 수");
         setValue(L.ENUM_ANNOTATION_SOURCE_PHRASE, "주의 문구 목록");
+        setValue(L.ENUM_PERMISSION_API, "API 접근");
+        setValue(L.ENUM_API_SCOPE_READ, "읽기: 책과 읽기만 하는 명령");
+        setValue(L.ENUM_API_SCOPE_WRITE, "쓰기: 모든 명령");
+        setValue(L.ENUM_API_SCOPE_UPDATE, "설치 업데이트");
+        setValue(L.ENUM_API_SCOPE_EXTENSIONS, "확장 기능 관리");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "내부 서버 오류");
@@ -1441,6 +1453,7 @@ public class LocalizationBundleKO extends LocalizationBundleBase {
         setValue(L.ERROR_GPU_UNLOAD_FAILED, "해제 단계가 실패했습니다: %s");
         setValue(L.ERROR_PHRASE_INVALID, "이 문구는 사용할 수 없습니다: %s");
         setValue(L.ERROR_ANNOTATION_TEMPLATE_INCOMPLETE, "모든 주석 템플릿에는 이름과 메모가 필요합니다.");
+        setValue(L.ERROR_API_KEY_CREATE_FAILED, "키를 만들 수 없습니다: %s");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "양식을 저장할 수 없습니다.");
@@ -1942,6 +1955,10 @@ public class LocalizationBundleKO extends LocalizationBundleBase {
         setValue(L.MSG_PHRASE_WATCH_INFO, "문구는 모델 없이 파트의 본문에서 찾으며, 찾을 때마다 해당 구절의 주석이 됩니다. 설정, 책 위의 폴더, 책 자체의 문구가 합쳐집니다. 생성된 파트 검사는 자동 주석 다음에 실행되며, 책이 자동으로 다시 쓸 때는 다시 쓰기에서 이 메모도 반영합니다.");
         setValue(L.MSG_PHRASE_WATCH_SAVED, "주의 문구 목록을 저장했습니다.");
         setValue(L.MSG_PHRASE_WATCH_SCANNED, "추가된 주석: %d");
+        setValue(L.MSG_API_KEYS_INFO, "프로그램과 스크립트는 헤더 Authorization: Bearer <키>에 키를 넣어 HTTP API(/api/v1)로 사용자 본인으로서 Marginalia를 사용합니다.");
+        setValue(L.MSG_API_NOT_ALLOWED, "관리자가 API 사용을 허용하지 않았습니다.");
+        setValue(L.MSG_API_KEY_CREATED, "지금 키를 복사하세요. 다시 표시되지 않습니다.");
+        setValue(L.MSG_REVOKE_API_KEY, "키 %s을(를) 폐기할까요? 이 키를 사용하는 프로그램은 접근할 수 없게 됩니다.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "분 시 일 월 요일 - 예: \"0 3 * * *\"은 매일 3:00, \"0 */6 * * *\"은 6시간마다, \"30 2 * * 1\"은 월요일 2:30. @daily, @weekly, @monthly도 사용할 수 있습니다.");
@@ -2084,6 +2101,8 @@ public class LocalizationBundleKO extends LocalizationBundleBase {
         setValue(L.HELP_GPU_USED_OUTSIDE, "다른 프로그램이나 사람도 이 GPU를 사용합니다. Marginalia는 무엇이 로드되어 있는지 알 수 없으므로 GPU의 잠금이 바뀔 때뿐 아니라 모든 작업 전에 잠금의 획득 단계를 실행합니다. 이때 각 잠금의 획득 단계는 스스로 자리를 비우고(다른 모델 해제) 반복해도 안전해야 합니다.");
         setValue(L.HELP_PHRASE_WATCH_LIST, "문구는 대소문자를 구분하지 않고 단어 단위로 찾으며, 모든 공백은 어떤 공백과도 일치하고 곧은 따옴표와 둥근 따옴표는 서로 일치합니다. 정규식은 작성된 그대로 사용됩니다(역시 대소문자 구분 없음). 상속된 항목과 같은 문구의 항목은 그것을 대체하고, 꺼진 항목은 그것을 제외합니다.");
         setValue(L.HELP_ANNOTATION_TEMPLATES, "주의 문구 목록에 걸린 항목의 주석 내용입니다. 메모에서 {{match}}는 찾은 단어, {{phrase}}는 목록의 항목입니다. 템플릿이 없는 항목에는 기본 메모가 붙습니다.");
+        setValue(L.HELP_API_ACCESS, "자유롭게 조합할 수 있습니다. 버전은 모든 키로 읽을 수 있습니다. 쓰기에는 읽기가 포함됩니다. 업데이트와 확장 기능은 관리자 전용입니다.");
+        setValue(L.HELP_EXPIRES_AFTER_DAYS, "비워 두면 키가 만료되지 않습니다.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "배경 로어와 세계관 컨텍스트.");

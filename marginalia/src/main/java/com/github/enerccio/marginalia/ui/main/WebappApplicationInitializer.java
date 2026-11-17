@@ -16,6 +16,7 @@ public class WebappApplicationInitializer implements WebApplicationInitializer {
         System.setProperty("vaadin.copilot.enable", "false");
         initRootApplicationContext(servletContext);
         servletContext.addServlet("HealthServlet", new HealthServlet()).addMapping(HealthServlet.PATH);
+        servletContext.addServlet("ApiServlet", new ApiServlet()).addMapping(ApiServlet.PATH);
     }
 
     @SuppressWarnings("UnusedReturnValue")

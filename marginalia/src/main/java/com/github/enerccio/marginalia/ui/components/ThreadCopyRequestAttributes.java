@@ -1,6 +1,6 @@
 package com.github.enerccio.marginalia.ui.components;
 
-import com.github.enerccio.marginalia.bound.AgentRequestAttributes;
+import com.github.enerccio.marginalia.bound.DetachedRequestAttributes;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -127,12 +127,12 @@ public class ThreadCopyRequestAttributes extends ServletRequestAttributes {
 	 * The request context of the current thread in a form another thread can run in (see {@link InRequestScope}), null
 	 * when this thread has none. Whoever starts a worker thread takes it before, on the thread that has the context.
 	 * <p>
-	 * A browser session is copied (the copy outlives the request and the session); the attributes of an agent run are not bound to a
-	 * request and are used by all the threads of the run as they are.
+	 * A browser session is copied (the copy outlives the request and the session); the attributes of an agent run or an API call
+	 * ({@link DetachedRequestAttributes}) are not bound to a request and are used by all the threads of the work as they are.
 	 */
 	public static RequestAttributes create() {
 		RequestAttributes attrs = RequestContextHolder.getRequestAttributes();
-		if (attrs instanceof ThreadCopyRequestAttributes || attrs instanceof AgentRequestAttributes) {
+		if (attrs instanceof ThreadCopyRequestAttributes || attrs instanceof DetachedRequestAttributes) {
 			return attrs;
 		}
 		if (attrs instanceof ServletRequestAttributes servletAttrs) {

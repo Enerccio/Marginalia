@@ -75,6 +75,10 @@ To install a newer version of an extension, **Load Extension (.jar)** with the n
 matter. The installed version is unloaded, its JAR deleted and the new version started in its place. If the new
 version fails to load, the upload shows the error and the old version keeps running.
 
+Extensions can also be installed, updated, stopped and removed from a script, with an [API key](../account.md#api-keys) that has
+the access *Manage the extensions*. A script can first compare the commit the server runs with the source the plugins were built from, to know
+whether they can go in without updating Marginalia itself (see the [developer manual](../../developer/api.md#plugins-without-a-full-update)).
+
 ## When an extension fails
 
 If an uploaded extension can't be loaded, the upload shows *Failed to load extension: ...* and its JAR is not kept.

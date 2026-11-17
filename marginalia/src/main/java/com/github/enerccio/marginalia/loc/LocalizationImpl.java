@@ -119,6 +119,7 @@ public class LocalizationImpl implements Localization, InitializingBean {
         permissionTypes.put(PermissionType.AGENTS, L.ENUM_PERMISSION_AGENTS);
         permissionTypes.put(PermissionType.NOTIFICATIONS, L.ENUM_PERMISSION_NOTIFICATIONS);
         permissionTypes.put(PermissionType.VERSION_HISTORY, L.ENUM_PERMISSION_VERSION_HISTORY);
+        permissionTypes.put(PermissionType.API, L.ENUM_PERMISSION_API);
 
         revisionSources.put(RevisionSource.GENERATE, L.ENUM_REVISION_SOURCE_GENERATE);
         revisionSources.put(RevisionSource.REGENERATE, L.ENUM_REVISION_SOURCE_REGENERATE);

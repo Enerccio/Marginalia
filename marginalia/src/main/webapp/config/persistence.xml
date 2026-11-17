@@ -43,6 +43,7 @@
         <class>com.github.enerccio.marginalia.domain.model.impl.AgentMessage</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.AgentRunPair</class>
         <class>com.github.enerccio.marginalia.domain.security.model.Permission</class>
+        <class>com.github.enerccio.marginalia.domain.security.model.ApiKey</class>
 
         <class>com.github.enerccio.marginalia.domain.model.impl.OpenAICompatible</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.ExtensionAI</class>

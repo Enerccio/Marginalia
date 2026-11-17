@@ -21,6 +21,16 @@
         <property name="repository" ref="permissionRepository" />
     </bean>
 
+    <bean id="apiKeyRepository" class="com.github.enerccio.marginalia.domain.security.repository.impl.JpaApiKeyRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.security.service.impl.ApiKeyServiceImpl">
+        <property name="repository" ref="apiKeyRepository" />
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.api.ApiDispatcher" />
+
     <bean class="com.github.enerccio.marginalia.domain.service.impl.InferenceServicesImpl">
         <property name="inferenceProviders">
             <list>

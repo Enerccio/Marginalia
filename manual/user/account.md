@@ -302,6 +302,33 @@ Your [phrase watch list](books/annotations.md#watching-for-phrases), which every
 **annotation templates** its entries and the entries of the folders and books pick from: what the note of a phrase that was found says,
 its type and whether it is given to the model. Saved with the **Save** of the settings, like the other tabs.
 
+### API keys
+
+Keys for programs and scripts that use Marginalia over its HTTP API (`/api/v1`): a program sends the key in the header
+`Authorization: Bearer <key>` and does what you could do, in your books. Only for administrators and users with the permission
+[*API access*](administration/permissions.md); without it the tab says so.
+
+**New API key** asks for a **Name** (what uses the key, so you know which one to revoke), the **Access** and when it
+**Expires** (after a number of days, or never when empty). The access is any combination of:
+
+| Access | |
+|---|---|
+| **Read** | Your books and the commands that only read. |
+| **Write** | Every command, also those that change or delete; includes *Read*. |
+| **Update the installation** | Only for administrators: the [update](administration/updates.md) of the installation (its status, its log, starting it). |
+| **Manage the extensions** | Only for administrators: installing, updating, stopping and removing [extensions](administration/extensions.md). |
+
+Every key can read the version of Marginalia. Give a key only what its program needs: a script that installs plugins needs only
+*Manage the extensions*, and such a key can't touch your books. The update and the extensions stop working for a key when its owner stops being an administrator; its other
+access stays.
+
+The key is shown once, right after it is made: copy it then, Marginalia keeps only a fingerprint of it and can't show it again. The
+list shows your keys with the start of each, when it was made, when it expires and when it was last used; the trash button
+**revokes** a key, and the programs that use it lose access at once. A key also stops working when it expires and when an
+administrator takes the permission away. The keys are saved when you make or revoke them, not by the **Save** of the settings.
+
+For developers, the calls are described in the [developer manual](../developer/api.md).
+
 ### Extension Settings
 
 Settings of the installed [extensions](extensions/index.md), one section per extension (for example *Reviewer Settings*

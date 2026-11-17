@@ -1130,6 +1130,13 @@ public class LocalizationBundleIT extends LocalizationBundleBase {
         setValue(L.LABEL_ANNOTATION_TEMPLATE, "Modello di annotazione");
         setValue(L.LABEL_ANNOTATION_TEMPLATES, "Modelli di annotazione");
         setValue(L.LABEL_ADD_ANNOTATION_TEMPLATE, "Aggiungi modello");
+        setValue(L.LABEL_API_KEYS, "Chiavi API");
+        setValue(L.LABEL_NEW_API_KEY, "Nuova chiave API");
+        setValue(L.LABEL_CREATE_KEY, "Crea chiave");
+        setValue(L.LABEL_ACCESS, "Accesso");
+        setValue(L.LABEL_EXPIRES, "Scade");
+        setValue(L.LABEL_EXPIRES_AFTER_DAYS, "Scade dopo (giorni)");
+        setValue(L.LABEL_REVOKE, "Revoca");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "Compatibile con OpenAI");
@@ -1327,6 +1334,11 @@ public class LocalizationBundleIT extends LocalizationBundleBase {
         setValue(L.ENUM_SUMMARY_SPLIT_CHAPTERS, "Capitoli");
         setValue(L.ENUM_SUMMARY_SPLIT_PARTS, "Numero di parti");
         setValue(L.ENUM_ANNOTATION_SOURCE_PHRASE, "Elenco di frasi da sorvegliare");
+        setValue(L.ENUM_PERMISSION_API, "Accesso API");
+        setValue(L.ENUM_API_SCOPE_READ, "Lettura: i libri e i comandi che leggono soltanto");
+        setValue(L.ENUM_API_SCOPE_WRITE, "Scrittura: tutti i comandi");
+        setValue(L.ENUM_API_SCOPE_UPDATE, "Aggiornare l'installazione");
+        setValue(L.ENUM_API_SCOPE_EXTENSIONS, "Gestire le estensioni");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Errore interno del server");
@@ -1441,6 +1453,7 @@ public class LocalizationBundleIT extends LocalizationBundleBase {
         setValue(L.ERROR_GPU_UNLOAD_FAILED, "Un passo di rilascio non è riuscito: %s");
         setValue(L.ERROR_PHRASE_INVALID, "Questa frase non può essere usata: %s");
         setValue(L.ERROR_ANNOTATION_TEMPLATE_INCOMPLETE, "Ogni modello di annotazione deve avere un nome e una nota.");
+        setValue(L.ERROR_API_KEY_CREATE_FAILED, "Impossibile creare la chiave: %s");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "Impossibile salvare il modulo.");
@@ -1942,6 +1955,10 @@ public class LocalizationBundleIT extends LocalizationBundleBase {
         setValue(L.MSG_PHRASE_WATCH_INFO, "Le frasi vengono cercate nel testo di una parte, senza modello: ogni occorrenza diventa un'annotazione del passo. Si sommano le frasi delle tue impostazioni, delle cartelle sopra il libro e del libro stesso. L'analisi delle parti generate avviene dopo l'annotazione automatica; quando il libro riscrive automaticamente, la riscrittura tiene conto anche di queste note.");
         setValue(L.MSG_PHRASE_WATCH_SAVED, "Elenco di frasi da sorvegliare salvato.");
         setValue(L.MSG_PHRASE_WATCH_SCANNED, "Annotazioni aggiunte: %d");
+        setValue(L.MSG_API_KEYS_INFO, "Programmi e script usano Marginalia a tuo nome tramite l'API HTTP (/api/v1), con una chiave nell'intestazione Authorization: Bearer <chiave>.");
+        setValue(L.MSG_API_NOT_ALLOWED, "Un amministratore non ti ha consentito di usare l'API.");
+        setValue(L.MSG_API_KEY_CREATED, "Copia la chiave ora: non verrà più mostrata.");
+        setValue(L.MSG_REVOKE_API_KEY, "Revocare la chiave %s? I programmi che la usano perdono l'accesso.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minuto ora giorno-del-mese mese giorno-della-settimana - ad es. \"0 3 * * *\" ogni giorno alle 3:00, \"0 */6 * * *\" ogni 6 ore, \"30 2 * * 1\" i lunedì alle 2:30. Funzionano anche @daily, @weekly e @monthly.");
@@ -2084,6 +2101,8 @@ public class LocalizationBundleIT extends LocalizationBundleBase {
         setValue(L.HELP_GPU_USED_OUTSIDE, "Anche altri programmi o persone usano questa GPU: Marginalia esegue allora i passi di acquisizione di un blocco prima di ogni lavoro, non solo quando la GPU cambia blocco, perché non può sapere cosa è caricato. I passi di acquisizione di ogni blocco devono allora fare spazio da soli (scaricare gli altri modelli) ed essere ripetibili senza rischi.");
         setValue(L.HELP_PHRASE_WATCH_LIST, "Una frase viene trovata senza distinguere maiuscole e minuscole e come parole intere, qualsiasi spazio corrisponde a qualsiasi spazio e le virgolette dritte e tipografiche si equivalgono; un'espressione regolare viene usata così com'è (anch'essa senza distinguere maiuscole e minuscole). Una voce con la stessa frase di una ereditata la sostituisce, una disattivata la toglie.");
         setValue(L.HELP_ANNOTATION_TEMPLATES, "Ciò che dice l'annotazione di un'occorrenza dell'elenco di frasi da sorvegliare. Nella nota {{match}} è il testo trovato e {{phrase}} la voce dell'elenco. Una voce senza modello riceve una nota predefinita.");
+        setValue(L.HELP_API_ACCESS, "Qualsiasi combinazione. Ogni chiave può leggere la versione. La scrittura include la lettura. L'aggiornamento e le estensioni sono solo per gli amministratori.");
+        setValue(L.HELP_EXPIRES_AFTER_DAYS, "Vuoto: la chiave non scade.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Lore di sfondo e contesto del mondo.");

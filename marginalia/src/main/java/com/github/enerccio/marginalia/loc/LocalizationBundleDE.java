@@ -1130,6 +1130,13 @@ public class LocalizationBundleDE extends LocalizationBundleBase {
         setValue(L.LABEL_ANNOTATION_TEMPLATE, "Annotationsvorlage");
         setValue(L.LABEL_ANNOTATION_TEMPLATES, "Annotationsvorlagen");
         setValue(L.LABEL_ADD_ANNOTATION_TEMPLATE, "Vorlage hinzufügen");
+        setValue(L.LABEL_API_KEYS, "API-Schlüssel");
+        setValue(L.LABEL_NEW_API_KEY, "Neuer API-Schlüssel");
+        setValue(L.LABEL_CREATE_KEY, "Schlüssel erstellen");
+        setValue(L.LABEL_ACCESS, "Zugriff");
+        setValue(L.LABEL_EXPIRES, "Läuft ab");
+        setValue(L.LABEL_EXPIRES_AFTER_DAYS, "Läuft ab nach (Tagen)");
+        setValue(L.LABEL_REVOKE, "Widerrufen");
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI-kompatibel");
         setValue(L.ENUM_PROTOCOL_TYPE_OPEN_CHAT_COMPLETION, "Chat Completion");
@@ -1326,6 +1333,11 @@ public class LocalizationBundleDE extends LocalizationBundleBase {
         setValue(L.ENUM_SUMMARY_SPLIT_CHAPTERS, "Kapitel");
         setValue(L.ENUM_SUMMARY_SPLIT_PARTS, "Anzahl der Abschnitte");
         setValue(L.ENUM_ANNOTATION_SOURCE_PHRASE, "Phrasen-Beobachtungsliste");
+        setValue(L.ENUM_PERMISSION_API, "API-Zugriff");
+        setValue(L.ENUM_API_SCOPE_READ, "Lesen: Bücher und Befehle, die nur lesen");
+        setValue(L.ENUM_API_SCOPE_WRITE, "Schreiben: alle Befehle");
+        setValue(L.ENUM_API_SCOPE_UPDATE, "Die Installation aktualisieren");
+        setValue(L.ENUM_API_SCOPE_EXTENSIONS, "Die Erweiterungen verwalten");
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Interner Serverfehler");
         setValue(L.ERROR_AI_NOT_SET, "Dem Buch fehlt ein Modell.");
@@ -1439,6 +1451,7 @@ public class LocalizationBundleDE extends LocalizationBundleBase {
         setValue(L.ERROR_GPU_UNLOAD_FAILED, "Ein Freigabeschritt ist fehlgeschlagen: %s");
         setValue(L.ERROR_PHRASE_INVALID, "Diese Phrase kann nicht verwendet werden: %s");
         setValue(L.ERROR_ANNOTATION_TEMPLATE_INCOMPLETE, "Jede Annotationsvorlage braucht einen Namen und eine Notiz.");
+        setValue(L.ERROR_API_KEY_CREATE_FAILED, "Der Schlüssel konnte nicht erstellt werden: %s");
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "Das Formular kann nicht gespeichert werden.");
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE_EXT, "Das Formular kann nicht gespeichert werden. Ungültige Felder: ");
@@ -1939,6 +1952,10 @@ public class LocalizationBundleDE extends LocalizationBundleBase {
         setValue(L.MSG_PHRASE_WATCH_INFO, "Die Phrasen werden ohne Modell im Text eines Teils gesucht: Jeder Treffer wird zu einer Annotation der Stelle. Die Phrasen Ihrer Einstellungen, der Ordner über dem Buch und des Buchs selbst werden zusammengezählt. Die Suche in erzeugten Teilen läuft nach der automatischen Annotation; überarbeitet das Buch automatisch, berücksichtigt die Überarbeitung auch diese Notizen.");
         setValue(L.MSG_PHRASE_WATCH_SAVED, "Phrasen-Beobachtungsliste gespeichert.");
         setValue(L.MSG_PHRASE_WATCH_SCANNED, "Hinzugefügte Annotationen: %d");
+        setValue(L.MSG_API_KEYS_INFO, "Programme und Skripte nutzen Marginalia über die HTTP-API (/api/v1) in Ihrem Namen, mit einem Schlüssel im Header Authorization: Bearer <Schlüssel>.");
+        setValue(L.MSG_API_NOT_ALLOWED, "Ein Administrator hat Ihnen die Nutzung der API nicht erlaubt.");
+        setValue(L.MSG_API_KEY_CREATED, "Kopieren Sie den Schlüssel jetzt: Er wird nicht wieder angezeigt.");
+        setValue(L.MSG_REVOKE_API_KEY, "Schlüssel %s widerrufen? Programme, die ihn nutzen, verlieren den Zugriff.");
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "Minute Stunde Tag-des-Monats Monat Wochentag – z. B. „0 3 * * *“ jeden Tag um 3:00, „0 */6 * * *“ alle 6 Stunden, „30 2 * * 1“ montags um 2:30. @daily, @weekly und @monthly funktionieren ebenfalls.");
         setValue(L.HELP_BACKUP_KEEP, "Ältere geplante Sicherungen werden gelöscht, 0 behält alle. Manuelle Sicherungen werden nie gelöscht.");
@@ -2080,6 +2097,8 @@ public class LocalizationBundleDE extends LocalizationBundleBase {
         setValue(L.HELP_GPU_USED_OUTSIDE, "Auch andere Programme oder Personen nutzen diese GPU: Marginalia führt dann die Belegungsschritte einer Sperre vor jedem Auftrag aus, nicht nur, wenn die GPU die Sperre wechselt, da es nicht wissen kann, was geladen ist. Die Belegungsschritte jeder Sperre müssen dann selbst Platz schaffen (die anderen Modelle entladen) und gefahrlos wiederholbar sein.");
         setValue(L.HELP_PHRASE_WATCH_LIST, "Eine Phrase wird ohne Beachtung der Groß- und Kleinschreibung und als ganze Wörter gefunden, jeder Leerraum passt auf jeden Leerraum, gerade und typografische Anführungszeichen passen aufeinander; ein regulärer Ausdruck wird so verwendet, wie er geschrieben ist (ebenfalls ohne Beachtung der Groß- und Kleinschreibung). Ein Eintrag mit derselben Phrase wie ein geerbter ersetzt diesen, ein ausgeschalteter nimmt ihn heraus.");
         setValue(L.HELP_ANNOTATION_TEMPLATES, "Was die Annotation eines Treffers der Phrasen-Beobachtungsliste sagt. In der Notiz ist {{match}} der gefundene Text und {{phrase}} der Eintrag der Liste. Ein Eintrag ohne Vorlage bekommt eine eingebaute Notiz.");
+        setValue(L.HELP_API_ACCESS, "Beliebig kombinierbar. Die Version kann jeder Schlüssel lesen. Schreiben schließt Lesen ein. Update und Erweiterungen nur für Administratoren.");
+        setValue(L.HELP_EXPIRES_AFTER_DAYS, "Leer: Der Schlüssel läuft nicht ab.");
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Hintergrund-Lore und Weltkontext.");
         setValue(L.DESC_TEMPLATE_MANUSCRIPT, "Der laufende Manuskriptinhalt für die Zusammenfassung.");

@@ -40,4 +40,11 @@ public enum PermissionType {
      */
     VERSION_HISTORY,
 
+    /**
+     * Keys of the HTTP API ({@code ApiKeyService}): the user can create bearer keys that act as them, with read or write access to
+     * their own books. A key stops working when the permission is taken away. Administrators need no permission, and only they can
+     * create keys for the administration.
+     */
+    API,
+
 }

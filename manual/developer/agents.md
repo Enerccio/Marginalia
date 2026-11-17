@@ -179,16 +179,17 @@ the database at every start and resume:
 
 - `AgentSession(userUuid, language)` is all a run stores of its session: the owner, and the language of the *agent* (`Agent.language`, copied to `AgentRun.language` when the run starts: neither the interface language
   of the user nor the language of the book; the agent sees one fixed language, English where its language has no bundle).
-- `AgentRequestAttributes` implements `RequestAttributes` over two maps in memory (session and request scope). It starts with the `user`
-  bean (a copy of the owner, as the login makes it) and an `AgenticSessionPoint`. Any other session bean is created on first use, empty.
+- `AgentRequestAttributes` is a `DetachedRequestAttributes` (`bound`, shared with the calls of the [HTTP API](api.md#the-request-context)):
+  `RequestAttributes` over two maps in memory (session and request scope). It starts with the `user` bean (a copy of the owner, as the login
+  makes it) and an `AgenticSessionPoint`. Any other session bean is created on first use, empty.
 - `AgenticSessionPoint` is a `SessionPoint` that holds the **working copy** directly. `CommandUtils.getSessionPoint()` returns it for these attributes
   (and the bean of the servlet session for a browser). A command no longer reads the book from there: it takes it from `context.getScope()`, and
   the runner runs the commands of an agent in the scope of its run (`CommandScopes.forRun(run)`, see [The scope](commands/index.md#the-scope)), so
   **the same command works at the command bar and for an agent** and never knows who is asking. This is why a command must never keep the book in a
   field or reach for `Workspace`.
 - The worker enters it with `InRequestScope`; every thread that works for the run does the same. `ThreadCopyRequestAttributes.create()` hands
-  the `AgentRequestAttributes` on as it is (a browser session is copied, these are shared), so a command that starts a worker thread (`async = true`,
-  or the generation of a story turn) keeps the context. A test wrapper that is not an `AgentRequestAttributes` is *not* handed on: in tests of an
+  every `DetachedRequestAttributes` on as it is (a browser session is copied, these are shared), so a command that starts a worker thread (`async = true`,
+  or the generation of a story turn) keeps the context. A test wrapper that is not a `DetachedRequestAttributes` is *not* handed on: in tests of an
   `async` command use the real class.
 
 The context checks nothing and is for the runner; whoever builds one (tests, `AgenticRequestAttributes` in the test sources) must pass a user that

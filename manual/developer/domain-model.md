@@ -717,7 +717,7 @@ holder and `PermissionType`; a user without one does not have the permission.
 
 | Field | |
 |---|---|
-| `permissionType` | `PermissionType`, stored by name (`@Enumerated(STRING)`): `HELPER` (use the help assistant), `CREATE_AI` (create their own AIs), `AGENTS` (create and run agents), `NOTIFICATIONS` (messages of the server to the user's webhook). Never rename a constant. |
+| `permissionType` | `PermissionType`, stored by name (`@Enumerated(STRING)`): `HELPER` (use the help assistant), `CREATE_AI` (create their own AIs), `AGENTS` (create and run agents), `NOTIFICATIONS` (messages of the server to the user's webhook), `VERSION_HISTORY` (the versions kept per part), `API` (keys of the [HTTP API](api.md)). Never rename a constant. |
 | `permissionHolder` | Column `holder_id`, the `User` who has (or has not) the permission. `@CleanupReference(OWNED_BY)`: purged with the user; nullable because the cleanup nulls the reference before it purges the user. |
 | `granted` | Whether it is given; `false` keeps the row as an explicit refusal. |
 | `helperApplyLimits`, `helperInteractions` | Extended attributes of the type `HELPER` (booleans, off by default): do the limits of the user apply to their questions to the help assistant, may the assistant move through the interface for them (they were application settings before). Edited in `PermissionsDialog`. |
