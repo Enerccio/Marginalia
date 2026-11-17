@@ -12,9 +12,11 @@ import com.github.enerccio.marginalia.extensions.audiobook.label.ScriptFromLabel
 import com.github.enerccio.marginalia.extensions.audiobook.model.BackendConfig;
 import com.github.enerccio.marginalia.extensions.audiobook.queue.ConversionJob;
 import com.github.enerccio.marginalia.extensions.audiobook.queue.ConversionQueue;
+import com.github.enerccio.marginalia.extensions.audiobook.queue.LabelTrace;
 import com.github.enerccio.marginalia.extensions.audiobook.script.ScriptEntry;
 import com.github.enerccio.marginalia.extensions.audiobook.script.VoiceRef;
 import com.github.enerccio.marginalia.extensions.audiobook.service.AudiobookService;
+import com.github.enerccio.marginalia.extensions.audiobook.service.PartReasoningStore;
 import com.github.enerccio.marginalia.extensions.audiobook.studio.StudioScript;
 import com.github.enerccio.marginalia.extensions.audiobook.studio.StudioScript.Status;
 import com.github.enerccio.marginalia.extensions.audiobook.studio.StudioSegment;
@@ -74,6 +76,7 @@ public class StudioDialog extends Dialog {
     private final ModelProtocolPicker modelPicker = new ModelProtocolPicker();
     private final Button annotate = new Button(T.localized(ANNOTATE), Solid.WAND_MAGIC_SPARKLES.create(), e -> annotate());
     private final Button pronunciation = new Button(T.localized(PRONUNCIATION), Solid.LANGUAGE.create());
+    private final Button reasoning = new Button(T.localized(REASONING), Solid.BRAIN.create(), e -> showReasoning());
     private final Span bookWords = new Span();
     private final Button make = new Button(T.localized(MAKE_THE_PART), Solid.PLAY.create(), e -> makePart());
     private final Button hearPart = new Button(T.localized(HEAR_THE_PART), Solid.HEADPHONES.create(), e -> hearPart());
@@ -105,6 +108,8 @@ public class StudioDialog extends Dialog {
     private final Element audio = new Element("audio");
 
     private ChatMessage part;
+    /** Whether the selected part has stored reasoning (read when the part is chosen and when a job of it ends). */
+    private boolean reasoningStored;
     private StudioScript script;
     private int selected = -1;
     private boolean filling;
@@ -167,7 +172,8 @@ public class StudioDialog extends Dialog {
         pronunciation.addClickListener(e -> new SpokenFormDialog(service, manuscript, () -> Notification.success(T.localized(THE_PRONUNCIATION_IS_STORED))).open());
         // two rows: the part and what is done with it, then the model that labels (model and protocol side by side)
         partBox.setWidth("24em");
-        HorizontalLayout partRow = new HorizontalLayout(partBox, status, annotate, stop, pronunciation);
+        reasoning.setThemeName("tertiary");
+        HorizontalLayout partRow = new HorizontalLayout(partBox, status, annotate, stop, pronunciation, reasoning);
         partRow.setAlignItems(FlexComponent.Alignment.END);
         partRow.setWrap(true);
         HorizontalLayout labelRow = new HorizontalLayout(label, modelPicker);
@@ -493,6 +499,7 @@ public class StudioDialog extends Dialog {
     private void loadPart(ChatMessage chosen) {
         part = chosen;
         selected = -1;
+        reasoningStored = chosen != null && service.hasReasoning(chosen.getUuid());
         script = chosen == null ? null : service.studio(chosen.getUuid());
         filling = true;
         try {
@@ -520,10 +527,47 @@ public class StudioDialog extends Dialog {
         annotate.setEnabled(part != null && !isFinal && !busy);
         make.setEnabled(haveScript && !busy);
         hearPart.setEnabled(part != null);
+        // the reasoning is written when the labelling ends: a running job may add to it
+        reasoning.setEnabled(reasoningStored && !busy);
         status.setEnabled(script != null);
         segmentButtons.forEach(b -> b.setEnabled(!busy));
         working.setVisible(busy);
         stop.setVisible(busy);
+    }
+
+    /** What the model said each time it labelled the part, run by run, request by request; the user can delete it. */
+    private void showReasoning() {
+        if (part == null) {
+            return;
+        }
+        List<LabelTrace.Window> windows = new ArrayList<>();
+        for (PartReasoningStore.Run run : service.reasoning(part.getUuid())) {
+            String at = shownTime(run.at());
+            for (LabelTrace.Window w : run.windows()) {
+                windows.add(new LabelTrace.Window(at + " · " + w.title(), w.reasoning(), w.output()));
+            }
+        }
+        if (windows.isEmpty()) {
+            Notification.warning(T.localized(THIS_PART_HAS_NO_STORED_REASONING));
+            return;
+        }
+        String partId = part.getUuid();
+        int number = parts.indexOf(part) + 1;
+        new LabelTraceDialog(number + ": " + shorten(part.getResponse(), 40), LabelTrace.of(windows), () -> {
+            service.clearReasoning(partId);
+            if (part != null && part.getUuid().equals(partId)) {
+                reasoningStored = false;
+            }
+            updateButtons();
+        }).open();
+    }
+
+    private static String shownTime(String at) {
+        try {
+            return java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").format(java.time.Instant.parse(at).atZone(java.time.ZoneId.systemDefault()));
+        } catch (RuntimeException e) {
+            return at == null ? "" : at;
+        }
     }
 
     /** Stops what runs for the selected part (the annotation asks the language model, the making asks the speech server): both end at once. */
@@ -625,6 +669,8 @@ public class StudioDialog extends Dialog {
             updateButtons();
             return;
         }
+        // a labelling that failed or was stopped keeps what the model said too
+        reasoningStored = service.hasReasoning(part.getUuid());
         if (job.state() == ConversionJob.State.FAILED) {
             message.setText(T.localized(THE_JOB_FAILED).formatted(job.message()));
             playWhenDone = null;

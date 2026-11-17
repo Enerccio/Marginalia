@@ -345,8 +345,14 @@ public class ConversionQueue implements AutoCloseable {
             try {
                 // making the script may ask the language model for the labels: Stop ends that request too
                 // the window shows which part is being labelled, and keeps what the model says for the user to read
-                script = com.github.enerccio.marginalia.extensions.audiobook.label.LabelCancel.during(() -> stopRun || job.cancelRequested(),
-                        () -> com.github.enerccio.marginalia.extensions.audiobook.label.LabelWatch.during(watcher(job), () -> job.source().get()));
+                // the whole run is kept with the part too (the trace of the job is capped and goes when the jobs are cleared)
+                LabelTrace run = new LabelTrace(Long.MAX_VALUE);
+                try {
+                    script = com.github.enerccio.marginalia.extensions.audiobook.label.LabelCancel.during(() -> stopRun || job.cancelRequested(),
+                            () -> com.github.enerccio.marginalia.extensions.audiobook.label.LabelWatch.during(watcher(job, run), () -> job.source().get()));
+                } finally {
+                    keepReasoning(job, run);
+                }
                 if (job.state() == State.RUNNING && job.snapshot().message().startsWith(LABELLING)) {
                     job.set(State.RUNNING, "");
                     fire(job);
@@ -431,12 +437,13 @@ public class ConversionQueue implements AutoCloseable {
     /** The start of the message of a job while the model labels its part. */
     static final String LABELLING = "Labelling ";
 
-    private com.github.enerccio.marginalia.extensions.audiobook.label.LabelWatch.Listener watcher(ConversionJob job) {
+    private com.github.enerccio.marginalia.extensions.audiobook.label.LabelWatch.Listener watcher(ConversionJob job, LabelTrace run) {
         return new com.github.enerccio.marginalia.extensions.audiobook.label.LabelWatch.Listener() {
             @Override
             public void window(int from, int to, int total) {
                 String title = "pieces " + (from + 1) + "-" + to + " of " + total;
                 job.trace().startWindow(title);
+                run.startWindow(title);
                 job.set(State.RUNNING, LABELLING + title);
                 fire(job);
             }
@@ -444,8 +451,21 @@ public class ConversionQueue implements AutoCloseable {
             @Override
             public void chunk(boolean reasoning, String text) {
                 job.trace().append(reasoning, text);
+                run.append(reasoning, text);
             }
         };
+    }
+
+    /** Stores what the model said in this run with the part (also for a run that failed or was stopped); a failure to store it fails nothing. */
+    private void keepReasoning(ConversionJob job, LabelTrace run) {
+        if (run.isEmpty()) {
+            return;
+        }
+        try {
+            env.store().putReasoning(job.partId(), run.windows());
+        } catch (RuntimeException e) {
+            AudiobookLog.get().warn("The reasoning of part {} could not be stored: {}", job.partId(), e.getMessage(), e);
+        }
     }
 
     /** What the model said while it labelled the part of the job, null when there is no such job. */

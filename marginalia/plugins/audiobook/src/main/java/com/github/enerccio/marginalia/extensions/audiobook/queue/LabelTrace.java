@@ -29,7 +29,30 @@ public final class LabelTrace {
 
     private final List<Entry> windows = new ArrayList<>();
     private final List<Runnable> listeners = new CopyOnWriteArrayList<>();
+    private final long maxChars;
     private long lastNotified;
+
+    /** A trace capped at {@value #MAX_CHARS} characters (the one a job shows while it runs). */
+    public LabelTrace() {
+        this(MAX_CHARS);
+    }
+
+    /** A trace that keeps at most {@code maxChars} characters of reasoning and answers ({@link Long#MAX_VALUE}: everything). */
+    public LabelTrace(long maxChars) {
+        this.maxChars = maxChars;
+    }
+
+    /** A trace that holds the given windows (one that was stored, for {@code LabelTraceDialog}); nothing is cut off. */
+    public static LabelTrace of(List<Window> stored) {
+        LabelTrace trace = new LabelTrace(Long.MAX_VALUE);
+        for (Window window : stored) {
+            Entry entry = new Entry(window.title() == null ? "" : window.title());
+            entry.reasoning.append(window.reasoning() == null ? "" : window.reasoning());
+            entry.output.append(window.output() == null ? "" : window.output());
+            trace.windows.add(entry);
+        }
+        return trace;
+    }
 
     /** A new request to the model starts: what follows is about it. */
     public synchronized void startWindow(String title) {
@@ -74,7 +97,7 @@ public final class LabelTrace {
         for (Entry e : windows) {
             chars += e.reasoning.length() + e.output.length();
         }
-        while (chars > MAX_CHARS && windows.size() > 1) {
+        while (chars > maxChars && windows.size() > 1) {
             Entry first = windows.removeFirst();
             chars -= first.reasoning.length() + first.output.length();
         }

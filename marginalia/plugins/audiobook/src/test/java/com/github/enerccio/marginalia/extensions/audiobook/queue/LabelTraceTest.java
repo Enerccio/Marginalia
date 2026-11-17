@@ -88,4 +88,18 @@ class LabelTraceTest {
         });
         assertEquals("text", trace.windows().getFirst().output());
     }
+
+    @Test
+    void anUncappedTraceKeepsEverythingAndAStoredOneIsRebuilt() {
+        LabelTrace trace = new LabelTrace(Long.MAX_VALUE);
+        String chunk = "x".repeat(LabelTrace.MAX_CHARS / 2);
+        for (int i = 0; i < 4; i++) {
+            trace.startWindow("w" + i);
+            trace.append(true, chunk);
+        }
+        assertEquals(4, trace.windows().size());
+
+        List<LabelTrace.Window> stored = List.of(new LabelTrace.Window("a", "think", "say"), new LabelTrace.Window("b", null, "more"));
+        assertEquals(List.of(stored.get(0), new LabelTrace.Window("b", "", "more")), LabelTrace.of(stored).windows());
+    }
 }

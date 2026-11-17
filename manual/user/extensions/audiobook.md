@@ -281,7 +281,8 @@ changes is made again, the others are kept.
 4. **Start** carries the plan out. When it takes audio or labels away it asks first. What is to be generated goes into your queue, which goes on when you close the window
    and when you leave the page; a part that waits or runs in the queue is left out of a plan. The state, the pieces made so far and the message of the job are shown on the part's row.
    While the model labels a part its row says *Labelling pieces 17-32 of 120* (the model is asked about 16 pieces at a time); **click the state** of a part that was labelled to read, for each request, the
-   model's reasoning and its answer, as they arrive. They are kept in memory with the job, until the finished jobs are cleared (*Clear finished*) or the application restarts.
+   model's reasoning and its answer, as they arrive. When the labelling of the part ends (also when it fails or is stopped) all of it is kept with the part, every run after the ones before;
+   read it again, or delete it, with **Reasoning** in the studio. New labels and new audio leave it alone, and it is in the backups and exports of the book with the audio.
 
 ![The queue: pieces made so far, and a download when a part is done](../../images/plugin-audiobook-queue.png)
 
@@ -326,6 +327,7 @@ piece and make the part.
 - While the part is being annotated or made, a bar shows that something is going on and the buttons that would start more work wait.
 - **Annotate** makes the script of the part (with the language model if you ask for it, else with the narrator) and shows the pieces in a
   table: speaker, delivery, intensity, the spoken text and a mark for a piece you changed. While it runs a **Stop** button appears beside it and ends the request to the language model.
+- **Reasoning** shows what the language model said each time it labelled the part (the date of the run and the pieces of each request, its reasoning and its answer), so you can see why a line went to a speaker or got a delivery. **Delete the reasoning** there removes it; the labels and the audio stay.
 - Select a piece to edit its **speaker**, the **spoken text**, the **delivery**, the **intensity** (the exaggeration of the voice, for the models
   that have one; on Higgs the delivery and the intensity are the marks such as `<|emotion:sadness|>` at the start of the spoken text, which follow them when you change them), the **language**, the **seed**, the **pause after** it. **Apply** keeps the change and **locks** the piece: a new annotation leaves a locked piece as it is.
   **Unlock** gives it back to the annotation. *The request the speech server gets* shows the exact request.

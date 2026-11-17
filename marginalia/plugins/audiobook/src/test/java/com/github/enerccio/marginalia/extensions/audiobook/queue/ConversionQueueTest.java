@@ -57,7 +57,14 @@ class ConversionQueueTest {
         }
     }
 
+    private final Map<String, List<List<LabelTrace.Window>>> reasoning = new java.util.concurrent.ConcurrentHashMap<>();
+
     private final AudioStore store = new AudioStore() {
+        @Override
+        public void putReasoning(String partId, List<LabelTrace.Window> windows) {
+            reasoning.computeIfAbsent(partId, p -> new CopyOnWriteArrayList<>()).add(windows);
+        }
+
         public synchronized byte[] segment(String partId, String key) {
             return segments.get(partId + "/" + key);
         }
@@ -280,6 +287,39 @@ class ConversionQueueTest {
         assertEquals("{\"labels\":[]}", windows.get(0).output());
         assertEquals("second", windows.get(1).output());
         assertNull(queue.trace("nobody"));
+        assertEquals(List.of(windows), reasoning.get("p1"), "the whole run is stored with the part");
+    }
+
+    @Test
+    void theReasoningOfALabellingThatFailsIsStoredToo() throws Exception {
+        queue(Set.of(BackendConfig.MODEL_TURBO));
+        ConversionJob job = queue.submit("p1", "Part 1", () -> {
+            com.github.enerccio.marginalia.extensions.audiobook.label.LabelWatch.window(0, 16, 16);
+            com.github.enerccio.marginalia.extensions.audiobook.label.LabelWatch.current().chunk(true, "Hm.");
+            throw new IllegalStateException("cut off");
+        });
+        ConversionJob.Snapshot done = finished(job);
+
+        assertEquals(State.FAILED, done.state());
+        assertEquals(List.of(List.of(new LabelTrace.Window("pieces 1-16 of 16", "Hm.", ""))), reasoning.get("p1"));
+    }
+
+    @Test
+    void theStoredRunIsNotCutLikeTheTraceOfTheJob() throws Exception {
+        queue(Set.of(BackendConfig.MODEL_TURBO));
+        PartScript script = script("One.");
+        String chunk = "x".repeat(LabelTrace.MAX_CHARS / 2);
+        ConversionJob job = queue.submit("p1", "Part 1", () -> {
+            for (int i = 0; i < 4; i++) {
+                com.github.enerccio.marginalia.extensions.audiobook.label.LabelWatch.window(i, i + 1, 4);
+                com.github.enerccio.marginalia.extensions.audiobook.label.LabelWatch.current().chunk(true, chunk);
+            }
+            return script;
+        });
+        finished(job);
+
+        assertTrue(queue.trace(job.id()).windows().size() < 4);
+        assertEquals(4, reasoning.get("p1").getFirst().size());
     }
 
     @Test
@@ -287,6 +327,7 @@ class ConversionQueueTest {
         queue(Set.of(BackendConfig.MODEL_TURBO));
         ConversionJob job = queue.submit("p1", "Part 1", () -> script("One."));
         finished(job);
+        assertNull(reasoning.get("p1"), "nothing is stored when the model was not asked");
 
         assertTrue(queue.trace(job.id()).isEmpty());
     }

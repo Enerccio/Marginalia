@@ -452,6 +452,9 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
     public static final String DELETE_THE_CHECKED_CLIPS = "Delete the checked clips";
     public static final String THE_CLIPS_ARE_DELETED = "%d clips are deleted.";
     public static final String THESE_CLIPS_ARE_USED_AND_STAY = "These clips are used and stay: %s";
+    public static final String DELETE_THE_REASONING = "Delete the reasoning";
+    public static final String DELETE_THE_STORED_REASONING_OF_THIS_PART_QUESTION = "Delete everything the model said while it labelled this part? The labels and the audio stay. This cannot be undone.";
+    public static final String THIS_PART_HAS_NO_STORED_REASONING = "This part has no stored reasoning";
 
     @Override
     protected void loadKeys() {
@@ -3749,5 +3752,29 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
         de(THESE_CLIPS_ARE_USED_AND_STAY, "Diese Clips werden verwendet und bleiben: %s");
         ko(THESE_CLIPS_ARE_USED_AND_STAY, "사용 중이라 남은 클립: %s");
         it(THESE_CLIPS_ARE_USED_AND_STAY, "Queste clip sono in uso e restano: %s");
+
+        ja(DELETE_THE_REASONING, "思考を削除");
+        zh(DELETE_THE_REASONING, "删除推理");
+        fr(DELETE_THE_REASONING, "Supprimer le raisonnement");
+        es(DELETE_THE_REASONING, "Eliminar el razonamiento");
+        de(DELETE_THE_REASONING, "Reasoning löschen");
+        ko(DELETE_THE_REASONING, "추론 삭제");
+        it(DELETE_THE_REASONING, "Elimina il ragionamento");
+
+        ja(DELETE_THE_STORED_REASONING_OF_THIS_PART_QUESTION, "このパートのラベル付け中にモデルが出力した内容をすべて削除しますか？ラベルと音声は残ります。元に戻せません。");
+        zh(DELETE_THE_STORED_REASONING_OF_THIS_PART_QUESTION, "删除模型为此部分打标签时输出的全部内容？标签和音频会保留。此操作无法撤销。");
+        fr(DELETE_THE_STORED_REASONING_OF_THIS_PART_QUESTION, "Supprimer tout ce que le modèle a dit en étiquetant cette partie ? Les étiquettes et l’audio restent. Cette action est irréversible.");
+        es(DELETE_THE_STORED_REASONING_OF_THIS_PART_QUESTION, "¿Eliminar todo lo que dijo el modelo al etiquetar esta parte? Las etiquetas y el audio se quedan. No se puede deshacer.");
+        de(DELETE_THE_STORED_REASONING_OF_THIS_PART_QUESTION, "Alles löschen, was das Modell beim Labeln dieses Teils gesagt hat? Labels und Audio bleiben. Das lässt sich nicht rückgängig machen.");
+        ko(DELETE_THE_STORED_REASONING_OF_THIS_PART_QUESTION, "이 파트에 라벨을 붙이는 동안 모델이 말한 내용을 모두 삭제할까요? 라벨과 오디오는 남습니다. 되돌릴 수 없습니다.");
+        it(DELETE_THE_STORED_REASONING_OF_THIS_PART_QUESTION, "Eliminare tutto ciò che il modello ha detto mentre etichettava questa parte? Le etichette e l’audio restano. L’operazione non si può annullare.");
+
+        ja(THIS_PART_HAS_NO_STORED_REASONING, "このパートには保存された思考がありません");
+        zh(THIS_PART_HAS_NO_STORED_REASONING, "此部分没有保存的推理");
+        fr(THIS_PART_HAS_NO_STORED_REASONING, "Cette partie n’a pas de raisonnement enregistré");
+        es(THIS_PART_HAS_NO_STORED_REASONING, "Esta parte no tiene razonamiento guardado");
+        de(THIS_PART_HAS_NO_STORED_REASONING, "Dieser Teil hat kein gespeichertes Reasoning");
+        ko(THIS_PART_HAS_NO_STORED_REASONING, "이 파트에는 저장된 추론이 없습니다");
+        it(THIS_PART_HAS_NO_STORED_REASONING, "Questa parte non ha un ragionamento salvato");
     }
 }

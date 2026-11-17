@@ -1604,6 +1604,27 @@ public class AudiobookService {
                 getSettings()::findActor, null, shiftable());
     }
 
+    /** What the labelling model said about the part, every run that was kept, oldest first. */
+    public List<PartReasoningStore.Run> reasoning(String partUuid) {
+        return new PartReasoningStore(resourceService, chatMessageService).find(partUuid);
+    }
+
+    /** True when the part has stored reasoning (only the part is read, not the file). */
+    public boolean hasReasoning(String partUuid) {
+        try {
+            return PartReasoningStore.has(chatMessageService.findForUser(partUuid));
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new IllegalStateException(e.getMessage(), e);
+        }
+    }
+
+    /** Deletes the stored reasoning of the part. @return whether there was one */
+    public boolean clearReasoning(String partUuid) {
+        return new PartReasoningStore(resourceService, chatMessageService).clear(partUuid);
+    }
+
     private StudioStore studioStore() {
         return new PartStudioStore(chatMessageService);
     }
