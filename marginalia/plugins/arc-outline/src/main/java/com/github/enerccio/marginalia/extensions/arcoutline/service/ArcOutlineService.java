@@ -441,7 +441,8 @@ public class ArcOutlineService {
 
     /**
      * The names of the commands a group of tools is made of. The commands that are not there (a plugin that is not installed) are skipped
-     * by the function set. Deleting commands are left out: they ask a question that nobody can answer there.
+     * by the function set. Most deleting commands are left out; those of the planner and of the characters are in, they run on their
+     * own or after the author's answer to the question of the dialog (the option to ask before changing).
      */
     public static List<String> toolNames(WizardOptions.ToolGroup group) {
         return switch (group) {
@@ -453,6 +454,9 @@ public class ArcOutlineService {
                     "move-outline-chapter");
             // the commands of the Story Notes plugin, not imported: found by name, skipped when it is not installed (delete-note is left out)
             case NOTES -> List.of("list-notes", "get-note", "search-notes", "create-note", "update-note", "append-to-note", "edit-note");
+            // the commands of the Character Tracker plugin, the same way: the characters and their relationships, deleting included
+            case CHARACTERS -> List.of("list-characters", "get-character", "create-character", "update-character", "delete-character",
+                    "list-character-relations", "add-character-relation", "update-character-relation", "delete-character-relation");
             case GENERATE -> List.of("generate-arc", "generate-outline-chapters", "list-lore-templates", "generate-lore-entry");
         };
     }
@@ -461,6 +465,14 @@ public class ArcOutlineService {
     public static final String NOTES_BUNDLE = "story-notes";
     public static final String NOTES_INDEX_SOURCE = "notes-index";
     public static final String NOTES_FULL_SOURCE = "notes";
+
+    /** The command the tools of the characters are found by: there when the Character Tracker plugin is installed and loaded. */
+    public static final String CHARACTERS_COMMAND = "list-characters";
+
+    /** Whether the Character Tracker plugin is installed and loaded, so its tools can be offered. */
+    public boolean charactersAvailable() {
+        return !commandService.getCommands(CHARACTERS_COMMAND).isEmpty();
+    }
 
     /** Whether the Story Notes plugin is installed and loaded. */
     public boolean notesAvailable() {

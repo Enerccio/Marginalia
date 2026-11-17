@@ -325,7 +325,7 @@ public class PlotWizardDialog extends Dialog {
         tools.setPadding(false);
         tools.getThemeList().add("spacing-xs");
         for (ToolGroup group : ToolGroup.values()) {
-            if (group == ToolGroup.NOTES && notesSelect == null) {
+            if (group == ToolGroup.NOTES && notesSelect == null || group == ToolGroup.CHARACTERS && !service.charactersAvailable()) {
                 // the commands of the notes are not there
                 continue;
             }
@@ -424,6 +424,7 @@ public class PlotWizardDialog extends Dialog {
             case LORE -> T.localized(TOOLS_LOREBOOK);
             case OUTLINE -> T.localized(TOOLS_OUTLINE);
             case NOTES -> T.localized(TOOLS_NOTES);
+            case CHARACTERS -> T.localized(TOOLS_CHARACTERS);
             case GENERATE -> T.localized(TOOLS_GENERATORS);
         };
     }
@@ -434,6 +435,7 @@ public class PlotWizardDialog extends Dialog {
             case LORE -> T.localized(TOOLS_LOREBOOK_TIP);
             case OUTLINE -> T.localized(TOOLS_OUTLINE_TIP);
             case NOTES -> T.localized(TOOLS_NOTES_TIP);
+            case CHARACTERS -> T.localized(TOOLS_CHARACTERS_TIP);
             case GENERATE -> T.localized(TOOLS_GENERATORS_TIP);
         };
     }

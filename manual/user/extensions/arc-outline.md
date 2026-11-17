@@ -206,6 +206,7 @@ when you ask or agree; it is told to look before it adds, to prefer adding to re
 | **Lorebook** | search and read the lore, create entries and change existing ones (not delete them). |
 | **Outline** | read the outline, add arcs and chapters, change and move them (not delete them). |
 | **Notes** (when [Story Notes](story-notes.md) is installed) | search and read your notes and follow their links, add a page or add to one when you ask it to keep something, and change text in one (not delete a page). Pages you hid from assistants are out of reach. |
+| **Characters** (when the [Character Tracker](character-tracker.md) is installed) | read the characters of the book and their relationships, add characters and relationships, change them (name, tagline, note, color) and delete them. Only deleting is asked before it happens, a change is not: you see it in the chat and in the Characters tab. |
 | **Generators** | call the arc and chapter generators and, when the [Lore Generator](lore-generator.md) is installed, generate a lore entry. They return a draft and save nothing unless the model is told to; it shows you the draft and saves it when you agree. |
 | **Tools** (button, when a [tool suite](tools.md) is installed) | the name tools (names, places), as in the generators, so it can offer you real names. |
 

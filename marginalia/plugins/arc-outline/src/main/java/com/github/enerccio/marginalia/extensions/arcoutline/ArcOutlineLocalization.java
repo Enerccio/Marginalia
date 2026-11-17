@@ -197,6 +197,8 @@ public class ArcOutlineLocalization extends PluginLocalizationBundle {
     public static final String FULL_TEXT = "Full text";
     public static final String TOOLS_GENERATORS = "Generators: arc, chapters, lore entry";
     public static final String TOOLS_GENERATORS_TIP = "It can call the arc and chapter generators and the Lore Generator. They return a draft; it saves one only when told to.";
+    public static final String TOOLS_CHARACTERS = "Characters: read, add, change and delete them";
+    public static final String TOOLS_CHARACTERS_TIP = "The cast of the book (Character Tracker): it can read the characters and their relationships, add them, change them and delete them. With the question before changing on, deleting is asked too.";
     public static final String ASK_BEFORE_IT_CHANGES_ANYTHING = "Ask me before it changes or deletes something";
     public static final String ADDING_IS_NOT_ASKED = "Adding a scene, an entry or an arc is not asked, you see it in the chat and can delete it. Changing and deleting what exists is.";
     public static final String THE_MODEL_WANTS_TO_RUN = "The model wants to run %s";
@@ -1598,6 +1600,22 @@ public class ArcOutlineLocalization extends PluginLocalizationBundle {
         de(TOOLS_GENERATORS_TIP, "Es kann die Generatoren für Handlungsbögen und Kapitel und den Lore Generator aufrufen. Sie liefern einen Entwurf; es speichert einen nur, wenn es dazu aufgefordert wird.");
         ko(TOOLS_GENERATORS_TIP, "아크 및 챕터 생성기와 로어 생성기를 호출할 수 있습니다. 이들은 초안을 반환하며, 지시를 받았을 때만 저장합니다.");
         it(TOOLS_GENERATORS_TIP, "Può chiamare i generatori di archi e di capitoli e il Generatore di lore. Restituiscono una bozza; ne salva una solo quando gli viene detto.");
+
+        ja(TOOLS_CHARACTERS, "登場人物: 読み取り、追加、変更、削除");
+        zh(TOOLS_CHARACTERS, "角色：读取、添加、修改和删除");
+        fr(TOOLS_CHARACTERS, "Personnages : les lire, ajouter, modifier et supprimer");
+        es(TOOLS_CHARACTERS, "Personajes: leerlos, añadirlos, cambiarlos y borrarlos");
+        de(TOOLS_CHARACTERS, "Figuren: lesen, hinzufügen, ändern und löschen");
+        ko(TOOLS_CHARACTERS, "등장인물: 읽기, 추가, 변경, 삭제");
+        it(TOOLS_CHARACTERS, "Personaggi: leggerli, aggiungerli, modificarli ed eliminarli");
+
+        ja(TOOLS_CHARACTERS_TIP, "本の配役（キャラクタートラッカー）: 登場人物とその関係を読み、追加、変更、削除できます。変更前の確認がオンなら、削除も確認されます。");
+        zh(TOOLS_CHARACTERS_TIP, "本书的角色阵容（角色追踪器）：可以读取角色及其关系，并添加、修改和删除它们。开启修改前询问时，删除也会询问。");
+        fr(TOOLS_CHARACTERS_TIP, "La distribution du livre (Character Tracker) : il peut lire les personnages et leurs relations, en ajouter, les modifier et les supprimer. Avec la question avant modification activée, la suppression est demandée aussi.");
+        es(TOOLS_CHARACTERS_TIP, "El reparto del libro (Character Tracker): puede leer los personajes y sus relaciones, añadirlos, cambiarlos y borrarlos. Con la pregunta antes de cambiar activada, también se pregunta antes de borrar.");
+        de(TOOLS_CHARACTERS_TIP, "Die Besetzung des Buchs (Character Tracker): Es kann die Figuren und ihre Beziehungen lesen, hinzufügen, ändern und löschen. Ist die Frage vor dem Ändern an, wird auch vor dem Löschen gefragt.");
+        ko(TOOLS_CHARACTERS_TIP, "책의 배역(캐릭터 트래커): 등장인물과 그 관계를 읽고, 추가하고, 변경하고, 삭제할 수 있습니다. 변경 전 확인이 켜져 있으면 삭제도 확인합니다.");
+        it(TOOLS_CHARACTERS_TIP, "Il cast del libro (Character Tracker): può leggere i personaggi e le loro relazioni, aggiungerli, modificarli ed eliminarli. Con la domanda prima di modificare attiva, viene chiesto anche prima di eliminare.");
 
         ja(ASK_BEFORE_IT_CHANGES_ANYTHING, "変更や削除の前に確認する");
         zh(ASK_BEFORE_IT_CHANGES_ANYTHING, "修改或删除前先询问我");
