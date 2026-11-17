@@ -360,7 +360,10 @@ outline is `ManuscriptStoryPart.CHAPTERS_TAB`); the layout, `{"columns":[{"size"
 their tabs late (a tab the layout does not know goes to the first sheet). `ManuscriptStoryPart` stores the layout in the
 attributes of the manuscript under `$desktopManuscriptStoryPartTabsConfig` (`TABS_CONFIG_ATTRIBUTE`): `saveTabsConfig()` runs
 after a drag or a resize, `applyTabsConfig()` in `load()` before the story is drawn. The selected tab of each sheet is not part of the
-layout but the `Restorable` state of the dock.
+layout but the `Restorable` state of the dock (`storeState`/`restoreState`): it is in the workspace state, and
+`ManuscriptStoryPart` also keeps it under `$desktopManuscriptStoryPartTabsState` (`TABS_STATE_ATTRIBUTE`), so a book that is closed
+and opened again shows the tabs it was left with: `saveTabsState()` writes it (only when it changed) from the dock's state
+listener, `applyTabsConfig()` restores it after the layout.
 
 **Minimizing (1.6.0).** A tab of a detachable dock has a minimize button (`makeMinimizable`, in the `Tab` itself). `minimize(id)` adds
 the id to the ordered set `minimized`; the tab keeps its place in `Group.ids` (so `restore(id)` puts it back where it was, and

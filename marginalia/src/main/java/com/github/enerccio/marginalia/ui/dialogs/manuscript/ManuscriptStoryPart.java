@@ -78,6 +78,12 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
     public static final String SPLIT_POSITION_ATTRIBUTE = "$desktopManuscriptStoryPartSplitPosition";
 
     /**
+     * Key of the {@link Manuscript#getAttributes() attributes} of the manuscript that holds the selected tab of every sheet of
+     * the story editor ({@link TabDock#storeState()}), so that a book opens with the tabs it was left with.
+     */
+    public static final String TABS_STATE_ATTRIBUTE = "$desktopManuscriptStoryPartTabsState";
+
+    /**
      * Id of the story (the cards and the controls under them) in the layout of the tabs.
      */
     public static final String STORY_TAB = "story";
@@ -204,6 +210,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
         leftBar.setOnLayoutChange(this::saveTabsConfig);
         leftBar.setOnStateChange(() -> {
             if (parent != null) {
+                saveTabsState();
                 parent.stateChanged();
             }
         });
@@ -1470,7 +1477,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             parameters = {@APIParameter(name = "manuscript", type = Manuscript.class)},
             locals = {@APILocals(name = "config", type = JsonElement.class),
                     @APILocals(name = "position", type = JsonElement.class),
-                    @APILocals(name = "stored", type = JsonObject.class)})
+                    @APILocals(name = "stored", type = JsonObject.class),
+                    @APILocals(name = "state", type = JsonElement.class)})
     private void applyTabsConfig(Manuscript manuscript) {
         if (leftBar == null || manuscript == null) {
             return;
@@ -1485,6 +1493,10 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
         leftBar.setLayout(StoryDockLayout.migrate(stored,
                 position != null && position.isJsonPrimitive() && position.getAsJsonPrimitive().isNumber() ? position.getAsDouble() : null,
                 STORY_TAB, CHAPTERS_TAB, LOREBOOK_TAB, ANNOTATIONS_TAB, PLANNER_TAB));
+        JsonElement state = manuscript.getAttributes().get(TABS_STATE_ATTRIBUTE);
+        if (state != null && state.isJsonObject()) {
+            leftBar.restoreState(state.getAsJsonObject());
+        }
     }
 
     /**
@@ -1537,6 +1549,29 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             manuscript.getAttributes().add(TABS_CONFIG_ATTRIBUTE, leftBar.getLayout());
             // the splitter of the old layout is a column of the layout now
             manuscript.getAttributes().remove(SPLIT_POSITION_ATTRIBUTE);
+            parent.save();
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    /**
+     * Saves the selected tab of every sheet into the attributes of the manuscript when it changed, called after the user (or
+     * the code) showed a tab.
+     */
+    @PublicAPI(from = "1.9.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "state", type = JsonObject.class),
+                    @APILocals(name = "manuscript", type = Manuscript.class),
+                    @APILocals(name = "e", type = Exception.class)})
+    private void saveTabsState() {
+        try {
+            JsonObject state = leftBar.storeState();
+            Manuscript manuscript = parent.refreshManuscript();
+            if (manuscript == null || state.equals(manuscript.getAttributes().get(TABS_STATE_ATTRIBUTE))) {
+                return;
+            }
+            manuscript.getAttributes().add(TABS_STATE_ATTRIBUTE, state);
             parent.save();
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);

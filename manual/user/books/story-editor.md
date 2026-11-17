@@ -129,8 +129,8 @@ with the arrangement.
 - Drop it on the tab header or on the body of another panel to **join** that panel (dropping on a tab puts it before that
   tab, dropping on the body puts it last). A panel that loses its last tab disappears, and so does a column without panels.
 
-The arrangement and the sizes are saved with the book, so it is the same the next time you open it and in every browser; the tab each
-panel shows is remembered with the rest of your workspace. A tab of an extension that is not loaded keeps its place for when
+The arrangement and the sizes are saved with the book, so it is the same the next time you open it and in every browser, and so is the tab each
+panel shows. A tab of an extension that is not loaded keeps its place for when
 the extension is back.
 
 The story is always somewhere: its tab can't be closed, and a tab that lives in a panel together with other tabs is hidden
