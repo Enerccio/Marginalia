@@ -170,8 +170,7 @@ server. The library should not make that impossible; not part of the first versi
    ask before applying, parts per run, lorebook, model, protocol), the after-part step and the reading before the prompt (only when
    the book applies without asking), the regenerate drop, the commands `state-process`, `apply-state-changes`, `state-reprocess`,
    `state-set-start`. Tested by `ExtractionTest` (9) and in the running application with the fake model (the review, an unchecked
-   change, a quote that is not in the part, the part markers). Not done: the built-in prompt is English only (the Knowledge Tracker
-   has seven languages and a user/book level of the prompt), no log with revert of automatic changes (the history shows the part),
+   change, a quote that is not in the part, the part markers). Not done: no log with revert of automatic changes (the history shows the part),
    no desktop notification when a run of the tab ends, the model does not read earlier parts.
 3. **Tidy** (done 2026-11-16): `TidyPrompt` (the tracked characters present in the last K processed parts, their unlocked current values
    numbered, the locked ones shown as "(stays)", the K parts), `TidyAnswer` (drop / update / merge per character), `TidyChangeBuilder`
@@ -183,7 +182,7 @@ server. The library should not make that impossible; not part of the first versi
    `TidyTest` (8). Differs from the plan above: **one request** for all the present characters, not one per character (one wait on a
    one-slot server; the parts are the same for all); the automatic tidy runs, as in the Knowledge Tracker, only at the end of a run that
    applies **without asking** (a guided run never forces a second review), so with *Ask before applying* on (the default) the tidy is by
-   hand. Not done: the tidy prompt is English only and not a user/book setting; not checked in the running application yet.
+   hand. Not done: not checked in the running application yet.
 4. **Log with revert** (done 2026-11-16): what is applied without a review (`logged`: runs with *Ask before applying* off, the automatic
    tidy, the commands without `ask`) goes to `StateBook.changeLog` (`StateLogEntry`: action, category, the value made and the value
    ended, the part, tidy or not) through the shared `storytracker.log` (`TrackerChangeLog`, also used by the Knowledge Tracker now) and is
@@ -196,7 +195,8 @@ server. The library should not make that impossible; not part of the first versi
    `ClockMark` per processed part: advance / day / date / flashback read by the model, *set* = a fixed point of the user), folded
    in the order of the processed parts into a `StoryTime` (day, `TimeOfDay`, date, approximate); `StateBook.rewind` drops the
    model's marks of the dropped parts, fixed points stay. The request: `[Clock]` section and the clock rules in
-   `StateDefaults.extractionSystem(true)` (the tested merged wording plus the rule "*day* only when counted from the anchor"),
+   `StateDefaults.extractionSystem(true)` (the tested merged wording plus the rule "*day* only when counted from the anchor"; since
+   milestone 6 a separate `clockNote()` added after the extraction prompt),
    `StatePrompt.Request.clock` (a request is never empty while the clock is on); `StateAnswer.clock` (`ClockReport`),
    `ClockBuilder` (checks, `commit`), `ClockChange` rows in the review (group *Story time*), `Proposal.clock`. An advance with only
    a time of day is the same day when that time is later, else the next day (the code decides). Values remember
@@ -207,6 +207,22 @@ server. The library should not make that impossible; not part of the first versi
    with the flow `shoot-plugin-statetracker` (the review with the clock, the times of the parts, a fixed point kept by a
    reprocess). Not done: no fantasy calendar (a date is Gregorian), one timeline (two POV threads at different times are not
    handled), the clock is not in the change log (a mark is changed on its part).
+
+6. **Prompts as settings, in every prompt language** (done 2026-11-17): `StateInherited` registers the *State extraction prompt* and
+   the *State tidy prompt* as inherited settings (book, folder, the user level in the State Tracker section of the settings through
+   `StateService.getUserPrompt`/`putUserPrompt`, then the built-in text); `StateExtractionService` resolves them per book.
+   `StateDefaults` became `StateTrackerDefaults` (instance methods, `T.defaults()` picks the prompt language) with `JA`, `ZH`, `FR`,
+   `ES`, `DE`, `IT` and `KO` subclasses; JSON keys and values, the kinds of category, `strict`, `(stays)`, the times of day and the
+   headings of the user message stay English (`StateTrackerDefaultsTranslationTest`). The clock rules are no longer spliced into the
+   extraction prompt (that could not work on a prompt of the user): `clockNote()` is added after whichever extraction prompt is used,
+   with its own answer line ("put the clock into the same JSON answer, as the list `clock` next to `characters`"). Tested on the local
+   model (Gemma 4 31B, `--max-tokens 32000`, 3 samples each, English): **A** (bread eaten, lantern handed over, a flashback, three days
+   later, by nightfall) clock 3 of 3 (none, advance 1 morning, flashback, advance 3 night; once `nightfall`, which `TimeOfDay.parse`
+   takes as evening), state 3 of 3 (bread and lantern removed from Fiora, lantern added to Mara, mood *relieved*/*cheerful*, nothing
+   from the flashback); **C** (siege, 1453-04-06: all night, the twentieth of April, an hour later) 3 of 3 none / date 1453-04-20 /
+   advance 0, the crossbow replaced by the spear; **D** (no tracked character: two days, the following morning, by evening) 3 of 3
+   advance 2 / advance 1 morning / advance 0 evening, `characters` empty. Prompt 1160-1400 tokens, answer 467-3248 tokens, 24-166 s.
+   The translations were not tried against a model.
 
 ## Milestone 5 - the story clock
 

@@ -12,6 +12,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 
+import static com.github.enerccio.marginalia.extensions.statetracker.StateTrackerLocalization.T;
+
 /**
  * The request of the tidy: the current values of the tracked characters that are present in the last parts are read again with
  * those parts, and the model says which values faded (a mood, wet clothes, a cup long after the meal), which moved on and which
@@ -33,7 +35,7 @@ public final class TidyPrompt {
      * @return a request without characters ({@link Request#isEmpty()}) when there is nothing to tidy
      */
     public static Request build(StateBook state, List<Part> recent, Collection<String> separators, String system) {
-        String instructions = StringUtils.isBlank(system) ? StateDefaults.tidySystem() : system.strip();
+        String instructions = StringUtils.isBlank(system) ? T.defaults().tidySystem() : system.strip();
         List<Set<String>> present = new ArrayList<>();
         for (Part part : recent) {
             present.add(PresentCharacters.normalizedNames(part.presentCharacters(), separators));

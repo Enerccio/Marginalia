@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.extensions.statetracker.service;
 
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
+import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.SettingService;
 import com.github.enerccio.marginalia.extensions.statetracker.model.Category;
@@ -23,7 +24,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import static com.github.enerccio.marginalia.extensions.statetracker.StateTrackerLocalization.*;
 
 /**
- * Reads and saves the state of a book (in the book's attributes) and the user's categories (in the user settings).
+ * Reads and saves the state of a book (in the book's attributes) and the user's categories and prompts (in the user settings).
  */
 @Configurable
 public class StateService {
@@ -33,6 +34,9 @@ public class StateService {
 
     @Autowired
     private SettingService settingService;
+
+    @Autowired
+    private User currentUser;
 
     private final Gson gson = new Gson();
 
@@ -143,5 +147,47 @@ public class StateService {
         categories.add(category);
         putUserCategories(userSetting, categories);
         settingService.save(userSetting);
+    }
+
+    /**
+     * What the user saved as the prompt {@code key} ({@link StateInherited#EXTRACTION_PROMPT}, {@link StateInherited#TIDY_PROMPT}), the
+     * user level of the setting the books and folders inherit. {@code null} for nothing. It never stores anything, so it can be asked
+     * from the suppliers of the registration, inside a read-only transaction too.
+     */
+    public String getUserPrompt(String key) {
+        try {
+            UserSetting userSetting = settingService.find(UserSetting.class, currentUser);
+            return readUserPrompt(userSetting, key);
+        } catch (Exception e) {
+            // asked from suppliers, which cannot throw a checked exception
+            throw new IllegalStateException("The settings of the user can't be read", e);
+        }
+    }
+
+    /** The prompt {@code key} in {@code userSetting}, {@code null} for nothing. */
+    public String readUserPrompt(UserSetting userSetting, String key) {
+        JsonObject attrs = userSetting == null ? null : userSetting.getAttributes();
+        if (attrs != null && attrs.has(key) && attrs.get(key).isJsonPrimitive()) {
+            String text = attrs.get(key).getAsString();
+            return text.isBlank() ? null : text;
+        }
+        return null;
+    }
+
+    /**
+     * Sets the user level of a prompt in {@code userSetting}; blank removes it (the built-in one applies again). Does not store it: the
+     * Settings screen stores the user settings itself.
+     */
+    public void putUserPrompt(UserSetting userSetting, String key, String text) {
+        JsonObject attrs = userSetting.getAttributes();
+        if (attrs == null) {
+            attrs = new JsonObject();
+            userSetting.setAttributes(attrs);
+        }
+        if (text == null || text.isBlank()) {
+            attrs.remove(key);
+        } else {
+            attrs.addProperty(key, text);
+        }
     }
 }

@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
 import com.github.enerccio.marginalia.domain.service.InferenceServices;
+import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.structured.StructuredOutputs;
 import com.github.enerccio.marginalia.extensions.statetracker.block.StateBlockBuilder;
 import com.github.enerccio.marginalia.extensions.statetracker.extract.*;
@@ -38,6 +39,9 @@ public class StateExtractionService {
 
     @Autowired
     private InferenceServices inferenceServices;
+
+    @Autowired
+    private ManuscriptService manuscriptService;
 
     private final TrackerModels models = new TrackerModels();
     private final ModelCall modelCall = new ModelCall();
@@ -111,6 +115,7 @@ public class StateExtractionService {
         BookSettings settings = state.getSettings();
         List<Part> branch = processService.branch(manuscript);
         Collection<String> separators = StateBlockBuilder.effectiveSeparators(state);
+        String system = manuscriptService.resolveExtension(manuscript, StateInherited.EXTRACTION_PROMPT).value();
         List<Part> pending = BranchProcessor.pending(state, branch, BranchProcessor.settledCount(branch, lastSettled, excludeFrom),
                 Integer.MAX_VALUE);
         if (pending.isEmpty()) {
@@ -119,7 +124,7 @@ public class StateExtractionService {
         List<Part> wanted = pending.subList(0, Math.min(Math.max(1, maxParts), pending.size()));
 
         // nobody tracked is in these parts: nothing to ask, the cursor can move on over all of them
-        StatePrompt.Request request = StatePrompt.build(state, "", wanted, separators, null);
+        StatePrompt.Request request = StatePrompt.build(state, "", wanted, separators, system);
         if (request.isEmpty()) {
             return Proposal.nothing(wanted, "", pending.size() - wanted.size());
         }
@@ -135,7 +140,7 @@ public class StateExtractionService {
         int count = wanted.size();
         while (count > 1 && tokens(service, request) > budget) {
             count--;
-            request = StatePrompt.build(state, "", wanted.subList(0, count), separators, null);
+            request = StatePrompt.build(state, "", wanted.subList(0, count), separators, system);
         }
         if (tokens(service, request) > budget) {
             throw new IllegalStateException("A single part does not fit the context of the model together with the state of the characters");
@@ -152,7 +157,7 @@ public class StateExtractionService {
         }
 
         String lore = storyLore.lore(manuscript, settings.getLoreMode(), run, budget - tokens(service, request), service, note);
-        request = StatePrompt.build(state, lore, run, separators, null);
+        request = StatePrompt.build(state, lore, run, separators, system);
 
         ModelCall.Answered answered = modelCall.ask(model, manuscript, SOURCE, request.system(), request.user(), live, null);
         StateAnswer answer;
@@ -224,8 +229,9 @@ public class StateExtractionService {
         Collection<String> separators = StateBlockBuilder.effectiveSeparators(state);
         List<Part> recent = new ArrayList<>(branch.subList(Math.max(0, cursor - settings.getTidyEveryParts()), cursor));
         String part = branch.get(cursor - 1).uuid();
+        String system = manuscriptService.resolveExtension(manuscript, StateInherited.TIDY_PROMPT).value();
 
-        StatePrompt.Request request = TidyPrompt.build(state, recent, separators, null);
+        StatePrompt.Request request = TidyPrompt.build(state, recent, separators, system);
         if (request.isEmpty()) {
             return Proposal.nothingToTidy();
         }
@@ -239,7 +245,7 @@ public class StateExtractionService {
         // the oldest parts go first when the request does not fit; who is present is judged from the parts that are left
         while (recent.size() > 1 && tokens(service, request) > budget) {
             recent.removeFirst();
-            request = TidyPrompt.build(state, recent, separators, null);
+            request = TidyPrompt.build(state, recent, separators, system);
             note.setLength(0);
             note.append("Only the last ").append(recent.size()).append(" part(s) fit.");
         }

@@ -1,6 +1,10 @@
 package com.github.enerccio.marginalia.extensions.statetracker;
 
 import com.github.enerccio.marginalia.extensions.PluginLocalizationBundle;
+import com.github.enerccio.marginalia.extensions.statetracker.extract.*;
+import com.github.enerccio.marginalia.loc.Language;
+
+import java.util.Map;
 
 /**
  * Texts of the State Tracker in the languages besides English; the English text is the key. The texts that the Knowledge
@@ -9,6 +13,18 @@ import com.github.enerccio.marginalia.extensions.PluginLocalizationBundle;
 public class StateTrackerLocalization extends PluginLocalizationBundle {
 
     public static final StateTrackerLocalization T = new StateTrackerLocalization();
+
+    // the built-in prompts of the plugin, one object per prompt language
+    private final StateTrackerDefaults englishDefaults = new StateTrackerDefaults();
+    private final Map<Language, StateTrackerDefaults> translatedDefaults = Map.of(JA, new StateTrackerDefaultsJA(), ZH, new StateTrackerDefaultsZH(), FR, new StateTrackerDefaultsFR(), ES, new StateTrackerDefaultsES(), DE, new StateTrackerDefaultsDE(),
+            IT, new StateTrackerDefaultsIT(), KO, new StateTrackerDefaultsKO());
+
+    /**
+     * The built-in prompts of the plugin in the prompt language of the user.
+     */
+    public StateTrackerDefaults defaults() {
+        return forPromptLanguage(englishDefaults, translatedDefaults);
+    }
 
     public static final String STATE = "State";
     public static final String STATE_TRACKER = "State Tracker";
@@ -202,6 +218,10 @@ public class StateTrackerLocalization extends PluginLocalizationBundle {
     public static final String IMPORT_FROM_THE_CHARACTER_TRACKER = "Import from the Character Tracker";
     public static final String EVERY_IMPORTED_CHARACTER_TRACKS_THE_CHECKED_CATEGORIES = "Every imported character tracks the checked categories. Your own categories are copied into the book when you pick them.";
     public static final String N_CHARACTERS_NOW_TRACKED = "%d character(s) now tracked";
+    public static final String STATE_EXTRACTION_PROMPT = "State extraction prompt";
+    public static final String STATE_TIDY_PROMPT = "State tidy prompt";
+    public static final String THE_SYSTEM_MESSAGE_THAT_TELLS_THE_MODEL = "The system message that tells the model how to read the story for what changed in the state of the tracked characters. Keep the JSON answer format, the plugin reads it. When the book follows the time of the story, the rules of the clock are added after it. Empty = the inherited one, else the built-in text.";
+    public static final String THE_SYSTEM_MESSAGE_OF_THE_TIDY = "The system message of the tidy, which drops, updates and merges values that faded. Keep the JSON answer format, the plugin reads it. Empty = the inherited one, else the built-in text.";
 
     @Override
     protected void loadKeys() {
@@ -1740,5 +1760,37 @@ public class StateTrackerLocalization extends PluginLocalizationBundle {
         de(N_CHARACTERS_NOW_TRACKED, "%d Figur(en) werden jetzt verfolgt");
         ko(N_CHARACTERS_NOW_TRACKED, "%d명의 캐릭터를 추적합니다");
         it(N_CHARACTERS_NOW_TRACKED, "%d personaggio/i ora tracciato/i");
+
+        ja(STATE_EXTRACTION_PROMPT, "状態の読み取りプロンプト");
+        zh(STATE_EXTRACTION_PROMPT, "状态读取提示词");
+        fr(STATE_EXTRACTION_PROMPT, "Prompt d'extraction de l'état");
+        es(STATE_EXTRACTION_PROMPT, "Prompt de extracción del estado");
+        de(STATE_EXTRACTION_PROMPT, "Prompt zur Zustandsextraktion");
+        ko(STATE_EXTRACTION_PROMPT, "상태 추출 프롬프트");
+        it(STATE_EXTRACTION_PROMPT, "Prompt di estrazione dello stato");
+
+        ja(STATE_TIDY_PROMPT, "状態の整理プロンプト");
+        zh(STATE_TIDY_PROMPT, "状态整理提示词");
+        fr(STATE_TIDY_PROMPT, "Prompt de rangement de l'état");
+        es(STATE_TIDY_PROMPT, "Prompt de ordenación del estado");
+        de(STATE_TIDY_PROMPT, "Prompt zum Aufräumen des Zustands");
+        ko(STATE_TIDY_PROMPT, "상태 정리 프롬프트");
+        it(STATE_TIDY_PROMPT, "Prompt di riordino dello stato");
+
+        ja(THE_SYSTEM_MESSAGE_THAT_TELLS_THE_MODEL, "追跡中のキャラクターの状態で何が変わったかを物語から読み取る方法をモデルに伝えるシステムメッセージ。プラグインが読み取るため、JSON の回答形式は維持してください。本が物語の時間を追う場合、時計のルールがその後に追加されます。空 = 継承されたもの、なければ組み込みのテキスト。");
+        zh(THE_SYSTEM_MESSAGE_THAT_TELLS_THE_MODEL, "告诉模型如何从故事中读取被追踪角色状态变化的系统消息。请保留 JSON 回答格式，插件会读取它。如果本书追踪故事时间，时钟规则会附加在其后。留空 = 继承的设置，否则使用内置文本。");
+        fr(THE_SYSTEM_MESSAGE_THAT_TELLS_THE_MODEL, "Le message système qui indique au modèle comment lire l'histoire pour ce qui a changé dans l'état des personnages suivis. Gardez le format de réponse JSON, le plugin le lit. Quand le livre suit le temps de l'histoire, les règles de l'horloge sont ajoutées après lui. Vide = celui hérité, sinon le texte intégré.");
+        es(THE_SYSTEM_MESSAGE_THAT_TELLS_THE_MODEL, "El mensaje del sistema que le dice al modelo cómo leer la historia para ver qué cambió en el estado de los personajes seguidos. Conserva el formato de respuesta JSON, el plugin lo lee. Cuando el libro sigue el tiempo de la historia, las reglas del reloj se añaden después. Vacío = el heredado, si no el texto integrado.");
+        de(THE_SYSTEM_MESSAGE_THAT_TELLS_THE_MODEL, "Die Systemnachricht, die dem Modell sagt, wie es die Geschichte danach lesen soll, was sich am Zustand der verfolgten Figuren geändert hat. Behalte das JSON-Antwortformat bei, das Plugin liest es. Wenn das Buch der Zeit der Geschichte folgt, werden die Regeln der Uhr danach angefügt. Leer = der geerbte, sonst der eingebaute Text.");
+        ko(THE_SYSTEM_MESSAGE_THAT_TELLS_THE_MODEL, "추적 캐릭터의 상태에서 무엇이 바뀌었는지 모델이 이야기를 읽는 방법을 알려 주는 시스템 메시지. 플러그인이 읽으므로 JSON 응답 형식은 유지하세요. 책이 이야기의 시간을 따라가면 시계 규칙이 그 뒤에 덧붙습니다. 비워 두면 상속된 것, 없으면 내장 텍스트.");
+        it(THE_SYSTEM_MESSAGE_THAT_TELLS_THE_MODEL, "Il messaggio di sistema che dice al modello come leggere la storia per ciò che è cambiato nello stato dei personaggi tracciati. Mantieni il formato di risposta JSON, il plugin lo legge. Quando il libro segue il tempo della storia, le regole dell'orologio vengono aggiunte dopo. Vuoto = quello ereditato, altrimenti il testo integrato.");
+
+        ja(THE_SYSTEM_MESSAGE_OF_THE_TIDY, "薄れた値を削除・更新・統合する整理のシステムメッセージ。プラグインが読み取るため、JSON の回答形式は維持してください。空 = 継承されたもの、なければ組み込みのテキスト。");
+        zh(THE_SYSTEM_MESSAGE_OF_THE_TIDY, "整理的系统消息，用于删除、更新和合并已经淡去的值。请保留 JSON 回答格式，插件会读取它。留空 = 继承的设置，否则使用内置文本。");
+        fr(THE_SYSTEM_MESSAGE_OF_THE_TIDY, "Le message système du rangement, qui abandonne, met à jour et fusionne les valeurs qui se sont estompées. Gardez le format de réponse JSON, le plugin le lit. Vide = celui hérité, sinon le texte intégré.");
+        es(THE_SYSTEM_MESSAGE_OF_THE_TIDY, "El mensaje del sistema de la ordenación, que descarta, actualiza y combina los valores que se han desvanecido. Conserva el formato de respuesta JSON, el plugin lo lee. Vacío = el heredado, si no el texto integrado.");
+        de(THE_SYSTEM_MESSAGE_OF_THE_TIDY, "Die Systemnachricht des Aufräumens, das verblasste Werte verwirft, aktualisiert und zusammenführt. Behalte das JSON-Antwortformat bei, das Plugin liest es. Leer = der geerbte, sonst der eingebaute Text.");
+        ko(THE_SYSTEM_MESSAGE_OF_THE_TIDY, "희미해진 값을 버리고, 갱신하고, 병합하는 정리의 시스템 메시지. 플러그인이 읽으므로 JSON 응답 형식은 유지하세요. 비워 두면 상속된 것, 없으면 내장 텍스트.");
+        it(THE_SYSTEM_MESSAGE_OF_THE_TIDY, "Il messaggio di sistema del riordino, che scarta, aggiorna e unisce i valori che sono sbiaditi. Mantieni il formato di risposta JSON, il plugin lo legge. Vuoto = quello ereditato, altrimenti il testo integrato.");
     }
 }

@@ -1,49 +1,19 @@
 package com.github.enerccio.marginalia.extensions.statetracker.extract;
 
 /**
- * The built-in system message of the extraction of the State Tracker. The wording was tested against a real model (see TODO.md).
- * The JSON the model answers with and the headings of the user message ({@code [Tracked characters]}, {@code [Messages]}) belong to
- * it.
+ * The built-in system messages of the State Tracker, in English; a subclass translates them and
+ * {@code StateTrackerLocalization.T.defaults()} is the one of the prompt language of the user. The wording of the English one was
+ * tested against a real model (see TODO.md). The JSON the model answers with (its keys and the values of "action" and "kind"), the
+ * kinds of category (single, list, description), the markers "(stays)" and "strict" and the headings of the user message
+ * ({@code [Clock]}, {@code [Tracked characters]}, {@code [Messages]}) are the same in every language.
+ * <p>
+ * The extraction and the tidy can be replaced by the user, a folder or a book; the {@link #clockNote clock note} cannot: it is added
+ * after the extraction message, built-in or not, when the book follows the time of the story.
  */
-public final class StateDefaults {
+public class StateTrackerDefaults {
 
-    private StateDefaults() {
-    }
-
-    /** The system message of the extraction, without the clock. */
-    public static String extractionSystem() {
-        return extractionSystem(false);
-    }
-
-    /**
-     * The system message of the extraction; with the clock the model also reports how the time of the story moves in every message
-     * (the wording that was tested merged, see TODO.md, Milestone 5).
-     */
-    public static String extractionSystem(boolean clock) {
-        String text = stateSystem();
-        if (!clock) {
-            return text;
-        }
-        int answer = text.lastIndexOf("\n\nAnswer with JSON only");
-        return text.substring(0, answer).replace("You get the TRACKED characters,",
-                "You also keep the time of the story. You get the CLOCK (the story day counted from an anchor event, the time of day, and the calendar date when the story has one), the TRACKED characters,")
-                + CLOCK_RULES;
-    }
-
-    private static final String CLOCK_RULES = """
-
-
-            The clock. For each message, report how the time of the story moves in it. Do not count: report only what the message says, the program adds it up.
-            - none: the message does not move the time, or says nothing about it. This is the default.
-            - advance: time passes. "days" is how many days pass (0 when it stays the same day: later that day, an hour later), "timeOfDay" where the message ends (dawn, morning, noon, afternoon, evening, night) when it says so.
-            - day: the message states the story day counted from the anchor event of the clock ("the fortieth day since you woke"): "day" is that number. An ordinal of something else ("on the third morning" of a journey or a stay) is an advance, not a day.
-            - date: the message states a calendar date: "date" as YYYY-MM-DD, with the year of the clock when the message gives none.
-            - flashback: the message is set in the past (a memory, a dream of the past, a story told about earlier events); the clock does not move, and nothing in it changes the current state of the characters.
-            Clock rules: report only what the message states or makes plain ("the next morning" is one day, morning; "that night" is the same day, night; "three days later" is three days), never time the text does not show. Vague spans ("weeks passed", "a few days later") are an advance with your best number of days and "approximate": true. The time of day alone is an advance of 0 days. Every report other than none needs a quote copied word for word from the message.
-
-            Answer with JSON only, no other text: {"clock":[{"message":N,"kind":"none|advance|day|date|flashback","days":N,"day":N,"date":"YYYY-MM-DD","timeOfDay":"...","approximate":false,"evidence":"..."}],"characters":[{"name":"...","changes":[{"category":"...","action":"set|clear|add|remove","value":"...","item":N,"evidence":"...","message":N}]}]}. "clock" has one entry per message, in order, leaving out the fields a kind does not use. In "characters", "value" is for set and add, "item" for remove. A character with no changes has an empty list; with no tracked characters, "characters" is empty.""";
-
-    private static String stateSystem() {
+    /** The system message of the extraction. */
+    public String extractionSystem() {
         return """
             You keep track of the current state of the characters of a story: what they wear, carry, hold and so on. You get the TRACKED characters, each with its categories (the kind of the category, what belongs in it, and its current values, numbered), and the new story MESSAGES (numbered). Report, for each tracked character, only what changed in these messages, as it stands at the END of the messages.
 
@@ -64,8 +34,25 @@ public final class StateDefaults {
             Answer with JSON only, no other text: {"characters":[{"name":"...","changes":[{"category":"...","action":"set|clear|add|remove","value":"...","item":N,"evidence":"...","message":N}]}]}. "value" is for set and add, "item" for remove. A character with no changes has an empty list.""";
     }
 
-    /** The system message of the tidy. Not yet tried against a real model (see TODO.md). */
-    public static String tidySystem() {
+    /**
+     * Added after the system message of the extraction when the book follows the time of the story: the model also reports how the
+     * time moves in every message, in the same answer.
+     */
+    public String clockNote() {
+        return """
+            You also keep the time of the story. You get the CLOCK too: the story day counted from an anchor event, the time of day, and the calendar date when the story has one. For each message, report how the time of the story moves in it. Do not count: report only what the message says, the program adds it up.
+            - none: the message does not move the time, or says nothing about it. This is the default.
+            - advance: time passes. "days" is how many days pass (0 when it stays the same day: later that day, an hour later), "timeOfDay" where the message ends (dawn, morning, noon, afternoon, evening, night) when it says so.
+            - day: the message states the story day counted from the anchor event of the clock ("the fortieth day since you woke"): "day" is that number. An ordinal of something else ("on the third morning" of a journey or a stay) is an advance, not a day.
+            - date: the message states a calendar date: "date" as YYYY-MM-DD, with the year of the clock when the message gives none.
+            - flashback: the message is set in the past (a memory, a dream of the past, a story told about earlier events); the clock does not move, and nothing in it changes the current state of the characters.
+            Clock rules: report only what the message states or makes plain ("the next morning" is one day, morning; "that night" is the same day, night; "three days later" is three days), never time the text does not show. Vague spans ("weeks passed", "a few days later") are an advance with your best number of days and "approximate": true. The time of day alone is an advance of 0 days. Every report other than none needs a quote copied word for word from the message.
+
+            Put the clock into the same JSON answer, as the list "clock" next to "characters": {"clock":[{"message":N,"kind":"none|advance|day|date|flashback","days":N,"day":N,"date":"YYYY-MM-DD","timeOfDay":"...","approximate":false,"evidence":"..."}],"characters":[...]}. "clock" has one entry per message, in order, leaving out the fields a kind does not use. With no tracked characters, "characters" is empty.""";
+    }
+
+    /** The system message of the tidy. */
+    public String tidySystem() {
         return """
             You keep the current state of the characters of a story tidy: what they wear, carry, hold, feel and so on. You get the TRACKED characters, each with its categories and their current values (numbered; a value marked "(stays)" cannot be changed), and the last story MESSAGES (numbered). Some states fade without the story saying so. Decide, for each numbered value, whether it is still true at the END of the messages.
 

@@ -70,7 +70,7 @@ class TidyTest {
         assertTrue(user.contains("  Injuries (list)\n    - (stays) scar on the cheek"));
         assertFalse(user.contains("Mara"));
         assertTrue(user.contains("#2 (POV Fiora; present: Fiora)\nDays passed on the road."));
-        assertEquals(StateDefaults.tidySystem(), request.system());
+        assertEquals(new StateTrackerDefaults().tidySystem(), request.system());
     }
 
     @Test

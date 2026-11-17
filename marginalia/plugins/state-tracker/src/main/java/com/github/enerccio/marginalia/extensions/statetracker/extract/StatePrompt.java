@@ -10,6 +10,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 
+import static com.github.enerccio.marginalia.extensions.statetracker.StateTrackerLocalization.T;
+
 /**
  * The request that asks the model what changed in the state of the tracked characters in a few parts of the story. The wording is
  * the one that was tested against a real model (see TODO.md); change it together with that test.
@@ -54,11 +56,14 @@ public final class StatePrompt {
      * @param lore       the world text, may be empty
      * @param parts      the parts to read, in order
      * @param separators the separators of the present characters field, {@code null} for the built-in ones
-     * @param system     the system message, blank = the built-in one
+     * @param system     the system message, blank = the built-in one; when the book follows the time, the clock note is added after it
      */
     public static Request build(StateBook state, String lore, List<Part> parts, Collection<String> separators, String system) {
         boolean clock = state.getClock().isEnabled();
-        String instructions = StringUtils.isBlank(system) ? StateDefaults.extractionSystem(clock) : system.strip();
+        String instructions = StringUtils.isBlank(system) ? T.defaults().extractionSystem() : system.strip();
+        if (clock) {
+            instructions = instructions + "\n\n" + T.defaults().clockNote();
+        }
         List<Set<String>> present = new ArrayList<>();
         for (Part part : parts) {
             present.add(PresentCharacters.normalizedNames(part.presentCharacters(), separators));

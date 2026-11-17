@@ -14,6 +14,7 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationC
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationControllerEvent.Registration;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.GenerationOutcome;
 import com.github.enerccio.marginalia.extensions.ExtensionHasCss;
+import com.github.enerccio.marginalia.extensions.InheritedSettingRegistry;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
 import com.github.enerccio.marginalia.extensions.statetracker.commands.StateTrackerCommands;
 import com.github.enerccio.marginalia.extensions.statetracker.model.BookSettings;
@@ -81,6 +82,9 @@ public class StateTrackerExtension implements MarginaliaExtension, ExtensionHasC
     @Autowired
     private CommandService commandService;
 
+    @Autowired
+    private InheritedSettingRegistry inheritedSettingRegistry;
+
     private final StateService stateService = new StateService();
     private final StatePromptService promptService = new StatePromptService(stateService);
     private final StateProcessService processService = new StateProcessService(stateService);
@@ -105,7 +109,10 @@ public class StateTrackerExtension implements MarginaliaExtension, ExtensionHasC
     public void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
         log = parentService.createLogger(bundle);
         try {
-            // the State Tracker section (the user's categories) in the extension settings of the user settings
+            // what books and folders inherit (their dialogs get the fields); the user level is in the State Tracker section of the settings
+            StateInherited.register(inheritedSettingRegistry, bundle.getSymbolicName(), stateService::getUserPrompt);
+
+            // the State Tracker section (the user's categories and prompts) in the extension settings of the user settings
             userPartDecorator = new ExtensionDecorator() {
                 @Override
                 public void onMethodEnter(Object instrumented, ExtendableMethodContext context) throws Exception {
@@ -384,6 +391,7 @@ public class StateTrackerExtension implements MarginaliaExtension, ExtensionHasC
     @Override
     public void onExtensionUnload(Bundle b, OsgiService parentService, ExtensionService extensionService) {
         runs.setOpener(null);
+        inheritedSettingRegistry.unregisterAll(b.getSymbolicName());
         if (afterPartRegistration != null) {
             afterPartRegistration.unregister();
             afterPartRegistration = null;

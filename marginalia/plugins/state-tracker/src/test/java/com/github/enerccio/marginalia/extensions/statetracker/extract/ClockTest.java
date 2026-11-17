@@ -49,8 +49,11 @@ class ClockTest {
         StatePrompt.Request request = request();
         assertTrue(request.clock());
         assertTrue(request.user().startsWith("[Clock]\nDay 3 after the awakening, evening. No calendar date.\n\n[Tracked characters]"));
-        assertTrue(request.system().contains("The clock. For each message"));
+        assertEquals(new StateTrackerDefaults().extractionSystem() + "\n\n" + new StateTrackerDefaults().clockNote(), request.system());
         assertTrue(request.system().contains("\"clock\":[{"));
+        // a prompt of the user, a folder or the book gets the clock note too
+        StatePrompt.Request custom = StatePrompt.build(book, "", List.of(new Part("p9", "Mara", "Mara", "x")), null, "My own prompt.");
+        assertEquals("My own prompt.\n\n" + new StateTrackerDefaults().clockNote(), custom.system());
 
         StatePrompt.Request nobody = StatePrompt.build(book, "", List.of(new Part("p9", "Mara", "Mara", "Two days passed.")), null, null);
         assertTrue(nobody.included().isEmpty());
@@ -59,7 +62,7 @@ class ClockTest {
 
         book.getClock().setEnabled(false);
         assertFalse(request().user().contains("[Clock]"));
-        assertFalse(request().system().contains("The clock."));
+        assertEquals(new StateTrackerDefaults().extractionSystem(), request().system());
         assertTrue(StatePrompt.build(book, "", List.of(new Part("p9", "Mara", "Mara", "x")), null, null).isEmpty());
     }
 

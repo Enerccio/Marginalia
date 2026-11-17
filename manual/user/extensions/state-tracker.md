@@ -167,6 +167,17 @@ In the settings (the gear):
 - **Lorebook for the model**: the entries the parts activate (default), the whole lorebook, or none.
 - **Model for the extraction** and **Protocol for the extraction**: empty means the model of the book.
 
+## Prompts
+
+The system message of the reading (**State extraction prompt**) and the one of the tidy (**State tidy prompt**) are
+[inherited settings](../books/prompts.md#inherited-settings): a book uses its own, else the nearest folder above it that sets one,
+else yours, else the built-in text in your prompt language (the English one was tested against a real model).
+
+Set them in the *Prompts* tab of the book, under *Extension Settings*, in the dialog of a folder, or for all your books in
+*Settings → Extension Settings → State Tracker* (empty shows the built-in text in grey). Keep the JSON answer format of the
+built-in text: the plugin reads the answer by it. The rules of the [story clock](#the-story-clock) are added by the plugin after
+the extraction prompt when the book follows the time, so your prompt does not need them.
+
 ## In the prompt
 
 The gear button holds the settings of the book:
