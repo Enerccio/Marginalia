@@ -98,6 +98,8 @@ public class StateTrackerView extends VerticalLayout {
 
     private final VerticalLayout list = new VerticalLayout();
     private Button settingsButton;
+    /** Ids of the characters whose card is shown open (collapsed by default); kept over a refresh. */
+    private final Set<String> open = new HashSet<>();
     /** The categories (character id + category id) whose history is shown open; kept over a refresh. */
     private final Set<String> historyOpen = new HashSet<>();
     /** A command stored the state: one reload however many come in a row. */
@@ -809,6 +811,16 @@ public class StateTrackerView extends VerticalLayout {
     }
 
     private Component createCard(TrackedCharacter character) {
+        boolean isOpen = open.contains(character.getId());
+        Button toggle = new Button((isOpen ? Solid.CHEVRON_UP : Solid.CHEVRON_DOWN).create(), _ -> {
+            if (!open.remove(character.getId())) {
+                open.add(character.getId());
+            }
+            refresh();
+        });
+        toggle.setAriaLabel(T.localized(SHOW_THE_STATE_OF_THE_CHARACTER));
+        toggle.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_SMALL);
+
         Div name = new Div(new Span(character.getName()));
         name.addClassName(StateTrackerStyles.NAME);
         Div title = new Div(name);
@@ -818,13 +830,16 @@ public class StateTrackerView extends VerticalLayout {
             aliases.addClassName(StateTrackerStyles.MUTED);
             title.add(aliases);
         }
-        Div header = new Div(title,
+        Div header = new Div(toggle, title,
                 iconButton(Solid.PEN, T.localized(EDIT), () -> openCharacterDialog(character)),
                 iconButton(Solid.TRASH, T.localized(DELETE), () -> deleteCharacter(character)));
         header.addClassName(StateTrackerStyles.CARD_HEADER);
 
         Div card = new Div(header);
         card.addClassName(StateTrackerStyles.CARD);
+        if (!isOpen) {
+            return card;
+        }
         List<Category> categories = state.categoriesOf(character);
         if (categories.isEmpty()) {
             Div none = new Div(new Span(T.localized(NO_CATEGORY_IS_TRACKED_FOR_THIS_CHARACTER)));
@@ -1002,6 +1017,7 @@ public class StateTrackerView extends VerticalLayout {
     private void deleteCharacter(TrackedCharacter character) {
         ConfirmDialog.show(T.localized(STOP_TRACKING_AND_DELETE_ITS_STATE).formatted(character.getName()), () -> {
             state.deleteCharacter(character.getId());
+            open.remove(character.getId());
             persist();
         });
     }

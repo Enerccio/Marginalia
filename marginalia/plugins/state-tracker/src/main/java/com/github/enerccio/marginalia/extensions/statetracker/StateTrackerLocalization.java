@@ -222,6 +222,7 @@ public class StateTrackerLocalization extends PluginLocalizationBundle {
     public static final String STATE_TIDY_PROMPT = "State tidy prompt";
     public static final String THE_SYSTEM_MESSAGE_THAT_TELLS_THE_MODEL = "The system message that tells the model how to read the story for what changed in the state of the tracked characters. Keep the JSON answer format, the plugin reads it. When the book follows the time of the story, the rules of the clock are added after it. Empty = the inherited one, else the built-in text.";
     public static final String THE_SYSTEM_MESSAGE_OF_THE_TIDY = "The system message of the tidy, which drops, updates and merges values that faded. Keep the JSON answer format, the plugin reads it. Empty = the inherited one, else the built-in text.";
+    public static final String SHOW_THE_STATE_OF_THE_CHARACTER = "Show the state of the character";
 
     @Override
     protected void loadKeys() {
@@ -1792,5 +1793,13 @@ public class StateTrackerLocalization extends PluginLocalizationBundle {
         de(THE_SYSTEM_MESSAGE_OF_THE_TIDY, "Die Systemnachricht des Aufräumens, das verblasste Werte verwirft, aktualisiert und zusammenführt. Behalte das JSON-Antwortformat bei, das Plugin liest es. Leer = der geerbte, sonst der eingebaute Text.");
         ko(THE_SYSTEM_MESSAGE_OF_THE_TIDY, "희미해진 값을 버리고, 갱신하고, 병합하는 정리의 시스템 메시지. 플러그인이 읽으므로 JSON 응답 형식은 유지하세요. 비워 두면 상속된 것, 없으면 내장 텍스트.");
         it(THE_SYSTEM_MESSAGE_OF_THE_TIDY, "Il messaggio di sistema del riordino, che scarta, aggiorna e unisce i valori che sono sbiaditi. Mantieni il formato di risposta JSON, il plugin lo legge. Vuoto = quello ereditato, altrimenti il testo integrato.");
+
+        ja(SHOW_THE_STATE_OF_THE_CHARACTER, "キャラクターの状態を表示");
+        zh(SHOW_THE_STATE_OF_THE_CHARACTER, "显示该角色的状态");
+        fr(SHOW_THE_STATE_OF_THE_CHARACTER, "Afficher l'état du personnage");
+        es(SHOW_THE_STATE_OF_THE_CHARACTER, "Mostrar el estado del personaje");
+        de(SHOW_THE_STATE_OF_THE_CHARACTER, "Den Zustand der Figur anzeigen");
+        ko(SHOW_THE_STATE_OF_THE_CHARACTER, "캐릭터의 상태 보기");
+        it(SHOW_THE_STATE_OF_THE_CHARACTER, "Mostra lo stato del personaggio");
     }
 }

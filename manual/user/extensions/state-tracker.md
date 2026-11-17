@@ -68,7 +68,8 @@ or an alias) with their taglines, all of them ticked; untick the ones to leave o
 imported character gets (the book's and your own, as above) and press **Import**. Only the names are taken; a character can
 get other categories later with the pen.
 
-Every tracked character shows its categories, each with its current value or values:
+Every tracked character has a card, closed at first: open it with the arrow on the card to see its categories, each with
+its current value or values:
 
 - **+** sets the value of a single or description category (the current value goes to the history) or adds an entry to a list.
 - The pen edits a value, the cross **removes** it: it is no longer true, so it goes to the history and is not sent to the model.
