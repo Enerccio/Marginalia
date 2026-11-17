@@ -89,6 +89,16 @@ public class KnowledgeState implements TrackerProgress {
         }
     }
 
+    /**
+     * This state, read from a checkpoint, takes the place of {@code current}: what the author set up for the book (the settings and
+     * the start point) stays as it is now, everything the tracker followed (the characters, the cursor, the processed parts, the
+     * count for the tidy, the log) is the checkpoint's.
+     */
+    public void keepSetupOf(KnowledgeState current) {
+        this.settings = current.getSettings();
+        this.startMessage = current.getStartMessage();
+    }
+
     public BookSettings getSettings() {
         if (settings == null) {
             settings = new BookSettings();

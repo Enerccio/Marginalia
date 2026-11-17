@@ -179,6 +179,27 @@ public class StateBook implements TrackerProgress {
         return changeLog;
     }
 
+    /**
+     * This state, read from a checkpoint, takes the place of {@code current}: what the author set up for the book (the settings, the
+     * start point, the categories and the settings of the clock) stays as it is now, what the tracker followed (the characters with their
+     * values, the cursor, the processed parts, the marks of the clock, the count for the tidy, the log) is the checkpoint's. A category
+     * the book no longer has but the values of the checkpoint use comes back, so that those values are shown.
+     */
+    public void keepSetupOf(StateBook current) {
+        List<Category> setup = new ArrayList<>(current.getCategories());
+        for (Category category : getCategories()) {
+            if (current.findCategory(category.getId()) == null) {
+                setup.add(category);
+            }
+        }
+        StoryClock clock = current.getClock();
+        clock.takeMarksOf(getClock());
+        this.categories = setup;
+        this.clock = clock;
+        this.settings = current.getSettings();
+        this.startMessage = current.getStartMessage();
+    }
+
     public BookSettings getSettings() {
         if (settings == null) {
             settings = new BookSettings();

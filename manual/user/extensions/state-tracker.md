@@ -137,6 +137,23 @@ It works as if you had unticked the change in the review: the value the change m
 again. A row is left alone when you changed the value by hand since (edited, removed, restored or deleted it, or gave a single
 category another value). The log keeps the last 200 changes.
 
+### Returning to an earlier point
+
+After every run that applies changes (a run of the tab with or without a review, the automatic reading of new parts, the
+commands, a tidy) the tracker takes a **checkpoint**: the whole state of its characters as that run left it, with the story
+clock and the place it had read up to. **Checkpoints** in the Processing panel lists them, newest first: the part, the time,
+what kind of run it was and how many changes it applied. Only checkpoints whose part is on the active branch are listed.
+
+**Return to this point** on a row puts the tracker back as it was after that run: the values of the characters (current and past),
+the marks of the story clock, the processed parts and the log of automatic changes are those of the checkpoint, and the next run
+reads the parts after its part again. Your settings, the start point, the settings of the clock and the categories of the book stay
+as they are now (a category you deleted since comes back when the values of the checkpoint use it). It asks first, because
+everything read after the checkpoint is undone, the changes you made by hand since then too. Use it when a series of runs went
+wrong, or after you restored an older backup of the book and want the tracker to catch up from a point you trust.
+
+The tracker keeps the last 20 checkpoints of a book. They are kept among your files (*Resources*, grouped by the book), not in the
+book, so book backups and copies do not include them.
+
 ### Tidying the state
 
 Some states fade without the story saying so: a mood, wet clothes, being out of breath, a cup held long after the meal.

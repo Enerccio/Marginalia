@@ -11,6 +11,7 @@ import com.github.enerccio.marginalia.extensions.statetracker.model.CategoryKind
 import com.github.enerccio.marginalia.extensions.statetracker.model.StateBook;
 import com.github.enerccio.marginalia.extensions.storytracker.characters.CharacterTrackerCharacters;
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
@@ -100,6 +101,17 @@ public class StateService {
     public List<CharacterTrackerCharacters.Candidate> characterTrackerCharacters(Manuscript manuscript) throws Exception {
         Manuscript current = manuscriptService.find(manuscript);
         return CharacterTrackerCharacters.read((current != null ? current : manuscript).getAttributes());
+    }
+
+    /** The state as it is stored in the book, for a checkpoint. */
+    public JsonElement toJson(StateBook state) {
+        return gson.toJsonTree(state);
+    }
+
+    /** A state stored by {@link #toJson}, a new empty one for nothing. */
+    public StateBook fromJson(JsonElement json) {
+        StateBook state = json == null || json.isJsonNull() ? null : gson.fromJson(json, StateBook.class);
+        return state != null ? state : new StateBook();
     }
 
     public void save(Manuscript manuscript, StateBook state) throws Exception {

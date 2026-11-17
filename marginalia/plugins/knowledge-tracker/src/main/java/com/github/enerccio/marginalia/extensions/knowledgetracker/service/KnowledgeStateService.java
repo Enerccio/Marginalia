@@ -97,6 +97,17 @@ public class KnowledgeStateService {
         return CharacterTrackerCharacters.read((current != null ? current : manuscript).getAttributes());
     }
 
+    /** The state as it is stored in the book, for a checkpoint. */
+    public JsonElement toJson(KnowledgeState state) {
+        return gson.toJsonTree(state);
+    }
+
+    /** A state stored by {@link #toJson}, a new empty one for nothing. */
+    public KnowledgeState fromJson(JsonElement json) {
+        KnowledgeState state = json == null || json.isJsonNull() ? null : gson.fromJson(json, KnowledgeState.class);
+        return state != null ? state : new KnowledgeState();
+    }
+
     public void save(Manuscript manuscript, KnowledgeState state) throws Exception {
         manuscriptService.update(manuscript, current -> {
             JsonObject attrs = current.getAttributes();

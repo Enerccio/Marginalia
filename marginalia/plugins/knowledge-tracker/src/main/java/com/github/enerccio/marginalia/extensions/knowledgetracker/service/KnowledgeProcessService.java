@@ -3,10 +3,15 @@ package com.github.enerccio.marginalia.extensions.knowledgetracker.service;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
+import com.github.enerccio.marginalia.domain.service.ResourceService;
 import com.github.enerccio.marginalia.extensions.PartTextRegistry;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.block.KnowledgeBlockBuilder;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.ChangeLog;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.model.KnowledgeState;
+import com.github.enerccio.marginalia.extensions.storytracker.checkpoint.Checkpoint;
+import com.github.enerccio.marginalia.extensions.storytracker.checkpoint.CheckpointFiles;
+import com.github.enerccio.marginalia.extensions.storytracker.checkpoint.ResourceCheckpointFiles;
+import com.github.enerccio.marginalia.extensions.storytracker.checkpoint.TrackerCheckpoints;
 import com.github.enerccio.marginalia.extensions.storytracker.log.TrackerChangeLog;
 import com.github.enerccio.marginalia.extensions.storytracker.process.BranchProcessor;
 import com.github.enerccio.marginalia.extensions.storytracker.process.BranchProcessor.Report;
@@ -39,7 +44,11 @@ public class KnowledgeProcessService {
     @Autowired
     private ManuscriptService manuscriptService;
 
+    @Autowired
+    private ResourceService resourceService;
+
     private final KnowledgeStateService stateService;
+    private final TrackerCheckpoints checkpoints = new TrackerCheckpoints(KnowledgeSteps.SOURCE);
     private final Map<String, Object> locks = new ConcurrentHashMap<>();
 
     public KnowledgeProcessService(KnowledgeStateService stateService) {
@@ -80,6 +89,10 @@ public class KnowledgeProcessService {
                     separators(state), System.currentTimeMillis(), max);
             if (report.processed() > 0 || report.rewound() > 0) {
                 stateService.save(manuscript, state);
+                if (report.processed() > 0 && !state.getSettings().isExtractWithModel()) {
+                    // a book that reads with the model takes its checkpoints after the runs of the model
+                    checkpoint(manuscript, state, Checkpoint.Kind.READ, 0, 0);
+                }
                 stateService.changed(manuscript);
             }
             return report;
@@ -175,6 +188,55 @@ public class KnowledgeProcessService {
             ChangeLog.clear(state);
             stateService.save(manuscript, state);
         }
+    }
+
+    // --- checkpoints ---
+
+    /**
+     * Takes a checkpoint of the state as it was just stored (see {@link TrackerCheckpoints}); called by the commits of the runs with the
+     * lock of the book held. A failure is logged, the run stays committed.
+     */
+    void checkpoint(Manuscript manuscript, KnowledgeState state, Checkpoint.Kind kind, int added, int retracted) {
+        try {
+            checkpoints.take(files(manuscript), stateService.toJson(state), state.getCursor(), kind, added, retracted);
+        } catch (Exception e) {
+            // the book is gone or not stored; there is nothing to return to then
+        }
+    }
+
+    /** The checkpoints of the book whose part is on the active branch, newest first. */
+    public List<TrackerCheckpoints.Placed> checkpoints(Manuscript manuscript, List<Part> branch) throws Exception {
+        return TrackerCheckpoints.onBranch(checkpoints.list(files(manuscript)), branch);
+    }
+
+    /**
+     * Returns the tracker to a checkpoint: the characters, the cursor, the processed parts and the log are the checkpoint's, the settings
+     * and the start point stay. The next run reads the parts after the part of the checkpoint.
+     */
+    public TrackerCheckpoints.Restore restoreCheckpoint(Manuscript manuscript, String checkpointId) throws Exception {
+        synchronized (lock(manuscript)) {
+            List<Part> branch = branch(manuscript);
+            TrackerCheckpoints.Restore outcome = checkpoints.restore(files(manuscript), checkpointId, branch, json -> {
+                KnowledgeState restored = restore(stateService.load(manuscript), stateService.fromJson(json), branch);
+                stateService.save(manuscript, restored);
+            });
+            if (outcome == TrackerCheckpoints.Restore.RESTORED) {
+                stateService.changed(manuscript);
+            }
+            return outcome;
+        }
+    }
+
+    /** The state of a checkpoint in the place of the current one, in line with the branch. */
+    public static KnowledgeState restore(KnowledgeState current, KnowledgeState checkpoint, List<Part> branch) {
+        checkpoint.keepSetupOf(current);
+        BranchProcessor.align(checkpoint, branch);
+        return checkpoint;
+    }
+
+    private CheckpointFiles files(Manuscript manuscript) throws Exception {
+        Manuscript stored = manuscript.getId() != null ? manuscript : manuscriptService.find(manuscript);
+        return new ResourceCheckpointFiles(resourceService, stored != null ? stored : manuscript);
     }
 
     /**

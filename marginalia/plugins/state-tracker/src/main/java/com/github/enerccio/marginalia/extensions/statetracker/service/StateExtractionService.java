@@ -11,6 +11,7 @@ import com.github.enerccio.marginalia.extensions.statetracker.block.StateBlockBu
 import com.github.enerccio.marginalia.extensions.statetracker.extract.*;
 import com.github.enerccio.marginalia.extensions.statetracker.model.BookSettings;
 import com.github.enerccio.marginalia.extensions.statetracker.model.StateBook;
+import com.github.enerccio.marginalia.extensions.storytracker.checkpoint.Checkpoint;
 import com.github.enerccio.marginalia.extensions.storytracker.llm.Live;
 import com.github.enerccio.marginalia.extensions.storytracker.llm.ModelCall;
 import com.github.enerccio.marginalia.extensions.storytracker.llm.StoryLore;
@@ -205,6 +206,7 @@ public class StateExtractionService {
             }
             StateApplier.Result result = StateApplier.apply(state, proposal.changes(), System.currentTimeMillis(), logged);
             stateService.save(manuscript, state);
+            processService.checkpoint(manuscript, state, Checkpoint.Kind.RUN, result.applied());
             stateService.changed(manuscript);
             return result;
         }
@@ -278,6 +280,7 @@ public class StateExtractionService {
             state.tidied();
             StateApplier.Result result = StateApplier.apply(state, proposal.changes(), System.currentTimeMillis(), logged);
             stateService.save(manuscript, state);
+            processService.checkpoint(manuscript, state, Checkpoint.Kind.TIDY, result.applied());
             stateService.changed(manuscript);
             return result;
         }
