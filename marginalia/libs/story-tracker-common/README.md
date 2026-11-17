@@ -15,6 +15,7 @@ Packages:
   it starts), `PartReader` (what the model may read of earlier parts).
 - `scene`: `PresentCharacters` (the lenient reading of the present characters field), `SeparatorText` (the separators as the user
   edits them).
+- `characters`: `CharacterTrackerCharacters` (the characters of the Character Tracker read from the book's attributes, for an import).
 - `block`: `PayloadInsertion` (a block into the prompt at a depth, like the Author's Note).
 - `process` also has `Evidence` (whether a quote of the model is in a part).
 - `llm`: `TrackerModels` (which model, the budget of a request), `ModelCall` (one streamed request, the reasoning kept, an optional function
@@ -23,8 +24,8 @@ Packages:
   per book, a proposal held for an agent).
 - `log`: `LogEntry` (a change applied without asking; a tracker extends it) and `TrackerChangeLog` (keep the newest 200, revert once
   through the tracker's `Undo`).
-- `ui`: `UiAccess` (changes a component from a worker thread through `ui.access` and a push), `ProgressPanel`, `ReviewDialog`,
-  `ChangeLogPanel` (the *Applied automatically* list with its revert buttons), their CSS
+- `ui`: `UiAccess` (changes a component from a worker thread through `ui.access` and a push), `ProgressPanel`, `ReviewDialog`, `ImportCharactersDialog` (the
+  import from the Character Tracker, with the tracker's options), `ChangeLogPanel` (the *Applied automatically* list with its revert buttons), their CSS
   (`StoryTrackerStyles`, `storytracker.css`) and texts (`StoryTrackerLocalization`).
 
 Build: `mvn install -DskipTests` here (a plugin needs it in the local repository first). The root `Dockerfile` and the workflows do it

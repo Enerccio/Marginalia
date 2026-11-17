@@ -36,6 +36,13 @@ public class StoryTrackerLocalization extends PluginLocalizationBundle {
     public static final String REVERTED = "Reverted";
     public static final String REVERT_THIS_CHANGE = "Revert this change";
     public static final String APPLIED_AUTOMATICALLY = "Applied automatically (%d)";
+    public static final String IMPORT_FROM_THE_CHARACTER_TRACKER = "Import from the Character Tracker";
+    public static final String NAME = "Name";
+    public static final String TAGLINE = "Tagline";
+    public static final String IMPORT = "Import";
+    public static final String IMPORT_D = "Import (%d)";
+    public static final String THE_CHARACTER_TRACKER_HAS_NO_CHARACTERS = "The Character Tracker has no characters in this book.";
+    public static final String EVERY_CHARACTER_OF_THE_CHARACTER_TRACKER_IS_TRACKED = "Every character of the Character Tracker is tracked already.";
 
     @Override
     protected void loadKeys() {
@@ -243,5 +250,55 @@ public class StoryTrackerLocalization extends PluginLocalizationBundle {
         de(APPLIED_AUTOMATICALLY, "Automatisch angewendet (%d)");
         ko(APPLIED_AUTOMATICALLY, "자동 적용됨 (%d)");
         it(APPLIED_AUTOMATICALLY, "Applicato automaticamente (%d)");
+
+        ja(IMPORT_FROM_THE_CHARACTER_TRACKER, "キャラクタートラッカーからインポート");
+        zh(IMPORT_FROM_THE_CHARACTER_TRACKER, "从角色追踪器导入");
+        fr(IMPORT_FROM_THE_CHARACTER_TRACKER, "Importer depuis le suivi des personnages");
+        es(IMPORT_FROM_THE_CHARACTER_TRACKER, "Importar desde el Seguimiento de personajes");
+        de(IMPORT_FROM_THE_CHARACTER_TRACKER, "Aus dem Figuren-Tracker importieren");
+        ko(IMPORT_FROM_THE_CHARACTER_TRACKER, "캐릭터 추적기에서 가져오기");
+        it(IMPORT_FROM_THE_CHARACTER_TRACKER, "Importa dal Tracciatore dei personaggi");
+        ja(NAME, "名前");
+        zh(NAME, "名称");
+        fr(NAME, "Nom");
+        es(NAME, "Nombre");
+        de(NAME, "Name");
+        ko(NAME, "이름");
+        it(NAME, "Nome");
+        ja(TAGLINE, "キャッチフレーズ");
+        zh(TAGLINE, "标语");
+        fr(TAGLINE, "Accroche");
+        es(TAGLINE, "Lema");
+        de(TAGLINE, "Kurzbeschreibung");
+        ko(TAGLINE, "한 줄 소개");
+        it(TAGLINE, "Slogan");
+        ja(IMPORT, "インポート");
+        zh(IMPORT, "导入");
+        fr(IMPORT, "Importer");
+        es(IMPORT, "Importar");
+        de(IMPORT, "Importieren");
+        ko(IMPORT, "가져오기");
+        it(IMPORT, "Importa");
+        ja(IMPORT_D, "インポート (%d)");
+        zh(IMPORT_D, "导入 (%d)");
+        fr(IMPORT_D, "Importer (%d)");
+        es(IMPORT_D, "Importar (%d)");
+        de(IMPORT_D, "Importieren (%d)");
+        ko(IMPORT_D, "가져오기 (%d)");
+        it(IMPORT_D, "Importa (%d)");
+        ja(THE_CHARACTER_TRACKER_HAS_NO_CHARACTERS, "この本のキャラクタートラッカーにはキャラクターがいません。");
+        zh(THE_CHARACTER_TRACKER_HAS_NO_CHARACTERS, "本书的角色追踪器中没有角色。");
+        fr(THE_CHARACTER_TRACKER_HAS_NO_CHARACTERS, "Le suivi des personnages n'a aucun personnage dans ce livre.");
+        es(THE_CHARACTER_TRACKER_HAS_NO_CHARACTERS, "El Seguimiento de personajes no tiene personajes en este libro.");
+        de(THE_CHARACTER_TRACKER_HAS_NO_CHARACTERS, "Der Figuren-Tracker hat in diesem Buch keine Figuren.");
+        ko(THE_CHARACTER_TRACKER_HAS_NO_CHARACTERS, "이 책의 캐릭터 추적기에는 캐릭터가 없습니다.");
+        it(THE_CHARACTER_TRACKER_HAS_NO_CHARACTERS, "Il Tracciatore dei personaggi non ha personaggi in questo libro.");
+        ja(EVERY_CHARACTER_OF_THE_CHARACTER_TRACKER_IS_TRACKED, "キャラクタートラッカーのキャラクターはすべて追跡済みです。");
+        zh(EVERY_CHARACTER_OF_THE_CHARACTER_TRACKER_IS_TRACKED, "角色追踪器中的所有角色都已在追踪。");
+        fr(EVERY_CHARACTER_OF_THE_CHARACTER_TRACKER_IS_TRACKED, "Tous les personnages du suivi des personnages sont déjà suivis.");
+        es(EVERY_CHARACTER_OF_THE_CHARACTER_TRACKER_IS_TRACKED, "Todos los personajes del Seguimiento de personajes ya se siguen.");
+        de(EVERY_CHARACTER_OF_THE_CHARACTER_TRACKER_IS_TRACKED, "Alle Figuren des Figuren-Trackers werden bereits verfolgt.");
+        ko(EVERY_CHARACTER_OF_THE_CHARACTER_TRACKER_IS_TRACKED, "캐릭터 추적기의 모든 캐릭터를 이미 추적하고 있습니다.");
+        it(EVERY_CHARACTER_OF_THE_CHARACTER_TRACKER_IS_TRACKED, "Tutti i personaggi del Tracciatore dei personaggi sono già tracciati.");
     }
 }

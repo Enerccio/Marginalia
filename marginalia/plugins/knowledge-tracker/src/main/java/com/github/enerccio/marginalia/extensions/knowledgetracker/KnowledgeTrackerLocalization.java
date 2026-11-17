@@ -205,13 +205,8 @@ public class KnowledgeTrackerLocalization extends PluginLocalizationBundle {
     public static final String IMPORTED_SUMMARY = "Imported: %d new character(s), %d updated, %d item(s) added, %d already there";
     public static final String THE_FILE_IS_NOT_A_KNOWLEDGE_EXPORT = "The file is not a Knowledge Tracker export: %s";
     public static final String IMPORT_FROM_THE_CHARACTER_TRACKER = "Import from the Character Tracker";
-    public static final String TAGLINE = "Tagline";
-    public static final String IMPORT = "Import";
-    public static final String IMPORT_D = "Import (%d)";
     public static final String RELATIONSHIPS_ARE_MEETINGS = "Their relationships count as meetings";
     public static final String AN_IMPORTED_CHARACTER_HAS_MET_THE_PEOPLE = "An imported character has met the people it is related to in the Character Tracker";
-    public static final String THE_CHARACTER_TRACKER_HAS_NO_CHARACTERS = "The Character Tracker has no characters in this book.";
-    public static final String EVERY_CHARACTER_OF_THE_CHARACTER_TRACKER_IS_TRACKED = "Every character of the Character Tracker is tracked already.";
     public static final String N_CHARACTERS_NOW_TRACKED = "%d character(s) now tracked, %d meeting(s) recorded";
     public static final String COPY_SELECTED = "Copy selected (%d)";
     public static final String COPY_THE_ITEMS_TO_PASTE_THEM = "Copy the items to paste them to another character";
@@ -1634,30 +1629,6 @@ public class KnowledgeTrackerLocalization extends PluginLocalizationBundle {
         ko(IMPORT_FROM_THE_CHARACTER_TRACKER, "캐릭터 추적기에서 가져오기");
         it(IMPORT_FROM_THE_CHARACTER_TRACKER, "Importa dal Tracciatore dei personaggi");
 
-        ja(TAGLINE, "キャッチフレーズ");
-        zh(TAGLINE, "标语");
-        fr(TAGLINE, "Accroche");
-        es(TAGLINE, "Lema");
-        de(TAGLINE, "Kurzbeschreibung");
-        ko(TAGLINE, "한 줄 소개");
-        it(TAGLINE, "Slogan");
-
-        ja(IMPORT, "インポート");
-        zh(IMPORT, "导入");
-        fr(IMPORT, "Importer");
-        es(IMPORT, "Importar");
-        de(IMPORT, "Importieren");
-        ko(IMPORT, "가져오기");
-        it(IMPORT, "Importa");
-
-        ja(IMPORT_D, "インポート (%d)");
-        zh(IMPORT_D, "导入 (%d)");
-        fr(IMPORT_D, "Importer (%d)");
-        es(IMPORT_D, "Importar (%d)");
-        de(IMPORT_D, "Importieren (%d)");
-        ko(IMPORT_D, "가져오기 (%d)");
-        it(IMPORT_D, "Importa (%d)");
-
         ja(RELATIONSHIPS_ARE_MEETINGS, "関係を出会いとして扱う");
         zh(RELATIONSHIPS_ARE_MEETINGS, "将关系视为见过面");
         fr(RELATIONSHIPS_ARE_MEETINGS, "Leurs relations comptent comme des rencontres");
@@ -1673,22 +1644,6 @@ public class KnowledgeTrackerLocalization extends PluginLocalizationBundle {
         de(AN_IMPORTED_CHARACTER_HAS_MET_THE_PEOPLE, "Eine importierte Figur ist den Personen begegnet, mit denen sie im Figuren-Tracker eine Beziehung hat");
         ko(AN_IMPORTED_CHARACTER_HAS_MET_THE_PEOPLE, "가져온 캐릭터는 캐릭터 추적기에서 관계가 있는 사람들을 만난 것으로 기록됩니다");
         it(AN_IMPORTED_CHARACTER_HAS_MET_THE_PEOPLE, "Un personaggio importato ha incontrato le persone con cui ha una relazione nel Tracciatore dei personaggi");
-
-        ja(THE_CHARACTER_TRACKER_HAS_NO_CHARACTERS, "この本のキャラクタートラッカーにはキャラクターがいません。");
-        zh(THE_CHARACTER_TRACKER_HAS_NO_CHARACTERS, "本书的角色追踪器中没有角色。");
-        fr(THE_CHARACTER_TRACKER_HAS_NO_CHARACTERS, "Le suivi des personnages n'a aucun personnage dans ce livre.");
-        es(THE_CHARACTER_TRACKER_HAS_NO_CHARACTERS, "El Seguimiento de personajes no tiene personajes en este libro.");
-        de(THE_CHARACTER_TRACKER_HAS_NO_CHARACTERS, "Der Figuren-Tracker hat in diesem Buch keine Figuren.");
-        ko(THE_CHARACTER_TRACKER_HAS_NO_CHARACTERS, "이 책의 캐릭터 추적기에는 캐릭터가 없습니다.");
-        it(THE_CHARACTER_TRACKER_HAS_NO_CHARACTERS, "Il Tracciatore dei personaggi non ha personaggi in questo libro.");
-
-        ja(EVERY_CHARACTER_OF_THE_CHARACTER_TRACKER_IS_TRACKED, "キャラクタートラッカーのキャラクターはすべて追跡済みです。");
-        zh(EVERY_CHARACTER_OF_THE_CHARACTER_TRACKER_IS_TRACKED, "角色追踪器中的所有角色都已在追踪。");
-        fr(EVERY_CHARACTER_OF_THE_CHARACTER_TRACKER_IS_TRACKED, "Tous les personnages du suivi des personnages sont déjà suivis.");
-        es(EVERY_CHARACTER_OF_THE_CHARACTER_TRACKER_IS_TRACKED, "Todos los personajes del Seguimiento de personajes ya se siguen.");
-        de(EVERY_CHARACTER_OF_THE_CHARACTER_TRACKER_IS_TRACKED, "Alle Figuren des Figuren-Trackers werden bereits verfolgt.");
-        ko(EVERY_CHARACTER_OF_THE_CHARACTER_TRACKER_IS_TRACKED, "캐릭터 추적기의 모든 캐릭터를 이미 추적하고 있습니다.");
-        it(EVERY_CHARACTER_OF_THE_CHARACTER_TRACKER_IS_TRACKED, "Tutti i personaggi del Tracciatore dei personaggi sono già tracciati.");
 
         ja(N_CHARACTERS_NOW_TRACKED, "%d 人のキャラクターを追跡開始、出会い %d 件を記録");
         zh(N_CHARACTERS_NOW_TRACKED, "已开始追踪 %d 个角色，记录了 %d 次见面");

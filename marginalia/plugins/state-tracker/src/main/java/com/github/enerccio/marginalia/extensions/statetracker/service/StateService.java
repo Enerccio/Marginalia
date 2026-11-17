@@ -8,6 +8,7 @@ import com.github.enerccio.marginalia.extensions.statetracker.model.Category;
 import com.github.enerccio.marginalia.extensions.statetracker.model.CategoryCatalog;
 import com.github.enerccio.marginalia.extensions.statetracker.model.CategoryKind;
 import com.github.enerccio.marginalia.extensions.statetracker.model.StateBook;
+import com.github.enerccio.marginalia.extensions.storytracker.characters.CharacterTrackerCharacters;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -89,6 +90,12 @@ public class StateService {
     public StateBook load(Manuscript manuscript) throws Exception {
         Manuscript current = manuscriptService.find(manuscript);
         return read(current != null ? current : manuscript);
+    }
+
+    /** The characters the Character Tracker plugin keeps in the book as it is stored now, see {@link CharacterTrackerCharacters}. */
+    public List<CharacterTrackerCharacters.Candidate> characterTrackerCharacters(Manuscript manuscript) throws Exception {
+        Manuscript current = manuscriptService.find(manuscript);
+        return CharacterTrackerCharacters.read((current != null ? current : manuscript).getAttributes());
     }
 
     public void save(Manuscript manuscript, StateBook state) throws Exception {

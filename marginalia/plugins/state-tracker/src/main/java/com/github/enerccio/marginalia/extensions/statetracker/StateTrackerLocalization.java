@@ -199,6 +199,9 @@ public class StateTrackerLocalization extends PluginLocalizationBundle {
     public static final String AFTERNOON = "afternoon";
     public static final String EVENING = "evening";
     public static final String NIGHT = "night";
+    public static final String IMPORT_FROM_THE_CHARACTER_TRACKER = "Import from the Character Tracker";
+    public static final String EVERY_IMPORTED_CHARACTER_TRACKS_THE_CHECKED_CATEGORIES = "Every imported character tracks the checked categories. Your own categories are copied into the book when you pick them.";
+    public static final String N_CHARACTERS_NOW_TRACKED = "%d character(s) now tracked";
 
     @Override
     protected void loadKeys() {
@@ -1713,5 +1716,29 @@ public class StateTrackerLocalization extends PluginLocalizationBundle {
         de(NIGHT, "Nacht");
         ko(NIGHT, "밤");
         it(NIGHT, "notte");
+
+        ja(IMPORT_FROM_THE_CHARACTER_TRACKER, "キャラクタートラッカーからインポート");
+        zh(IMPORT_FROM_THE_CHARACTER_TRACKER, "从角色追踪器导入");
+        fr(IMPORT_FROM_THE_CHARACTER_TRACKER, "Importer depuis le suivi des personnages");
+        es(IMPORT_FROM_THE_CHARACTER_TRACKER, "Importar desde el Seguimiento de personajes");
+        de(IMPORT_FROM_THE_CHARACTER_TRACKER, "Aus dem Figuren-Tracker importieren");
+        ko(IMPORT_FROM_THE_CHARACTER_TRACKER, "캐릭터 추적기에서 가져오기");
+        it(IMPORT_FROM_THE_CHARACTER_TRACKER, "Importa dal Tracciatore dei personaggi");
+
+        ja(EVERY_IMPORTED_CHARACTER_TRACKS_THE_CHECKED_CATEGORIES, "インポートしたキャラクターはすべて、チェックしたカテゴリーを追跡します。マイカテゴリーは選ぶと本にコピーされます。");
+        zh(EVERY_IMPORTED_CHARACTER_TRACKS_THE_CHECKED_CATEGORIES, "每个导入的角色都会追踪勾选的类别。选择我的类别时，会将其复制到本书中。");
+        fr(EVERY_IMPORTED_CHARACTER_TRACKS_THE_CHECKED_CATEGORIES, "Chaque personnage importé suit les catégories cochées. Vos propres catégories sont copiées dans le livre quand vous les choisissez.");
+        es(EVERY_IMPORTED_CHARACTER_TRACKS_THE_CHECKED_CATEGORIES, "Cada personaje importado sigue las categorías marcadas. Tus propias categorías se copian en el libro cuando las eliges.");
+        de(EVERY_IMPORTED_CHARACTER_TRACKS_THE_CHECKED_CATEGORIES, "Jede importierte Figur verfolgt die angehakten Kategorien. Deine eigenen Kategorien werden ins Buch kopiert, wenn du sie wählst.");
+        ko(EVERY_IMPORTED_CHARACTER_TRACKS_THE_CHECKED_CATEGORIES, "가져온 모든 캐릭터가 체크한 카테고리를 추적합니다. 내 카테고리는 고르면 책에 복사됩니다.");
+        it(EVERY_IMPORTED_CHARACTER_TRACKS_THE_CHECKED_CATEGORIES, "Ogni personaggio importato traccia le categorie selezionate. Le tue categorie vengono copiate nel libro quando le scegli.");
+
+        ja(N_CHARACTERS_NOW_TRACKED, "%d 人のキャラクターを追跡開始");
+        zh(N_CHARACTERS_NOW_TRACKED, "已开始追踪 %d 个角色");
+        fr(N_CHARACTERS_NOW_TRACKED, "%d personnage(s) désormais suivi(s)");
+        es(N_CHARACTERS_NOW_TRACKED, "%d personaje(s) ahora seguido(s)");
+        de(N_CHARACTERS_NOW_TRACKED, "%d Figur(en) werden jetzt verfolgt");
+        ko(N_CHARACTERS_NOW_TRACKED, "%d명의 캐릭터를 추적합니다");
+        it(N_CHARACTERS_NOW_TRACKED, "%d personaggio/i ora tracciato/i");
     }
 }

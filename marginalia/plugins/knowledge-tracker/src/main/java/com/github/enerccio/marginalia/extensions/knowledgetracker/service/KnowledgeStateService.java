@@ -5,8 +5,8 @@ import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.SettingService;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.model.CharacterTrackerImport;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.model.KnowledgeState;
+import com.github.enerccio.marginalia.extensions.storytracker.characters.CharacterTrackerCharacters;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -90,11 +90,11 @@ public class KnowledgeStateService {
     }
 
     /**
-     * The characters the Character Tracker plugin keeps in the book as it is stored now, see {@link CharacterTrackerImport}.
+     * The characters the Character Tracker plugin keeps in the book as it is stored now, see {@link CharacterTrackerCharacters}.
      */
-    public List<CharacterTrackerImport.Candidate> characterTrackerCharacters(Manuscript manuscript) throws Exception {
+    public List<CharacterTrackerCharacters.Candidate> characterTrackerCharacters(Manuscript manuscript) throws Exception {
         Manuscript current = manuscriptService.find(manuscript);
-        return CharacterTrackerImport.read((current != null ? current : manuscript).getAttributes());
+        return CharacterTrackerCharacters.read((current != null ? current : manuscript).getAttributes());
     }
 
     public void save(Manuscript manuscript, KnowledgeState state) throws Exception {

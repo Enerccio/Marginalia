@@ -12,6 +12,9 @@ story sidebar. The block goes into the prompt like the Author's Note and/or by t
   (`BookCategoriesDialog`): add from my categories, new for this book, update from my categories, save to my categories.
 - **Tracked characters** (`TrackedCharacter`: name, aliases, the ids of the tracked categories, the values as `StateItem`s, current or
   history with the reason, locked).
+- **Import from the Character Tracker** (`CharacterTrackerImport`, over the library's `CharacterTrackerCharacters` and
+  `ImportCharactersDialog`): the characters of that plugin the book does not track yet, all tracking the categories the user checks
+  (user categories are copied into the book); read from the book's attributes, no dependency on that plugin.
 - **The block** (`StateBlockBuilder`), inserted with `PayloadInsertion` at `AFTER_PREPARE_PAYLOAD`, tokens reserved at
   `BEFORE_PREPARE_CONTENT`; **commands** (`StateTrackerCommands`).
 - Shares [`story-tracker-common`](../../libs/story-tracker-common/README.md) with the Knowledge Tracker (the lenient reading of the

@@ -15,6 +15,7 @@ import com.github.enerccio.marginalia.extensions.knowledgetracker.service.Knowle
 import com.github.enerccio.marginalia.extensions.knowledgetracker.service.KnowledgeProcessService.Status;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.service.KnowledgeStateService;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.service.StaleProposalException;
+import com.github.enerccio.marginalia.extensions.storytracker.characters.CharacterTrackerCharacters;
 import com.github.enerccio.marginalia.extensions.storytracker.llm.LoreMode;
 import com.github.enerccio.marginalia.extensions.storytracker.log.TrackerChangeLog;
 import com.github.enerccio.marginalia.extensions.storytracker.process.BranchProcessor.Report;
@@ -25,6 +26,7 @@ import com.github.enerccio.marginalia.extensions.storytracker.run.TrackerRun.Pha
 import com.github.enerccio.marginalia.extensions.storytracker.run.TrackerRuns;
 import com.github.enerccio.marginalia.extensions.storytracker.scene.SeparatorText;
 import com.github.enerccio.marginalia.extensions.storytracker.ui.ChangeLogPanel;
+import com.github.enerccio.marginalia.extensions.storytracker.ui.ImportCharactersDialog;
 import com.github.enerccio.marginalia.extensions.storytracker.ui.ProgressPanel;
 import com.github.enerccio.marginalia.extensions.storytracker.ui.UiAccess;
 import com.github.enerccio.marginalia.loc.Localization;
@@ -985,9 +987,11 @@ public class KnowledgeTrackerView extends VerticalLayout {
 
     private void openImportCharacters() {
         try {
-            List<CharacterTrackerImport.Candidate> all = service.characterTrackerCharacters(manuscript);
-            new ImportCharactersDialog(all, CharacterTrackerImport.untracked(state, all), (chosen, relationsAsMet) -> {
-                CharacterTrackerImport.ImportResult result = CharacterTrackerImport.importInto(state, chosen, relationsAsMet);
+            List<CharacterTrackerCharacters.Candidate> all = service.characterTrackerCharacters(manuscript);
+            Checkbox relationsAsMet = new Checkbox(T.localized(RELATIONSHIPS_ARE_MEETINGS));
+            relationsAsMet.setHelperText(T.localized(AN_IMPORTED_CHARACTER_HAS_MET_THE_PEOPLE));
+            new ImportCharactersDialog(all, CharacterTrackerImport.untracked(state, all), relationsAsMet, null, chosen -> {
+                CharacterTrackerImport.ImportResult result = CharacterTrackerImport.importInto(state, chosen, relationsAsMet.getValue());
                 persist();
                 Notification.success(T.localized(N_CHARACTERS_NOW_TRACKED).formatted(result.added(), result.met()));
             }).open();

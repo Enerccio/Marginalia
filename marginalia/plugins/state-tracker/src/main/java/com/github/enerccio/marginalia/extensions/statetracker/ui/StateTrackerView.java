@@ -13,6 +13,7 @@ import com.github.enerccio.marginalia.extensions.statetracker.service.StateExtra
 import com.github.enerccio.marginalia.extensions.statetracker.service.StateProcessService;
 import com.github.enerccio.marginalia.extensions.statetracker.service.StateProcessService.Status;
 import com.github.enerccio.marginalia.extensions.statetracker.service.StateService;
+import com.github.enerccio.marginalia.extensions.storytracker.characters.CharacterTrackerCharacters;
 import com.github.enerccio.marginalia.extensions.storytracker.llm.LoreMode;
 import com.github.enerccio.marginalia.extensions.storytracker.log.TrackerChangeLog;
 import com.github.enerccio.marginalia.extensions.storytracker.process.Part;
@@ -23,6 +24,7 @@ import com.github.enerccio.marginalia.extensions.storytracker.run.TrackerRun.Pha
 import com.github.enerccio.marginalia.extensions.storytracker.run.TrackerRuns;
 import com.github.enerccio.marginalia.extensions.storytracker.scene.SeparatorText;
 import com.github.enerccio.marginalia.extensions.storytracker.ui.ChangeLogPanel;
+import com.github.enerccio.marginalia.extensions.storytracker.ui.ImportCharactersDialog;
 import com.github.enerccio.marginalia.extensions.storytracker.ui.ProgressPanel;
 import com.github.enerccio.marginalia.extensions.storytracker.ui.UiAccess;
 import com.github.enerccio.marginalia.loc.Localization;
@@ -35,6 +37,8 @@ import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.checkbox.CheckboxGroup;
+import com.vaadin.flow.component.checkbox.CheckboxGroupVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.details.Details;
@@ -166,6 +170,8 @@ public class StateTrackerView extends VerticalLayout {
         Button add = new Button(T.localized(TRACK_A_CHARACTER), Solid.PLUS.create(), _ -> openCharacterDialog(null));
         add.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
 
+        Button importCharacters = iconButton(Solid.USER_PLUS, T.localized(IMPORT_FROM_THE_CHARACTER_TRACKER), this::openImportCharacters);
+
         Button categories = iconButton(Solid.TAGS, T.localized(CATEGORIES_OF_THIS_BOOK), () -> openCategories());
 
         Button reload = iconButton(Solid.ARROWS_ROTATE, T.localized(REFRESH), changeRefresh);
@@ -180,7 +186,7 @@ public class StateTrackerView extends VerticalLayout {
         popover.add(createSettings());
         showSettingsState();
 
-        HorizontalLayout toolbar = new HorizontalLayout(add, categories, reload, settingsButton);
+        HorizontalLayout toolbar = new HorizontalLayout(add, importCharacters, categories, reload, settingsButton);
         toolbar.setAlignItems(Alignment.CENTER);
         toolbar.setPadding(true);
         toolbar.setSpacing(false);
@@ -958,6 +964,39 @@ public class StateTrackerView extends VerticalLayout {
             }
             persist();
         }).open();
+    }
+
+    /**
+     * <b>Import from the Character Tracker</b>: the characters of that plugin the book does not track yet, and the categories every
+     * one of them tracks (the book's, and those of the user that the book has no copy of yet).
+     */
+    private void openImportCharacters() {
+        try {
+            List<CharacterTrackerCharacters.Candidate> all = service.characterTrackerCharacters(manuscript);
+            List<Category> offered = new ArrayList<>(state.getCategories());
+            for (Category user : userCategories()) {
+                if (state.copyOf(user.getId()) == null) {
+                    offered.add(user);
+                }
+            }
+            CheckboxGroup<Category> categories = new CheckboxGroup<>(T.localized(TRACKED_CATEGORIES));
+            categories.setItems(offered);
+            categories.setItemLabelGenerator(c -> state.findCategory(c.getId()) != null ? c.getName()
+                    : T.localized(FROM_MY_CATEGORIES).formatted(c.getName()));
+            categories.addThemeVariants(CheckboxGroupVariant.LUMO_VERTICAL);
+            categories.setHelperText(T.localized(EVERY_IMPORTED_CHARACTER_TRACKS_THE_CHECKED_CATEGORIES));
+            ImportCharactersDialog dialog = new ImportCharactersDialog(all, CharacterTrackerImport.untracked(state, all), categories,
+                    () -> !categories.getValue().isEmpty(), chosen -> {
+                Set<Category> picked = categories.getValue();
+                int added = CharacterTrackerImport.importInto(state, chosen, offered.stream().filter(picked::contains).toList());
+                persist();
+                Notification.success(T.localized(N_CHARACTERS_NOW_TRACKED).formatted(added));
+            });
+            categories.addValueChangeListener(_ -> dialog.updateImportButton());
+            dialog.open();
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
     }
 
     private void deleteCharacter(TrackedCharacter character) {

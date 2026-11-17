@@ -62,6 +62,12 @@ change it.
 the book and your own; picking one of yours copies it into the book. A horse can track only *Injuries* while the heroine
 tracks everything.
 
+**Import from the Character Tracker** (the person icon next to **Track a character**) starts tracking characters of the
+[Character Tracker](character-tracker.md) of the same book. It lists the characters the book does not track yet (as a name
+or an alias) with their taglines, all of them ticked; untick the ones to leave out, check the **tracked categories** every
+imported character gets (the book's and your own, as above) and press **Import**. Only the names are taken; a character can
+get other categories later with the pen.
+
 Every tracked character shows its categories, each with its current value or values:
 
 - **+** sets the value of a single or description category (the current value goes to the history) or adds an entry to a list.
