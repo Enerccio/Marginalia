@@ -1137,6 +1137,7 @@ public class LocalizationBundleKO extends LocalizationBundleBase {
         setValue(L.LABEL_EXPIRES, "만료");
         setValue(L.LABEL_EXPIRES_AFTER_DAYS, "만료까지 (일)");
         setValue(L.LABEL_REVOKE, "폐기");
+        setValue(L.LABEL_COMMAND_SCAN_PHRASES, "감시 문구 검사");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 호환");
@@ -1959,6 +1960,7 @@ public class LocalizationBundleKO extends LocalizationBundleBase {
         setValue(L.MSG_API_NOT_ALLOWED, "관리자가 API 사용을 허용하지 않았습니다.");
         setValue(L.MSG_API_KEY_CREATED, "지금 키를 복사하세요. 다시 표시되지 않습니다.");
         setValue(L.MSG_REVOKE_API_KEY, "키 %s을(를) 폐기할까요? 이 키를 사용하는 프로그램은 접근할 수 없게 됩니다.");
+        setValue(L.MSG_PHRASE_WATCH_RANGE_HINT, "번호를 비워 두면 활성 브랜치 전체를 검사합니다.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "분 시 일 월 요일 - 예: \"0 3 * * *\"은 매일 3:00, \"0 */6 * * *\"은 6시간마다, \"30 2 * * 1\"은 월요일 2:30. @daily, @weekly, @monthly도 사용할 수 있습니다.");
@@ -2536,6 +2538,11 @@ public class LocalizationBundleKO extends LocalizationBundleBase {
         setValue(L.DESC_TEMPLATE_EXPORT_GENERATED_PERCENT, "모델이 생성한 단어의 비율(퍼센트, 정수).");
         setValue(L.DESC_TEMPLATE_EXPORT_MODELS, "책의 텍스트를 생성한 모델, 쉼표로 구분 (없으면 비어 있음).");
         setValue(L.DESC_AGENT_IMAGES_ARGUMENT, "작업 공간에 있는 이미지 파일(PNG, JPEG, GIF, WebP. 사용자가 업로드함)의 경로 목록, 최대 %d개. 명령의 모델이 이를 봅니다. 모델이 이미지를 볼 수 있어야 합니다.");
+        setValue(L.DESC_COMMAND_SCAN_PHRASES, "책의 감시 문구 목록에 맞는 곳을 활성 브랜치의 파트(전체 또는 한 파트부터 다른 파트까지)에 주석으로 답니다");
+        setValue(L.DESC_COMMAND_SCAN_PHRASES_LLM, "책의 감시 문구 목록(작가가 원하지 않는 상투적 표현)의 문구를 모델 없이 활성 브랜치의 파트에서 찾아, 맞는 곳마다 작가를 위한 주석을 답니다. 이전에 주석을 단 곳에는 다시 달지 않습니다. 인수가 없으면 활성 브랜치 전체를, from과 to(활성 브랜치에 있는 두 파트의 핸들, 순서는 상관없음)를 주면 그 사이의 파트만 검사합니다. 책에 문구가 없으면 아무것도 하지 않습니다. 단 주석의 수를 답하며, 파트를 다시 쓰면 그 주석을 반영할 수 있습니다.");
+        setValue(L.DESC_COMMAND_SCAN_PHRASES_FROM_PARAM, "검사할 파트 범위의 한쪽 끝(그 핸들)");
+        setValue(L.DESC_COMMAND_SCAN_PHRASES_TO_PARAM, "검사할 파트 범위의 다른 쪽 끝(그 핸들)");
+        setValue(L.DESC_COMMAND_SCAN_PHRASES_RETURN, "단 주석의 수가 담긴 JSON");
 
     }
 

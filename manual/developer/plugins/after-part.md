@@ -56,7 +56,7 @@ afterPart.unregister();
 
 The stages run in this order, so what changes the text comes before what reads it. Inside a stage the `SEQUENTIAL` steps run one after
 another in the order they were bound, each seeing what the one before left; then the `PARALLEL` ones start together and the stage ends
-when all are done. A parallel step must not change the text of the part (not enforced). On a model with one connection parallel steps
+when all are done. A parallel step must not change the text of the part: its thread is marked `Runs.readingOnly()`, and a change through `ChatMessageService` there throws `IllegalStateException` (the step fails, which stops the phase). On a model with one connection parallel steps
 take turns anyway: every request waits for a connection of its AI.
 
 ## The handler

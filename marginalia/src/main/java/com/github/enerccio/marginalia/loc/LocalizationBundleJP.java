@@ -1137,6 +1137,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_EXPIRES, "有効期限");
         setValue(L.LABEL_EXPIRES_AFTER_DAYS, "有効期間（日）");
         setValue(L.LABEL_REVOKE, "失効させる");
+        setValue(L.LABEL_COMMAND_SCAN_PHRASES, "監視フレーズを検索");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1959,6 +1960,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_API_NOT_ALLOWED, "管理者が API の使用を許可していません。");
         setValue(L.MSG_API_KEY_CREATED, "今すぐキーをコピーしてください。二度と表示されません。");
         setValue(L.MSG_REVOKE_API_KEY, "キー %s を失効させますか？このキーを使うプログラムはアクセスできなくなります。");
+        setValue(L.MSG_PHRASE_WATCH_RANGE_HINT, "番号を空のままにすると、アクティブなブランチ全体を検索します。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
@@ -2536,6 +2538,11 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.DESC_TEMPLATE_EXPORT_GENERATED_PERCENT, "モデルが生成した単語の割合（パーセント、整数）。");
         setValue(L.DESC_TEMPLATE_EXPORT_MODELS, "本のテキストを生成したモデル（カンマ区切り。ない場合は空）。");
         setValue(L.DESC_AGENT_IMAGES_ARGUMENT, "ワークスペースにある画像ファイル（PNG、JPEG、GIF、WebP。ユーザーがアップロードします）のパスのリスト、最大 %d 個。コマンドのモデルが画像を見ます。モデルが画像に対応している必要があります。");
+        setValue(L.DESC_COMMAND_SCAN_PHRASES, "本の監視フレーズリストに一致した箇所に、アクティブなブランチのパート（すべて、または指定した範囲）で注釈を付けます");
+        setValue(L.DESC_COMMAND_SCAN_PHRASES_LLM, "本の監視フレーズリスト（作者が避けたい決まり文句）のフレーズを、モデルを使わずにアクティブなブランチのパートで探し、一致した箇所ごとに作者向けの注釈を付けます。以前に注釈を付けた箇所には再度付けません。引数なしではアクティブなブランチ全体を、from と to（アクティブなブランチ上の2つのパートのハンドル、順不同）を指定するとその間のパートだけを検索します。フレーズがない本では何もしません。付けた注釈の数を返します。パートの書き直しでそれらに対処できます。");
+        setValue(L.DESC_COMMAND_SCAN_PHRASES_FROM_PARAM, "検索するパート範囲の一方の端（そのハンドル）");
+        setValue(L.DESC_COMMAND_SCAN_PHRASES_TO_PARAM, "検索するパート範囲のもう一方の端（そのハンドル）");
+        setValue(L.DESC_COMMAND_SCAN_PHRASES_RETURN, "付けた注釈の数を含むJSON");
     }
 
     @Override

@@ -389,6 +389,11 @@ An [agent](agents.md) run is not started by a request at all: `AgentRunner` work
 the screen of the owner goes through `ui.access` like any other background work, see
 [the request context of a run](agents.md#the-request-context-of-a-run).
 
+A call of the [HTTP API](api.md) (`ApiServlet` on `/api/v1`, `ApiDispatcher`) has no browser either: `ApiRequestAttributes` give it
+the user of the key and an `AgenticSessionPoint` with the book the call is aimed at, and no session of the container is made.
+Both contexts are `DetachedRequestAttributes` (`bound`): a session scope kept in memory and shared by the threads of the work, which
+`ThreadCopyRequestAttributes.create()` hands on as it is, so an asynchronous command keeps it until it ends.
+
 ## Sessions
 
 `bound/SessionManager` (bean `sessionManager`, defined in `container-config.xml`) knows every HTTP session of the

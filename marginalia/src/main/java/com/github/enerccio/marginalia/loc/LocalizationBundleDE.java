@@ -1137,6 +1137,7 @@ public class LocalizationBundleDE extends LocalizationBundleBase {
         setValue(L.LABEL_EXPIRES, "Läuft ab");
         setValue(L.LABEL_EXPIRES_AFTER_DAYS, "Läuft ab nach (Tagen)");
         setValue(L.LABEL_REVOKE, "Widerrufen");
+        setValue(L.LABEL_COMMAND_SCAN_PHRASES, "Nach beobachteten Wendungen suchen");
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI-kompatibel");
         setValue(L.ENUM_PROTOCOL_TYPE_OPEN_CHAT_COMPLETION, "Chat Completion");
@@ -1956,6 +1957,7 @@ public class LocalizationBundleDE extends LocalizationBundleBase {
         setValue(L.MSG_API_NOT_ALLOWED, "Ein Administrator hat Ihnen die Nutzung der API nicht erlaubt.");
         setValue(L.MSG_API_KEY_CREATED, "Kopieren Sie den Schlüssel jetzt: Er wird nicht wieder angezeigt.");
         setValue(L.MSG_REVOKE_API_KEY, "Schlüssel %s widerrufen? Programme, die ihn nutzen, verlieren den Zugriff.");
+        setValue(L.MSG_PHRASE_WATCH_RANGE_HINT, "Ohne Nummern wird der ganze aktive Zweig durchsucht.");
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "Minute Stunde Tag-des-Monats Monat Wochentag – z. B. „0 3 * * *“ jeden Tag um 3:00, „0 */6 * * *“ alle 6 Stunden, „30 2 * * 1“ montags um 2:30. @daily, @weekly und @monthly funktionieren ebenfalls.");
         setValue(L.HELP_BACKUP_KEEP, "Ältere geplante Sicherungen werden gelöscht, 0 behält alle. Manuelle Sicherungen werden nie gelöscht.");
@@ -2531,6 +2533,11 @@ public class LocalizationBundleDE extends LocalizationBundleBase {
         setValue(L.DESC_TEMPLATE_EXPORT_GENERATED_PERCENT, "Anteil der Wörter, die ein Modell generiert hat, in Prozent (eine ganze Zahl).");
         setValue(L.DESC_TEMPLATE_EXPORT_MODELS, "Die Modelle, die Text des Buchs generiert haben, durch Kommas getrennt (leer, wenn es keines gibt).");
         setValue(L.DESC_AGENT_IMAGES_ARGUMENT, "Eine Liste von Pfaden von Bilddateien deines Arbeitsbereichs (PNG, JPEG, GIF oder WebP; der Benutzer lädt sie hoch), höchstens %d. Das Modell des Befehls sieht sie sich an; es muss dazu in der Lage sein.");
+        setValue(L.DESC_COMMAND_SCAN_PHRASES, "Markiert die Treffer der Liste beobachteter Wendungen des Buchs in den Teilen des aktiven Zweigs, in allen oder von einem Teil bis zu einem anderen");
+        setValue(L.DESC_COMMAND_SCAN_PHRASES_LLM, "Sucht die Wendungen der Liste beobachteter Wendungen des Buchs (die Klischees, die der Autor nicht will) in den Teilen des aktiven Zweigs, ohne Modell, und markiert jeden Treffer mit einer Notiz für den Autor; ein schon markierter Treffer wird nicht noch einmal markiert. Ohne Argumente durchsucht es den ganzen aktiven Zweig, mit from und to (Handles zweier Teile des aktiven Zweigs, in beliebiger Reihenfolge) nur die Teile dazwischen. Tut nichts, wenn das Buch keine Wendungen hat. Antwortet, wie viele Anmerkungen gemacht wurden; eine Überarbeitung des Teils kann sie angehen.");
+        setValue(L.DESC_COMMAND_SCAN_PHRASES_FROM_PARAM, "Ein Ende des zu durchsuchenden Bereichs der Teile (sein Handle)");
+        setValue(L.DESC_COMMAND_SCAN_PHRASES_TO_PARAM, "Das andere Ende des zu durchsuchenden Bereichs der Teile (sein Handle)");
+        setValue(L.DESC_COMMAND_SCAN_PHRASES_RETURN, "JSON mit der Zahl der gemachten Anmerkungen");
     }
 
     @Override

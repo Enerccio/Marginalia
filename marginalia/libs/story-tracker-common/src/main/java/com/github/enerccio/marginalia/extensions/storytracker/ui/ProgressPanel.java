@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.extensions.storytracker.ui;
 import com.github.enerccio.marginalia.extensions.storytracker.run.TrackerRun;
 import com.github.enerccio.marginalia.extensions.storytracker.run.TrackerRun.Phase;
 import com.github.enerccio.marginalia.extensions.storytracker.run.TrackerRun.Status;
+import com.github.enerccio.marginalia.ui.widgets.FloatingWindow;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.button.Button;
@@ -21,7 +22,8 @@ import static com.github.enerccio.marginalia.extensions.storytracker.ui.StoryTra
 
 /**
  * Shows a run while it works. It is <b>not modal</b> and the user can <b>drag</b> it by its title: the story can be read and edited
- * while the model works. Closing it hides it, the run goes on. When the proposal is ready the panel says so and has a <b>Review
+ * while the model works. It is the run's entry in the panel of the runs ({@link FloatingWindow}): closing it while the model works
+ * folds it into that panel, where it opens again; the run goes on. When the proposal is ready the panel says so and has a <b>Review
  * changes</b> button: the review dialog opens only when the user presses it.
  *
  * @param <P> the proposal of the tracker
@@ -69,6 +71,8 @@ public class ProgressPanel<P extends TrackerRun.Proposal> extends Dialog {
     private final Button cancel = new Button(T.localized(CANCEL));
     private final Button review = new Button(T.localized(REVIEW_CHANGES));
     private final Button close = new Button(T.localized(CLOSE));
+    // the panel is the run's entry in the panel of the runs: closed while the model works it folds into it, and opens again from it
+    private final FloatingWindow floating;
 
     public ProgressPanel(TrackerRun<P> run, Texts<P> texts) {
         this.run = run;
@@ -77,10 +81,7 @@ public class ProgressPanel<P extends TrackerRun.Proposal> extends Dialog {
         this.liveUpdate = UiAccess.coalesced(this, this::showLive);
         this.listener = _ -> statusUpdate.run();
         setHeaderTitle(T.localized(PROCESSING_THE_STORY));
-        // not modal: no overlay, the page stays usable; draggable by the title
-        setModal(false);
-        setDraggable(true);
-        setResizable(false);
+        // not modal (the floating window below makes it so): the page stays usable; draggable by the title
         setCloseOnEsc(false);
         setCloseOnOutsideClick(false);
         // it floats at the side, over the sidebar, not over the middle of the story
@@ -108,6 +109,11 @@ public class ProgressPanel<P extends TrackerRun.Proposal> extends Dialog {
         review.addClickListener(_ -> openReview());
         close.addClickListener(_ -> close());
         getFooter().add(cancel, review, close);
+        // no Stop of the window: its Cancel and the panel's Stop stop the run, closing the window never does
+        floating = new FloatingWindow(this, run.getRegistryRun() == null ? "story-tracker" : run.getRegistryRun().getSource(),
+                () -> T.localized(PROCESSING_THE_STORY), null).book(run.getManuscript());
+        floating.follow(run.getRegistryRun());
+        setResizable(false);
         show(run.getStatus());
     }
 
@@ -129,6 +135,8 @@ public class ProgressPanel<P extends TrackerRun.Proposal> extends Dialog {
     private void show(Status<P> status) {
         Phase phase = status.phase();
         bar.setVisible(!phase.isFinished() && phase != Phase.REVIEW);
+        // while the model works a close folds the panel into the panel of the runs
+        floating.setRunning(!phase.isFinished() && phase != Phase.REVIEW);
         cancel.setVisible(!phase.isFinished());
         review.setVisible(phase == Phase.REVIEW);
         close.setVisible(true);

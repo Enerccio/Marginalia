@@ -57,17 +57,11 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           cache: maven
 
-      - name: Check version matches tag
-        # archive names and the app version come from the POM, a release tag must not publish other version's archives
-        if: startsWith(github.ref, 'refs/tags/v')
-        run: |
-          pom_version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-          tag_version="${GITHUB_REF_NAME#v}"
-          if [ "$pom_version" != "$tag_version" ]; then
-            echo "::error::Tag $GITHUB_REF_NAME does not match the version in pom.xml ($pom_version). Set <version>$tag_version</version> and tag again."
-            exit 1
-          fi
-          echo "Version $pom_version matches tag $GITHUB_REF_NAME"
+      - name: Take the version from the tag
+        # a v* tag is the release version: every POM gets it before the build (tools/version_from_tag.sh); other builds keep pom.xml's
+        working-directory: .
+        shell: bash
+        run: tools/version_from_tag.sh
 
       - name: Test
         run: mvn test
@@ -93,6 +87,12 @@ jobs:
           distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}
           cache: maven
+
+      - name: Take the version from the tag
+        # a v* tag is the release version: every POM gets it before the build (tools/version_from_tag.sh); other builds keep pom.xml's
+        working-directory: .
+        shell: bash
+        run: tools/version_from_tag.sh
 
       - name: Install the parent POM
         # the application's POM in the local repository refers to it, the plugins need both
@@ -179,6 +179,12 @@ jobs:
           distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}
           cache: maven
+
+      - name: Take the version from the tag
+        # a v* tag is the release version: every POM gets it before the build (tools/version_from_tag.sh); other builds keep pom.xml's
+        working-directory: .
+        shell: bash
+        run: tools/version_from_tag.sh
 
       - name: Download the plugins
         # the plugin JARs for the full installer, built against this commit by the plugins job

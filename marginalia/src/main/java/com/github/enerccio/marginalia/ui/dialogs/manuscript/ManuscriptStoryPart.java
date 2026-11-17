@@ -458,6 +458,11 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             public GenerationListener show(Manuscript book, GenerationRequest request) {
                 return showCommandGeneration(book, request);
             }
+
+            @Override
+            public Manuscript getBook() {
+                return currentManuscript;
+            }
         });
         return commandBar;
     }

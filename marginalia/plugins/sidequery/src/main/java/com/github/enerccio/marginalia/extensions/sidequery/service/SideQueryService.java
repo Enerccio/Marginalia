@@ -500,6 +500,16 @@ public class SideQueryService {
      */
     public CancellationToken generateTabName(Manuscript manuscript, SideQuerySetting setting, SideQuerySession session,
                                              Consumer<String> onName) throws Exception {
+        return generateTabName(manuscript, setting, session, onName, () -> {
+        });
+    }
+
+    /**
+     * As {@link #generateTabName(Manuscript, SideQuerySetting, SideQuerySession, Consumer)}; {@code onEnd} runs once when the request is
+     * over, named or not (after {@code onName}), on the thread of the callback. Not run when no request was sent (null returned).
+     */
+    public CancellationToken generateTabName(Manuscript manuscript, SideQuerySetting setting, SideQuerySession session,
+                                             Consumer<String> onName, Runnable onEnd) throws Exception {
         SideQueryMessage question = session.getMessages().stream()
                 .filter(m -> m.isFromUser() && StringUtils.isNotBlank(m.getContents())).findFirst().orElse(null);
         SideQueryMessage answer = session.getMessages().stream()
@@ -534,19 +544,25 @@ public class SideQueryService {
 
             @Override
             public void onCompletion() {
-                String cleaned = cleanTabName(name.toString());
-                if (StringUtils.isNotBlank(cleaned)) {
-                    onName.accept(cleaned);
+                try {
+                    String cleaned = cleanTabName(name.toString());
+                    if (StringUtils.isNotBlank(cleaned)) {
+                        onName.accept(cleaned);
+                    }
+                } finally {
+                    onEnd.run();
                 }
             }
 
             @Override
             public void onCancel() {
+                onEnd.run();
             }
 
             @Override
             public void onError(Throwable exception) {
                 SideQueryLog.get().warn("Failed to name side query tab: {}", exception.getMessage());
+                onEnd.run();
             }
 
             @Override

@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Annotation;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.service.AnnotateService;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
+import com.github.enerccio.marginalia.domain.service.PhraseWatchService;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.service.command.CommandScope;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationOptions;
@@ -46,9 +47,47 @@ public class AnnotationWriteCommands extends ManuscriptWriteSupport {
     static final String REATTACH = "reattach-annotation";
     static final String DELETE = "delete-annotation";
     static final String GENERATE = "generate-annotation";
+    static final String SCAN_PHRASES = "scan-phrases";
 
     @Autowired
     private AnnotateService annotateService;
+
+    @Autowired
+    private PhraseWatchService phraseWatchService;
+
+    @Command(commandName = SCAN_PHRASES, humanName = L.LABEL_COMMAND_SCAN_PHRASES,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            description = L.DESC_COMMAND_SCAN_PHRASES, llmDescription = L.DESC_COMMAND_SCAN_PHRASES_LLM,
+            signature = @CommandParameterSignature,
+            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SCAN_PHRASES_RETURN))
+    public void scanPhrases(CommandContext context) throws Exception {
+        scanPhrases(context, null, null);
+    }
+
+    @Command(commandName = SCAN_PHRASES, humanName = L.LABEL_COMMAND_SCAN_PHRASES,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            description = L.DESC_COMMAND_SCAN_PHRASES, llmDescription = L.DESC_COMMAND_SCAN_PHRASES_LLM,
+            signature = @CommandParameterSignature({
+                    @CommandParameter(name = "from", type = String.class, description = L.DESC_COMMAND_SCAN_PHRASES_FROM_PARAM),
+                    @CommandParameter(name = "to", type = String.class, description = L.DESC_COMMAND_SCAN_PHRASES_TO_PARAM)}),
+            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SCAN_PHRASES_RETURN))
+    public void scanPhrasesBetween(CommandContext context) throws Exception {
+        scanPhrases(context, ref(context, "from"), ref(context, "to"));
+    }
+
+    /** The hits of the book's phrase watch list in the active branch, or between two of its parts, as notes (no model). */
+    private void scanPhrases(CommandContext context, String from, String to) throws Exception {
+        Book book = new Book(context);
+        ChatMessage first = from == null ? null : part(book, from);
+        ChatMessage last = to == null ? null : part(book, to);
+        int made = phraseWatchService.scanBetween(book.manuscript, first, last);
+        JsonObject result = new JsonObject();
+        result.addProperty("annotations", made);
+        if (made > 0) {
+            changed();
+        }
+        answer(context, result);
+    }
 
     @Command(commandName = GENERATE, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_GENERATE_ANNOTATION, async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,

@@ -171,7 +171,9 @@ final class AfterPartPhase {
                     Map<Step, Future<Throwable>> running = new LinkedHashMap<>();
                     for (Step step : parallel) {
                         running.put(step, executor.submit(() -> {
-                            try (InRequestScope _ = new InRequestScope(attributes); Runs.Binding _ = run.bind()) {
+                            // a parallel step only reads the part: a change of its text from here is refused
+                            try (InRequestScope _ = new InRequestScope(attributes); Runs.Binding _ = run.bind();
+                                 Runs.Binding _ = Runs.readingOnly()) {
                                 return runStep(step);
                             }
                         }));

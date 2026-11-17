@@ -278,6 +278,8 @@ See [Story export](services.md#story-export).
 `impl/UserServiceImpl`: authentication, password hashes, saved logins, protection of the last administrator),
 `model/Permission` with `permissions/PermissionType` (what an administrator allowed a user to do), `repository/PermissionRepository` (+ `impl/JpaPermissionRepository`) and `service/PermissionService` (+ `impl/PermissionServiceImpl`, see [Permissions](services.md#permissions)),
 `model/ApiKey` with `model/ApiScope`, `repository/ApiKeyRepository` (+ `impl/JpaApiKeyRepository`) and `service/ApiKeyService` (+ `impl/ApiKeyServiceImpl`): the keys of the [HTTP API](api.md),
+`OutboundAddressGuard` (the one check of an address the server calls for someone, looked up once at the connection; usable by
+plugins, see [HTTP hooks](plugins/libraries/http-hooks.md)),
 `AdminGuard` (`requireAdmin()`, used by the administrator-only services, see [Services](services.md#administration)) and
 `PersistedLoginInfo` (a saved login; the user's saved logins are stored as delimited text in `User.savedLogins`).
 
@@ -363,6 +365,9 @@ Test classes mirror the areas they cover (paths relative to `src/test/java/com/g
 | `domain.agents`, `ui.dialogs.agent`, `ui.workspace.parts` | Agents: services, runner, tools, checkpoints, merge, console and review dialogs (`AgentRunnerTest`, `AgentMergeTest`, `AgentConsoleDialogTest`...), see [Testing](testing.md). |
 | `statistics`, `ui.dialogs.statistics`, `crud` | The writing statistics: counting, the time, the size, the report, the backfill, the calendar and the windows (`StatisticReportServiceTest`, `StatisticsPolicyTest`, `ActivityTrackerTest`, `WritingActivityTest`, `StatisticsViewTest`...), see [Testing](testing.md). |
 | `command` | The command service, the command line and help, commands as functions, the read and write commands of the application (`*CommandsTest`). |
+| `api`, `domain.security`, `security` | The HTTP API (`ApiDispatcherTest`, `ApiDocsTest`), its keys (`ApiKeyServiceTest`) and the outbound address guard (`OutboundAddressGuardTest`). |
+| `domain.service.run`, `inference` | The registry of runs (`RunsTest`, `GenerationRunsTest`) and the queue of a model (`GatedInferenceServiceTest`, `AIGatePriorityTest`). |
+| `extensions.smoke` | The smoke test of every built plugin (`PluginSmokeTest`, only with `-Dmarginalia.plugins`) and its leak finder (`PluginLeakFinder`, `PluginLeakFinderTest`), see [Testing](testing.md#the-plugin-smoke-test). |
 | `domain`, `domain.service` | Entity listener, token limits, cron expressions, SillyTavern conversion. |
 | `manual`, `ui` (`LLMSnapshotTest`, `WorkspaceLLMSupportTest`, `WorkspacePartsLLMTest`), `ui.components`, `bound` / `utils` (`ProblemLogTest`, `UiProblemsTest`), `domain` (`HelpAssistantServiceTest`, `HelpAdminDataTest`) | The manual parser and index, the help assistant (who pays, prompts, the functions, interactions), what the UI tells it and the widget that answers it. |
 

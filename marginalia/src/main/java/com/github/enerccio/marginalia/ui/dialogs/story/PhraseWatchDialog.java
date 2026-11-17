@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.PhraseWatchService;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.widgets.WatchedPhrasesEditor;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -15,9 +16,14 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.IntegerField;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
+
+import java.util.List;
 
 /**
  * The phrase watch list of the book (the desktop and the phone story tab, Tools menu): whether the parts generated in it are scanned for
@@ -39,6 +45,9 @@ public class PhraseWatchDialog extends Dialog {
     private final Manuscript manuscript;
     private final Runnable onSaved;
     private final Checkbox enabled = new Checkbox();
+    // the parts of the active branch the scan covers, both empty for all of it
+    private final IntegerField fromPart = new IntegerField();
+    private final IntegerField toPart = new IntegerField();
     private final WatchedPhrasesEditor phrases;
 
     /**
@@ -75,7 +84,19 @@ public class PhraseWatchDialog extends Dialog {
         info.addClassName(CssStyles.HINT_TEXT);
         enabled.setLabel(loc.getValue(L.LABEL_PHRASE_WATCH_ENABLE));
 
-        VerticalLayout content = new VerticalLayout(info, enabled, phrases);
+        for (IntegerField number : List.of(fromPart, toPart)) {
+            number.setMin(1);
+            number.setStepButtonsVisible(true);
+        }
+        fromPart.setLabel(loc.getValue(L.LABEL_ANNOTATE_FROM_PART));
+        toPart.setLabel(loc.getValue(L.LABEL_ANNOTATE_TO_PART));
+        Span rangeHint = new Span(loc.getValue(L.MSG_PHRASE_WATCH_RANGE_HINT));
+        rangeHint.addClassName(CssStyles.HINT_TEXT);
+        HorizontalLayout range = new HorizontalLayout(fromPart, toPart, rangeHint);
+        range.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.END);
+        range.setWrap(true);
+
+        VerticalLayout content = new VerticalLayout(info, enabled, phrases, range);
         content.setPadding(false);
         content.setWidthFull();
         content.addClassName(CssStyles.GAP_S);
@@ -91,6 +112,8 @@ public class PhraseWatchDialog extends Dialog {
         save.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         Button close = new Button(loc.getValue(L.LABEL_CLOSE), _ -> close());
         getFooter().add(close, scan, save);
+        // Enter in a number of the range scans it
+        DialogShortcuts.submitWith(scan, fromPart, toPart);
     }
 
     private boolean load() {
@@ -132,23 +155,34 @@ public class PhraseWatchDialog extends Dialog {
     }
 
     /**
-     * Saves the list and annotates its hits in every part of the active branch.
+     * Saves the list and annotates its hits in the parts of the active branch of the range, all of them when it is empty.
      */
     private void scan() {
         if (!save()) {
             return;
         }
         try {
-            int made = phraseWatchService.scanBranch(manuscript);
+            int made = phraseWatchService.scanRange(manuscript, fromPart.getValue(), toPart.getValue());
             Notification.success(String.format(loc.getValue(L.MSG_PHRASE_WATCH_SCANNED), made));
             close();
             onSaved.run();
+        } catch (IllegalArgumentException e) {
+            // a number outside of the branch
+            Notification.warning(e.getMessage());
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
     }
 
     // for the tests
+
+    IntegerField fromPartField() {
+        return fromPart;
+    }
+
+    IntegerField toPartField() {
+        return toPart;
+    }
 
     Checkbox enabledField() {
         return enabled;

@@ -29,7 +29,7 @@ ever stored.
 Open `/jobs` on the address of your Marginalia (for example `http://localhost:8080/jobs`; the **Open the live view** link of the tab
 does it). It asks for the login like every other page and shows nothing to users who are not administrators. The list refreshes every
 two seconds and shows, for each running job, the user, the kind, how long it runs, how many of its calls are done and what is in
-flight now (the AI or server and how long the call waits). It is the quick look when the server seems busy: a long list of calls waiting
+flight now (the AI or server and how long the call waits), and the book of the run the job works for, with its **Stop**. It is the quick look when the server seems busy: a long list of calls waiting
 on one model tells you why everything is slow.
 
 Below the jobs, **Runs on the books** lists what works on a book now and keeps parts of it from being deleted or changed under it
@@ -37,8 +37,9 @@ Below the jobs, **Runs on the books** lists what works on a book now and keeps p
 books): the user, the book, what it does, where it is (what the panel says: *Waiting for the model*, *The model is thinking/writing...*, *Working*, *Waits
 for you*, and for a generation its stage, such as *INFERENCE* while it writes its part; the window of an open book shows nothing there), since when, and how many objects it holds (the book, parts). The window of an open book is a run too. **Stop**
 stops the run as its user would. **End**, after a question, ends a run without stopping its work: what it holds is given back at
-once. Use it only for a run that never ends (its work got stuck and it holds the book until a restart); its work may still write
-when it wakes up.
+once. Use it only for a run that never ends; its work may still write when it wakes up. Most such runs end by themselves: a run
+that nothing worked for in an hour, and does not wait for you or for its model, is ended by the server, and so is the window of a page
+that was closed.
 
 ## The log: the Jobs tab
 

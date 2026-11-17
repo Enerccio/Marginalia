@@ -84,6 +84,12 @@ public class AutoAnnotateSteps implements InitializingBean, DisposableBean {
 
     private final List<Registration> registrations = new ArrayList<>();
 
+    /**
+     * How many times the automatic redraft runs for one part at most: the first one and the ones for the phrases of the watch list it
+     * wrote back in. A model that keeps a phrase does not keep the next part waiting.
+     */
+    static final int REDRAFT_ROUNDS = 3;
+
     @Override
     public void afterPropertiesSet() {
         registrations.add(storyGenerationService.addAfterPartBinding(new AfterPart.Binding(ANNOTATE,
@@ -243,8 +249,16 @@ public class AutoAnnotateSteps implements InitializingBean, DisposableBean {
             context.skip();
             return;
         }
+        redraft(context, context.getPart(), 1);
+    }
+
+    /**
+     * One round of the redraft. A redraft applied without asking is scanned by the phrase watch list again: a phrase the model wrote
+     * back in is a new note, and the part is redrafted once more, at most {@link #REDRAFT_ROUNDS} times in all; the hits of the last
+     * round stay as open notes for the author.
+     */
+    private void redraft(AfterPart.Context context, ChatMessage part, int round) throws Exception {
         Manuscript book = context.getManuscript();
-        ChatMessage part = context.getPart();
         String base = StringUtils.defaultString(part.getResponse());
         List<Annotation> open = annotationService.listForPart(book, part).stream()
                 .filter(annotation -> annotation.getStatus() == AnnotationStatus.OPEN).toList();
@@ -297,6 +311,13 @@ public class AutoAnnotateSteps implements InitializingBean, DisposableBean {
                     annotationService.setStatus(book, annotation, AnnotationStatus.RESOLVED);
                 }
                 context.changed();
+                ChatMessage written = book.getPhraseWatch() ? chatMessageService.find(part) : null;
+                if (written != null && !phraseWatchService.scan(book, written).isEmpty()) {
+                    context.changed();
+                    if (round < REDRAFT_ROUNDS) {
+                        redraft(context, written, round + 1);
+                    }
+                }
                 return;
             }
             // the author edited the part while the model wrote: they decide

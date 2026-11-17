@@ -52,16 +52,10 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           cache: maven
 
-      - name: Check version matches tag
-        if: startsWith(github.ref, 'refs/tags/v')
-        working-directory: marginalia
-        run: |
-          pom_version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-          tag_version="${GITHUB_REF_NAME#v}"
-          if [ "$pom_version" != "$tag_version" ]; then
-            echo "::error::Tag $GITHUB_REF_NAME does not match the version in pom.xml ($pom_version). Set <version>$tag_version</version> and tag again."
-            exit 1
-          fi
+      - name: Take the version from the tag
+        # a v* tag is the release version: every POM gets it before the build (tools/version_from_tag.sh); other builds keep pom.xml's
+        working-directory: .
+        run: tools/version_from_tag.sh
 
       - name: Install the parent POM
         # the application's POM in the local repository refers to it, the plugins need both
@@ -127,6 +121,19 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - uses: actions/setup-java@v4
+        # for tools/version_from_tag.sh (Maven); the image builds with its own JDK
+        if: startsWith(github.ref, 'refs/tags/v')
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+
+      - name: Take the version from the tag
+        # a v* tag is the release version: every POM gets it before the build (tools/version_from_tag.sh); other builds keep pom.xml's
+        working-directory: .
+        run: tools/version_from_tag.sh
 
       - name: Image name
         # registry references must be lower case, the repository name isn't

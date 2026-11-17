@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
 import com.github.enerccio.marginalia.domain.collections.AnnotationSource;
+import com.github.enerccio.marginalia.domain.collections.AnnotationStatus;
 import com.github.enerccio.marginalia.domain.components.PhraseMatcher;
 import com.github.enerccio.marginalia.domain.model.AnnotationTemplate;
 import com.github.enerccio.marginalia.domain.model.WatchedPhrase;
@@ -179,17 +180,58 @@ public class PhraseWatchServiceImpl implements PhraseWatchService {
     @Override
     @NoTx
     public int scanBranch(Manuscript book) throws Exception {
+        return scanRange(book, null, null);
+    }
+
+    @Override
+    @NoTx
+    public int scanRange(Manuscript book, Integer from, Integer to) throws Exception {
         Manuscript stored = manuscriptService.find(book);
         if (stored == null || stored.getActiveLeaf() == null) {
             return 0;
         }
+        List<ChatMessage> branch = chatMessageService.getBranchFromLeaf(stored.getActiveLeaf());
+        for (Integer number : new Integer[]{from, to}) {
+            if (number != null && (number < 1 || number > branch.size())) {
+                throw new IllegalArgumentException("No part " + number + " on the active branch (1 to " + branch.size() + ")");
+            }
+        }
+        int first = from == null ? 0 : from - 1;
+        int last = to == null ? branch.size() - 1 : to - 1;
+        return scanParts(stored, branch.subList(Math.min(first, last), Math.max(first, last) + 1));
+    }
+
+    @Override
+    @NoTx
+    public int scanBetween(Manuscript book, ChatMessage from, ChatMessage to) throws Exception {
+        Manuscript stored = manuscriptService.find(book);
+        if (stored == null || stored.getActiveLeaf() == null) {
+            return 0;
+        }
+        List<ChatMessage> branch = chatMessageService.getBranchFromLeaf(stored.getActiveLeaf());
+        return scanRange(stored, numberOf(branch, from), numberOf(branch, to));
+    }
+
+    private static Integer numberOf(List<ChatMessage> branch, ChatMessage part) {
+        if (part == null) {
+            return null;
+        }
+        for (int i = 0; i < branch.size(); i++) {
+            if (branch.get(i).getId().equals(part.getId())) {
+                return i + 1;
+            }
+        }
+        throw new IllegalArgumentException("The part is not on the active branch");
+    }
+
+    private int scanParts(Manuscript stored, List<ChatMessage> parts) throws Exception {
         List<WatchedPhrase> phrases = resolve(stored).stream().map(Effective::phrase).toList();
         if (phrases.isEmpty()) {
             return 0;
         }
         Map<String, AnnotationTemplate> templates = templates();
         int made = 0;
-        for (ChatMessage part : chatMessageService.getBranchFromLeaf(stored.getActiveLeaf())) {
+        for (ChatMessage part : parts) {
             if (part.isDeleted() || StringUtils.isBlank(part.getResponse())) {
                 continue;
             }
@@ -205,10 +247,12 @@ public class PhraseWatchServiceImpl implements PhraseWatchService {
         if (hits.isEmpty()) {
             return List.of();
         }
-        // what the list annotated before: the same phrase at the same place is not annotated again
+        // what the list annotated before: the same phrase at the same place is not annotated again, unless its note was resolved (the
+        // phrase is still there: a redraft wrote it back, the note moved with the text onto it)
         Set<String> known = new HashSet<>();
         for (Annotation annotation : annotationService.listForPart(book, part)) {
-            if (annotation.getSource() == AnnotationSource.PHRASE && annotation.hasRange()) {
+            if (annotation.getSource() == AnnotationSource.PHRASE && annotation.hasRange()
+                    && annotation.getStatus() != AnnotationStatus.RESOLVED) {
                 known.add(annotation.getLabel() + "|" + annotation.getStart() + "|" + annotation.getEnd());
             }
         }

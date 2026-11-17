@@ -1137,6 +1137,7 @@ public class LocalizationBundleIT extends LocalizationBundleBase {
         setValue(L.LABEL_EXPIRES, "Scade");
         setValue(L.LABEL_EXPIRES_AFTER_DAYS, "Scade dopo (giorni)");
         setValue(L.LABEL_REVOKE, "Revoca");
+        setValue(L.LABEL_COMMAND_SCAN_PHRASES, "Cerca le frasi sorvegliate");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "Compatibile con OpenAI");
@@ -1959,6 +1960,7 @@ public class LocalizationBundleIT extends LocalizationBundleBase {
         setValue(L.MSG_API_NOT_ALLOWED, "Un amministratore non ti ha consentito di usare l'API.");
         setValue(L.MSG_API_KEY_CREATED, "Copia la chiave ora: non verrà più mostrata.");
         setValue(L.MSG_REVOKE_API_KEY, "Revocare la chiave %s? I programmi che la usano perdono l'accesso.");
+        setValue(L.MSG_PHRASE_WATCH_RANGE_HINT, "Lascia vuoti i numeri per controllare tutto il ramo attivo.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minuto ora giorno-del-mese mese giorno-della-settimana - ad es. \"0 3 * * *\" ogni giorno alle 3:00, \"0 */6 * * *\" ogni 6 ore, \"30 2 * * 1\" i lunedì alle 2:30. Funzionano anche @daily, @weekly e @monthly.");
@@ -2536,6 +2538,11 @@ public class LocalizationBundleIT extends LocalizationBundleBase {
         setValue(L.DESC_TEMPLATE_EXPORT_GENERATED_PERCENT, "Quota delle parole generate da un modello, in percentuale (un numero intero).");
         setValue(L.DESC_TEMPLATE_EXPORT_MODELS, "I modelli che hanno generato testo del libro, separati da virgole (vuoto quando non ce ne sono).");
         setValue(L.DESC_AGENT_IMAGES_ARGUMENT, "Un elenco di percorsi di file immagine del tuo spazio di lavoro (PNG, JPEG, GIF o WebP; l'utente li carica), al massimo %d. Il modello del comando li guarda; deve esserne in grado.");
+        setValue(L.DESC_COMMAND_SCAN_PHRASES, "Annota le occorrenze dell'elenco delle frasi sorvegliate del libro nelle parti del ramo attivo, tutte o da una parte a un'altra");
+        setValue(L.DESC_COMMAND_SCAN_PHRASES_LLM, "Cerca le frasi dell'elenco delle frasi sorvegliate del libro (i cliché che l'autore non vuole) nelle parti del ramo attivo, senza modello, e annota ogni occorrenza con una nota per l'autore; un'occorrenza già annotata non viene annotata di nuovo. Senza argomenti controlla tutto il ramo attivo; con from e to (gli handle di due parti del ramo attivo, in qualsiasi ordine) solo le parti tra le due. Non fa nulla se il libro non ha frasi. Risponde quante annotazioni sono state fatte; una riscrittura della parte può tenerne conto.");
+        setValue(L.DESC_COMMAND_SCAN_PHRASES_FROM_PARAM, "Un estremo dell'intervallo di parti da controllare (il suo handle)");
+        setValue(L.DESC_COMMAND_SCAN_PHRASES_TO_PARAM, "L'altro estremo dell'intervallo di parti da controllare (il suo handle)");
+        setValue(L.DESC_COMMAND_SCAN_PHRASES_RETURN, "JSON con il numero di annotazioni fatte");
 
     }
 

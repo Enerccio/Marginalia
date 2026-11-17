@@ -197,11 +197,12 @@ gets a built-in note (*Watched phrase: "…"*), with no type, not given to the m
 
 | Option | |
 |---|---|
-| **Annotate the watched phrases in every generated part** | After a part was generated, it is checked right after the [automatic annotation](#annotating-every-new-part-automatically) (a step of [what follows the part](story-editor.md#what-follows-a-generated-part), whether the automatic annotation is on or not). When the book also redrafts automatically (**Add the annotations without asking** and **Then redraft the part…** of the automatic annotation), the redraft deals with these notes too. |
-| **Save and scan the story** | Saves the list and checks every part of the active branch now, for a book that is already written. |
+| **Annotate the watched phrases in every generated part** | After a part was generated, it is checked right after the [automatic annotation](#annotating-every-new-part-automatically) (a step of [what follows the part](story-editor.md#what-follows-a-generated-part), whether the automatic annotation is on or not). When the book also redrafts automatically (**Add the annotations without asking** and **Then redraft the part…** of the automatic annotation), the redraft deals with these notes too; a redraft applied without asking is checked again, and when it wrote a phrase back in it is redrafted again, three times at most (the hits of the last one stay as notes for you). The parts an [agent](../agents.md) writes are checked too. |
+| **Save and scan the story** | Saves the list and checks the parts of the active branch now, for a book that is already written: all of them, or the ones from **From part** to **To part** (the numbers of the parts on the branch). The command `/scan-phrases [from to]` does the same. |
 
-A place that already has a note of the list for the same phrase gets no second one, also when you dismissed or resolved it, so the story
-can be scanned again after it changed. The annotation templates belong to your settings: a book exported with what it inherits takes
+A place that already has a note of the list for the same phrase gets no second one, also when you dismissed it, so the story can be
+scanned again after it changed. A resolved note does not count: when the phrase is still there (a redraft wrote it back in), it gets
+a new note. The annotation templates belong to your settings: a book exported with what it inherits takes
 the phrases along, and on another installation their notes are the built-in one.
 
 ## Giving a note to the model

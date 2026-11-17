@@ -393,8 +393,10 @@ the first time it is pushed; make it public in the package settings on GitHub so
 1. **Version.** Set the new version in the parent `pom.xml` in the repository root and in the `<parent>` of the
    application and the plugin POMs - `mvn versions:set -DnewVersion=<version> -DgenerateBackupPoms=false` in the root
    does all of it (the plugins' `marginalia` dependency follows `${project.version}`). The archive names and the app version shown by the OS
-   come from the POM, not from the tag, so the two must match: for a `v*` tag the `test` job first checks that the
-   tag is `v` + the POM version and fails otherwise, so no archives are built or attached. `jpackage` on macOS
+   come from the POM; on a build of a `v*` tag every job that builds first runs `tools/version_from_tag.sh`, which sets every POM to
+   the tag's version (`versions:set` over the modules of the root POM), so the release is named by its tag. A POM that says another
+   version only gets a warning in the run, so set it before tagging anyway: the builds of `master` and the changelog use it. A tag
+   that is not `v<major>.<minor>.<patch>[-suffix]` fails the job. `jpackage` on macOS
    requires a version of the form `x.y.z` with `x` ≥ 1.
 2. **Database.** If the release changes the schema, check that the migrations upgrade a database of the previous
    release (keep a copy of one around) - `FlywayMigrationTest` covers only the migrations themselves.

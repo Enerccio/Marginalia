@@ -88,8 +88,9 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
      (macOS Gatekeeper, Windows SmartScreen) is deliberately not planned: it costs money and nobody pays for it, so
      users get the unsigned archives and the manual explains the warnings. ✅ App icon (`src/desktop/icons`: `.icns`,
      `.ico`, `.png` for jpackage, the tray icon and the browser favicon / PWA icon). ✅ Installers (`.deb`, `.dmg`, `.msi`,
-     `desktop-installer` execution, attached to releases) and the `-full` ones with all built-in plugins. Still missing: the release version is the pom version, not
-     the tag; signing; an `.rpm`/AppImage if somebody asks.
+     `desktop-installer` execution, attached to releases) and the `-full` ones with all built-in plugins. ✅ The release version is the tag: a `v*` build sets every POM to
+     it first (`tools/version_from_tag.sh`, every building job of `desktop.yml` and `server.yml`; a `pom.xml` that says another
+     version only warns). Not planned: signing; an `.rpm`/AppImage if somebody asks.
 
 9. **WAR size / dependency hygiene.** The WAR was ~200 MB. `tika-parsers-standard-package` + `tika-async-cli`
    were unused and are removed (the WAR is ~185 MB; the export tests declare PDFBox themselves). `Resource` is now used for the image attachments of parts (story editor, exports) and listed in the Resources tab. Logging moved from `slf4j-log4j12` + `reload4j` to logback (`log4j-to-slf4j` for the `log4j-api` of POI). ✅ Done.
@@ -891,24 +892,21 @@ numbers of the older items stable), the rest is P3/P4.
     AI as the queue of every request, the panel of the runs on every page (the live text of the model, the place in the queue, Stop,
     Open / Review, the end notified from another page), the model windows of the core and the plugins not modal (they fold into the
     panel and go on), the strict modal of the Real Language Translator removed, the story usable during a generation (only the written
-    part held), and what follows a part (annotate, redraft, translate, knowledge, audio) as one ordered phase on the server. Not done:
-    - **saves are not refused** under a `WRITE` hold (only deletes and a second writer are): it needs the thread scope of the work,
-      to tell the holder's own saves from someone else's;
-    - **the agent lock is not in the registry**: it stays a status in the database; starting an agent on a book that is open in a
-      window is not refused;
-    - `importTree` and search and replace do not ask the runs; the bulk statements were not looked at one by one;
-    - **no sweeper**: a run whose work never reaches its end holds until a restart (*End* in `/jobs` by hand);
-    - the panel has **no list of finished runs** (an entry goes when its run ends); only the resummary declares a notification for
-      when its page is gone;
-    - `/jobs`: the active jobs do not name their book, and have no Stop of their own (their runs have);
-    - the generation from the command bar is not held between the start of the command and the start of its generation;
-    - what follows a part: the author's generation does not go before the phase's requests at the model's queue, a parallel step is
-      not kept from writing the text of the part, the redraft by hand does not block the next generation;
-    - the merge of the part after a busy one into it is not refused, and a generation does not ask about an open redraft of the last
-      part (the changed-text check catches both);
-    - Side Query's tab name is not a run; the Knowledge Tracker keeps its own `ProgressPanel` beside the panel;
-    - not tested on a device: what a phone reports when its browser goes to the background;
-    - the developer docs flagged by `tools/check_dev_docs.py` are to be checked and stamped.
+    part held), and what follows a part (annotate, redraft, translate, knowledge, audio) as one ordered phase on the server. Finished
+    2026-11-17: a save of the part a generation writes is refused unless it comes from the generation's own threads (`Runs.saving`; its
+    event listeners and continuations are bound now); an agent's work session is a run (panel, `/jobs`, Stop pauses) and an agent does
+    not start on a book any run works on (`START_AGENT`; the lock itself stays the status of the agent run, it outlives the worker);
+    `importTree` holds its book and search and replace skips a part being generated; the sweeper (`Runs.sweep`, every minute: a
+    window whose page is gone, any other run nothing worked for in an hour); finished runs in the panel (`Runs.finishedOfUser`, two
+    hours, closed by the author); `/jobs` names the book of a job and stops its run; a command of the bar holds its book until its
+    generation starts (`GENERATION_COMMAND`); the author's generation goes before the requests of what follows a part at the model's
+    queue; a parallel step can not write the text of the part (`Runs.readingOnly`); the redraft window blocks the next generation (so a
+    generation is told about an open redraft); a merge into a part a run works on is refused; Side Query's tab name is a run; the
+    trackers' `ProgressPanel` is a `FloatingWindow` that follows its run. Not done:
+    - **(check)** on a phone, what a browser in the background reports (not tested on a device);
+    - **(check)** in a real browser: the finished list, the tracker panel folding into the corner, the agent's entry and its Stop;
+    - a notification for the end of a run whose page is gone exists only for the runs that declare one (the resummary, the summaries);
+    - the developer docs flagged by `tools/check_dev_docs.py` are to be stamped.
 
 ### Writing workflow
 
@@ -987,7 +985,7 @@ From a look over the feature list for what a writer would miss. Numbers continue
 
 ### Prose quality
 
-103. ✅ **Phrase watch list (clichés as annotations, not banned tokens).** Done in core (see the CHANGELOG): lists in the user settings, folders and books (added up, an entry can replace or switch off an inherited one), annotation templates in the user settings, a step after the automatic annotation and *Save and scan the story* for the active branch. Open: a scan of a chosen range of parts (only the whole active branch now), the parts an agent generates are not scanned, and the text of the automatic redraft is not scanned again (a phrase the redraft brings back gets no note; scanning it again would need a retry cap). A list of phrases and regular expressions per
+103. ✅ **Phrase watch list (clichés as annotations, not banned tokens).** Done in core (see the CHANGELOG): lists in the user settings, folders and books (added up, an entry can replace or switch off an inherited one), annotation templates in the user settings, a step after the automatic annotation and *Save and scan the story* for the active branch. Finished 2026-11-17: a range of the active branch in the dialog, the command `/scan-phrases [from to]`, the parts an agent generates are scanned (the answer of its command says how many notes), and an automatic redraft applied without asking is scanned again and redrafted again for new hits, three rounds at most (`AutoAnnotateSteps.REDRAFT_ROUNDS`; a resolved note whose phrase is still there no longer keeps the hit from a new note). Open: nothing. A list of phrases and regular expressions per
      book or folder (inherited like the prompts, `FolderService.findChain`), matched against every finished part with no
      model call; every hit becomes an annotation of source *extension* (54, `/create-annotation`). The rest is what the
      annotations already do: *Redraft to address the notes* rewrites only those passages, *Apply the redraft without

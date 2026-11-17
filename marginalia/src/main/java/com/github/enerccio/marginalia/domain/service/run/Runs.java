@@ -11,10 +11,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.ref.WeakReference;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -31,7 +36,8 @@ import java.util.function.Supplier;
  * it lives with its run and ends with it ({@link Run#end()}, in the {@code finally} of the work), so it cannot be stuck apart from it.
  * <p>
  * The agent lock is not here: it is a state of the agent's run in the database ({@code AgentRunService.findLockingRun}), checked by the
- * services that change a book.
+ * services that change a book (it outlives the worker: a run that waits for the author still locks its book). The work session of an
+ * agent is a run here ({@link #AGENT}), for the panel and for {@link Operation#START_AGENT}.
  */
 public final class Runs {
 
@@ -70,7 +76,9 @@ public final class Runs {
         /** Change where a part is in the tree (merge it into the one before, insert a part after it): refused by a hold that writes it or needs it to stay. */
         MOVE,
         /** Change the end of the active branch of a book (swipe, switch to a branch): refused while a generation writes the book's next part. */
-        SWITCH
+        SWITCH,
+        /** Start an agent on the book: refused by any run of it (the window of the book too, also the page's own). */
+        START_AGENT
     }
 
     /**
@@ -88,6 +96,14 @@ public final class Runs {
     public static final String GENERATION = "generation";
     /** The source of the window of a book. */
     public static final String BOOK_WINDOW = "book-window";
+    /**
+     * The source of the hold of a command of the story's command bar that will generate ({@code /next}, {@code /regenerate}), from
+     * its start to the start of its generation: no other generation of the book starts in between (the command's own does, from the
+     * thread it is bound to, and ends it).
+     */
+    public static final String GENERATION_COMMAND = "generation-command";
+    /** The source of the work session of an agent run (its worker), on the agent's book; the lock of the book is the run's status. */
+    public static final String AGENT = "agent";
     /** The source of what follows a generated part (its annotation, redraft, translation...): the second phase of the generation. */
     public static final String AFTER_PART = "after-part";
 
@@ -188,7 +204,9 @@ public final class Runs {
     public static final class Run {
         private final long id;
         private final String source;
-        private final Supplier<String> label;
+        // dropped at the end: a finished run is kept for the panel and must not keep the classes of an unloaded plugin
+        private volatile Supplier<String> label;
+        private volatile String endedLabel;
         private final Long bookId;
         private final String bookName;
         private final Long ownerId;
@@ -213,6 +231,11 @@ public final class Runs {
         private volatile boolean adopts;
         private volatile boolean blocksGeneration;
         private volatile Runnable onOpen;
+        // the sweeper: the threads that work for it now, when it last showed a sign of life, whether it lives as long as its window
+        private final AtomicInteger boundThreads = new AtomicInteger();
+        private volatile Instant lastActivity = started;
+        private final boolean window;
+        private volatile Instant endedAt;
 
         private Run(Builder builder) {
             this.id = SEQUENCE.incrementAndGet();
@@ -229,6 +252,7 @@ public final class Runs {
             this.notice = builder.notice;
             this.holds.addAll(builder.holds);
             this.stage = builder.stage;
+            this.window = builder.window;
             Run current = current();
             this.parent = builder.parent != null ? builder.parent : current != null && current.adopts ? current : null;
             if (parent != null) {
@@ -323,6 +347,7 @@ public final class Runs {
         public void setWaitingForUser(boolean waiting) {
             if (waitingForUser != waiting) {
                 waitingForUser = waiting;
+                touch();
                 changed();
             }
         }
@@ -349,7 +374,11 @@ public final class Runs {
         public Binding bind() {
             Run before = CURRENT.get();
             CURRENT.set(this);
+            boundThreads.incrementAndGet();
+            touch();
             return () -> {
+                boundThreads.decrementAndGet();
+                touch();
                 if (before == null) {
                     CURRENT.remove();
                 } else {
@@ -360,6 +389,7 @@ public final class Runs {
 
         /** A request of the run goes to the model (it got its connection). */
         public void requestStarted() {
+            touch();
             text.started();
             textChanged(this);
             changed();
@@ -370,6 +400,7 @@ public final class Runs {
 
         /** The request of the run waits for a connection: {@code ahead} before it, 0 when it is sent. */
         public void waiting(int ahead) {
+            touch();
             int before = text.getWaiting();
             text.waiting(ahead);
             if (before != text.getWaiting()) {
@@ -385,6 +416,7 @@ public final class Runs {
             if (piece == null || piece.isEmpty() || ended) {
                 return;
             }
+            touch();
             text.append(reasoning, piece);
             textChanged(this);
             if (parent != null) {
@@ -403,8 +435,12 @@ public final class Runs {
 
         /** What it does, as it is shown (read each time, it may be localized). */
         public String getLabel() {
+            Supplier<String> live = label;
+            if (live == null) {
+                return endedLabel == null ? source : endedLabel;
+            }
             try {
-                String text = label.get();
+                String text = live.get();
                 return text == null ? source : text;
             } catch (RuntimeException e) {
                 return source;
@@ -454,6 +490,7 @@ public final class Runs {
                 return;
             }
             this.stage = stage;
+            touch();
             changed();
         }
 
@@ -578,8 +615,15 @@ public final class Runs {
                 return;
             }
             outcome = stopping && how != Outcome.FAILED ? Outcome.STOPPED : how;
+            endedAt = Instant.now();
+            endedLabel = getLabel();
             ended = true;
             RUNS.remove(this);
+            keepFinished(this);
+            // what the finished run is kept with: its label as it was, nothing of the work
+            label = null;
+            stop = null;
+            onOpen = null;
             if (parent != null) {
                 parent.children.remove(this);
             }
@@ -592,6 +636,38 @@ public final class Runs {
                     log.debug(e.getMessage(), e);
                 }
             }
+        }
+
+        /** When it ended, null while it runs. */
+        public Instant getEnded() {
+            return endedAt;
+        }
+
+        /** The author has seen that it ended: it leaves the list of the {@link #finishedOfUser finished runs}. */
+        public void dismiss() {
+            if (FINISHED.remove(this)) {
+                changed();
+            }
+        }
+
+        /** A sign of life of the work (a request, a piece of the answer, a thread that binds it): the sweeper leaves it. */
+        public void touch() {
+            lastActivity = Instant.now();
+        }
+
+        /** When the run last showed a sign of life ({@link #touch()}). */
+        public Instant getLastActivity() {
+            return lastActivity;
+        }
+
+        /** Whether a thread works for it now (it is {@link #bind() bound}). */
+        public boolean isWorking() {
+            return boundThreads.get() > 0;
+        }
+
+        /** Whether it lives as long as a window of a page ({@link Builder#window()}). */
+        public boolean isWindow() {
+            return window;
         }
 
         @Override
@@ -615,6 +691,7 @@ public final class Runs {
         private Notice notice;
         private Stage stage;
         private Run parent;
+        private boolean window;
         private final List<Hold> holds = new ArrayList<>();
 
         private Builder(String source, Supplier<String> label) {
@@ -678,6 +755,15 @@ public final class Runs {
             return this;
         }
 
+        /**
+         * The run is a window of its {@link #page page} (the window of a book, an annotation window): it ends when the window closes,
+         * and the {@link #sweep sweeper} ends it only when its page is gone, however long it waits for the author.
+         */
+        public Builder window() {
+            this.window = true;
+            return this;
+        }
+
         /** The first stage of a run that has stages. */
         public Builder stage(Stage stage) {
             this.stage = stage;
@@ -705,6 +791,7 @@ public final class Runs {
         public Run start() {
             Run run = new Run(this);
             RUNS.add(run);
+            ensureSweeper();
             changed();
             return run;
         }
@@ -731,6 +818,7 @@ public final class Runs {
                 run = new Run(this);
                 RUNS.add(run);
             }
+            ensureSweeper();
             changed();
             return run;
         }
@@ -750,8 +838,50 @@ public final class Runs {
     private static final List<Consumer<Run>> TEXT_LISTENERS = new CopyOnWriteArrayList<>();
     private static final List<Consumer<Run>> END_LISTENERS = new CopyOnWriteArrayList<>();
     private static final ThreadLocal<Run> CURRENT = new ThreadLocal<>();
+    private static final ThreadLocal<Boolean> READ_ONLY = new ThreadLocal<>();
+    // the runs that ended lately, newest first, for the panel
+    private static final List<Run> FINISHED = new CopyOnWriteArrayList<>();
+    /** How many ended runs are kept for the panel. */
+    public static final int FINISHED_KEPT = 20;
+    /** How long an ended run stays in the panel's list. */
+    public static final Duration FINISHED_SHOWN = Duration.ofHours(2);
+    private static volatile ScheduledExecutorService sweeper;
+
+    /**
+     * How long a run that no thread works for may show no sign of life before the {@link #sweep sweeper} ends it. Long: a model on a
+     * busy server may think for many minutes before the first piece of its answer.
+     */
+    public static final Duration IDLE_LIMIT = Duration.ofMinutes(60);
 
     private Runs() {
+    }
+
+    /**
+     * Makes the current thread one that only reads the text of the parts until the result is closed: a change of the text of a part
+     * made on it is refused ({@link #checkMayWriteText}). For the steps after a part that run beside each other
+     * ({@code AfterPart.Mode.PARALLEL}): two of them writing the part would lose one of the texts.
+     */
+    public static Binding readingOnly() {
+        Boolean before = READ_ONLY.get();
+        READ_ONLY.set(Boolean.TRUE);
+        return () -> {
+            if (before == null) {
+                READ_ONLY.remove();
+            } else {
+                READ_ONLY.set(before);
+            }
+        };
+    }
+
+    /**
+     * Refuses a change of the text of a part on a thread that only reads ({@link #readingOnly}).
+     *
+     * @throws IllegalStateException on such a thread
+     */
+    public static void checkMayWriteText() {
+        if (Boolean.TRUE.equals(READ_ONLY.get())) {
+            throw new IllegalStateException("A step that runs beside others only reads the parts: the text of a part is not changed here");
+        }
     }
 
     /** The run the current thread works for ({@link Run#bind}), null when none or it ended. */
@@ -802,6 +932,33 @@ public final class Runs {
      */
     public static Builder run(String source, Supplier<String> label) {
         return new Builder(source, label);
+    }
+
+    /**
+     * The runs of a user that ended lately ({@link #FINISHED_SHOWN}) and that the author has not {@link Run#dismiss() dismissed},
+     * newest first: the work that went on by itself (a translation, a summary batch, what followed a part, an agent's session, an
+     * import). A window, the window of a book, a generation of the story (the story shows its end), a run that was a part of
+     * another and a run that was stopped are not kept.
+     */
+    public static List<Run> finishedOfUser(Long userId) {
+        if (userId == null) {
+            return List.of();
+        }
+        Instant limit = Instant.now().minus(FINISHED_SHOWN);
+        return FINISHED.stream().filter(run -> userId.equals(run.getOwnerId()) && run.getEnded() != null && run.getEnded().isAfter(limit))
+                .toList();
+    }
+
+    private static void keepFinished(Run run) {
+        // a run the author stopped is not news to them
+        if (run.window || run.parent != null || run.outcome == Outcome.STOPPED || BOOK_WINDOW.equals(run.source)
+                || GENERATION.equals(run.source) || GENERATION_COMMAND.equals(run.source)) {
+            return;
+        }
+        FINISHED.addFirst(run);
+        while (FINISHED.size() > FINISHED_KEPT) {
+            FINISHED.removeLast();
+        }
     }
 
     /** Every run, oldest first. */
@@ -864,8 +1021,13 @@ public final class Runs {
         }
         Class<?> type = type(entity);
         Object current = currentPage();
+        Run own = current();
         for (Run run : RUNS) {
             if (run.isEnded()) {
+                continue;
+            }
+            if (run == own && operation == Operation.GENERATE && GENERATION_COMMAND.equals(run.getSource())) {
+                // the command's own generation
                 continue;
             }
             if (type == Manuscript.class) {
@@ -892,7 +1054,7 @@ public final class Runs {
             case WRITE -> mode == Mode.WRITE;
             // a translation writes its part, the author may still edit it (the translation sees the change): only a generation refuses
             case EDIT -> mode == Mode.WRITE && GENERATION.equals(run.getSource());
-            case REPLACE, GENERATE, OPEN, SWITCH -> false;
+            case REPLACE, GENERATE, OPEN, SWITCH, START_AGENT -> false;
         };
     }
 
@@ -904,11 +1066,13 @@ public final class Runs {
         boolean ownWindow = window && current != null && current == run.getPage();
         return switch (operation) {
             // a part is being written again after it was generated: the next part would be written after the old text
-            case GENERATE -> GENERATION.equals(run.getSource()) || run.blocksGeneration();
+            case GENERATE -> GENERATION.equals(run.getSource()) || GENERATION_COMMAND.equals(run.getSource()) || run.blocksGeneration();
             case OPEN -> window && !ownWindow;
             case DELETE, REPLACE -> !ownWindow;
             // the generation itself moves the end of the branch to its new part while it prepares
             case SWITCH -> GENERATION.equals(run.getSource()) && run.getStage() == Stage.INFERENCE;
+            // the agent works on a copy and compares it with the book when it is merged: nothing else may work on the book meanwhile
+            case START_AGENT -> true;
             case WRITE, EDIT, MOVE -> false;
         };
     }
@@ -945,11 +1109,122 @@ public final class Runs {
         }
     }
 
+    /**
+     * Ends the runs whose work is gone without ending them (a step that never went on, a callback that was never called), so that
+     * what they hold is given back without a restart:
+     * <ul>
+     *     <li>a {@link Builder#window() window} whose page is closed or gone;</li>
+     *     <li>any other run that no thread works for, that does not wait for the author or for its place at a model, and that showed
+     *     no sign of life ({@link Run#touch()}) for the idle time.</li>
+     * </ul>
+     * The application does it every minute with {@link #IDLE_LIMIT}; public for tests.
+     *
+     * @return the runs it ended
+     */
+    public static List<Run> sweep(Duration idle) {
+        Instant limit = Instant.now().minus(idle);
+        List<Run> ended = new ArrayList<>();
+        for (Run run : RUNS) {
+            if (run.isEnded()) {
+                continue;
+            }
+            boolean gone;
+            if (run.window) {
+                gone = pageGone(run);
+            } else {
+                // the page does not keep it: a generation whose step never went on still has its book window
+                gone = !run.isWorking() && !run.isWaitingForUser() && run.getText().getWaiting() < 0
+                        && run.getLastActivity().isBefore(limit);
+            }
+            if (gone) {
+                log.warn("The run {} ({}) was ended by the sweeper: {}", run, run.getLabel(),
+                        run.window ? "its page is gone" : "nothing worked for it since " + run.getLastActivity());
+                run.end(Outcome.FAILED);
+                ended.add(run);
+            }
+        }
+        return ended;
+    }
+
+    private static boolean pageGone(Run run) {
+        if (run.page == null) {
+            return false;
+        }
+        Object page = run.page.get();
+        if (page == null) {
+            return true;
+        }
+        try {
+            // a window ends with the detach of its page; this is for a page that went without one
+            return page instanceof UI ui && ui.isClosing();
+        } catch (RuntimeException | LinkageError e) {
+            return false;
+        }
+    }
+
+    private static void ensureSweeper() {
+        if (sweeper != null) {
+            return;
+        }
+        synchronized (Runs.class) {
+            if (sweeper == null) {
+                ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor(task -> {
+                    Thread thread = new Thread(task, "run-sweeper");
+                    thread.setDaemon(true);
+                    return thread;
+                });
+                executor.scheduleWithFixedDelay(() -> {
+                    try {
+                        sweep(IDLE_LIMIT);
+                    } catch (RuntimeException e) {
+                        log.warn("The sweeper of the runs failed: {}", e.getMessage(), e);
+                    }
+                }, 1, 1, TimeUnit.MINUTES);
+                sweeper = executor;
+            }
+        }
+    }
+
+    /**
+     * The check of the base {@code save}: the part a generation writes is saved only by the generation's own work (a thread bound to
+     * its run, or to a run that is a part of it); any other save of it (a stale copy of the page, a plugin, a command) is refused. The
+     * paths by hand ask {@link Operation#EDIT} before they get here and say it better; this is the floor under them.
+     *
+     * @throws HeldException naming the generation
+     */
+    public static void saving(BaseEntity entity) {
+        if (entity == null || entity.getId() == null || RUNS.isEmpty() || type(entity) != ChatMessage.class) {
+            return;
+        }
+        Run own = current();
+        for (Run run : RUNS) {
+            if (run.isEnded() || !GENERATION.equals(run.source) || isPartOf(own, run)) {
+                continue;
+            }
+            for (Hold hold : run.holds) {
+                if (hold.mode() == Mode.WRITE && hold.type() == ChatMessage.class && entity.getId().equals(hold.id())) {
+                    throw new HeldException(run);
+                }
+            }
+        }
+    }
+
+    /** Whether the run is the other one or a part of it ({@link Run#getParent()}). */
+    private static boolean isPartOf(Run run, Run of) {
+        for (Run r = run; r != null; r = r.parent) {
+            if (r == of) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /** Ends every run (for a test that starts over). */
     public static void reset() {
         for (Run run : List.copyOf(RUNS)) {
             run.end();
         }
+        FINISHED.clear();
     }
 
     private static Object currentPage() {

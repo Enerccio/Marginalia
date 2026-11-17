@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.domain.collections.AgentRunStatus;
 import com.github.enerccio.marginalia.domain.components.TokenLimits;
 import com.github.enerccio.marginalia.domain.model.AgentModelProfile;
 import com.github.enerccio.marginalia.domain.model.impl.Agent;
+import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.AgentMessage;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.service.*;
@@ -31,6 +32,7 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMTool
 import com.github.enerccio.marginalia.domain.service.job.JobCallType;
 import com.github.enerccio.marginalia.domain.service.job.JobStatus;
 import com.github.enerccio.marginalia.domain.service.job.Jobs;
+import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.domain.service.manual.ManualTools;
 import com.github.enerccio.marginalia.domain.service.manual.ManualToolsImpl;
 import com.github.enerccio.marginalia.domain.traits.BatchPolicy;
@@ -1195,6 +1197,8 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             return localization.getDefaults(Language.of(run == null ? "en" : run.getLanguage()));
         }
 
+        private Runs.Run registered;
+
         Worker(AgentRun run, List<Queued> initial) {
             this.runId = run.getId();
             this.run = run;
@@ -1205,7 +1209,8 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
         public void run() {
             try {
                 attributes = runService.openSession(run);
-                try (InRequestScope _ = new InRequestScope(attributes)) {
+                try (InRequestScope _ = new InRequestScope(attributes);
+                     Runs.Binding _ = registered().bind()) {
                     // one work session of the run is a job: the requests of the agent are its calls
                     try (Jobs.Handle job = Jobs.open(InferenceSession.AGENT, "Agent run " + runId, JobCallType.LLM)) {
                         try {
@@ -1231,6 +1236,9 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             } catch (Throwable e) {
                 log.error("Agent run {} could not start working", run.getUuid(), e);
             } finally {
+                if (registered != null) {
+                    registered.end();
+                }
                 stopSubAgents();
                 dropInbox();
                 interrupts.remove(runId);
@@ -1241,6 +1249,34 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                     attributes.close();
                 }
             }
+        }
+
+        /**
+         * The entry of the work session in the registry of the runs ({@link Runs}): the panel of the author and {@code /jobs} show it
+         * with the live text of the model and a Stop (a pause), and the book can not be deleted or restored under it. The lock of
+         * the book itself stays the status of the run in the database (it outlives the worker: a run that waits for the author
+         * still locks it).
+         */
+        private Runs.Run registered() {
+            Manuscript book = null;
+            String agentName = null;
+            try {
+                book = runService.findOriginalOfCopy(run.getWorkingCopy());
+                Agent agent = agentService.find(run.getAgent().getId());
+                agentName = agent == null ? null : agent.getName();
+            } catch (Exception | LinkageError e) {
+                log.debug("Agent run {}: its book was not found for the panel: {}", runId, e.getMessage());
+            }
+            String label = agentName == null ? "Agent run " + runId : agentName;
+            AgentRun toPause = run;
+            registered = Runs.run(Runs.AGENT, () -> label).book(book).quiet().onStop(() -> {
+                try {
+                    pauseNow(toPause);
+                } catch (Exception e) {
+                    log.warn("Agent run {} could not be paused from the panel: {}", runId, e.getMessage());
+                }
+            }).start();
+            return registered;
         }
 
         /**

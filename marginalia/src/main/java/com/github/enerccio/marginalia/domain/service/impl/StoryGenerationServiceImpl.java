@@ -120,6 +120,11 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
         // the page that shows it: the caller's, or the one a command started it for
         Runs.Run run = (options.page() != null ? builder.page(options.page()) : builder.currentPage())
                 .startUnless(manuscript, Runs.Operation.GENERATE);
+        Runs.Run command = Runs.current();
+        if (command != null && Runs.GENERATION_COMMAND.equals(command.getSource()) && Objects.equals(command.getBookId(), run.getBookId())) {
+            // the generation holds the book from here on
+            command.end();
+        }
         GenerationEngine generationEngine = new GenerationEngine();
         generationEngine.run = run;
         generationEngine.setManuscript(manuscript);
@@ -455,7 +460,8 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
                 public void next() {
                     AsyncRunnableWrapper wrapper = new AsyncRunnableWrapper(configuration);
                     taskExecutor.submit(() -> {
-                        try (InRequestScope _ = new InRequestScope(getRequestAttributes())) {
+                        // the listeners of an event work for the generation (an extension that changes the part on an event)
+                        try (InRequestScope _ = new InRequestScope(getRequestAttributes()); Runs.Binding _ = run == null ? null : run.bind()) {
                             if (cancellationToken.isCancelled() && !event.isTerminal()) {
                                 invokeContinuation(continueAfterEventHandling);
                                 return;
@@ -525,7 +531,8 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
             if (continuation != null) {
                 AsyncRunnableWrapper wrapper = new AsyncRunnableWrapper(configuration);
                 taskExecutor.submit(() -> {
-                    try (InRequestScope _ = new InRequestScope(getRequestAttributes())) {
+                    // the work after an event is the generation's own: its saves of the part and its requests are the run's
+                    try (InRequestScope _ = new InRequestScope(getRequestAttributes()); Runs.Binding _ = run == null ? null : run.bind()) {
                         wrapper.run(continuation::returnFromEvent);
                     } catch (Throwable e) {
                         log.error("Failed continuation after event emission", e);

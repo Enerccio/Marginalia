@@ -1137,6 +1137,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_EXPIRES, "Expires");
         setValue(L.LABEL_EXPIRES_AFTER_DAYS, "Expires after (days)");
         setValue(L.LABEL_REVOKE, "Revoke");
+        setValue(L.LABEL_COMMAND_SCAN_PHRASES, "Scan for watched phrases");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1959,6 +1960,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_API_NOT_ALLOWED, "An administrator has not allowed you to use the API.");
         setValue(L.MSG_API_KEY_CREATED, "Copy the key now: it is not shown again.");
         setValue(L.MSG_REVOKE_API_KEY, "Revoke the key %s? The programs that use it lose access.");
+        setValue(L.MSG_PHRASE_WATCH_RANGE_HINT, "Leave the numbers empty to scan the whole active branch.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -2536,6 +2538,11 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.DESC_TEMPLATE_EXPORT_GENERATED_PERCENT, "Share of the words a model generated, in percent (a whole number).");
         setValue(L.DESC_TEMPLATE_EXPORT_MODELS, "The models that generated text of the book, separated by commas (empty when there is none).");
         setValue(L.DESC_AGENT_IMAGES_ARGUMENT, "A list of paths of image files of your workspace (PNG, JPEG, GIF or WebP; the user uploads them), at most %d. The model of the command looks at them; it must be able to.");
+        setValue(L.DESC_COMMAND_SCAN_PHRASES, "Annotates the hits of the book's phrase watch list in the parts of the active branch, all of them or from one part to another");
+        setValue(L.DESC_COMMAND_SCAN_PHRASES_LLM, "Looks for the phrases of the book's phrase watch list (the clichés the author does not want) in the parts of the active branch, with no model, and annotates every hit as a note for the author; a hit that was annotated before is not annotated again. Without arguments it scans the whole active branch, with from and to (handles of two parts of the active branch, in any order) only the parts between them. Does nothing when the book has no phrases. Answers how many annotations were made; a redraft of the part can address them.");
+        setValue(L.DESC_COMMAND_SCAN_PHRASES_FROM_PARAM, "One end of the range of parts to scan (its handle)");
+        setValue(L.DESC_COMMAND_SCAN_PHRASES_TO_PARAM, "The other end of the range of parts to scan (its handle)");
+        setValue(L.DESC_COMMAND_SCAN_PHRASES_RETURN, "JSON with the number of annotations made");
 
     }
 

@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.domain.service.CommandService;
 import com.github.enerccio.marginalia.domain.service.GenerationView;
 import com.github.enerccio.marginalia.domain.service.command.*;
 import com.github.enerccio.marginalia.domain.service.run.Runs;
+import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
@@ -466,7 +467,7 @@ public class CommandBar extends Composite<HorizontalLayout> implements HasEnable
         input.clear();
     }
 
-    @PublicAPI(from = "1.8.0",
+    @PublicAPI(from = "1.9.0",
             returns = @APIReturn(type = void.class),
             parameters = {@APIParameter(name = "line", type = String.class)},
             locals = {@APILocals(name = "parsed", type = CommandLine.class),
@@ -474,8 +475,10 @@ public class CommandBar extends Composite<HorizontalLayout> implements HasEnable
                     @APILocals(name = "humanName", type = String.class),
                     @APILocals(name = "dialog", type = CommandProgressDialog.class),
                     @APILocals(name = "started", type = java.util.concurrent.atomic.AtomicReference.class),
+                    @APILocals(name = "held", type = Runs.Run.class),
                     @APILocals(name = "future", type = CommandRun.class),
                     @APILocals(name = "_", type = Runs.Binding.class),
+                    @APILocals(name = "e", type = RuntimeException.class),
                     @APILocals(name = "ui", type = UI.class),
                     @APILocals(name = "attributes", type = RequestAttributes.class),
                     @APILocals(name = "window", type = CommandProgressDialog.class)})
@@ -521,10 +524,21 @@ public class CommandBar extends Composite<HorizontalLayout> implements HasEnable
             dialog.create();
             dialog.open();
         }
+        // a command that generates holds its book until its generation starts (its thread is bound to the hold and ends it): a
+        // generation by the round button in between is refused instead of taking the book from under the command
+        Runs.Run held = progressInStory ? holdForGeneration(humanName) : null;
         CommandRun future;
-        try (Runs.Binding _ = dialog == null ? null : dialog.bind()) {
+        try (Runs.Binding _ = dialog != null ? dialog.bind() : held != null ? held.bind() : null) {
             future = generationView == null ? commandService.executeLine(line)
                     : commandService.executeLine(line, false, commandScopes.session(generationView));
+        } catch (RuntimeException e) {
+            if (held != null) {
+                held.end();
+            }
+            throw e;
+        }
+        if (held != null) {
+            future.whenComplete((_, _) -> held.end());
         }
         started.set(future);
         if (future.isDone()) {
@@ -608,6 +622,28 @@ public class CommandBar extends Composite<HorizontalLayout> implements HasEnable
                 log.debug("The UI of command {} is gone", parsed.name(), e);
             }
         });
+    }
+
+    /**
+     * The hold of the book of the story from the start of a command that generates to the start of its generation; null when the bar
+     * shows no book, or a generation of it runs already (the command is then refused as before, with its name).
+     */
+    @PublicAPI(from = "1.9.0",
+            returns = @APIReturn(type = Runs.Run.class),
+            parameters = {@APIParameter(name = "humanName", type = String.class)},
+            locals = {@APILocals(name = "book", type = Manuscript.class),
+                    @APILocals(name = "e", type = Runs.HeldException.class)})
+    private Runs.Run holdForGeneration(String humanName) {
+        Manuscript book = generationView == null ? null : generationView.getBook();
+        if (book == null || book.getId() == null) {
+            return null;
+        }
+        try {
+            return Runs.run(Runs.GENERATION_COMMAND, () -> humanName).book(book).quiet().currentPage()
+                    .startUnless(book, Runs.Operation.GENERATE);
+        } catch (Runs.HeldException e) {
+            return null;
+        }
     }
 
     /**

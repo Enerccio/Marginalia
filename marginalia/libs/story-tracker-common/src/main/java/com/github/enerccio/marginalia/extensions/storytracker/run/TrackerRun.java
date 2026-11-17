@@ -287,6 +287,11 @@ public final class TrackerRun<P extends TrackerRun.Proposal> {
         worker = Thread.ofVirtual().name(source + "-run").start(this::work);
     }
 
+    /** The run of the registry ({@code Runs}) this run is, null before it started. */
+    public Runs.Run getRegistryRun() {
+        return registryRun;
+    }
+
     /** The book the run reads. */
     public Manuscript getManuscript() {
         return manuscript;

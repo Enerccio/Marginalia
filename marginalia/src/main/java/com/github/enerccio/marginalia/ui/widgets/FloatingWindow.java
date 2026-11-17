@@ -81,6 +81,7 @@ public final class FloatingWindow {
     private List<ChatMessage> parts = List.of();
     private Runs.Mode mode = Runs.Mode.STRUCTURE;
     private boolean holdsParts;
+    private boolean blocksGeneration;
     private boolean running;
     private boolean minimising;
     private boolean minimised;
@@ -197,6 +198,19 @@ public final class FloatingWindow {
     }
 
     /**
+     * While the window is there, no generation of its book starts ({@link Runs.Run#setBlocksGeneration}): a window that rewrites a
+     * part (the redraft) would otherwise apply its text after the next part was written from the old one. The generation is refused
+     * with the window's name.
+     */
+    public FloatingWindow blocksGeneration() {
+        this.blocksGeneration = true;
+        if (hold != null) {
+            hold.setBlocksGeneration(true);
+        }
+        return this;
+    }
+
+    /**
      * The modal window the run is opened from (the book), whose closing ends the run: the one Vaadin holds as modal, else the last
      * modal dialog of the page that is open.
      */
@@ -256,7 +270,7 @@ public final class FloatingWindow {
             return;
         }
         UI ui = page;
-        Runs.Builder builder = Runs.run(source, label).book(book).page(ui);
+        Runs.Builder builder = Runs.run(source, label).book(book).page(ui).window();
         if (stoppable) {
             builder.onStop(() -> inPage(ui, stop));
         }
@@ -265,6 +279,9 @@ public final class FloatingWindow {
             builder.quiet();
         }
         hold = builder.start();
+        if (blocksGeneration) {
+            hold.setBlocksGeneration(true);
+        }
         if (holdsParts) {
             hold.holdParts(parts, mode);
         }

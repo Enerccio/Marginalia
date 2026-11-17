@@ -1137,6 +1137,7 @@ public class LocalizationBundleES extends LocalizationBundleBase {
         setValue(L.LABEL_EXPIRES, "Caduca");
         setValue(L.LABEL_EXPIRES_AFTER_DAYS, "Caduca tras (días)");
         setValue(L.LABEL_REVOKE, "Revocar");
+        setValue(L.LABEL_COMMAND_SCAN_PHRASES, "Buscar las frases vigiladas");
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "Compatible con OpenAI");
         setValue(L.ENUM_PROTOCOL_TYPE_OPEN_CHAT_COMPLETION, "Chat Completion");
@@ -1956,6 +1957,7 @@ public class LocalizationBundleES extends LocalizationBundleBase {
         setValue(L.MSG_API_NOT_ALLOWED, "Un administrador no te ha permitido usar la API.");
         setValue(L.MSG_API_KEY_CREATED, "Copia la clave ahora: no se volverá a mostrar.");
         setValue(L.MSG_REVOKE_API_KEY, "¿Revocar la clave %s? Los programas que la usan pierden el acceso.");
+        setValue(L.MSG_PHRASE_WATCH_RANGE_HINT, "Deja los números vacíos para revisar toda la rama activa.");
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minuto hora día-del-mes mes día-de-la-semana - p. ej. \"0 3 * * *\" todos los días a las 3:00, \"0 */6 * * *\" cada 6 horas, \"30 2 * * 1\" los lunes a las 2:30. También funcionan @daily, @weekly y @monthly.");
         setValue(L.HELP_BACKUP_KEEP, "Las copias programadas más antiguas se eliminan; 0 las conserva todas. Las copias manuales nunca se eliminan.");
@@ -2531,6 +2533,11 @@ public class LocalizationBundleES extends LocalizationBundleBase {
         setValue(L.DESC_TEMPLATE_EXPORT_GENERATED_PERCENT, "Proporción de las palabras que generó un modelo, en porcentaje (un número entero).");
         setValue(L.DESC_TEMPLATE_EXPORT_MODELS, "Los modelos que generaron texto del libro, separados por comas (vacío cuando no hay ninguno).");
         setValue(L.DESC_AGENT_IMAGES_ARGUMENT, "Una lista de rutas de archivos de imagen de tu espacio de trabajo (PNG, JPEG, GIF o WebP; el usuario las sube), %d como máximo. El modelo del comando las mira; debe ser capaz de hacerlo.");
+        setValue(L.DESC_COMMAND_SCAN_PHRASES, "Anota las coincidencias de la lista de frases vigiladas del libro en las partes de la rama activa, todas o de una parte a otra");
+        setValue(L.DESC_COMMAND_SCAN_PHRASES_LLM, "Busca las frases de la lista de frases vigiladas del libro (los clichés que el autor no quiere) en las partes de la rama activa, sin modelo, y anota cada coincidencia como una nota para el autor; una coincidencia ya anotada no se anota de nuevo. Sin argumentos revisa toda la rama activa; con from y to (los identificadores de dos partes de la rama activa, en cualquier orden), solo las partes entre ellas. No hace nada si el libro no tiene frases. Responde cuántas anotaciones se hicieron; una reescritura de la parte puede atenderlas.");
+        setValue(L.DESC_COMMAND_SCAN_PHRASES_FROM_PARAM, "Un extremo del rango de partes que revisar (su identificador)");
+        setValue(L.DESC_COMMAND_SCAN_PHRASES_TO_PARAM, "El otro extremo del rango de partes que revisar (su identificador)");
+        setValue(L.DESC_COMMAND_SCAN_PHRASES_RETURN, "JSON con el número de anotaciones hechas");
     }
 
     @Override

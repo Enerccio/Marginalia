@@ -3,12 +3,16 @@ package com.github.enerccio.marginalia.ui.jobs;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.service.JobService;
 import com.github.enerccio.marginalia.domain.service.job.ActiveJob;
+import com.github.enerccio.marginalia.domain.service.job.Jobs;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.AttachEvent;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Span;
@@ -55,12 +59,14 @@ public class ActiveJobsGrid extends VerticalLayout {
         grid.setSizeFull();
         grid.addColumn(job -> job.login() == null ? "" : job.login()).setHeader(loc.getValue(L.LABEL_USER)).setAutoWidth(true).setFlexGrow(0);
         grid.addColumn(ActiveJob::kind).setHeader(loc.getValue(L.LABEL_JOB_KIND)).setAutoWidth(true).setFlexGrow(0);
+        grid.addColumn(job -> job.book() == null ? "" : job.book()).setHeader(loc.getValue(L.LABEL_BOOK)).setFlexGrow(1);
         grid.addColumn(job -> job.label() == null ? "" : job.label()).setHeader(loc.getValue(L.LABEL_VERSION_LABEL)).setFlexGrow(1);
         grid.addColumn(job -> JobFormat.time(job.startedAt())).setHeader(loc.getValue(L.LABEL_JOB_STARTED)).setAutoWidth(true).setFlexGrow(0);
         grid.addColumn(job -> JobFormat.duration(job.startedAt(), null)).setHeader(loc.getValue(L.LABEL_JOB_DURATION)).setAutoWidth(true).setFlexGrow(0);
         grid.addColumn(job -> (job.callCount() - job.runningCalls()) + " / " + job.callCount()).setHeader(loc.getValue(L.LABEL_JOB_CALLS))
                 .setAutoWidth(true).setFlexGrow(0);
         grid.addColumn(this::inFlight).setHeader(loc.getValue(L.LABEL_JOB_IN_FLIGHT)).setFlexGrow(2);
+        grid.addComponentColumn(this::stop).setAutoWidth(true).setFlexGrow(0);
         summary.addClassName(CssStyles.TEXT_SECONDARY);
         add(summary, grid);
         refresh();
@@ -74,9 +80,23 @@ public class ActiveJobsGrid extends VerticalLayout {
                 .collect(Collectors.joining(", "));
     }
 
+    /** The Stop of the run the job works for (the job ends when its work does), nothing for a job without one. */
+    private Component stop(ActiveJob job) {
+        if (!job.stoppable()) {
+            return new Span();
+        }
+        Button stop = new Button(loc.getValue(L.LABEL_STOP), _ -> {
+            Jobs.stop(job.uuid());
+            refresh();
+        });
+        stop.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_ERROR);
+        return stop;
+    }
+
     /** Everything the row shows: the grid is sent a new row only when this changes. */
     private String shownAs(ActiveJob job) {
         return String.join("\u0001", job.login() == null ? "" : job.login(), job.kind(), job.label() == null ? "" : job.label(),
+                job.book() == null ? "" : job.book(), String.valueOf(job.stoppable()),
                 JobFormat.time(job.startedAt()), JobFormat.duration(job.startedAt(), null),
                 (job.callCount() - job.runningCalls()) + " / " + job.callCount(), inFlight(job));
     }

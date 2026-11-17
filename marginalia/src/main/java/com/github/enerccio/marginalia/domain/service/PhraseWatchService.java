@@ -62,7 +62,8 @@ public interface PhraseWatchService {
 
     /**
      * Annotates the hits of the book's list in the part. A hit that already has an annotation of the list for the same phrase at the
-     * same place (whatever its status: one the author dismissed stays dismissed) is not annotated again.
+     * same place is not annotated again (one the author dismissed stays dismissed), unless that annotation was resolved: the phrase
+     * is still there (a redraft wrote it back in, and the note moved with the text onto it).
      *
      * @return the annotations made
      */
@@ -74,4 +75,20 @@ public interface PhraseWatchService {
      * @return how many annotations were made
      */
     int scanBranch(Manuscript book) throws Exception;
+
+    /**
+     * Scans the parts of the active branch from one number to another ({@link #scan}), counted from the first part of the branch (1);
+     * null for an open end, the order of the two does not matter.
+     *
+     * @return how many annotations were made
+     * @throws IllegalArgumentException for a number outside of the branch
+     */
+    int scanRange(Manuscript book, Integer from, Integer to) throws Exception;
+
+    /**
+     * As {@link #scanRange(Manuscript, Integer, Integer)} with two parts of the active branch (null for an open end).
+     *
+     * @throws IllegalArgumentException for a part that is not on the active branch
+     */
+    int scanBetween(Manuscript book, ChatMessage from, ChatMessage to) throws Exception;
 }

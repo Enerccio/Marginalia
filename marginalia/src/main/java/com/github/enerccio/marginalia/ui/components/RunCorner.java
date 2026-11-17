@@ -148,6 +148,13 @@ public class RunCorner extends Div {
                 items.add(new Item(null, window));
             }
         }
+        // what ended lately, after what runs: the author sees how the work they left went
+        for (Runs.Run run : Runs.finishedOfUser(userId)) {
+            // a window of this page that followed it is its entry already
+            if (windows.stream().noneMatch(window -> window.getRegistryRun() == run)) {
+                items.add(new Item(run, null));
+            }
+        }
         return items;
     }
 
@@ -329,7 +336,11 @@ public class RunCorner extends Div {
                 review.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_PRIMARY);
                 buttons.add(review);
             }
-            if (item.running() || run != null && run.isWaitingForUser()) {
+            if (run != null && run.isEnded()) {
+                Button close = new Button(loc.getValue(L.LABEL_CLOSE), _ -> run.dismiss());
+                close.addThemeVariants(ButtonVariant.LUMO_SMALL);
+                buttons.add(close);
+            } else if (item.running() || run != null && run.isWaitingForUser()) {
                 boolean stoppable = window != null || run.canStop();
                 if (stoppable) {
                     Button stop = new Button(loc.getValue(L.LABEL_STOP), _ -> {
@@ -358,6 +369,12 @@ public class RunCorner extends Div {
             String state;
             if (run == null) {
                 state = loc.getValue(item.running() ? L.MSG_RUN_WORKING : L.MSG_RUN_WAITS_FOR_YOU);
+            } else if (run.isEnded()) {
+                state = loc.getValue(switch (run.getOutcome() == null ? Runs.Outcome.FINISHED : run.getOutcome()) {
+                    case FINISHED -> L.ENUM_JOB_STATUS_COMPLETED;
+                    case FAILED -> L.ENUM_JOB_STATUS_FAILED;
+                    case STOPPED -> L.ENUM_JOB_STATUS_CANCELLED;
+                }) + " · " + JobFormat.duration(run.getStarted(), run.getEnded());
             } else {
                 Runs.Text written = run.getText();
                 String answer = written.getAnswer();

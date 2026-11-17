@@ -4,6 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
+import com.github.enerccio.marginalia.domain.service.run.Runs;
+
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -143,6 +145,22 @@ public final class Jobs {
         handle.previous = ACTIVE.get();
         ACTIVE.set(handle);
         return handle;
+    }
+
+    /**
+     * Stops the run of the registry the job works for (its Stop, as the panel of the runs does): the job ends when its work does.
+     *
+     * @return false when the job is over, or it has no run or no Stop
+     */
+    public static boolean stop(String uuid) {
+        Running job = uuid == null ? null : RUNNING.get(uuid);
+        Runs.Run run = job == null ? null : job.run;
+        Runs.Run of = run == null ? null : run.getParent() != null ? run.getParent() : run;
+        if (of == null || !of.canStop()) {
+            return false;
+        }
+        of.stop();
+        return true;
     }
 
     /**
@@ -337,6 +355,8 @@ public final class Jobs {
         final AtomicInteger inFlight = new AtomicInteger();
         final AtomicBoolean finished = new AtomicBoolean();
         volatile Instant lastActivity = startedAt;
+        // the run of the registry the thread worked for when the job was opened: its book and its Stop
+        final Runs.Run run = Runs.current();
 
         Running(String kind, String label, JobCallType defaultType, boolean auto) {
             Owner owner = null;
@@ -412,7 +432,10 @@ public final class Jobs {
                 view.add(new ActiveJob.ActiveCall(entry.type, entry.backend, entry.model, entry.status, entry.startedAt,
                         entry.endedAt));
             }
-            return new ActiveJob(uuid, userId, login, kind, label, startedAt, view, Math.max(0, inFlight.get()), callCount.get());
+            Runs.Run of = run == null ? null : run.getParent() != null ? run.getParent() : run;
+            String book = of == null ? null : of.getBookName() != null ? of.getBookName() : of.getBookId() == null ? null : "#" + of.getBookId();
+            return new ActiveJob(uuid, userId, login, kind, label, startedAt, view, Math.max(0, inFlight.get()), callCount.get(), book,
+                    of != null && of.canStop());
         }
     }
 

@@ -429,7 +429,8 @@ The core binds three steps, `AutoAnnotateSteps` (`ui.dialogs.story`, a bean of `
 (`REVIEW`), the [phrase watch list](../user/books/annotations.md#watching-for-phrases) (`phraseWatch`, `REVIEW`, when
 `Manuscript.phraseWatch`: `PhraseWatchService.scan` turns the hits of `PhraseMatcher` (`domain.components`, no model) into
 annotations of source `PHRASE`, counted in `NOTES_ADDED`) and the redraft that addresses the notes of both (`REWRITE`), with the
-settings of the book (`Manuscript.autoAnnotate*`); a result
+settings of the book (`Manuscript.autoAnnotate*`); a redraft applied without asking is scanned again and redrafted again while it
+brings new hits, `REDRAFT_ROUNDS` = 3 rounds at most; a result
 the book does not take without asking opens `AnnotateDialog.openResult` / `RedraftDialog.openResult` in the page that generated and
 from the panel's Review, a window that is a part of the phase's entry (`FloatingWindow.partOf`).
 

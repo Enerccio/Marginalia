@@ -1137,6 +1137,7 @@ public class LocalizationBundleFR extends LocalizationBundleBase {
         setValue(L.LABEL_EXPIRES, "Expire");
         setValue(L.LABEL_EXPIRES_AFTER_DAYS, "Expire après (jours)");
         setValue(L.LABEL_REVOKE, "Révoquer");
+        setValue(L.LABEL_COMMAND_SCAN_PHRASES, "Rechercher les expressions surveillées");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "Compatible OpenAI");
@@ -1959,6 +1960,7 @@ public class LocalizationBundleFR extends LocalizationBundleBase {
         setValue(L.MSG_API_NOT_ALLOWED, "Un administrateur ne vous a pas autorisé à utiliser l'API.");
         setValue(L.MSG_API_KEY_CREATED, "Copiez la clé maintenant : elle ne sera plus affichée.");
         setValue(L.MSG_REVOKE_API_KEY, "Révoquer la clé %s ? Les programmes qui l'utilisent perdent l'accès.");
+        setValue(L.MSG_PHRASE_WATCH_RANGE_HINT, "Laissez les numéros vides pour parcourir toute la branche active.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute heure jour-du-mois mois jour-de-la-semaine - p. ex. \"0 3 * * *\" tous les jours à 3 h 00, \"0 */6 * * *\" toutes les 6 heures, \"30 2 * * 1\" le lundi à 2 h 30. @daily, @weekly et @monthly fonctionnent aussi.");
@@ -2536,6 +2538,11 @@ public class LocalizationBundleFR extends LocalizationBundleBase {
         setValue(L.DESC_TEMPLATE_EXPORT_GENERATED_PERCENT, "Part des mots générés par un modèle, en pourcentage (un nombre entier).");
         setValue(L.DESC_TEMPLATE_EXPORT_MODELS, "Les modèles qui ont généré du texte du livre, séparés par des virgules (vide s'il n'y en a pas).");
         setValue(L.DESC_AGENT_IMAGES_ARGUMENT, "Une liste de chemins de fichiers image de votre espace de travail (PNG, JPEG, GIF ou WebP ; l'utilisateur les téléverse), %d au plus. Le modèle de la commande les regarde ; il doit en être capable.");
+        setValue(L.DESC_COMMAND_SCAN_PHRASES, "Annote les occurrences de la liste d'expressions surveillées du livre dans les parties de la branche active, toutes ou d'une partie à une autre");
+        setValue(L.DESC_COMMAND_SCAN_PHRASES_LLM, "Cherche les expressions de la liste d'expressions surveillées du livre (les clichés dont l'auteur ne veut pas) dans les parties de la branche active, sans modèle, et annote chaque occurrence d'une note pour l'auteur ; une occurrence déjà annotée ne l'est pas une seconde fois. Sans argument, parcourt toute la branche active ; avec from et to (les identifiants de deux parties de la branche active, dans n'importe quel ordre), seulement les parties entre les deux. Ne fait rien si le livre n'a pas d'expressions. Répond combien d'annotations ont été faites ; une réécriture de la partie peut les traiter.");
+        setValue(L.DESC_COMMAND_SCAN_PHRASES_FROM_PARAM, "Une extrémité de la plage de parties à parcourir (son identifiant)");
+        setValue(L.DESC_COMMAND_SCAN_PHRASES_TO_PARAM, "L'autre extrémité de la plage de parties à parcourir (son identifiant)");
+        setValue(L.DESC_COMMAND_SCAN_PHRASES_RETURN, "JSON avec le nombre d'annotations faites");
 
     }
 

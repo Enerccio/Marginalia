@@ -72,7 +72,7 @@ public final class WindowRun {
     public Runs.Binding start(Runnable stop) {
         finished();
         UI ui = UI.getCurrent();
-        Runs.Builder builder = Runs.run(source, label).book(book).page(ui).quiet();
+        Runs.Builder builder = Runs.run(source, label).book(book).page(ui).window().quiet();
         if (stop != null) {
             builder.onStop(() -> inPage(ui, stop));
         }

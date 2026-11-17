@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
 import com.github.enerccio.marginalia.domain.service.GenerationListener;
 import com.github.enerccio.marginalia.domain.service.GenerationView;
+import com.github.enerccio.marginalia.domain.service.PhraseWatchService;
 import com.github.enerccio.marginalia.domain.service.StoryGenerationService;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationOptions;
@@ -302,6 +303,9 @@ public class StoryGenerationCommands extends ManuscriptWriteSupport {
     @Autowired
     private StoryGenerationService storyGenerationService;
 
+    @Autowired
+    private PhraseWatchService phraseWatchService;
+
     private void next(CommandContext context, String scene, String pov, String present, String instructions, String after,
                       String profile) throws Exception {
         generate(context, GenerationRequestType.NEW_MESSAGE, null, after, scene, pov, present, instructions, profile);
@@ -388,8 +392,13 @@ public class StoryGenerationCommands extends ManuscriptWriteSupport {
             if (created == null) {
                 return;
             }
+            // what follows a part does not run for an agent, but the phrase watch list costs no model: its hits are notes the agent sees
+            int phraseNotes = context.getScope().isAgent() ? markPhrases(fresh, created) : 0;
             Book.Located at = new Book(context).locate(created.getUuid(), null);
             JsonObject result = describe(created, at.position());
+            if (phraseNotes > 0) {
+                result.addProperty("phraseWatchNotes", phraseNotes);
+            }
             result.addProperty("parts", at.path().size());
             result.addProperty("model", created.getModelUsed());
             if (!warnings.isEmpty()) {
@@ -405,6 +414,15 @@ public class StoryGenerationCommands extends ManuscriptWriteSupport {
         } finally {
             gate.unlock();
         }
+    }
+
+    /** The hits of the book's phrase watch list in the new part, annotated; 0 when the book does not watch phrases. */
+    private int markPhrases(Manuscript book, ChatMessage part) throws Exception {
+        Manuscript stored = manuscriptService.find(book);
+        if (stored == null || !stored.getPhraseWatch()) {
+            return 0;
+        }
+        return phraseWatchService.scan(stored, part).size();
     }
 
     /**

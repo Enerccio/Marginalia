@@ -710,6 +710,20 @@ The current user of a session is the session-scoped `user` bean (see [Architectu
 which holds a copy of the logged-in user's id, login and name - load the entity through `UserService` when you need
 more.
 
+### `ApiKey` (a key of the HTTP API)
+
+`ApiKey` (`domain.security.model`; table `api_keys`, V31) extends `ExtendableEntity`: a bearer key of the [HTTP API](api.md), owned by the
+user it acts as (`OwnedEntity.owner`, purged with them). A revoked key is deleted (soft).
+
+| Field | |
+|---|---|
+| `name` | What the user called it. |
+| `keyPrefix` | The public start of the key it is looked up by (unique). |
+| `secretHash` | SHA-256 of the secret: the key itself is shown once and never stored. |
+| `scopes` | Extended attribute: the `ApiScope`s (`domain.security.model`) by name, separated by commas (`getScopes()` / `setScopes(...)` normalize them). |
+| `expires` | Extended attribute: when the key stops working, null for never. |
+| `lastUsed` | Extended attribute: when it was last used, written at most once a minute. |
+
 ### `Permission` (what a user was allowed)
 
 `Permission` (`domain.security.model`, with `PermissionType` in `domain.security.permissions`; table `permissions`, V15) extends `ExtendableEntity`. There is at most one live row per

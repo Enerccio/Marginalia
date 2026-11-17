@@ -185,7 +185,7 @@ public class BookWindows {
             UI ui = window.getUI().orElse(UI.getCurrent());
             Localization localization = loc;
             run = Runs.run(Runs.BOOK_WINDOW, () -> localization.getValue(L.LABEL_BOOK_OPEN_ELSEWHERE))
-                    .book(manuscript).hold(manuscript, Runs.Mode.OPEN).page(ui).quiet()
+                    .book(manuscript).hold(manuscript, Runs.Mode.OPEN).page(ui).window().quiet()
                     .onStop(() -> closeThere(ui))
                     .start();
         }

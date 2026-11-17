@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.generation;
 
 import com.github.enerccio.marginalia.domain.collections.AnnotationSource;
+import com.github.enerccio.marginalia.domain.collections.AnnotationStatus;
 import com.github.enerccio.marginalia.domain.model.WatchedPhrase;
 import com.github.enerccio.marginalia.domain.model.impl.Annotation;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
@@ -32,6 +33,9 @@ class PhraseWatchStepTest extends GenerationTestBase {
     @Autowired
     private AnnotationService annotationService;
 
+    @Autowired
+    private com.github.enerccio.marginalia.domain.service.ChatMessageService chatMessageService;
+
     /** Completes with the run of the phase of the book when it ends. */
     private CompletableFuture<Runs.Run> phaseEnd(Manuscript book) {
         CompletableFuture<Runs.Run> ended = new CompletableFuture<>();
@@ -58,6 +62,30 @@ class PhraseWatchStepTest extends GenerationTestBase {
         List<Annotation> annotations = annotationService.listForPart(book, run.getMessage());
         assertThat(annotations).extracting(Annotation::getQuote).containsExactly("tapestry of fate", "shiver ran");
         assertThat(annotations).allMatch(annotation -> annotation.getSource() == AnnotationSource.PHRASE);
+    }
+
+    @Test
+    void aRedraftThatWritesAPhraseBackInIsScannedAndRedraftedAgainAtMostThreeTimes() throws Exception {
+        // the generation and every redraft write the phrase, each at another place
+        java.util.concurrent.atomic.AtomicInteger round = new java.util.concurrent.atomic.AtomicInteger();
+        llm.respondWith(request -> MockLLMResponse.text("Round " + "x".repeat(round.incrementAndGet()) + ": the tapestry of fate unfurled."));
+        Manuscript book = manuscriptService.save(newManuscript());
+        book.setAutoAnnotateAccept(true);
+        book.setAutoAnnotateRedraft(true);
+        book.setAutoAnnotateAcceptRedraft(true);
+        book = manuscriptService.save(book);
+        book = phraseWatchService.setForBook(book, List.of(new WatchedPhrase("tapestry of fate", false, null)), true);
+        CompletableFuture<Runs.Run> ended = phaseEnd(book);
+
+        GenerationRun run = generate(book, "go");
+        Runs.Run phase = ended.get(60, TimeUnit.SECONDS);
+
+        assertThat(phase.getOutcome()).isEqualTo(Runs.Outcome.FINISHED);
+        assertThat(llm.getCompletionRequests()).as("the generation and three redrafts").hasSize(4);
+        List<Annotation> annotations = annotationService.listForPart(book, run.getMessage());
+        assertThat(annotations).as("one note per round").hasSize(4);
+        assertThat(annotations).filteredOn(annotation -> annotation.getStatus() == AnnotationStatus.OPEN)
+                .as("the hit of the last redraft waits for the author").hasSize(1);
     }
 
     @Test

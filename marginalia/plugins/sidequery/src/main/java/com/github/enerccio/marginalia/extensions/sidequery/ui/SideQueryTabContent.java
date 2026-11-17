@@ -75,6 +75,8 @@ public class SideQueryTabContent extends VerticalLayout {
     private boolean namingTab;
     // the answer as a run: the panel of the runs shows it (its place in the queue of the model, a Stop), also in the other pages
     private final WindowRun request = WindowRun.of(this, SideQueryExtension.NOTIFY_QUERY, () -> T.localized(SIDE_QUERY));
+    // the name of the tab is a request of its own: in the panel of the runs with its Stop, like the answer
+    private final WindowRun naming = WindowRun.of(this, SideQueryExtension.NOTIFY_QUERY, () -> T.localized(NAMING_THE_TAB));
 
     public SideQueryTabContent(SideQueryService sideQueryService,
                                Manuscript manuscript,
@@ -96,6 +98,7 @@ public class SideQueryTabContent extends VerticalLayout {
         this.generationStateListener = generationStateListener;
         this.onRenamed = onRenamed;
         request.book(manuscript);
+        naming.book(manuscript);
 
         setSizeFull();
         setPadding(false);
@@ -551,7 +554,13 @@ public class SideQueryTabContent extends VerticalLayout {
         }
         namingTab = true;
         try {
-            CancellationToken token = sideQueryService.generateTabName(manuscript, profileSetting, session, name -> ui.access(() -> {
+            java.util.concurrent.atomic.AtomicReference<CancellationToken> sent = new java.util.concurrent.atomic.AtomicReference<>();
+            CancellationToken token = naming.start(() -> {
+                CancellationToken running = sent.get();
+                if (running != null) {
+                    running.cancel();
+                }
+            }, () -> sideQueryService.generateTabName(manuscript, profileSetting, session, name -> ui.access(() -> {
                 namingTab = false;
                 if (session.isManuallyRenamed()) {
                     return;
@@ -563,9 +572,11 @@ public class SideQueryTabContent extends VerticalLayout {
                     onRenamed.run();
                 }
                 UIPushGuard.push(ui);
-            }));
+            }), naming::finished));
+            sent.set(token);
             if (token == null) {
                 namingTab = false;
+                naming.finished();
             }
         } catch (Exception e) {
             namingTab = false;

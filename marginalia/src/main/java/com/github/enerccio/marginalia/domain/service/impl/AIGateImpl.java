@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.domain.service.impl;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.service.AIGate;
 import com.github.enerccio.marginalia.domain.service.AIService;
+import com.github.enerccio.marginalia.domain.service.run.Runs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,8 +18,11 @@ public class AIGateImpl implements AIGate {
 
     private static final Logger log = LoggerFactory.getLogger(AIGateImpl.class);
 
-    /** A request in the queue, with whom to tell its place. */
-    private record Waiter(CompletableFuture<Permit> future, IntConsumer position) {
+    /**
+     * A request in the queue, with whom to tell its place; {@code background} for a request of what follows a part (the second
+     * phase of a generation), which the author's next generation passes.
+     */
+    private record Waiter(CompletableFuture<Permit> future, IntConsumer position, boolean background) {
     }
 
     /**
@@ -42,7 +46,7 @@ public class AIGateImpl implements AIGate {
     private static final class Slots {
         int cap = 1;
         int active;
-        final Deque<Waiter> queue = new ArrayDeque<>();
+        final LinkedList<Waiter> queue = new LinkedList<>();
 
         boolean hasRoom() {
             return active < cap;
@@ -88,9 +92,18 @@ public class AIGateImpl implements AIGate {
                 mine.active++;
                 future.complete(new Held(mine));
             } else {
-                mine.queue.add(new Waiter(future, position));
-                if (position != null) {
-                    notices.add(new Notice(position, mine.queue.size() - 1 + mine.active));
+                Runs.Run caller = Runs.current();
+                Waiter waiter = new Waiter(future, position, isBackground(caller));
+                int before = isGeneration(caller) ? firstBackground(mine.queue) : -1;
+                if (before >= 0) {
+                    // the author waits for the story: the requests of the annotation, the translation... of the part before wait longer
+                    mine.queue.add(before, waiter);
+                    positions(mine, notices);
+                } else {
+                    mine.queue.add(waiter);
+                    if (position != null) {
+                        notices.add(new Notice(position, mine.queue.size() - 1 + mine.active));
+                    }
                 }
                 log.debug("A request waits for a connection of the AI {} ({} active, {} waiting, {} connections)", ai.getUuid(),
                         mine.active, mine.queue.size(), cap);
@@ -127,6 +140,32 @@ public class AIGateImpl implements AIGate {
             mine.queue.removeIf(w -> w.future().isDone());
             return mine.queue.size();
         }
+    }
+
+    /** A request of the author's generation of the story. */
+    private static boolean isGeneration(Runs.Run run) {
+        return run != null && Runs.GENERATION.equals(run.getSource());
+    }
+
+    /** A request of what follows a part: the phase itself or a run one of its steps started. */
+    private static boolean isBackground(Runs.Run run) {
+        for (Runs.Run r = run; r != null; r = r.getParent()) {
+            if (Runs.AFTER_PART.equals(r.getSource())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static int firstBackground(List<Waiter> queue) {
+        int index = 0;
+        for (Waiter waiter : queue) {
+            if (waiter.background() && !waiter.future().isDone()) {
+                return index;
+            }
+            index++;
+        }
+        return -1;
     }
 
     private Slots slotsOf(AI ai) {

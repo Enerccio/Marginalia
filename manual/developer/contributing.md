@@ -152,6 +152,10 @@ no build) sends one chat completion to the AI set up in your dev database `~/.ma
 
 `python3 tools/plugin_api_diff.py <tag> [<tag>] [--changelog]` prints the `@PublicAPI` methods and fields that changed between two git revisions, for the plugin-visible part of the CHANGELOG (see [@Extendable hooks](plugins/extendable.md#the-public-api)).
 
+`python3 tools/marginalia_api.py` is a command line client of the [HTTP API](api.md) (standard library only; the server and the key come
+from `MARGINALIA_URL` and `MARGINALIA_API_KEY_FILE`): the version of a server, whether plugins can be installed without an update,
+installing them. `tools/version_from_tag.sh` sets every POM to the version of a `v*` tag in the release builds ([Packaging](packaging.md#making-a-release)).
+
 `tools/update-watcher` is the host side of *Admin → Update* of a Docker installation: `watch.sh` runs `bin/rebuild.sh` when the application asks for it, `install.sh` makes it systemd units (see [Packaging](packaging.md)).
 
 `tools/gpu-control` is a small controller (FastAPI, `gpu_control.py`, with its own README and compose file) that starts and stops the containers that take turns on one GPU (a speech server, ComfyUI), behind a Docker socket proxy; the acquire and release steps of a [GPU lock](plugins/gpu-locks.md) call it (through LiteLLM pass-throughs), see [Setting up the speech server](../user/extensions/audiobook-server.md). `tools/workset_run.sh` runs the dataset harness with the plugins on the classpath ([The dataset book](testing.md#the-dataset-book)).

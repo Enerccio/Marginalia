@@ -1145,6 +1145,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_EXPIRES, "到期");
         setValue(L.LABEL_EXPIRES_AFTER_DAYS, "有效天数");
         setValue(L.LABEL_REVOKE, "吊销");
+        setValue(L.LABEL_COMMAND_SCAN_PHRASES, "检查监视的短语");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1967,6 +1968,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_API_NOT_ALLOWED, "管理员未允许你使用 API。");
         setValue(L.MSG_API_KEY_CREATED, "请立即复制密钥：它不会再次显示。");
         setValue(L.MSG_REVOKE_API_KEY, "吊销密钥 %s？使用它的程序将失去访问权限。");
+        setValue(L.MSG_PHRASE_WATCH_RANGE_HINT, "不填编号即检查整个当前分支。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");
@@ -2544,6 +2546,11 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.DESC_TEMPLATE_EXPORT_GENERATED_PERCENT, "模型生成的词所占的百分比（整数）。");
         setValue(L.DESC_TEMPLATE_EXPORT_MODELS, "生成了本书文本的模型，以逗号分隔（没有则为空）。");
         setValue(L.DESC_AGENT_IMAGES_ARGUMENT, "工作区中图片文件（PNG、JPEG、GIF 或 WebP，由用户上传）的路径列表，最多 %d 个。命令的模型会查看这些图片，因此它必须支持图片。");
+        setValue(L.DESC_COMMAND_SCAN_PHRASES, "在当前分支的部分（全部，或从一个部分到另一个部分）中，为本书短语监视列表的命中处添加批注");
+        setValue(L.DESC_COMMAND_SCAN_PHRASES_LLM, "不使用模型，在当前分支的部分中查找本书短语监视列表中的短语（作者不想要的陈词滥调），并为每个命中处添加一条给作者的批注；已批注过的命中不会再次批注。不带参数时检查整个当前分支；带 from 和 to（当前分支上两个部分的句柄，顺序不限）时只检查二者之间的部分。本书没有短语时不做任何事。回答添加了多少条批注；重写该部分可以处理它们。");
+        setValue(L.DESC_COMMAND_SCAN_PHRASES_FROM_PARAM, "要检查的部分范围的一端（其句柄）");
+        setValue(L.DESC_COMMAND_SCAN_PHRASES_TO_PARAM, "要检查的部分范围的另一端（其句柄）");
+        setValue(L.DESC_COMMAND_SCAN_PHRASES_RETURN, "包含所添加批注数量的 JSON");
     }
 
     @Override

@@ -9,7 +9,9 @@ import java.util.function.IntConsumer;
  * The connections of an AI ({@link AI#getConnections()}): how many requests may be on the way to it at once. Every request to a
  * model takes a place here, the wrapper that {@code InferenceServices.forAI} puts around the service of any AI (the core's and an
  * extension's) does it, so callers do not; the requests above the number wait in the order they came, one plain queue per AI
- * shared by all its users. A place is one request in flight, not a conversation: it is given back while a function the model
+ * shared by all its users, with one exception: a request of the author's generation of the story (made for a run
+ * {@code Runs.GENERATION}) goes before the requests of what follows a part ({@code Runs.AFTER_PART} and the runs its steps start),
+ * so the annotation or the translation of the last part does not keep the author waiting for the next one. A place is one request in flight, not a conversation: it is given back while a function the model
  * called runs, and taken again for the next round. The state is in memory; the number is read from the AI at every request, so a
  * change takes effect at once.
  */

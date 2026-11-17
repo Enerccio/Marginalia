@@ -153,6 +153,25 @@ class PhraseWatchServiceTest extends MarginaliaTestBase {
     }
 
     @Test
+    void aScanOfARangeAnnotatesOnlyThePartsBetweenItsEndsInEitherOrder() throws Exception {
+        ChatMessage second = new ChatMessage();
+        second.setResponse("The tapestry of fate.");
+        second = chatMessageService.addChild(part, second);
+        ChatMessage third = new ChatMessage();
+        third.setResponse("Another tapestry.");
+        third = chatMessageService.addChild(second, third);
+        Manuscript stored = manuscriptService.find(book.getId());
+        stored.setActiveLeaf(third);
+        book = manuscriptService.save(stored);
+        userSettings(List.of(new WatchedPhrase("tapestry|sparkled", true, null)), List.of());
+
+        assertThat(phraseWatchService.scanRange(book, 3, 2)).as("the second and the third part").isEqualTo(2);
+        assertThat(annotationService.listForPart(book, part)).isEmpty();
+        assertThat(phraseWatchService.scanBetween(book, part, null)).as("from the first to the end: only the first is new").isEqualTo(2);
+        assertThatThrownBy(() -> phraseWatchService.scanRange(book, 1, 4)).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
     void anEntryThatCanNotBeUsedIsRefused() throws Exception {
         assertThatThrownBy(() -> phraseWatchService.setForBook(book, List.of(new WatchedPhrase("(open", true, null)), true))
                 .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("(open");

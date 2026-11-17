@@ -89,6 +89,8 @@ public abstract class JpaBaseRepository<T extends BaseEntity> implements BaseRep
             entity.setCreation(AppClock.now());
         }
         checkStale(entity);
+        // the part a generation writes is saved by the generation only
+        Runs.saving(entity);
         if (entity.isDeleted()) {
             // a soft delete is a save; a run may hold the object
             Runs.deleting(entity);
