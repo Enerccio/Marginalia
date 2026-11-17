@@ -48,6 +48,11 @@ public class ConverterData {
     /** Whether the range snaps to the boundaries of the turns, and how many messages the auto mode sends at once. */
     private boolean align;
     private int batchSize = DEFAULT_BATCH_SIZE;
+    /**
+     * The resource of the source could not be read when the data was loaded (it is gone, or reading it failed): the link and the
+     * ticks are kept as they are stored, so that saving the data does not lose them; not stored.
+     */
+    private transient boolean unreadable;
 
     public String getSourceKind() {
         return sourceKind;
@@ -171,5 +176,13 @@ public class ConverterData {
 
     public void setBatchSize(int batchSize) {
         this.batchSize = batchSize;
+    }
+
+    public boolean isUnreadable() {
+        return unreadable;
+    }
+
+    public void setUnreadable(boolean unreadable) {
+        this.unreadable = unreadable;
     }
 }

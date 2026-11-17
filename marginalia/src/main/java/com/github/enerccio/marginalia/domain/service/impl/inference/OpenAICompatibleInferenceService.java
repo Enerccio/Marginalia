@@ -44,6 +44,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
 
 import java.io.InterruptedIOException;
 import java.net.SocketTimeoutException;
@@ -225,7 +226,7 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
         AsyncRunnableWrapper wrapper = new AsyncRunnableWrapper(configuration);
         // a virtual thread: it waits for the server for as long as the model reads the prompt and thinks, and a stop interrupts that
         // wait (a platform thread is not interruptible in a socket read)
-        Thread.ofVirtual().name("inference-round").start(() -> {
+        Thread.ofVirtual().name("inference-round").start(inScope(attributes, () -> {
             try {
                 wrapper.run(() -> {
                     if (callback.isDead() || token.isCancelled()) {
@@ -317,7 +318,7 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                     log.error("Error during callback.onError", ex);
                 }
             }
-        });
+        }));
         return token;
     }
 
@@ -334,7 +335,7 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
 
         AsyncRunnableWrapper wrapper = new AsyncRunnableWrapper(configuration);
         // a virtual thread, see round: the call returns only when the whole answer is written, a stop must not wait for that
-        Thread.ofVirtual().name("inference-infer").start(() -> {
+        Thread.ofVirtual().name("inference-infer").start(inScope(request.attributes(), () -> {
             try {
                 wrapper.run(() -> {
                     if (outcome.dead().getAsBoolean() || request.cancellationToken().isCancelled()) {
@@ -393,7 +394,7 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                     log.error("Error during callback.onError", ex);
                 }
             }
-        });
+        }));
     }
 
     /**
@@ -445,7 +446,7 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                 functionsOffered ? request.functions() : null, finalRound, true, request.schema());
 
         AsyncRunnableWrapper wrapper = new AsyncRunnableWrapper(configuration);
-        CompletableFuture.runAsync(() -> {
+        CompletableFuture.runAsync(inScope(request.attributes(), () -> {
             try {
                 wrapper.run(() -> {
                     if (request.cancellationToken().isCancelled()) {
@@ -491,7 +492,20 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                     log.error("Error during callback.onError", ex);
                 }
             }
-        });
+        }));
+    }
+
+    /**
+     * The body run in the request context of the caller: the callbacks are called on the threads of the request (the end of a
+     * stream, an error), and what they do there needs the session of the user (the session scoped {@code user} of the settings,
+     * the language of the texts), as {@code ui.access} runs the change of the page on the calling thread when it can.
+     */
+    private static Runnable inScope(RequestAttributes attributes, Runnable body) {
+        return () -> {
+            try (InRequestScope _ = new InRequestScope(attributes)) {
+                body.run();
+            }
+        };
     }
 
     /**
@@ -1262,6 +1276,8 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
         private final SortedMap<Long, PendingToolCall> toolCalls = new TreeMap<>();
         private TokenUsage reportedUsage;
         private final AtomicBoolean usageRecorded = new AtomicBoolean();
+        /** The request context of the thread that opened the stream (the caller's, see {@link #inScope}), for the threads of the reader and of a stop. */
+        private final RequestAttributes scope = RequestContextHolder.getRequestAttributes();
 
         public OpenAIInferenceAsyncController(StreamResponse<ChatCompletionChunk> streamResponse,
                                               InferenceAsyncCallback callback, CancellationToken cancellationToken,
@@ -1278,7 +1294,7 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
         public void continueInference() {
             AsyncRunnableWrapper wrapper = new AsyncRunnableWrapper(configuration);
             // a virtual thread: it waits for the server for as long as the model thinks, and a stop can interrupt the read
-            Thread.ofVirtual().name("inference-reader").start(() -> this.processNext(wrapper));
+            Thread.ofVirtual().name("inference-reader").start(inScope(scope, () -> this.processNext(wrapper)));
         }
 
         /** Whether the server sends another chunk; waits for it. */
@@ -1298,7 +1314,7 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
         void abort() {
             // closing waits for the thread that reads the stream (the reader is locked while it waits), so it gets a thread of its own:
             // a stop must not need a free thread of the common pool, or wait for one
-            Thread.ofVirtual().name("inference-abort").start(() -> {
+            Thread.ofVirtual().name("inference-abort").start(inScope(scope, () -> {
                 if (!terminated.compareAndSet(false, true)) {
                     // it ended by itself
                     return;
@@ -1319,7 +1335,7 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                     blocked.interrupt();
                 }
                 closeStream();
-            });
+            }));
         }
 
         @Override

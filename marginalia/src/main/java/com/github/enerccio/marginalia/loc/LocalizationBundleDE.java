@@ -1958,6 +1958,7 @@ public class LocalizationBundleDE extends LocalizationBundleBase {
         setValue(L.MSG_API_KEY_CREATED, "Kopieren Sie den Schlüssel jetzt: Er wird nicht wieder angezeigt.");
         setValue(L.MSG_REVOKE_API_KEY, "Schlüssel %s widerrufen? Programme, die ihn nutzen, verlieren den Zugriff.");
         setValue(L.MSG_PHRASE_WATCH_RANGE_HINT, "Ohne Nummern wird der ganze aktive Zweig durchsucht.");
+        setValue(L.MSG_MODEL_NOT_ON_SERVER, "Der Server bietet das Modell %s nicht (mehr) an. Es bleibt eingestellt, aber eine Anfrage damit kann fehlschlagen: Wählen Sie eines aus der Liste.");
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "Minute Stunde Tag-des-Monats Monat Wochentag – z. B. „0 3 * * *“ jeden Tag um 3:00, „0 */6 * * *“ alle 6 Stunden, „30 2 * * 1“ montags um 2:30. @daily, @weekly und @monthly funktionieren ebenfalls.");
         setValue(L.HELP_BACKUP_KEEP, "Ältere geplante Sicherungen werden gelöscht, 0 behält alle. Manuelle Sicherungen werden nie gelöscht.");

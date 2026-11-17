@@ -1961,6 +1961,7 @@ public class LocalizationBundleIT extends LocalizationBundleBase {
         setValue(L.MSG_API_KEY_CREATED, "Copia la chiave ora: non verrà più mostrata.");
         setValue(L.MSG_REVOKE_API_KEY, "Revocare la chiave %s? I programmi che la usano perdono l'accesso.");
         setValue(L.MSG_PHRASE_WATCH_RANGE_HINT, "Lascia vuoti i numeri per controllare tutto il ramo attivo.");
+        setValue(L.MSG_MODEL_NOT_ON_SERVER, "Il server non offre (più) il modello %s. Viene mantenuto, ma una richiesta con esso può fallire: scegline uno dall'elenco.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minuto ora giorno-del-mese mese giorno-della-settimana - ad es. \"0 3 * * *\" ogni giorno alle 3:00, \"0 */6 * * *\" ogni 6 ore, \"30 2 * * 1\" i lunedì alle 2:30. Funzionano anche @daily, @weekly e @monthly.");

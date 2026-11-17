@@ -97,6 +97,8 @@ public class AIDialog extends Dialog implements LLMInteract {
     // not apiKeyField.isEnabled(): the tab sheet disables the content of the tab that isn't shown
     private boolean apiKeyEditable = true;
     private ComboBox<String> modelCombo;
+    /** The models the server listed at the last refresh, empty before the first one. */
+    private List<String> serverModels = List.of();
     private Button refreshModelsButton;
     private TextArea additionalParametersField;
     private IntegerField requestTimeoutField;
@@ -366,7 +368,8 @@ public class AIDialog extends Dialog implements LLMInteract {
         modelCombo.setWidthFull();
         modelCombo.setAllowCustomValue(true);
         modelCombo.addCustomValueSetListener(event -> {
-            modelCombo.setItems(List.of(event.getDetail()));
+            // a typed name joins the list of the server, it does not replace it
+            modelCombo.setItems(withModel(serverModels, event.getDetail()));
             modelCombo.setValue(event.getDetail());
         });
 
@@ -637,9 +640,12 @@ public class AIDialog extends Dialog implements LLMInteract {
 
         try {
             List<String> models = new ArrayList<>(inferenceServices.forAI(copy).getModels());
+            serverModels = List.copyOf(models);
 
             if (modelCombo.getValue() != null && !models.contains(modelCombo.getValue())) {
+                // kept (a server without the list endpoint, a model loaded later), but the author is told: a request with it fails
                 models.add(0, modelCombo.getValue());
+                Notification.warning(String.format(loc.getValue(L.MSG_MODEL_NOT_ON_SERVER), modelCombo.getValue()));
             }
 
             // setItems clears the selection
@@ -655,6 +661,17 @@ public class AIDialog extends Dialog implements LLMInteract {
                 UIUtils.showError(loc.getValue(L.MSG_FETCH_MODELS_FAILED), e);
             }
         }
+    }
+
+    /**
+     * The items of the model box: the models of the server with the given one first when the server does not list it.
+     */
+    static List<String> withModel(List<String> models, String model) {
+        List<String> items = new ArrayList<>(models);
+        if (StringUtils.isNotBlank(model) && !items.contains(model)) {
+            items.addFirst(model);
+        }
+        return items;
     }
 
     /**

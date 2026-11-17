@@ -1961,6 +1961,7 @@ public class LocalizationBundleKO extends LocalizationBundleBase {
         setValue(L.MSG_API_KEY_CREATED, "지금 키를 복사하세요. 다시 표시되지 않습니다.");
         setValue(L.MSG_REVOKE_API_KEY, "키 %s을(를) 폐기할까요? 이 키를 사용하는 프로그램은 접근할 수 없게 됩니다.");
         setValue(L.MSG_PHRASE_WATCH_RANGE_HINT, "번호를 비워 두면 활성 브랜치 전체를 검사합니다.");
+        setValue(L.MSG_MODEL_NOT_ON_SERVER, "서버가 모델 %s을(를) (더 이상) 제공하지 않습니다. 그대로 두지만 이 모델로 보낸 요청은 실패할 수 있습니다. 목록에서 하나를 고르세요.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "분 시 일 월 요일 - 예: \"0 3 * * *\"은 매일 3:00, \"0 */6 * * *\"은 6시간마다, \"30 2 * * 1\"은 월요일 2:30. @daily, @weekly, @monthly도 사용할 수 있습니다.");

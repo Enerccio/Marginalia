@@ -142,6 +142,14 @@ flowchart LR
 - **On save** (`JpaExtendableRepository.save`) it builds one JSON object: each `@ExtendedAttribute` field of the
   entity under its field name, as a string, and each key of `attributes` with the prefix `attributes_`.
 - **On load** (`@PostLoad`) and after every save it fills the fields and `attributes` back from that JSON.
+- It reads and writes the fields by reflection, so it always works on the entity behind a lazy Hibernate proxy
+  (`Hibernate.unproxy`): the fields of a proxy are its own, empty ones. A book read by id in a transaction that had loaded
+  one of its parts is the proxy of the part's `parentScript`; serialized from the proxy it was saved without its
+  description and attributes (the cleanup of a failed generation did this before 1.9.0).
+- A save that drops several attributes at once and keeps none (the content the entity holds has two or more
+  `attributes_` keys, the new one has none) is logged as an error with the stack of the caller; the save goes on. A
+  plugin removes its own key, never all of them together, so the log points at code that saves an object whose fields
+  were not read from its content.
 
 The column is gzipped when the content is 256 bytes or more (`ExtendableEntity.setExtendedContent`; `getExtendedContent` returns the plain JSON). Rows saved before that are still read and are compressed when the entity is saved again (the application migration `ExtendedContentMigration` does it for all of them). Code that reads the column with SQL gets bytes that are not JSON.
 

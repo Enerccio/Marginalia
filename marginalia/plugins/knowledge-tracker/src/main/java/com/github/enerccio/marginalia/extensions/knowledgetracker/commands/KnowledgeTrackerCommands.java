@@ -473,7 +473,8 @@ public class KnowledgeTrackerCommands extends ManuscriptReadSupport {
             answer(context, proposalRow(proposal));
             return;
         }
-        answer(context, commitRow(proposal, extraction.commit(book.manuscript, proposal)));
+        // applied without a review: logged, so that the tab can take it back (as the State Tracker's command does)
+        answer(context, commitRow(proposal, extraction.commit(book.manuscript, proposal, true)));
     }
 
     @Command(commandName = TIDY, linkedCommand = STATUS, humanNameText = "Tidy the knowledge", async = true,

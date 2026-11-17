@@ -1969,6 +1969,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_API_KEY_CREATED, "请立即复制密钥：它不会再次显示。");
         setValue(L.MSG_REVOKE_API_KEY, "吊销密钥 %s？使用它的程序将失去访问权限。");
         setValue(L.MSG_PHRASE_WATCH_RANGE_HINT, "不填编号即检查整个当前分支。");
+        setValue(L.MSG_MODEL_NOT_ON_SERVER, "服务器（已）不再提供模型 %s。它会被保留，但用它发出的请求可能会失败：请从列表中选择一个。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");

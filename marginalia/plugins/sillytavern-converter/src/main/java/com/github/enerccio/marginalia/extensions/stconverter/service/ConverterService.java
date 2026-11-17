@@ -117,32 +117,38 @@ public class ConverterService {
                 }
                 data.setChat(lines);
             } catch (Exception e) {
-                STConverterLog.get().warn("Can't read the chat of the book: {}", e.getMessage());
-                data.setResourceUuid(null);
+                STConverterLog.get().warn("Can't read the chat of the book: {}", e.getMessage(), e);
+                // the link, the ticks and the merged turns stay as they are stored: a failure to read once (or a resource that is
+                // restored later) must not become a loss at the next save; a new upload or the removal replaces them
                 if (data.isBookSource()) {
-                    // its turn details were read from the resource, they are nothing without it
-                    data.setSourceKind(null);
+                    // its turn details were read from the resource
                     data.setTurns(new ArrayList<>());
-                    data.setJoinedTurns(new ArrayList<>());
                 }
                 data.setChat(new ArrayList<>());
+                data.setUnreadable(true);
             }
         }
         return data;
     }
 
     public void save(Manuscript manuscript, ConverterData data) throws Exception {
-        List<Integer> reviewed = new ArrayList<>();
-        for (int i = 0; i < data.getChat().size(); i++) {
-            if (data.getChat().get(i).isReviewed()) {
-                reviewed.add(i + 1);
+        List<Integer> reviewedTurns;
+        if (data.isUnreadable()) {
+            // the chat (and the turn details of the parts of a book) are not here: the ticks are kept as they are stored
+            reviewedTurns = new ArrayList<>(data.getReviewedTurns());
+        } else {
+            List<Integer> reviewed = new ArrayList<>();
+            for (int i = 0; i < data.getChat().size(); i++) {
+                if (data.getChat().get(i).isReviewed()) {
+                    reviewed.add(i + 1);
+                }
             }
-        }
-        data.setReviewed(reviewed);
-        List<Integer> reviewedTurns = new ArrayList<>();
-        for (int i = 0; i < data.getTurns().size(); i++) {
-            if (data.getTurns().get(i).isReviewed()) {
-                reviewedTurns.add(i + 1);
+            data.setReviewed(reviewed);
+            reviewedTurns = new ArrayList<>();
+            for (int i = 0; i < data.getTurns().size(); i++) {
+                if (data.getTurns().get(i).isReviewed()) {
+                    reviewedTurns.add(i + 1);
+                }
             }
         }
         JsonObject stored = gson.toJsonTree(data).getAsJsonObject();
@@ -183,6 +189,7 @@ public class ConverterService {
             resourceService.link(resource, Manuscript.class, manuscript.getId());
         }
         discardResource(data);
+        data.setUnreadable(false);
         data.setSourceKind(null);
         data.setFileName(name);
         data.setResourceUuid(resource.getUuid());
@@ -240,6 +247,7 @@ public class ConverterService {
             resourceService.link(resource, Manuscript.class, manuscript.getId());
         }
         discardResource(data);
+        data.setUnreadable(false);
         data.setSourceKind(ConverterData.SOURCE_BOOK);
         data.setFileName(StringUtils.defaultIfBlank(source.getName(), name));
         data.setResourceUuid(resource.getUuid());
@@ -257,6 +265,7 @@ public class ConverterService {
      */
     public void removeChat(ConverterData data) throws Exception {
         discardResource(data);
+        data.setUnreadable(false);
         data.setSourceKind(null);
         data.setFileName(null);
         data.setResourceUuid(null);

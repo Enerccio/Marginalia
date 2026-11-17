@@ -106,6 +106,7 @@ public class STConverterLocalization extends PluginLocalizationBundle {
     public static final String ONLY_THE_INSTRUCTIONS = "Only the instructions and the text are kept with this book. Remove the source to load another.";
     public static final String PARTS_LOADED = "%d parts loaded";
     public static final String NOT_A_BACKUP = "Not a backup of a book";
+    public static final String THE_FILE_OF_THE_SOURCE_CAN_T_BE_READ = "The file of the source (%s) can't be read now, see the log of the extension. The book still points to it and it is read again when the book is opened.";
     public static final String BOOK = "Book";
     public static final String LOAD = "Load";
     public static final String THE_PARTS_OF_THE_BRANCH = "The parts of the branch the book is on are loaded.";
@@ -768,6 +769,13 @@ public class STConverterLocalization extends PluginLocalizationBundle {
         de(NOT_A_BACKUP, "Keine Sicherung eines Buchs");
         ko(NOT_A_BACKUP, "책의 백업이 아닙니다");
         it(NOT_A_BACKUP, "Non è un backup di un libro");
+        ja(THE_FILE_OF_THE_SOURCE_CAN_T_BE_READ, "ソースのファイル（%s）を今は読み込めません。拡張機能のログを確認してください。ブックはまだこのファイルを参照しており、次にブックを開くときに再度読み込まれます。");
+        zh(THE_FILE_OF_THE_SOURCE_CAN_T_BE_READ, "暂时无法读取来源文件（%s），请查看扩展日志。书籍仍然指向该文件，下次打开书籍时会再次读取。");
+        fr(THE_FILE_OF_THE_SOURCE_CAN_T_BE_READ, "Le fichier de la source (%s) ne peut pas être lu pour l'instant, voir le journal de l'extension. Le livre y renvoie toujours et il sera relu à la prochaine ouverture du livre.");
+        es(THE_FILE_OF_THE_SOURCE_CAN_T_BE_READ, "El archivo de la fuente (%s) no se puede leer ahora, consulta el registro de la extensión. El libro sigue apuntando a él y se volverá a leer al abrir el libro.");
+        de(THE_FILE_OF_THE_SOURCE_CAN_T_BE_READ, "Die Datei der Quelle (%s) kann gerade nicht gelesen werden, siehe das Log der Erweiterung. Das Buch verweist weiter darauf, sie wird beim nächsten Öffnen des Buchs erneut gelesen.");
+        ko(THE_FILE_OF_THE_SOURCE_CAN_T_BE_READ, "소스 파일(%s)을 지금 읽을 수 없습니다. 확장 로그를 확인하세요. 책은 여전히 이 파일을 가리키며, 책을 다시 열 때 다시 읽습니다.");
+        it(THE_FILE_OF_THE_SOURCE_CAN_T_BE_READ, "Il file della fonte (%s) non può essere letto ora, vedi il log dell'estensione. Il libro vi fa ancora riferimento e verrà riletto alla prossima apertura del libro.");
 
         ja(BOOK, "ブック");
         zh(BOOK, "书籍");

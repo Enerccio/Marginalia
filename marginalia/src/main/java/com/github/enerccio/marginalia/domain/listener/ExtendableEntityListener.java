@@ -9,6 +9,8 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import jakarta.persistence.PostLoad;
+import org.hibernate.Hibernate;
+import org.hibernate.proxy.HibernateProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +30,8 @@ public class ExtendableEntityListener {
     private static final ConcurrentHashMap<Class<?>, AttributesAccessor> accessorMap = new ConcurrentHashMap<>();
 
     public void serialize(ExtendableEntity entity) throws Exception {
-        accessorFor(entity).serialize(entity);
+        ExtendableEntity target = unproxy(entity);
+        accessorFor(target).serialize(target);
     }
 
     /**
@@ -36,12 +39,23 @@ public class ExtendableEntityListener {
      * to fill the column for rows saved before it existed.
      */
     public void updateFulltext(ExtendableEntity entity) throws Exception {
-        accessorFor(entity).updateFulltext(entity);
+        ExtendableEntity target = unproxy(entity);
+        accessorFor(target).updateFulltext(target);
     }
 
     @PostLoad
     public void deserialize(ExtendableEntity entity) throws Exception {
-        accessorFor(entity).deserialize(entity);
+        ExtendableEntity target = unproxy(entity);
+        accessorFor(target).deserialize(target);
+    }
+
+    /**
+     * The entity behind a lazy proxy of Hibernate. The fields are read and written by reflection, and the fields of a proxy are
+     * its own, empty ones (its getters go to the entity): serialized from the proxy, an entity lost all its extended attributes at
+     * the save (a book read by id in a transaction that had loaded one of its parts got the proxy of the part's book).
+     */
+    private static ExtendableEntity unproxy(ExtendableEntity entity) {
+        return entity instanceof HibernateProxy ? (ExtendableEntity) Hibernate.unproxy(entity) : entity;
     }
 
     private static AttributesAccessor accessorFor(ExtendableEntity entity) {
@@ -57,6 +71,10 @@ public class ExtendableEntityListener {
     private static class AttributesAccessor {
         private final Gson gson = new GsonBuilder().serializeNulls().create();
         // format used before ISO-8601: the 'Z' is a literal, values are in the JVM's time zone
+        /** The keys of {@link ExtendableEntity#getAttributes()} in the content. */
+        private static final String ATTRIBUTES_PREFIX = "attributes_";
+        /** How many attributes a save must drop at once to be logged, see {@link #checkAttributesKept}. */
+        private static final int DROPPED_ATTRIBUTES_LOGGED = 2;
         private static final DateTimeFormatter LEGACY_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy.MM.dd'Z'HH:mm:ss.SSS");
 
         private final Class<?> clazz;
@@ -129,8 +147,46 @@ public class ExtendableEntityListener {
                 }
             }
 
+            checkAttributesKept(entity, root);
             entity.setExtendedContent(gson.toJson(root).getBytes(StandardCharsets.UTF_8));
             updateFulltext(entity);
+        }
+
+        /**
+         * The guard against a save that drops all the attributes of an entity (the data of the plugins, the layout of the tabs of a
+         * book) at once: the content the entity holds (as it was read or last saved) has several attributes and the new one none. A
+         * plugin removes its own key, never all of them together, so this is an object whose fields were not read from its content
+         * (the proxy fixed by {@link #unproxy}, or a way not found yet). Only logged, with the stack of the caller, so that the code
+         * that does it shows up in the log; the save goes on (an author who empties a book by hand must be able to).
+         */
+        private void checkAttributesKept(ExtendableEntity entity, JsonObject root) {
+            for (String key : root.keySet()) {
+                if (key.startsWith(ATTRIBUTES_PREFIX)) {
+                    return;
+                }
+            }
+            byte[] before = entity.getExtendedContent();
+            if (before == null || before.length < 2) {
+                return;
+            }
+            int dropped = 0;
+            try {
+                JsonObject old = gson.fromJson(new String(before, StandardCharsets.UTF_8), JsonObject.class);
+                if (old == null) {
+                    return;
+                }
+                for (String key : old.keySet()) {
+                    if (key.startsWith(ATTRIBUTES_PREFIX)) {
+                        dropped++;
+                    }
+                }
+            } catch (RuntimeException e) {
+                return;
+            }
+            if (dropped >= DROPPED_ATTRIBUTES_LOGGED) {
+                log.error("A save of {} {} drops all its {} attributes; the caller:", entity.getClass().getSimpleName(), entity.getId(),
+                        dropped, new IllegalStateException("attributes dropped"));
+            }
         }
 
         /**

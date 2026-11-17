@@ -1961,6 +1961,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_API_KEY_CREATED, "今すぐキーをコピーしてください。二度と表示されません。");
         setValue(L.MSG_REVOKE_API_KEY, "キー %s を失効させますか？このキーを使うプログラムはアクセスできなくなります。");
         setValue(L.MSG_PHRASE_WATCH_RANGE_HINT, "番号を空のままにすると、アクティブなブランチ全体を検索します。");
+        setValue(L.MSG_MODEL_NOT_ON_SERVER, "サーバーはモデル %s を（もう）提供していません。そのまま残しますが、このモデルでのリクエストは失敗する可能性があります。一覧から選んでください。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");

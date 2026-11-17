@@ -192,6 +192,9 @@ public class ConverterView extends VerticalLayout {
 
         try {
             data = service.load(manuscript);
+            if (data.isUnreadable()) {
+                Notification.warning(T.localized(THE_FILE_OF_THE_SOURCE_CAN_T_BE_READ).formatted(StringUtils.defaultString(data.getFileName())));
+            }
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
