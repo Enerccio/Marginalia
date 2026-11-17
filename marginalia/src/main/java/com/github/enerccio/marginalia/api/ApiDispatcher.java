@@ -9,29 +9,12 @@ import com.github.enerccio.marginalia.domain.security.model.ApiScope;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.service.ApiKeyService;
 import com.github.enerccio.marginalia.domain.security.service.ApiKeyService.Principal;
-import com.github.enerccio.marginalia.domain.service.CommandScopes;
-import com.github.enerccio.marginalia.domain.service.CommandService;
-import com.github.enerccio.marginalia.domain.service.ExtensionVerificationException;
-import com.github.enerccio.marginalia.domain.service.FolderService;
-import com.github.enerccio.marginalia.domain.service.ManuscriptService;
-import com.github.enerccio.marginalia.domain.service.OsgiService;
-import com.github.enerccio.marginalia.domain.service.SettingService;
-import com.github.enerccio.marginalia.domain.service.UpdateService;
-import com.github.enerccio.marginalia.domain.service.command.CommandDefinition;
-import com.github.enerccio.marginalia.domain.service.command.CommandException;
-import com.github.enerccio.marginalia.domain.service.command.CommandParameterDefinition;
-import com.github.enerccio.marginalia.domain.service.command.CommandRun;
-import com.github.enerccio.marginalia.domain.service.command.CommandScope;
-import com.github.enerccio.marginalia.domain.service.command.CommandText;
+import com.github.enerccio.marginalia.domain.service.*;
+import com.github.enerccio.marginalia.domain.service.command.*;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
 import com.github.enerccio.marginalia.utils.BuildInfo;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
+import com.google.gson.*;
 import org.apache.commons.lang3.StringUtils;
 import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
@@ -44,18 +27,8 @@ import java.io.File;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TimeZone;
-import java.util.UUID;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.*;
+import java.util.concurrent.*;
 
 /**
  * The HTTP API ({@value #PREFIX}): authenticates the bearer key ({@link ApiKeyService}), makes the request context of its user
@@ -68,7 +41,7 @@ import java.util.concurrent.TimeoutException;
  * command that has not ended within {@code wait} seconds goes on as a run, asked for by {@code GET /runs/<id>}. The administration
  * needs a scope for each part ({@link ApiScope#UPDATE} the update of the installation, {@link ApiScope#EXTENSIONS} the extensions; a key
  * has any combination of scopes), and the services check again that the user
- * is an administrator. See {@code manual/developer/api.md} for the calls.
+ * is an administrator. The page of the API and its OpenAPI description are {@link ApiDocs}. See {@code manual/developer/api.md} for the calls.
  */
 public class ApiDispatcher {
     private static final Logger log = LoggerFactory.getLogger(ApiDispatcher.class);
@@ -152,6 +125,16 @@ public class ApiDispatcher {
         if (path == null) {
             return ApiResponse.error(404, "Not found");
         }
+        if ("GET".equalsIgnoreCase(request.method())) {
+            // the page of the API and the description of its fixed calls need no key (ApiDocs)
+            ApiResponse page = ApiDocs.page(request.path(), path);
+            if (page != null) {
+                return page;
+            }
+            if (path.equals(List.of("openapi.json")) && request.authorization() == null) {
+                return ApiResponse.json(200, ApiDocs.spec(BuildInfo.current().getVersion(), null, this::text));
+            }
+        }
         Principal principal;
         // nobody yet: a session bean asked for meanwhile must not open a session of the container
         try (ApiRequestAttributes anonymous = new ApiRequestAttributes(new User(), new AgenticSessionPoint());
@@ -200,6 +183,9 @@ public class ApiDispatcher {
         }
         if (call.is("GET", "me")) {
             return ApiResponse.json(200, me(call.principal()));
+        }
+        if (call.is("GET", "openapi.json")) {
+            return ApiResponse.json(200, ApiDocs.spec(BuildInfo.current().getVersion(), runnable(call.principal()), this::text));
         }
         if ("admin".equals(call.segment(0))) {
             return routeAdmin(call);
@@ -337,17 +323,19 @@ public class ApiDispatcher {
 
     // --- commands ---
 
-    private JsonArray commands(Principal principal) {
+    /** The commands the key may run, by name, the overloads of each together; empty for a key without READ or WRITE. */
+    private List<List<CommandDefinition>> runnable(Principal principal) {
         Map<String, List<CommandDefinition>> byName = new LinkedHashMap<>();
         for (CommandDefinition definition : commandService.getCommands()) {
             byName.computeIfAbsent(definition.commandName(), _ -> new ArrayList<>()).add(definition);
         }
+        return byName.entrySet().stream().sorted(Map.Entry.comparingByKey()).map(Map.Entry::getValue)
+                .filter(overloads -> mayRun(principal, overloads)).toList();
+    }
+
+    private JsonArray commands(Principal principal) {
         JsonArray list = new JsonArray();
-        byName.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> {
-            List<CommandDefinition> overloads = entry.getValue();
-            if (!mayRun(principal, overloads)) {
-                return;
-            }
+        runnable(principal).forEach(overloads -> {
             CommandDefinition first = overloads.getFirst();
             JsonObject json = new JsonObject();
             json.addProperty("name", first.commandName());

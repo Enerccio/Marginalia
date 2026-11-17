@@ -3,6 +3,9 @@ label: HTTP API
 order: 952
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/api/ApiDispatcher.java
+  - marginalia/src/main/java/com/github/enerccio/marginalia/api/ApiDocs.java
+  - marginalia/src/main/resources/api-docs/index.html
+  - marginalia/src/main/resources/api-docs/api-docs.js
   - marginalia/src/main/java/com/github/enerccio/marginalia/api/ApiRequest.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/api/ApiResponse.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/api/ApiException.java
@@ -108,6 +111,28 @@ command: done in time, the answer is `200` with `{"status": "done", "result": ..
 `{"status": "failed", "error": ...}` with `400`/`403`/`422`/`500`, or `409` `cancelled`; otherwise `202` with
 `{"status": "running", "run": "<id>", "progress": ...}`, and the run is asked for by `GET /runs/<id>`. Runs are kept in memory (an
 hour after they end, lost at a restart), at most 16 running per user.
+
+## The API page and the OpenAPI description
+
+`ApiDocs` describes the API for people. Three things need no key (`ApiDispatcher.handle` answers them before the key is checked):
+
+- `GET /api/v1/` is the page (`src/main/resources/api-docs/index.html`; `/api/v1` without the slash redirects to it, so its files
+  resolve next to it). It is Swagger UI from the `org.webjars:swagger-ui` webjar, served by `ApiDocs.page` from
+  `/api/v1/docs/<file>`: only the files the page uses (`swagger-ui-bundle.js`, `swagger-ui.css`, the favicons) and the page's own
+  `api-docs.js` / `api-docs.css`, everything else is `404`. No CDN: the desktop application may be offline.
+- `GET /api/v1/openapi.json` without an `Authorization` header is the OpenAPI 3.1 document of the fixed calls (`ApiDocs.ROUTES`).
+- With a key, `openapi.json` goes through the usual check (a wrong key is `401`) and also has a `POST /books/{book}/commands/<name>`
+  for every command the key may run (`ApiDispatcher.runnable`, the same rule as `GET /commands`), its arguments a JSON schema per form
+  (`typeSchema`: integer, number, boolean, string, an enum's names; `allowed`, `min`, `max`, the default and whether it is optional),
+  the texts in the language of the key's user.
+
+The page's script keeps the key in a variable (never `localStorage`; `persistAuthorization` is off), fetches `openapi.json` with it,
+points the server of the document at the page's own URL (a context path works) and adds the key to every call of *Try it out*
+(`requestInterceptor`) unless the *Authorize* button of Swagger UI gave one. The validator badge is off (`validatorUrl: null`), so
+the page calls nothing but this server.
+
+`ROUTES` is the list of the calls; `ApiDocsTest` reads the `call.is(...)` of `ApiDispatcher` and fails when the two differ, so a
+new call is documented when it is added. A call's description says its scope and whether it changes the server.
 
 ## Plugins without a full update
 

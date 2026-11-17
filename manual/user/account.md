@@ -327,6 +327,11 @@ list shows your keys with the start of each, when it was made, when it expires a
 **revokes** a key, and the programs that use it lose access at once. A key also stops working when it expires and when an
 administrator takes the permission away. The keys are saved when you make or revoke them, not by the **Save** of the settings.
 
+**The API page**: open `/api/v1/` of your Marginalia in a browser (for example `https://marginalia.example.org/api/v1/`) to see every
+call, its arguments and its answers. Paste a key into **API key** at the top: the page then also lists every command that key may
+run, each with its arguments, and **Try it out** → **Execute** sends the call with that key and shows the answer. The calls are
+real: a command changes your book, an update restarts the server. The page keeps the key only while the tab is open, never on the disk.
+
 For developers, the calls are described in the [developer manual](../developer/api.md).
 
 ### Extension Settings
