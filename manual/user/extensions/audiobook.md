@@ -151,7 +151,8 @@ An actor can have a **tagline**, a short note of your own: the character they pl
 pick the right one. The pickers of an actor (the settings, the cast) show it under the name, and *Voices and clips* under the name in
 the list of actors.
 
-**Preview** next to a voice (in the actor, the settings and the cast) has a few sentences spoken with it (a short one in the language of the voice for a language) and plays it; when the GPU holds something else, the GPU lock loads the speech server first. The arrow beside it offers other samples: **with sounds** (a sigh, a laugh, a gasp) for the models that voice them (Chatterbox Turbo, Higgs Audio v3), and for Higgs every **mood** of the labelling (sad, whispered, sarcastic...). The actors are listed by name.
+**Preview** next to a voice (in the actor, the settings and the cast) has a few sentences spoken with it (a short one in the language of the voice for a language) and plays it; when the GPU holds something else, the GPU lock loads the speech server first. The arrow beside it offers other samples: **with sounds** (a sigh, a laugh, a gasp) for the models that voice them (Chatterbox Turbo, Higgs Audio v3), and for Higgs every **mood** of the labelling (sad, whispered, sarcastic...). When the voice is a clip, the button with the audio file plays the
+**reference clip** itself as it is stored, at once (no speech server, no GPU). The actors are listed by name.
 
 Each sample takes the GPU for itself only. The GPU stays loaded with the speech server after a sample, so the next samples come at once, until a request of the language model (or another server) needs the GPU.
 
@@ -164,8 +165,15 @@ side at first: **Actors**, **Clips** and **Clip**. Drag a tab to put it beside, 
 you left it.
 
 - **Actors**: each with its voice, how many other voices (moods, languages) it has and the worst quality of its clips; add, edit or delete one.
+  The crosshair of an actor whose voice is a clip selects that clip in **Clips**, opening the folders above it.
 - **Clips**: your clips in **folders** (for example one per character), with the **versions** made from a clip under it, each with its length,
   its **quality** and where it is used (actors, with the mood or language, and the narrators of your backends). **Add a clip** uploads one.
+  The folders start closed; what you open stays open while the window is open, also after a change of a clip.
+  - Tick clips (folders have no box) to work on several at once. **Merge** makes a new clip of the ticked clips one after the other, in the order
+    of the list, with no pause between them: a longer reference from short takes of a voice. It is named after them, goes into their folder when
+    they share one and gets their texts when each has one; the ticked clips stay. Wav clips of one format are joined as they are; mp3 clips or wavs
+    of different formats need ffmpeg. **Delete checked** deletes the ticked clips after asking; a clip that is still used stays, and the message
+    names it.
 - **Clip**: the selected clip.
   - **Name** and **Folder**: rename the clip (the file keeps its name) and put it into a folder, a new one by typing its name. A version stays in the
     folder of the clip it was made from, and says what it was made from and how.

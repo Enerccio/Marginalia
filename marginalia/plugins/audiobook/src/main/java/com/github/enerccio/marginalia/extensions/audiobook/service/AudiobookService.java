@@ -771,6 +771,65 @@ public class AudiobookService {
         }
     }
 
+    /**
+     * A new clip (an original, not a version) of the clips one after the other ({@code ClipMerge}). It is named after them and goes into their folder
+     * when they share one; its words are theirs when every clip has them. The clips themselves stay.
+     *
+     * @param uuids the clips in the order they are joined
+     */
+    public Clip mergeClips(List<String> uuids) throws BackendException {
+        List<Clip> known = clips();
+        List<Clip> parts = new ArrayList<>();
+        List<byte[]> audio = new ArrayList<>();
+        for (String uuid : uuids) {
+            Clip clip = known.stream().filter(c -> c.uuid().equals(uuid)).findFirst().orElse(null);
+            byte[] bytes = clip == null ? null : clipBytes(uuid);
+            if (bytes == null) {
+                throw new BackendException("A clip is gone");
+            }
+            parts.add(clip);
+            audio.add(bytes);
+        }
+        byte[] merged = com.github.enerccio.marginalia.extensions.audiobook.audio.ClipMerge.merge(audio);
+        String name = parts.stream().map(Clip::name).collect(java.util.stream.Collectors.joining(" + "));
+        if (name.length() > 120) {
+            name = name.substring(0, 119) + "…";
+        }
+        String file = name.replaceAll("[\\\\/:*?\"<>|\\p{Cntrl}]", "_").replaceAll("(?i)\\.(wav|mp3)", "");
+        Clip copy = uploadClip(file + ".wav", merged, "audio/wav");
+        String folder = parts.stream().map(Clip::folder).distinct().count() == 1 ? parts.getFirst().folder() : null;
+        List<String> texts = parts.stream().map(c -> clipText(c.uuid())).toList();
+        String text = texts.stream().anyMatch(Objects::isNull) ? null : String.join(" ", texts);
+        String clipName = name;
+        changeSettings(settings -> {
+            settings.renameClip(copy.uuid(), clipName);
+            if (folder != null) {
+                settings.moveClip(copy.uuid(), folder);
+            }
+            if (text != null) {
+                settings.setClipText(copy.uuid(), text);
+            }
+        });
+        return clips().stream().filter(c -> c.uuid().equals(copy.uuid())).findFirst().orElse(copy);
+    }
+
+    /**
+     * Deletes the clips nobody uses ({@link #deleteClip}).
+     *
+     * @return the clips that were left because an actor or a backend uses them
+     */
+    public List<Clip> deleteClips(List<String> uuids) {
+        List<Clip> known = clips();
+        List<Clip> used = new ArrayList<>();
+        for (String uuid : uuids) {
+            Clip clip = known.stream().filter(c -> c.uuid().equals(uuid)).findFirst().orElse(null);
+            if (clip != null && !deleteClip(uuid) && !clipUses(uuid).isEmpty()) {
+                used.add(clip);
+            }
+        }
+        return used;
+    }
+
     /** Whether this installation can make shifted clips (ffmpeg with the {@code rubberband} filter). */
     public static boolean canMakeShiftedClips() {
         return Ffmpeg.hasFilter("rubberband");

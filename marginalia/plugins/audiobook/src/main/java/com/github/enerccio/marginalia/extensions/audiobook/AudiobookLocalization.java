@@ -439,6 +439,19 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
     public static final String BRIGHTER = "brighter";
     public static final String TAGLINE = "Tagline";
     public static final String A_CHARACTER_THEY_PLAY_OR_ANY_TAG = "A character they play, or any tag";
+    public static final String SHOW_THE_CLIP = "Show the clip";
+    public static final String LISTEN_TO_THE_REFERENCE_CLIP = "Listen to the reference clip";
+    public static final String THE_VOICE_IS_NOT_A_CLIP = "This voice is not a clip: there is no recording to play.";
+    public static final String MERGE = "Merge";
+    public static final String MERGE_HELP = "A new clip of the checked clips one after the other, in the order of the list. The checked clips stay.";
+    public static final String DELETE_CHECKED = "Delete checked";
+    public static final String CHECK_TWO_CLIPS_OR_MORE = "Check two clips or more.";
+    public static final String CHECK_A_CLIP_FIRST = "Check a clip first.";
+    public static final String THE_CLIPS_ARE_MERGED = "The clips are merged into %s.";
+    public static final String THE_CLIPS_COULD_NOT_BE_MERGED = "The clips could not be merged: %s";
+    public static final String DELETE_THE_CHECKED_CLIPS = "Delete the checked clips";
+    public static final String THE_CLIPS_ARE_DELETED = "%d clips are deleted.";
+    public static final String THESE_CLIPS_ARE_USED_AND_STAY = "These clips are used and stay: %s";
 
     @Override
     protected void loadKeys() {
@@ -3632,5 +3645,109 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
         de(A_CHARACTER_THEY_PLAY_OR_ANY_TAG, "Eine gesprochene Figur oder ein beliebiger Tag");
         ko(A_CHARACTER_THEY_PLAY_OR_ANY_TAG, "맡은 캐릭터 또는 아무 태그");
         it(A_CHARACTER_THEY_PLAY_OR_ANY_TAG, "Un personaggio che interpreta, o qualsiasi etichetta");
+
+        ja(SHOW_THE_CLIP, "クリップを表示");
+        zh(SHOW_THE_CLIP, "显示片段");
+        fr(SHOW_THE_CLIP, "Afficher l'extrait");
+        es(SHOW_THE_CLIP, "Mostrar el clip");
+        de(SHOW_THE_CLIP, "Clip anzeigen");
+        ko(SHOW_THE_CLIP, "클립 보기");
+        it(SHOW_THE_CLIP, "Mostra la clip");
+
+        ja(LISTEN_TO_THE_REFERENCE_CLIP, "参照クリップを聴く");
+        zh(LISTEN_TO_THE_REFERENCE_CLIP, "试听参考片段");
+        fr(LISTEN_TO_THE_REFERENCE_CLIP, "Écouter l'extrait de référence");
+        es(LISTEN_TO_THE_REFERENCE_CLIP, "Escuchar el clip de referencia");
+        de(LISTEN_TO_THE_REFERENCE_CLIP, "Referenzclip anhören");
+        ko(LISTEN_TO_THE_REFERENCE_CLIP, "참조 클립 듣기");
+        it(LISTEN_TO_THE_REFERENCE_CLIP, "Ascolta la clip di riferimento");
+
+        ja(THE_VOICE_IS_NOT_A_CLIP, "この声はクリップではありません。再生する録音がありません。");
+        zh(THE_VOICE_IS_NOT_A_CLIP, "这个声音不是片段：没有可播放的录音。");
+        fr(THE_VOICE_IS_NOT_A_CLIP, "Cette voix n'est pas un extrait : il n'y a pas d'enregistrement à lire.");
+        es(THE_VOICE_IS_NOT_A_CLIP, "Esta voz no es un clip: no hay grabación que reproducir.");
+        de(THE_VOICE_IS_NOT_A_CLIP, "Diese Stimme ist kein Clip: Es gibt keine Aufnahme zum Abspielen.");
+        ko(THE_VOICE_IS_NOT_A_CLIP, "이 목소리는 클립이 아닙니다. 재생할 녹음이 없습니다.");
+        it(THE_VOICE_IS_NOT_A_CLIP, "Questa voce non è una clip: non c'è una registrazione da riprodurre.");
+
+        ja(MERGE, "結合");
+        zh(MERGE, "合并");
+        fr(MERGE, "Fusionner");
+        es(MERGE, "Unir");
+        de(MERGE, "Zusammenfügen");
+        ko(MERGE, "합치기");
+        it(MERGE, "Unisci");
+
+        ja(MERGE_HELP, "チェックしたクリップをリストの順に続けた新しいクリップを作ります。元のクリップは残ります。");
+        zh(MERGE_HELP, "按列表顺序把勾选的片段依次连接成一个新片段。勾选的片段保留。");
+        fr(MERGE_HELP, "Un nouvel extrait fait des extraits cochés à la suite, dans l'ordre de la liste. Les extraits cochés restent.");
+        es(MERGE_HELP, "Un clip nuevo con los clips marcados uno tras otro, en el orden de la lista. Los clips marcados se quedan.");
+        de(MERGE_HELP, "Ein neuer Clip aus den angehakten Clips hintereinander, in der Reihenfolge der Liste. Die angehakten Clips bleiben.");
+        ko(MERGE_HELP, "체크한 클립을 목록 순서대로 이어 붙인 새 클립을 만듭니다. 체크한 클립은 그대로 남습니다.");
+        it(MERGE_HELP, "Una nuova clip con le clip spuntate una dopo l'altra, nell'ordine dell'elenco. Le clip spuntate restano.");
+
+        ja(DELETE_CHECKED, "チェックしたものを削除");
+        zh(DELETE_CHECKED, "删除勾选项");
+        fr(DELETE_CHECKED, "Supprimer la sélection");
+        es(DELETE_CHECKED, "Eliminar los marcados");
+        de(DELETE_CHECKED, "Angehakte löschen");
+        ko(DELETE_CHECKED, "체크한 항목 삭제");
+        it(DELETE_CHECKED, "Elimina le spuntate");
+
+        ja(CHECK_TWO_CLIPS_OR_MORE, "クリップを2つ以上チェックしてください。");
+        zh(CHECK_TWO_CLIPS_OR_MORE, "请勾选两个或更多片段。");
+        fr(CHECK_TWO_CLIPS_OR_MORE, "Cochez au moins deux extraits.");
+        es(CHECK_TWO_CLIPS_OR_MORE, "Marca dos clips o más.");
+        de(CHECK_TWO_CLIPS_OR_MORE, "Hake zwei Clips oder mehr an.");
+        ko(CHECK_TWO_CLIPS_OR_MORE, "클립을 두 개 이상 체크하세요.");
+        it(CHECK_TWO_CLIPS_OR_MORE, "Spunta due clip o più.");
+
+        ja(CHECK_A_CLIP_FIRST, "先にクリップをチェックしてください。");
+        zh(CHECK_A_CLIP_FIRST, "请先勾选一个片段。");
+        fr(CHECK_A_CLIP_FIRST, "Cochez d'abord un extrait.");
+        es(CHECK_A_CLIP_FIRST, "Marca primero un clip.");
+        de(CHECK_A_CLIP_FIRST, "Hake zuerst einen Clip an.");
+        ko(CHECK_A_CLIP_FIRST, "먼저 클립을 체크하세요.");
+        it(CHECK_A_CLIP_FIRST, "Spunta prima una clip.");
+
+        ja(THE_CLIPS_ARE_MERGED, "クリップを %s に結合しました。");
+        zh(THE_CLIPS_ARE_MERGED, "片段已合并为 %s。");
+        fr(THE_CLIPS_ARE_MERGED, "Les extraits sont fusionnés dans %s.");
+        es(THE_CLIPS_ARE_MERGED, "Los clips se han unido en %s.");
+        de(THE_CLIPS_ARE_MERGED, "Die Clips sind zu %s zusammengefügt.");
+        ko(THE_CLIPS_ARE_MERGED, "클립을 %s(으)로 합쳤습니다.");
+        it(THE_CLIPS_ARE_MERGED, "Le clip sono unite in %s.");
+
+        ja(THE_CLIPS_COULD_NOT_BE_MERGED, "クリップを結合できませんでした: %s");
+        zh(THE_CLIPS_COULD_NOT_BE_MERGED, "无法合并片段：%s");
+        fr(THE_CLIPS_COULD_NOT_BE_MERGED, "Les extraits n'ont pas pu être fusionnés : %s");
+        es(THE_CLIPS_COULD_NOT_BE_MERGED, "No se pudieron unir los clips: %s");
+        de(THE_CLIPS_COULD_NOT_BE_MERGED, "Die Clips konnten nicht zusammengefügt werden: %s");
+        ko(THE_CLIPS_COULD_NOT_BE_MERGED, "클립을 합칠 수 없습니다: %s");
+        it(THE_CLIPS_COULD_NOT_BE_MERGED, "Non è stato possibile unire le clip: %s");
+
+        ja(DELETE_THE_CHECKED_CLIPS, "チェックしたクリップを削除");
+        zh(DELETE_THE_CHECKED_CLIPS, "删除勾选的片段");
+        fr(DELETE_THE_CHECKED_CLIPS, "Supprimer les extraits cochés");
+        es(DELETE_THE_CHECKED_CLIPS, "Eliminar los clips marcados");
+        de(DELETE_THE_CHECKED_CLIPS, "Angehakte Clips löschen");
+        ko(DELETE_THE_CHECKED_CLIPS, "체크한 클립 삭제");
+        it(DELETE_THE_CHECKED_CLIPS, "Elimina le clip spuntate");
+
+        ja(THE_CLIPS_ARE_DELETED, "%d 個のクリップを削除しました。");
+        zh(THE_CLIPS_ARE_DELETED, "已删除 %d 个片段。");
+        fr(THE_CLIPS_ARE_DELETED, "%d extraits sont supprimés.");
+        es(THE_CLIPS_ARE_DELETED, "Se han eliminado %d clips.");
+        de(THE_CLIPS_ARE_DELETED, "%d Clips sind gelöscht.");
+        ko(THE_CLIPS_ARE_DELETED, "클립 %d개를 삭제했습니다.");
+        it(THE_CLIPS_ARE_DELETED, "%d clip sono state eliminate.");
+
+        ja(THESE_CLIPS_ARE_USED_AND_STAY, "これらのクリップは使用中のため残ります: %s");
+        zh(THESE_CLIPS_ARE_USED_AND_STAY, "这些片段正在使用，予以保留：%s");
+        fr(THESE_CLIPS_ARE_USED_AND_STAY, "Ces extraits sont utilisés et restent : %s");
+        es(THESE_CLIPS_ARE_USED_AND_STAY, "Estos clips están en uso y se quedan: %s");
+        de(THESE_CLIPS_ARE_USED_AND_STAY, "Diese Clips werden verwendet und bleiben: %s");
+        ko(THESE_CLIPS_ARE_USED_AND_STAY, "사용 중이라 남은 클립: %s");
+        it(THESE_CLIPS_ARE_USED_AND_STAY, "Queste clip sono in uso e restano: %s");
     }
 }

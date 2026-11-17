@@ -17,6 +17,7 @@ import com.github.enerccio.marginalia.ui.widgets.TabDock;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -48,7 +49,8 @@ import static com.github.enerccio.marginalia.extensions.audiobook.AudiobookLocal
  * settings of the user. The clips are a tree of folders, clips and their versions (copies cleaned with ffmpeg or with a cleanup preset on ComfyUI); the
  * Clip tab shows the selected clip: its name and folder, its quality ({@link ClipQuality}), where it is used, its words, and what can be done with it
  * (play, clean, use a version in place of its original, replace, delete when unused). A voice model copies the recording, so a clip with background
- * sound is marked and the user is told how to clean it.
+ * sound is marked and the user is told how to clean it. The folders are shown closed and stay as the user opened them while the window is open; a
+ * button of an actor shows the clip of its voice. Checked clips can be merged into a new clip or deleted together.
  */
 public class VoicesDialog extends Dialog {
 
@@ -74,6 +76,14 @@ public class VoicesDialog extends Dialog {
     private final TabDock dock = new TabDock();
     private AudiobookSettings settings;
     private List<AudiobookService.Clip> all = List.of();
+    /** The rows the user opened ({@link #key}); they stay open when the tree is filled again. */
+    private final Set<String> expanded = new HashSet<>();
+    /** The checked clips, by uuid. */
+    private final Set<String> checked = new HashSet<>();
+    private TreeData<Node> tree = new TreeData<>();
+    private Map<String, Node> nodes = Map.of();
+    private final Button merge = new Button(T.localized(MERGE), Solid.OBJECT_GROUP.create(), e -> merge());
+    private final Button deleteChecked = new Button(T.localized(DELETE_CHECKED), Solid.TRASH.create(), e -> deleteChecked());
 
     // the Clip tab
     private final Span clipTitle = new Span();
@@ -139,6 +149,7 @@ public class VoicesDialog extends Dialog {
     // --- the tabs ---
 
     private Component actorsTab() {
+        actors.addComponentColumn(this::showClipButton).setFlexGrow(0).setWidth("3em");
         actors.addComponentColumn(ActorDialog::nameWithTagline).setHeader(T.localized(NAME)).setFlexGrow(2);
         actors.addColumn(a -> voiceLabel(a.getVoice())).setHeader(T.localized(VOICE)).setFlexGrow(2);
         actors.addColumn(a -> a.getVariants().size()).setHeader(T.localized(OTHER_VOICES)).setFlexGrow(0).setAutoWidth(true);
@@ -157,6 +168,7 @@ public class VoicesDialog extends Dialog {
     }
 
     private Component clipsTab() {
+        clips.addComponentColumn(this::checkbox).setFlexGrow(0).setWidth("3.5em");
         clips.addHierarchyColumn(this::nodeName).setHeader(T.localized(NAME)).setFlexGrow(3);
         clips.addColumn(n -> n.clip() == null ? "" : quality(n.clip().uuid()).map(q -> "%.0f s".formatted(q.seconds())).orElse(""))
                 .setHeader(T.localized(LENGTH)).setFlexGrow(0).setAutoWidth(true);
@@ -164,6 +176,16 @@ public class VoicesDialog extends Dialog {
                 .setHeader(T.localized(QUALITY)).setFlexGrow(1);
         clips.addColumn(n -> n.clip() == null ? "" : usedBy(n.clip().uuid())).setHeader(T.localized(USED_BY)).setFlexGrow(2);
         clips.setSizeFull();
+        clips.addExpandListener(e -> {
+            if (!binding) {
+                e.getItems().forEach(n -> expanded.add(key(n)));
+            }
+        });
+        clips.addCollapseListener(e -> {
+            if (!binding) {
+                e.getItems().forEach(n -> expanded.remove(key(n)));
+            }
+        });
         clips.asSingleSelect().addValueChangeListener(e -> {
             if (!binding) {
                 showClip(e.getValue() == null ? null : e.getValue().clip());
@@ -175,7 +197,48 @@ public class VoicesDialog extends Dialog {
         upload.setDropAllowed(false);
         upload.setMaxFiles(1);
         upload.setUploadButton(new Button(T.localized(ADD_A_CLIP), Solid.UPLOAD.create()));
-        return panel(bar(new H4(T.localized(CLIPS)), upload), clips);
+        merge.setTooltipText(T.localized(MERGE_HELP));
+        for (Button b : List.of(merge, deleteChecked)) {
+            b.setThemeName("tertiary small");
+        }
+        return panel(bar(new H4(T.localized(CLIPS)), upload, merge, deleteChecked), clips);
+    }
+
+    /** A box to check a clip with; a folder has none. */
+    private Component checkbox(Node node) {
+        if (node.clip() == null) {
+            return new Span();
+        }
+        String uuid = node.clip().uuid();
+        Checkbox box = new Checkbox(checked.contains(uuid));
+        box.setAriaLabel(node.clip().label());
+        box.addValueChangeListener(e -> {
+            if (Boolean.TRUE.equals(e.getValue())) {
+                checked.add(uuid);
+            } else {
+                checked.remove(uuid);
+            }
+            updateCheckedButtons();
+        });
+        return box;
+    }
+
+    /** A button that shows the clip of the actor's voice in Clips; none when the voice is not a clip. */
+    private Component showClipButton(Actor actor) {
+        String voice = actor.getVoice();
+        String uuid = voice != null && voice.startsWith("clip:") ? voice.substring("clip:".length()) : null;
+        if (uuid == null || clip(uuid) == null) {
+            return new Span();
+        }
+        Button show = new Button(Solid.LOCATION_CROSSHAIRS.create(), e -> {
+            selectClip(uuid);
+            // Clips last: the row is what the user asked to see when the two tabs share a sheet
+            dock.select(CLIPS_TAB);
+        });
+        show.setThemeName("tertiary-inline small icon");
+        show.setTooltipText(T.localized(SHOW_THE_CLIP));
+        show.setAriaLabel(T.localized(SHOW_THE_CLIP));
+        return show;
     }
 
     private Component clipTab() {
@@ -259,7 +322,12 @@ public class VoicesDialog extends Dialog {
             settings.getActors().stream().filter(a -> a.getId().equals(pickedActor.getId())).findFirst().ifPresent(actors::select);
         }
         all = service.clips();
+        Set<String> uuids = all.stream().map(AudiobookService.Clip::uuid).collect(Collectors.toSet());
+        checked.retainAll(uuids);
         fillTree(picked == null ? null : picked.uuid());
+        // the actors' buttons show the clips that are there now
+        actors.getDataProvider().refreshAll();
+        updateCheckedButtons();
         updateActorButtons();
         CleanupConfig cleanup = settings.cleanup();
         List<CleanupPreset> presets = cleanup == null ? List.of() : cleanup.getPresets();
@@ -317,12 +385,19 @@ public class VoicesDialog extends Dialog {
                 progress = true;
             }
         }
+        tree = data;
+        nodes = byUuid;
         binding = true;
         try {
             clips.setDataProvider(new TreeDataProvider<>(data));
-            clips.expandRecursively(data.getRootItems(), 3);
+            // closed, except what the user opened
+            List<Node> open = new ArrayList<>();
+            collect(data, data.getRootItems(), open);
+            open.removeIf(n -> !expanded.contains(key(n)));
+            clips.expand(open);
             Node picked = select == null ? null : byUuid.get(select);
             if (picked != null) {
+                reveal(picked);
                 clips.select(picked);
             } else {
                 clips.deselectAll();
@@ -330,6 +405,46 @@ public class VoicesDialog extends Dialog {
         } finally {
             binding = false;
         }
+    }
+
+    /** The rows under {@code items}, in the order of the tree. */
+    private static void collect(TreeData<Node> data, List<Node> items, List<Node> into) {
+        for (Node item : items) {
+            into.add(item);
+            collect(data, data.getChildren(item), into);
+        }
+    }
+
+    /** What a row is remembered by: a folder by its name, a clip by its uuid. */
+    private static String key(Node node) {
+        if (node.clip() != null) {
+            return "clip:" + node.clip().uuid();
+        }
+        return node.folder() == null ? "no-folder" : "folder:" + node.folder();
+    }
+
+    /** Opens the rows above a row, so it can be seen. */
+    private void reveal(Node node) {
+        List<Node> above = new ArrayList<>();
+        for (Node parent = tree.getParent(node); parent != null; parent = tree.getParent(parent)) {
+            above.add(parent);
+            expanded.add(key(parent));
+        }
+        if (!above.isEmpty()) {
+            clips.expand(above);
+        }
+    }
+
+    /** The checked clips in the order of the tree. */
+    private List<String> orderedChecked() {
+        List<Node> rows = new ArrayList<>();
+        collect(tree, tree.getRootItems(), rows);
+        return rows.stream().filter(n -> n.clip() != null && checked.contains(n.clip().uuid())).map(n -> n.clip().uuid()).toList();
+    }
+
+    private void updateCheckedButtons() {
+        merge.setEnabled(checked.size() >= 2);
+        deleteChecked.setEnabled(!checked.isEmpty());
     }
 
     private String nodeName(Node node) {
@@ -509,10 +624,65 @@ public class VoicesDialog extends Dialog {
         }
     }
 
+    /** Selects the clip in Clips (the folders above it open), and shows it in the Clip tab. */
     private void selectClip(String uuid) {
         fillTree(uuid);
+        Node node = nodes.get(uuid);
+        if (node != null) {
+            clips.scrollToItem(node);
+        }
         showClip(selected());
         dock.select(CLIP_TAB);
+    }
+
+    /** A new clip of the checked clips, one after the other in the order of the tree. */
+    private void merge() {
+        List<String> uuids = orderedChecked();
+        if (uuids.size() < 2) {
+            Notification.warning(T.localized(CHECK_TWO_CLIPS_OR_MORE));
+            return;
+        }
+        try {
+            AudiobookService.Clip merged = service.mergeClips(uuids);
+            checked.clear();
+            refresh();
+            selectClip(merged.uuid());
+            Notification.success(T.localized(THE_CLIPS_ARE_MERGED).formatted(merged.label()));
+            warnAbout(merged.name(), quality(merged.uuid()).orElse(null));
+        } catch (BackendException | RuntimeException e) {
+            AudiobookLog.get().warn("The clips could not be merged: {}", e.getMessage(), e);
+            Notification.error(T.localized(THE_CLIPS_COULD_NOT_BE_MERGED).formatted(e.getMessage()));
+        }
+    }
+
+    /** Deletes the checked clips nobody uses, after asking; the used ones stay and are named. */
+    private void deleteChecked() {
+        List<String> uuids = orderedChecked();
+        if (uuids.isEmpty()) {
+            Notification.warning(T.localized(CHECK_A_CLIP_FIRST));
+            return;
+        }
+        ConfirmDialog confirm = new ConfirmDialog();
+        confirm.setHeader(T.localized(DELETE_THE_CHECKED_CLIPS));
+        confirm.setText(uuids.stream().map(this::clip).filter(Objects::nonNull).map(AudiobookService.Clip::label).collect(Collectors.joining(", ")));
+        confirm.setCancelable(true);
+        confirm.setConfirmText(T.localized(DELETE));
+        confirm.addConfirmListener(e -> {
+            List<AudiobookService.Clip> used = service.deleteClips(uuids);
+            Set<String> left = service.clips().stream().map(AudiobookService.Clip::uuid).collect(Collectors.toSet());
+            long deleted = uuids.stream().filter(u -> !left.contains(u)).count();
+            uuids.stream().filter(u -> !left.contains(u)).forEach(qualities::remove);
+            checked.clear();
+            if (deleted > 0) {
+                Notification.success(T.localized(THE_CLIPS_ARE_DELETED).formatted(deleted));
+            }
+            if (!used.isEmpty()) {
+                Notification.error(T.localized(THESE_CLIPS_ARE_USED_AND_STAY).formatted(used.stream().map(AudiobookService.Clip::label)
+                        .collect(Collectors.joining(", "))));
+            }
+            refresh();
+        });
+        confirm.open();
     }
 
     /** Tells about a clip that is not clean, with the advice to clean it. */

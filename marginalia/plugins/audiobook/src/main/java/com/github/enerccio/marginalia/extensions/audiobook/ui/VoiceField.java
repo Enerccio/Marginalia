@@ -67,6 +67,7 @@ public class VoiceField extends CustomField<String> {
         upload.setUploadButton(new Button(T.localized(ADD_A_CLIP), Solid.UPLOAD.create()));
 
         VoicePreview preview = new VoicePreview(choices.service(), this::getValue, () -> language.get());
+        addValueChangeListener(e -> preview.refresh());
         HorizontalLayout row = new HorizontalLayout(box, upload, preview);
         row.setAlignItems(FlexComponent.Alignment.CENTER);
         row.setPadding(false);

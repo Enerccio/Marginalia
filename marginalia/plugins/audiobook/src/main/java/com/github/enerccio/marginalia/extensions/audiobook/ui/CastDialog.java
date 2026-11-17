@@ -124,7 +124,9 @@ public class CastDialog extends Dialog {
 
     /** A button that has the voice of the actor of the box spoken. */
     private VoicePreview previewOf(Select<Actor> select) {
-        return new VoicePreview(service, () -> select.getValue() == null ? "" : select.getValue().getVoice(), () -> null);
+        VoicePreview preview = new VoicePreview(service, () -> select.getValue() == null ? "" : select.getValue().getVoice(), () -> null);
+        select.addValueChangeListener(e -> preview.refresh());
+        return preview;
     }
 
     private static Select<Actor> actorSelect(String label) {
@@ -268,6 +270,7 @@ public class CastDialog extends Dialog {
         private final Select<Age> age = new Select<>();
         private final Span variation = new Span();
         private HorizontalLayout layout;
+        private VoicePreview preview;
 
         ExtraRow(CastExtra extra) {
             this.extra = extra;
@@ -292,7 +295,7 @@ public class CastDialog extends Dialog {
                 showVariation();
             });
             variation.addClassName(CssStyles.HINT_TEXT);
-            VoicePreview preview = new VoicePreview(service, () -> {
+            preview = new VoicePreview(service, () -> {
                 VoiceRef voice = voiceOf(extra);
                 return voice == null ? "" : voice.toString();
             }, () -> null);
@@ -318,6 +321,9 @@ public class CastDialog extends Dialog {
             String text = voice == null || voice.shift() == null ? T.localized(THE_BASE_VOICE)
                     : voice.shift().describe(T.localized(FORMANTS), T.localized(TEMPO), T.localized(DARKER), T.localized(BRIGHTER));
             variation.setText(T.localized(VARIATION_OF).formatted(text));
+            if (preview != null) {
+                preview.refresh();
+            }
         }
     }
 
