@@ -1,14 +1,14 @@
 package com.github.enerccio.marginalia.bound;
 
 import com.github.enerccio.marginalia.domain.security.model.User;
-import com.github.enerccio.marginalia.ui.workspace.Workspace;
+import com.github.enerccio.marginalia.ui.workspace.BaseWorkspace;
 import com.vaadin.flow.component.UI;
 
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ApplicationPoint {
 
-    protected final ConcurrentHashMap<UI, Workspace> uis;
+    protected final ConcurrentHashMap<UI, BaseWorkspace> uis;
     protected final ConcurrentHashMap<UI, User> uiUsers;
 
     public ApplicationPoint() {
@@ -20,7 +20,7 @@ public class ApplicationPoint {
      * Registers the UI with its workspace (may be null) and user; the entries are removed when the UI is detached,
      * otherwise the closed UIs would stay referenced forever.
      */
-    public void register(UI ui, Workspace workspace, User user) {
+    public void register(UI ui, BaseWorkspace workspace, User user) {
         if (workspace != null)
             uis.put(ui, workspace);
         uiUsers.put(ui, user);
@@ -30,7 +30,7 @@ public class ApplicationPoint {
         });
     }
 
-    public ConcurrentHashMap<UI, Workspace> getUIs() {
+    public ConcurrentHashMap<UI, BaseWorkspace> getUIs() {
         return uis;
     }
 

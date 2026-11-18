@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * shared by all the threads of the work: {@code ThreadCopyRequestAttributes.create()} hands it on as it is.
  * <p>
  * The session scope starts with the {@code user} (a copy of the user, as the login makes it) and the {@code sessionPoint} (an
- * {@link AgenticSessionPoint}: no workspace, the book is held directly). Any other session bean is created on first use, empty, as in
+ * {@link SessionPoint} without a workspace; the application gives an {@code AgenticSessionPoint}, which holds the book directly). Any other session bean is created on first use, empty, as in
  * a new browser session.
  */
 public abstract class DetachedRequestAttributes implements RequestAttributes, AutoCloseable {
@@ -24,6 +24,8 @@ public abstract class DetachedRequestAttributes implements RequestAttributes, Au
      * {@code user}.
      */
     public static final String USER_TARGET_NAME = "scopedTarget.user";
+    /** The name of the target of the session scoped {@code sessionPoint} bean. */
+    public static final String SESSION_POINT_TARGET_NAME = "scopedTarget.sessionPoint";
 
     private final String sessionId;
     private final Object mutex = new Object();
@@ -37,7 +39,7 @@ public abstract class DetachedRequestAttributes implements RequestAttributes, Au
      * @param user         the user, loaded from the database; the {@code user} bean is a copy of it
      * @param sessionPoint where the commands find the book
      */
-    protected DetachedRequestAttributes(String kind, User user, AgenticSessionPoint sessionPoint) {
+    protected DetachedRequestAttributes(String kind, User user, SessionPoint sessionPoint) {
         if (user == null || sessionPoint == null) {
             throw new IllegalArgumentException("The user and the session point are needed");
         }
@@ -49,14 +51,14 @@ public abstract class DetachedRequestAttributes implements RequestAttributes, Au
         snapshot.setFullName(user.getFullName());
         snapshot.setAdmin(user.isAdmin());
         sessionAttributes.put(USER_TARGET_NAME, snapshot);
-        sessionAttributes.put(AgenticSessionPoint.SCOPED_TARGET_NAME, sessionPoint);
+        sessionAttributes.put(SESSION_POINT_TARGET_NAME, sessionPoint);
     }
 
     /**
      * The session point of this context.
      */
-    public AgenticSessionPoint getSessionPoint() {
-        return (AgenticSessionPoint) sessionAttributes.get(AgenticSessionPoint.SCOPED_TARGET_NAME);
+    public SessionPoint getSessionPoint() {
+        return (SessionPoint) sessionAttributes.get(SESSION_POINT_TARGET_NAME);
     }
 
     /**
@@ -69,7 +71,7 @@ public abstract class DetachedRequestAttributes implements RequestAttributes, Au
         run(requestCallbacks);
         run(sessionCallbacks);
         requestAttributes.clear();
-        sessionAttributes.keySet().removeIf(name -> !name.equals(USER_TARGET_NAME) && !name.equals(AgenticSessionPoint.SCOPED_TARGET_NAME));
+        sessionAttributes.keySet().removeIf(name -> !name.equals(USER_TARGET_NAME) && !name.equals(SESSION_POINT_TARGET_NAME));
     }
 
     private static void run(Map<String, Runnable> callbacks) {

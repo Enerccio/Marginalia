@@ -64,7 +64,8 @@ public class Main extends LoginCheckRoute implements LLMInteract {
             locals = {@APILocals(name = "workspace", type = Workspace.class)})
     @Override
     public List<LLMInteract> getLLMChildren(boolean deep) {
-        Workspace workspace = applicationPoint.getUIs().get(UI.getCurrent());
+        // the application registers its own workspaces (or none, for a reader)
+        Workspace workspace = (Workspace) applicationPoint.getUIs().get(UI.getCurrent());
         return workspace == null ? List.of() : List.of(workspace);
     }
 

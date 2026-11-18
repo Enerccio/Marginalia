@@ -89,10 +89,11 @@ classes; each item is a registration point or an interface in place of a hard re
        Done in a smaller form: `UsageContext.open(BaseEntity)`, `UsageListener` beans (the app's `BookUsageCounter`),
        and `RequestActivity` (what `ActivityTracker` extends) for the time on the wire. The context is still one id;
        a kind (assistant, role) comes with Joi's need.
-4. [ ] **Generation listener and views in platform signatures.** `GenerationListener` (names `ChatMessage`),
+4. [x] **Generation listener and views in platform signatures.** `GenerationListener` (names `ChatMessage`),
        `GenerationView`, `PromptField`, `PassageKind`, `IPCService`: decide per class; most are app interfaces that
        sit in `domain.service` only by package and simply go to `app` in the map, not leaks to fix.
-5. [ ] **Commands.** (framework done, `CommandBar` left) `CommandScope` / `CommandScopesImpl` list the story entities: scopes become registered by the
+       Done by the map: none of them is named by a platform class any more.
+5. [x] **Commands.** `CommandScope` / `CommandScopesImpl` list the story entities: scopes become registered by the
        app; the framework (`CommandService`, `CommandContext`, `CommandBar`) stays generic. `utils.CommandUtils` goes
        to the app.
        Done: the built-in suites are registered by the app's `BuiltInCommands` bean, not `CommandServiceImpl`. The
@@ -100,6 +101,9 @@ classes; each item is a registration point or an interface in place of a hard re
        `CommandScope` (book, lorebooks, run) is `app` and extends it, commands use `CommandScope.of(context)` (plugin API
        change, the five plugins that read the scope are fixed). Left: `CommandBar` (`setGenerationView`, the hold of the
        book for a generation, `CommandScopes.session(view)`) and `ApiDispatcher`, which go with the UI and API items.
+       Then done: `CommandBar` has a `CommandBarHost` (the scope, the hold for a generation; the story's is the app's
+       `StoryCommandBarHost`), `ApiDispatcher` has `ApiTargets` (the books, the scope of a command, the session point of
+       a call; the app's `BookApiTargets`).
 6. [x] **Cleanup and resources.** `CleanupServiceImpl` (1,174 lines, names seven story entities) and
        `JpaResourceRepository` / `ResourceServiceImpl` (resources of a book through `ChatMessage`): story-specific
        cleanup steps and "resources of an owner" queries become contributions the app registers. `@CleanupReference`
@@ -108,9 +112,12 @@ classes; each item is a registration point or an interface in place of a hard re
        (the app's `BookTrashPolicy`: the kinds that can be deleted for good and what goes with them, moving the children
        of deleted parts, the size of the books); the uuid scan of the purge has its own pattern.
 7. [x] **Tags.** `TagRelationService(Impl)` names `Manuscript`: tagged types registered.
-8. [ ] **Session.** `SessionPoint` holds the open book, window and section; `ApplicationPoint` / `SessionInformation`
+8. [x] **Session.** `SessionPoint` holds the open book, window and section; `ApplicationPoint` / `SessionInformation`
        name `Workspace`. Split into a platform `SessionPoint` (user, language, generic attributes) and an app
        `ManuscriptSessionPoint` (or a typed attribute the app stores in it).
+       Done: the bean is the app's `MarginaliaSessionPoint` (open book, window, book list, the workspace as `Workspace`),
+       `AgenticSessionPoint` extends it; `SessionPoint` holds a `BaseWorkspace` (platform part of `Workspace`), and
+       `ApplicationPoint`, `SessionInformation`, `DetachedRequestAttributes` / `ApiRequestAttributes` use the platform types.
 9. [x] **OSGi and menus.** `OsgiServiceImpl` names `StoryMenuRegistry`; `ui.menu` (`BuiltMenu`, `MenuDefinition`,
        `MenuNode`) names `StoryCard` / `StoryEditor` / `StoryMenuItem`: the menu mechanism takes registered menu
        kinds, the story menus are the app's.
@@ -129,7 +136,7 @@ classes; each item is a registration point or an interface in place of a hard re
         the bundles, its own enums, `localizeDomainObject` (filled by the subclass) and the prompt languages (English
         alone, the subclass gives the ones of `Defaults`). Callers that need story labels inject `StoryLocalization`.
         `L` and the bundles still hold every key (Phase 2).
-12. [ ] **Widgets and the rest.** `AuthorshipField`, `FloatingWindow`, `ExtensionSettingsForm`, `ReaderStyleChooser`,
+12. [x] **Widgets and the rest.** `AuthorshipField`, `FloatingWindow`, `ExtensionSettingsForm`, `ReaderStyleChooser`,
         `PartView`: move to `app` in the map, or (`FloatingWindow`, `ExtensionSettingsForm`) cut out the story part.
         Done: `PermissionUIFactoryImpl` is an app bean, `ApplicationEntryPoint` is platform. `FloatingWindow` and
         `WindowRun` take an `OwnedEntity` and `BaseEntity` parts, the book window is found as a `HostWindow`, so both are
@@ -139,7 +146,7 @@ classes; each item is a registration point or an interface in place of a hard re
         `MockLLMServer`, the CRUD contracts) and the app's story helpers on top.
 
 Done when the allow list of `LayerDependencyTest` is empty. Progress: 153 references from 33 classes at the start,
-133 from 21 after items 1, 2, 3, 7 and parts of 6 and 12 (2026-11-19), 115 from 15 after the settings split and items 9, 10. 70 from 13 after the command framework (item 5). 38 from 11 after localization (item 11). 19 from 7 after cleanup (item 6) and the widgets of item 12.
+133 from 21 after items 1, 2, 3, 7 and parts of 6 and 12 (2026-11-19), 115 from 15 after the settings split and items 9, 10. 70 from 13 after the command framework (item 5). 38 from 11 after localization (item 11). 19 from 7 after cleanup (item 6) and the widgets of item 12, 0 after the session, the command bar and the API (2026-11-19).
 
 Found on the way, to decide:
 

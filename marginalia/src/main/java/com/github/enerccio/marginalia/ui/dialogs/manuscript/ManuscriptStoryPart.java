@@ -448,7 +448,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
         // a generation by a command of the bar streams into the story as one of the round button
         commandBar.addAttachListener(event -> commandPage = event.getUI());
         commandBar.addDetachListener(_ -> commandPage = null);
-        commandBar.setGenerationView(new GenerationView() {
+        commandBar.setHost(new StoryCommandBarHost(new GenerationView() {
             @Override
             public Object getPage() {
                 return commandPage;
@@ -463,7 +463,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             public Manuscript getBook() {
                 return currentManuscript;
             }
-        });
+        }));
         return commandBar;
     }
 

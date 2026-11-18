@@ -13,7 +13,7 @@ import com.github.enerccio.marginalia.ui.dialogs.ManuscriptWindow;
  * The request attributes of such a session keep this object under the name of the target of the scoped
  * {@code sessionPoint} bean ({@link #SCOPED_TARGET_NAME}), in the session scope.
  */
-public class AgenticSessionPoint extends SessionPoint {
+public class AgenticSessionPoint extends MarginaliaSessionPoint {
 
     /**
      * Name of the session scoped attribute that holds the {@link SessionPoint}: the name of the target bean behind the

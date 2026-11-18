@@ -115,8 +115,9 @@ command **must** react to `isTerminated()`: Stop only cancels the future.
 ![The CommandProgressDialog of an asynchronous command](../../images/command-running.png)
 
 **Generations of the story.** A command declared with `progressInStory = true` (`/next`, `/swipe`, `/regenerate`) gets no progress
-window in a bar that has a `GenerationView` (`setGenerationView`; the story tab gives it one in `createCommandBox()`). The bar runs
-the line in `commandScopes.session(view)`, so the command finds the view in `CommandScope.getGenerationView()`, calls
+window in a bar that has a host (`setHost(CommandBarHost)`; the story tab gives it a `StoryCommandBarHost` around its `GenerationView` in
+`createCommandBox()`). The bar runs the line in the host's `scope()`, there `commandScopes.session(view)`, and takes the host's
+`holdForGeneration` of the book until the generation starts, so the command finds the view in `CommandScope.getGenerationView()`, calls
 `show(book, request)` before it starts the generation and hands the listener it returns to the generation besides its own: the part
 streams into the story as for the round button (`ManuscriptStoryPart.showCommandGeneration`, the same `StoryGenerationListener` as
 `startGeneration`, built by `generationListener(ui, request, own)`), the window holds what the generation holds, the round button stops

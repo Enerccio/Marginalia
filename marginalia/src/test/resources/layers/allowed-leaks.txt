@@ -1,22 +1,3 @@
 # Platform classes that name application classes today (LayerDependencyTest, TODO.REFACTOR.md Phase 1).
 # This list may only shrink: fix a reference and delete its line. Rewrite it with -Dlayers.update=true
 # only when the layer map changes.
-api.ApiDispatcher -> bound.AgenticSessionPoint
-api.ApiDispatcher -> domain.model.impl.Folder
-api.ApiDispatcher -> domain.model.impl.Manuscript
-api.ApiDispatcher -> domain.service.CommandScopes
-api.ApiDispatcher -> domain.service.FolderService
-api.ApiDispatcher -> domain.service.ManuscriptService
-api.ApiDispatcher -> domain.service.command.CommandScope
-bound.ApiRequestAttributes -> bound.AgenticSessionPoint
-bound.ApplicationPoint -> ui.workspace.Workspace
-bound.DetachedRequestAttributes -> bound.AgenticSessionPoint
-bound.SessionInformation -> ui.workspace.Workspace
-bound.SessionPoint -> domain.model.impl.Manuscript
-bound.SessionPoint -> ui.dialogs.ManuscriptWindow
-bound.SessionPoint -> ui.workspace.ManuscriptSection
-bound.SessionPoint -> ui.workspace.Workspace
-ui.components.CommandBar -> domain.model.impl.Manuscript
-ui.components.CommandBar -> domain.service.CommandScopes
-ui.components.CommandBar -> domain.service.GenerationView
-ui.components.CommandBar -> domain.service.command.CommandScope

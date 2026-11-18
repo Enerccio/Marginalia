@@ -2,12 +2,9 @@ package com.github.enerccio.marginalia.ui.components;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
-import com.github.enerccio.marginalia.domain.service.CommandScopes;
 import com.github.enerccio.marginalia.domain.service.CommandService;
-import com.github.enerccio.marginalia.domain.service.GenerationView;
 import com.github.enerccio.marginalia.domain.service.command.*;
 import com.github.enerccio.marginalia.domain.service.run.Runs;
-import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
@@ -53,7 +50,7 @@ import java.util.function.Supplier;
  * place that uses the bar decides about (the story tab shows it in a {@link CommandResultView} above the bar). The
  * bar reports failed and stopped commands itself, and an asynchronous command (one declared with
  * {@code async = true}) blocks the UI with a modal window that has a Stop button, which cancels the run. A command that generates the
- * story ({@code progressInStory}) does not, in a bar that is in a story ({@link #setGenerationView}): the story shows it.
+ * story ({@code progressInStory}) does not, in a bar that is in a story ({@link #setHost}): the story shows it.
  */
 @Configurable
 @Extendable
@@ -66,12 +63,10 @@ public class CommandBar extends Composite<HorizontalLayout> implements HasEnable
     @Autowired
     private CommandService commandService;
 
-    @Autowired
-    private CommandScopes commandScopes;
 
     private ComboBox<String> input;
     // the story the bar is in: it shows the generations of the commands (null: a progress window shows them)
-    private GenerationView generationView;
+    private CommandBarHost host;
     // the command the story shows now, null when none
     private CommandRun inStory;
     private String inStoryName;
@@ -134,17 +129,17 @@ public class CommandBar extends Composite<HorizontalLayout> implements HasEnable
      * streams in and the round button stops it. Another such command waits until that one is done. Null (the default): every
      * asynchronous command has the progress window.
      */
-    @PublicAPI(from = "1.8.0",
+    @PublicAPI(from = "1.9.0",
             returns = @APIReturn(type = void.class),
-            parameters = {@APIParameter(name = "generationView", type = GenerationView.class)})
-    public void setGenerationView(GenerationView generationView) {
-        this.generationView = generationView;
+            parameters = {@APIParameter(name = "host", type = CommandBarHost.class)})
+    public void setHost(CommandBarHost host) {
+        this.host = host;
     }
 
-    @PublicAPI(from = "1.8.0",
-            returns = @APIReturn(type = GenerationView.class))
-    public GenerationView getGenerationView() {
-        return generationView;
+    @PublicAPI(from = "1.9.0",
+            returns = @APIReturn(type = CommandBarHost.class))
+    public CommandBarHost getHost() {
+        return host;
     }
 
     /**
@@ -494,7 +489,7 @@ public class CommandBar extends Composite<HorizontalLayout> implements HasEnable
             return;
         }
         String humanName = overloads.getFirst().humanName().get(loc);
-        boolean progressInStory = lineRunner == null && generationView != null && overloads.getFirst().progressInStory();
+        boolean progressInStory = lineRunner == null && host != null && overloads.getFirst().progressInStory();
         if (progressInStory && inStory != null && !inStory.isDone()) {
             // one generation of the story at a time: the user keeps the text to run it later
             Notification.error(String.format(loc.getValue(L.ERROR_COMMAND_STILL_RUNNING), inStoryName));
@@ -526,11 +521,11 @@ public class CommandBar extends Composite<HorizontalLayout> implements HasEnable
         }
         // a command that generates holds its book until its generation starts (its thread is bound to the hold and ends it): a
         // generation by the round button in between is refused instead of taking the book from under the command
-        Runs.Run held = progressInStory ? holdForGeneration(humanName) : null;
+        Runs.Run held = progressInStory ? host.holdForGeneration(humanName) : null;
         CommandRun future;
         try (Runs.Binding _ = dialog != null ? dialog.bind() : held != null ? held.bind() : null) {
-            future = generationView == null ? commandService.executeLine(line)
-                    : commandService.executeLine(line, false, commandScopes.session(generationView));
+            future = host == null ? commandService.executeLine(line)
+                    : commandService.executeLine(line, false, host.scope());
         } catch (RuntimeException e) {
             if (held != null) {
                 held.end();
@@ -622,28 +617,6 @@ public class CommandBar extends Composite<HorizontalLayout> implements HasEnable
                 log.debug("The UI of command {} is gone", parsed.name(), e);
             }
         });
-    }
-
-    /**
-     * The hold of the book of the story from the start of a command that generates to the start of its generation; null when the bar
-     * shows no book, or a generation of it runs already (the command is then refused as before, with its name).
-     */
-    @PublicAPI(from = "1.9.0",
-            returns = @APIReturn(type = Runs.Run.class),
-            parameters = {@APIParameter(name = "humanName", type = String.class)},
-            locals = {@APILocals(name = "book", type = Manuscript.class),
-                    @APILocals(name = "e", type = Runs.HeldException.class)})
-    private Runs.Run holdForGeneration(String humanName) {
-        Manuscript book = generationView == null ? null : generationView.getBook();
-        if (book == null || book.getId() == null) {
-            return null;
-        }
-        try {
-            return Runs.run(Runs.GENERATION_COMMAND, () -> humanName).book(book).quiet().currentPage()
-                    .startUnless(book, Runs.Operation.GENERATE);
-        } catch (Runs.HeldException e) {
-            return null;
-        }
     }
 
     /**

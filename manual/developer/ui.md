@@ -192,8 +192,10 @@ the book that is open or `null`; `openBook(book, then)`, the book opened the way
 which finds the workspace of the current page through `ApplicationPoint.getUIs()`) and `Workspace.getManuscriptSection()` / `getOpenManuscriptWindow()`. The session's `SessionPoint` holds the
 workspace, and `CommandUtils` (package `utils`) reads it for commands: `getWorkspace()`, `getManuscriptSection()`, `getManuscriptWindow()`,
 `getCurrentManuscript()` and `getCurrentAI()` return `null` when there is no session, workspace or open book. The book-related methods delegate to
-`SessionPoint` (`getManuscriptWindow()`, `getCurrentManuscript()`, `getCurrentAI()`), which `AgenticSessionPoint` overrides for a session without
-a browser: the book is held directly and there is no window.
+`MarginaliaSessionPoint` (the bean `sessionPoint`; the platform's `SessionPoint` it extends knows only a `BaseWorkspace`, the languages, the help
+chat, the problems and the plugin data): `getWorkspace()` as a `Workspace`, `getManuscriptWindow()`, `getCurrentManuscript()`, `getCurrentAI()`,
+which `AgenticSessionPoint` overrides for a session without a browser: the book is held directly and there is no window. `ApplicationPoint`
+maps a page to its `BaseWorkspace`.
 
 **Command bar** (see [The command bar](commands/command-bar.md)). `CommandBar` (package `ui.components`, a `Composite`) is the input line for the commands of `CommandService`, to be placed anywhere:
 a `ComboBox` with custom values, where the user types `/name arg arg`, plus a run button. The list is filled lazily from the registry (`CommandHelp.matchingNames`),

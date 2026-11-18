@@ -1,7 +1,7 @@
 package com.github.enerccio.marginalia.bound;
 
 import com.github.enerccio.marginalia.domain.security.model.User;
-import com.github.enerccio.marginalia.ui.workspace.Workspace;
+import com.github.enerccio.marginalia.ui.workspace.BaseWorkspace;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.server.VaadinSession;
 import jakarta.servlet.http.HttpSession;
@@ -26,7 +26,7 @@ public class SessionInformation {
 
 		for (UI ui : boundVaadinSession.getUIs()) {
 			if (applicationPoint.getUIs().containsKey(ui)) {
-				Workspace workspace = applicationPoint.getUIs().get(ui);
+				BaseWorkspace workspace = applicationPoint.getUIs().get(ui);
 				if (workspaceClazz.isAssignableFrom(workspace.getClass()))
 					return ui;
 			}
@@ -35,7 +35,7 @@ public class SessionInformation {
 		return null;
 	}
 
-	public Workspace getWorkspace(Class<?> workspaceClazz, ApplicationPoint applicationPoint) {
+	public BaseWorkspace getWorkspace(Class<?> workspaceClazz, ApplicationPoint applicationPoint) {
 		UI ui = getUI(workspaceClazz, applicationPoint);
 
 		if (ui != null)

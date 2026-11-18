@@ -1,9 +1,7 @@
 package com.github.enerccio.marginalia.api;
 
-import com.github.enerccio.marginalia.bound.AgenticSessionPoint;
+import com.github.enerccio.marginalia.bound.SessionPoint;
 import com.github.enerccio.marginalia.bound.ApiRequestAttributes;
-import com.github.enerccio.marginalia.domain.model.impl.Folder;
-import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.settings.BaseUserSetting;
 import com.github.enerccio.marginalia.domain.security.model.ApiScope;
 import com.github.enerccio.marginalia.domain.security.model.User;
@@ -36,7 +34,7 @@ import java.util.concurrent.*;
  * {@link ApiRequest}, so the API is tested without HTTP.
  * <p>
  * The commands are the ones of the command bar ({@link CommandService}, those of the extensions included) and run in the scope of the
- * book the call names ({@link CommandScopes#forApi}). A key with {@link ApiScope#READ} runs only the commands that only read, one with
+ * target the call names (the application's books, through {@link ApiTargets}). A key with {@link ApiScope#READ} runs only the commands that only read, one with
  * {@link ApiScope#WRITE} every command. A
  * command that has not ended within {@code wait} seconds goes on as a run, asked for by {@code GET /runs/<id>}. The administration
  * needs a scope for each part ({@link ApiScope#UPDATE} the update of the installation, {@link ApiScope#EXTENSIONS} the extensions; a key
@@ -63,21 +61,14 @@ public class ApiDispatcher {
     @Lazy
     private CommandService commandService;
 
+    /** What the commands are aimed at (the application's books). */
     @Autowired
-    @Lazy
-    private CommandScopes commandScopes;
-
-    @Autowired
-    @Lazy
-    private ManuscriptService manuscriptService;
+    private ObjectProvider<ApiTargets> targets;
 
     @Autowired
     @Lazy
     private SettingService settingService;
 
-    @Autowired
-    @Lazy
-    private FolderService folderService;
 
     @Autowired
     @Lazy
@@ -137,7 +128,7 @@ public class ApiDispatcher {
         }
         Principal principal;
         // nobody yet: a session bean asked for meanwhile must not open a session of the container
-        try (ApiRequestAttributes anonymous = new ApiRequestAttributes(new User(), new AgenticSessionPoint());
+        try (ApiRequestAttributes anonymous = new ApiRequestAttributes(new User(), targets().newSessionPoint());
              InRequestScope _ = new InRequestScope(anonymous)) {
             principal = apiKeyService.authenticate(bearer(request.authorization()));
         } catch (Exception e) {
@@ -149,7 +140,7 @@ public class ApiDispatcher {
                     .withHeader("WWW-Authenticate", "Bearer realm=\"marginalia\"");
         }
 
-        ApiRequestAttributes attributes = new ApiRequestAttributes(principal.user(), new AgenticSessionPoint());
+        ApiRequestAttributes attributes = new ApiRequestAttributes(principal.user(), targets().newSessionPoint());
         boolean keep = false;
         try (InRequestScope _ = new InRequestScope(attributes)) {
             Call call = new Call(request, path, principal, attributes);
@@ -308,17 +299,11 @@ public class ApiDispatcher {
     }
 
     private JsonArray books() throws Exception {
-        JsonArray list = new JsonArray();
-        for (Manuscript book : manuscriptService.findAllRegularForUser()) {
-            JsonObject json = new JsonObject();
-            json.addProperty("uuid", book.getUuid());
-            json.addProperty("name", book.getName());
-            // the folder is a lazy proxy outside of a transaction: its id is there, the rest is loaded
-            Folder folder = book.getFolder() == null ? null : folderService.find(book.getFolder().getId());
-            json.addProperty("folder", folder == null ? null : folder.getUuid());
-            list.add(json);
-        }
-        return list;
+        return targets().list();
+    }
+
+    private ApiTargets targets() {
+        return targets.getIfAvailable(() -> ApiTargets.NONE);
     }
 
     // --- commands ---
@@ -403,21 +388,13 @@ public class ApiDispatcher {
             wait = Math.clamp(body.get("wait").getAsInt(), 0, MAX_WAIT_SECONDS);
         }
 
-        Manuscript book = null;
-        if (bookUuid != null) {
-            book = manuscriptService.findForUser(bookUuid);
-            if (book == null || book.isAgentic()) {
-                throw new ApiException(404, "No such book: " + bookUuid);
-            }
-            call.attributes().getSessionPoint().setManuscript(book);
-        }
+        BaseCommandScope scope = targets().scope(bookUuid, call.attributes().getSessionPoint(), confirm);
         Long userId = call.principal().user().getId();
         purgeRuns();
         if (runs.values().stream().filter(r -> r.userId().equals(userId) && !r.run().isDone()).count() >= MAX_RUNNING_PER_USER) {
             throw new ApiException(429, "Too many commands are running, at most " + MAX_RUNNING_PER_USER);
         }
 
-        CommandScope scope = commandScopes.forApi(book, confirm);
         JsonElement arguments = body.get("arguments");
         CommandRun run;
         if (arguments != null && arguments.isJsonArray()) {
@@ -640,7 +617,7 @@ public class ApiDispatcher {
         }
     }
 
-    private void setLanguage(AgenticSessionPoint sessionPoint) throws Exception {
+    private void setLanguage(SessionPoint sessionPoint) throws Exception {
         BaseUserSetting setting = settingService.getUserSetting();
         sessionPoint.setLanguage(loc.resolveLanguage(setting.getLanguage()));
         sessionPoint.setPromptLanguage(loc.resolvePromptLanguage(setting.getPromptLanguage()));

@@ -18,6 +18,7 @@ app DefaultsJA
 app DefaultsKO
 
 platform api
+app api.BookApiTargets
 platform concurrent
 platform instruct
 platform loc
@@ -29,6 +30,7 @@ platform bound
 app bound.AgentRequestAttributes
 app bound.AgentSession
 app bound.AgenticSessionPoint
+app bound.MarginaliaSessionPoint
 app bound.migration
 
 # --- domain: model ---
@@ -266,6 +268,7 @@ platform ui.shortcuts
 app ui.exports
 app ui.styles
 app ui.workspace
+platform ui.workspace.BaseWorkspace
 platform ui.workspace.parts.admin.CleanupPanel
 platform ui.workspace.parts.admin.DatabaseBackupPanel
 platform ui.workspace.parts.admin.GpuPanel
@@ -277,6 +280,7 @@ app ui.components
 platform ui.components.ApiKeysView
 platform ui.components.BuildInfoFooter
 platform ui.components.CommandBar
+platform ui.components.CommandBarHost
 platform ui.components.CommandResult
 platform ui.components.CommandResultTarget
 platform ui.components.CommandResultView

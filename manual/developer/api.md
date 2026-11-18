@@ -85,7 +85,7 @@ it), `413` (too large), `422` (a command that reported an error, an extension th
 | `GET /api/v1/books` | READ | The books of the user: `uuid`, `name`, `folder`. |
 | `GET /api/v1/commands` | READ | The commands the key may run: `name`, `title`, `description`, `async`, `readOnly`, `destructive`, and `forms` (the overloads: `parameters` with `name`, `type`, `optional`, `default`, `allowed`, `min`, `max`, and `returns`). |
 | `POST /api/v1/commands/<name>` | READ / WRITE | Runs a command that needs no book. |
-| `POST /api/v1/books/<uuid>/commands/<name>` | READ / WRITE | Runs a command on a book of the user (`CommandScopes.forApi`, the book is the cage of the command as for an agent). |
+| `POST /api/v1/books/<uuid>/commands/<name>` | READ / WRITE | Runs a command on a book of the user (`CommandScopes.forApi`, the book is the cage of the command as for an agent). The books are the application's `ApiTargets` (`BookApiTargets`): the list of `GET books`, the scope of a command and the session point of a call. |
 | `GET /api/v1/runs/<id>` | READ | The state of a run of the user. |
 | `DELETE /api/v1/runs/<id>` | READ | Stops a run (`409` when it is uninterruptable now). |
 | `GET /api/v1/admin/update` | UPDATE | `UpdateService.getStatus()`: `watching`, `running`, `updateAvailable`, `runningCommit`, `remoteCommit`... |

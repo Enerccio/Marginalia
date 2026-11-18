@@ -84,7 +84,7 @@ public class BookWindows {
         if (ui == null || book == null) {
             return false;
         }
-        Workspace workspace = new BookWindows().applicationPoint.getUIs().get(ui);
+        Workspace workspace = new BookWindows().applicationPoint.getUIs().get(ui) instanceof Workspace w ? w : null;
         ManuscriptSection section = workspace == null ? null : workspace.getManuscriptSection();
         return section != null && section.openBook(book, then);
     }

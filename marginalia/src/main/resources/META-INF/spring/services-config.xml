@@ -31,6 +31,8 @@
 
     <bean class="com.github.enerccio.marginalia.api.ApiDispatcher" />
 
+    <bean class="com.github.enerccio.marginalia.api.BookApiTargets" />
+
     <bean class="com.github.enerccio.marginalia.domain.service.impl.InferenceServicesImpl">
         <property name="inferenceProviders">
             <list>
