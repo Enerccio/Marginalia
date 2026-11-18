@@ -217,6 +217,9 @@ public class KnowledgeTrackerLocalization extends PluginLocalizationBundle {
     public static final String RETRACTED = "retracted";
     public static final String DECLINED = "declined";
     public static final String TIDIED = "tidied";
+    public static final String WHO_HAS_MET_WHOM = "Who has met whom";
+    public static final String TICK_THE_CHARACTERS_THIS_ONE_HAS_MET = "Tick the characters %s has met. A change is saved at once; a meeting you untick that the story shows comes back when the story is read again.";
+    public static final String TRACK_AT_LEAST_TWO_CHARACTERS = "Track at least two characters to set who has met whom";
 
     @Override
     protected void loadKeys() {
@@ -1724,6 +1727,30 @@ public class KnowledgeTrackerLocalization extends PluginLocalizationBundle {
         de(TIDIED, "aufgeräumt");
         ko(TIDIED, "정리됨");
         it(TIDIED, "riordinato");
+
+        ja(WHO_HAS_MET_WHOM, "誰が誰に会ったか");
+        zh(WHO_HAS_MET_WHOM, "谁见过谁");
+        fr(WHO_HAS_MET_WHOM, "Qui a rencontré qui");
+        es(WHO_HAS_MET_WHOM, "Quién ha conocido a quién");
+        de(WHO_HAS_MET_WHOM, "Wer ist wem begegnet");
+        ko(WHO_HAS_MET_WHOM, "누가 누구를 만났는지");
+        it(WHO_HAS_MET_WHOM, "Chi ha incontrato chi");
+
+        ja(TICK_THE_CHARACTERS_THIS_ONE_HAS_MET, "%sが会ったことのあるキャラクターにチェックを入れます。変更はすぐに保存されます。ストーリーに描かれた出会いのチェックを外しても、ストーリーを再度読み込むと戻ります。");
+        zh(TICK_THE_CHARACTERS_THIS_ONE_HAS_MET, "勾选%s见过的角色。更改会立即保存；取消勾选故事中出现过的相遇后，重新读取故事时它会再出现。");
+        fr(TICK_THE_CHARACTERS_THIS_ONE_HAS_MET, "Cochez les personnages que %s a rencontrés. Un changement est enregistré aussitôt ; une rencontre que l'histoire montre et que vous décochez revient si l'histoire est relue.");
+        es(TICK_THE_CHARACTERS_THIS_ONE_HAS_MET, "Marca los personajes que %s ha conocido. Cada cambio se guarda al momento; un encuentro que la historia muestra y que desmarcas vuelve si se vuelve a leer la historia.");
+        de(TICK_THE_CHARACTERS_THIS_ONE_HAS_MET, "Hake die Figuren an, denen %s begegnet ist. Eine Änderung wird sofort gespeichert; eine Begegnung aus der Geschichte, deren Haken du entfernst, kommt zurück, wenn die Geschichte erneut gelesen wird.");
+        ko(TICK_THE_CHARACTERS_THIS_ONE_HAS_MET, "%s이(가) 만난 캐릭터에 체크하세요. 변경은 바로 저장됩니다. 이야기에 나온 만남의 체크를 해제해도 이야기를 다시 읽으면 돌아옵니다.");
+        it(TICK_THE_CHARACTERS_THIS_ONE_HAS_MET, "Spunta i personaggi che %s ha incontrato. Ogni modifica è salvata subito; un incontro mostrato dalla storia che togli torna se la storia viene riletta.");
+
+        ja(TRACK_AT_LEAST_TWO_CHARACTERS, "誰が誰に会ったかを設定するには、2人以上のキャラクターを追跡してください");
+        zh(TRACK_AT_LEAST_TWO_CHARACTERS, "至少追踪两个角色才能设置谁见过谁");
+        fr(TRACK_AT_LEAST_TWO_CHARACTERS, "Suivez au moins deux personnages pour indiquer qui a rencontré qui");
+        es(TRACK_AT_LEAST_TWO_CHARACTERS, "Sigue al menos dos personajes para indicar quién ha conocido a quién");
+        de(TRACK_AT_LEAST_TWO_CHARACTERS, "Verfolge mindestens zwei Figuren, um festzulegen, wer wem begegnet ist");
+        ko(TRACK_AT_LEAST_TWO_CHARACTERS, "누가 누구를 만났는지 정하려면 캐릭터를 두 명 이상 추적하세요");
+        it(TRACK_AT_LEAST_TWO_CHARACTERS, "Traccia almeno due personaggi per indicare chi ha incontrato chi");
 
     }
 }

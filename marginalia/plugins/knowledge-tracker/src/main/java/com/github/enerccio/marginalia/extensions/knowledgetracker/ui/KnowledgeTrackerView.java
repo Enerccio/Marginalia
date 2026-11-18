@@ -231,9 +231,14 @@ public class KnowledgeTrackerView extends VerticalLayout {
         importCharacters.setAriaLabel(T.localized(IMPORT_FROM_THE_CHARACTER_TRACKER));
         importCharacters.setTooltipText(T.localized(IMPORT_FROM_THE_CHARACTER_TRACKER));
 
+        Button metCharacters = new Button(Solid.HANDSHAKE.create(), _ -> openMetCharacters());
+        metCharacters.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ICON);
+        metCharacters.setAriaLabel(T.localized(WHO_HAS_MET_WHOM));
+        metCharacters.setTooltipText(T.localized(WHO_HAS_MET_WHOM));
+
         dock.add(dockProcess, dockNext, dockTidy);
         dock.addClassName(KnowledgeTrackerStyles.DOCK);
-        toolbar = new HorizontalLayout(add, importCharacters, mass, reload, settingsButton, dock);
+        toolbar = new HorizontalLayout(add, importCharacters, metCharacters, mass, reload, settingsButton, dock);
         toolbar.setAlignItems(Alignment.CENTER);
         toolbar.setPadding(true);
         toolbar.setSpacing(false);
@@ -1040,6 +1045,18 @@ public class KnowledgeTrackerView extends VerticalLayout {
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
+    }
+
+    /**
+     * <b>Who has met whom</b>: tick the tracked characters one has met; each change is stored, the list is shown on close.
+     * It needs two tracked characters.
+     */
+    private void openMetCharacters() {
+        if (state.getCharacters().size() < 2) {
+            Notification.warning(T.localized(TRACK_AT_LEAST_TWO_CHARACTERS));
+            return;
+        }
+        new MetCharactersDialog(() -> state, this::saveState, this::refresh).open();
     }
 
     private void openCharacterDialog(TrackedCharacter character) {

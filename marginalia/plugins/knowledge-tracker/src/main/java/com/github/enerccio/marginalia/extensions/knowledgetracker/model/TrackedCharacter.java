@@ -139,6 +139,30 @@ public class TrackedCharacter {
     }
 
     /**
+     * Whether this character has met {@code other}: one of the people it has met is the name or an alias of {@code other}.
+     */
+    public boolean hasMet(TrackedCharacter other) {
+        return other != this && getMet().stream().anyMatch(person -> other.isCalled(person.getName()));
+    }
+
+    /**
+     * Records by hand that this character has met {@code other} (under its name, with no message, so a reprocessing keeps
+     * it) or forgets every record of {@code other}, under any of its names. Nothing changes when it is so already.
+     *
+     * @return whether something changed
+     */
+    public boolean setMet(TrackedCharacter other, boolean met) {
+        if (other == this || hasMet(other) == met) {
+            return false;
+        }
+        if (met) {
+            addMet(other.getName(), null);
+            return hasMet(other);
+        }
+        return getMet().removeIf(person -> other.isCalled(person.getName()));
+    }
+
+    /**
      * Takes back what came from the messages that {@code dropped} accepts (the message being reprocessed and the later
      * ones, or messages of another branch): learned items and rejected additions go, an item that one of these messages
      * retracted is active again, the meetings seen in them are forgotten. Initial and manual items, and the retractions
