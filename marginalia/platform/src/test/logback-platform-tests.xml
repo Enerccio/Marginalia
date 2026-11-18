@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Logging of the platform's own tests, as Marginalia's development logging (src/main/resources/logback.xml). Not on the
+     class path (the surefire configuration names it with logback.configurationFile): in a reactor build the tests of an
+     application see the platform's test classes folder, where a logback-test.xml would replace their logging. -->
+<configuration>
+    <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+        <target>System.out</target>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%t] %-5level %logger{1} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="com.github.enerccio" level="DEBUG"/>
+    <logger name="org.springframework.web" level="DEBUG"/>
+
+    <root level="INFO">
+        <appender-ref ref="stdout"/>
+    </root>
+</configuration>

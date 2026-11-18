@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.db;
 
 import com.github.enerccio.marginalia.DatabaseCheck;
+import com.github.enerccio.marginalia.MarginaliaDatabase;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.flywaydb.core.Flyway;
@@ -47,7 +48,7 @@ class FlywayMigrationTest {
      * The configuration of the {@code flywayConfiguration} bean in datasources-config.xml.
      */
     private Flyway flyway(String target) {
-        ClassicConfiguration configuration = DatabaseCheck.flywayConfiguration(dataSource);
+        ClassicConfiguration configuration = DatabaseCheck.flywayConfiguration(dataSource, MarginaliaDatabase.SCHEMA);
         if (target != null) {
             configuration.setTarget(MigrationVersion.fromVersion(target));
         }

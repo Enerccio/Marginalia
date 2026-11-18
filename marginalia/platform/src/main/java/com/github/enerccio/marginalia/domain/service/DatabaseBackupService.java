@@ -15,7 +15,7 @@ public interface DatabaseBackupService {
     /**
      * Copies an uploaded database into the backup folder.
      *
-     * @throws IllegalArgumentException when the file is not a Marginalia database this version can restore (see
+     * @throws IllegalArgumentException when the file is not a database of the application this version can restore (see
      *                                  {@link com.github.enerccio.marginalia.DatabaseCheck}), the message says why
      */
     DatabaseBackup importBackup(String fileName, File source) throws Exception;

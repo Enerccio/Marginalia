@@ -10,7 +10,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -34,13 +33,15 @@ import static org.junit.jupiter.api.Assertions.fail;
  * The references that exist today are listed in {@code layers/allowed-leaks.txt}. The list may only shrink: a new
  * reference fails, and so does a listed one that is gone (delete its line). {@code -Dlayers.update=true} rewrites the
  * list from the classes, for when a class moves between layers in the map.
+ * <p>
+ * The shared test code of the platform (the test base, the mock LLM, the CRUD contracts) is in the platform module's
+ * tests and its test-jar, where the compiler refuses an application class.
  */
 class LayerDependencyTest {
 
     private static final String BASE = "com.github.enerccio.marginalia.";
     private static final String MAP = "/layers/layers.txt";
     private static final String ALLOWED = "/layers/allowed-leaks.txt";
-    private static final String TEST_MAP = "/layers/test-layers.txt";
     private static final Path ALLOWED_SOURCE = Path.of("src/test/resources/layers/allowed-leaks.txt");
 
     @Test
@@ -108,39 +109,6 @@ class LayerDependencyTest {
         if (!problems.isEmpty()) {
             fail(problems.toString());
         }
-    }
-
-    /**
-     * The shared test code of the platform (the test base, the mock LLM, the CRUD contracts; {@code layers/test-layers.txt})
-     * names no class of the application, main or test, and has no allow list.
-     */
-    @Test
-    void platformTestCodeDoesNotNameApplicationClasses() throws Exception {
-        Map<String, String> mainRules = readRules(MAP);
-        Map<String, String> testRules = readRules(TEST_MAP);
-        Map<String, Set<String>> references = readReferences(testClasses());
-        Set<String> leaks = new TreeSet<>();
-        for (Map.Entry<String, Set<String>> entry : references.entrySet()) {
-            String from = entry.getKey();
-            if (!"platform".equals(layerOf(testRules, from))) {
-                continue;
-            }
-            for (String to : entry.getValue()) {
-                String layer = references.containsKey(to) ? layerOf(testRules, to) : layerOf(mainRules, to);
-                if ("app".equals(layer) || (references.containsKey(to) && layer == null)) {
-                    leaks.add(from + " -> " + to);
-                }
-            }
-        }
-        if (!leaks.isEmpty()) {
-            fail("Platform test code that names application classes or unlisted test classes (" + TEST_MAP + "):\n  "
-                    + String.join("\n  ", leaks));
-        }
-    }
-
-    /** The folder the test classes were compiled to. */
-    private static Path testClasses() throws URISyntaxException {
-        return Path.of(LayerDependencyTest.class.getProtectionDomain().getCodeSource().getLocation().toURI());
     }
 
     /** Main class (outer, relative to the base package) to the classes of the base package it refers to. */

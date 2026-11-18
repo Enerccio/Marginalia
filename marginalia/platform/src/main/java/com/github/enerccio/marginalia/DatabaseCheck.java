@@ -21,22 +21,42 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Checks that a SQLite file is a Marginalia database the running version can use, before it is restored. Also holds
+ * Checks that a SQLite file is a database of the application ({@link Schema}) the running version can use, before it
+ * is restored. Also holds
  * the Flyway configuration, so the restore on start migrates the database exactly like the application does.
  */
 public final class DatabaseCheck {
 
-    public static final String MIGRATION_LOCATION = "classpath:migration";
-    private static final String MIGRATION_PATTERN = "classpath*:migration/V*__*.sql";
     private static final Pattern MIGRATION_NAME = Pattern.compile("^V([0-9._]+)__.*\\.sql$");
     private static final byte[] SQLITE_HEADER = "SQLite format 3\0".getBytes(StandardCharsets.US_ASCII);
     private static final String HISTORY_TABLE = "flyway_schema_history";
 
     /**
-     * Tables every Marginalia database has (created by V1).
+     * The database of an application: where its Flyway migrations are and the tables every database of it has (a
+     * file without them is not its database). Each application has its own (Marginalia's is
+     * {@code MarginaliaDatabase.SCHEMA}), set on the {@code configuration} bean ({@code databaseSchema}).
+     *
+     * @param migrationLocation Flyway location of the migrations, {@code classpath:<folder>}
+     * @param coreTables        tables every database of the application has
      */
-    static final List<String> CORE_TABLES = List.of("users", "settings", "manuscripts", "messages", "lorebooks",
-            "entries", "ais", "protocols", "tags", "t2e");
+    public record Schema(String migrationLocation, List<String> coreTables) {
+
+        /** The platform's own: the migrations in {@code classpath:migration}, the tables of the platform. */
+        public static final Schema PLATFORM = new Schema("classpath:migration",
+                List.of("users", "settings", "ais", "protocols", "tags", "t2e"));
+
+        public Schema {
+            if (!migrationLocation.startsWith("classpath:")) {
+                throw new IllegalArgumentException("Migration location must be classpath:<folder>: " + migrationLocation);
+            }
+            coreTables = List.copyOf(coreTables);
+        }
+
+        /** The pattern of the migration files of the location, for finding the newest one. */
+        String migrationPattern() {
+            return "classpath*:" + migrationLocation.substring("classpath:".length()) + "/V*__*.sql";
+        }
+    }
 
     private DatabaseCheck() {
     }
@@ -44,21 +64,21 @@ public final class DatabaseCheck {
     /**
      * Flyway configuration of the application database, used by the {@code flyway} bean and by the restore on start.
      */
-    public static ClassicConfiguration flywayConfiguration(DataSource dataSource) {
+    public static ClassicConfiguration flywayConfiguration(DataSource dataSource, Schema schema) {
         ClassicConfiguration configuration = new ClassicConfiguration();
         configuration.setDataSource(dataSource);
         configuration.setBaselineOnMigrate(true);
         configuration.setBaselineVersion(MigrationVersion.fromVersion("1"));
-        configuration.setLocationsAsStrings(MIGRATION_LOCATION);
+        configuration.setLocationsAsStrings(schema.migrationLocation());
         return configuration;
     }
 
     /**
      * Checks the file and throws {@link InvalidDatabaseException} with the reason when it can't be restored: not a
-     * SQLite file, damaged ({@code PRAGMA integrity_check}), not a Marginalia database (core tables missing), a failed
-     * migration in its history, or a database of a newer Marginalia version than the running one.
+     * SQLite file, damaged ({@code PRAGMA integrity_check}), not a database of the application (core tables missing), a
+     * failed migration in its history, or a database of a newer version than the running one.
      */
-    public static void check(File file) throws IOException {
+    public static void check(File file, Schema schema) throws IOException {
         byte[] header = new byte[SQLITE_HEADER.length];
         int read;
         try (InputStream inputStream = new FileInputStream(file)) {
@@ -91,14 +111,15 @@ public final class DatabaseCheck {
                     tables.add(rs.getString(1));
                 }
             }
-            List<String> missing = CORE_TABLES.stream().filter(t -> !tables.contains(t)).toList();
+            List<String> missing = schema.coreTables().stream().filter(t -> !tables.contains(t)).toList();
             if (!missing.isEmpty()) {
-                throw new InvalidDatabaseException("not a Marginalia database, missing tables: " + String.join(", ", missing));
+                throw new InvalidDatabaseException("not a database of this application, missing tables: "
+                        + String.join(", ", missing));
             }
 
             // a database without history predates Flyway, it is baselined at V1 on start
             if (tables.contains(HISTORY_TABLE)) {
-                checkHistory(statement);
+                checkHistory(statement, schema);
             }
         } catch (SQLException e) {
             throw new InvalidDatabaseException("the database can't be read: " + e.getMessage(), e);
@@ -113,7 +134,7 @@ public final class DatabaseCheck {
      *
      * @return the version the database is at, empty when no migration is pending
      */
-    public static Optional<String> pendingMigrationFrom(File file) throws IOException, SQLException {
+    public static Optional<String> pendingMigrationFrom(File file, Schema schema) throws IOException, SQLException {
         if (!file.isFile() || file.length() == 0) {
             return Optional.empty();
         }
@@ -128,7 +149,7 @@ public final class DatabaseCheck {
                 }
             }
             if (!tables.contains(HISTORY_TABLE)) {
-                return tables.containsAll(CORE_TABLES) ? Optional.of("1") : Optional.empty();
+                return tables.containsAll(schema.coreTables()) ? Optional.of("1") : Optional.empty();
             }
             MigrationVersion latestApplied = null;
             try (ResultSet rs = statement.executeQuery("SELECT version FROM " + HISTORY_TABLE + " WHERE success = 1")) {
@@ -142,7 +163,7 @@ public final class DatabaseCheck {
                     }
                 }
             }
-            MigrationVersion latestKnown = latestMigration();
+            MigrationVersion latestKnown = latestMigration(schema);
             if (latestKnown != null && (latestApplied == null || latestKnown.isNewerThan(latestApplied.getVersion()))) {
                 return Optional.of(latestApplied == null ? "1" : latestApplied.getVersion());
             }
@@ -150,8 +171,8 @@ public final class DatabaseCheck {
         }
     }
 
-    private static void checkHistory(Statement statement) throws SQLException, IOException {
-        MigrationVersion latestKnown = latestMigration();
+    private static void checkHistory(Statement statement, Schema schema) throws SQLException, IOException {
+        MigrationVersion latestKnown = latestMigration(schema);
         MigrationVersion latestApplied = null;
         try (ResultSet rs = statement.executeQuery("SELECT version, success FROM " + HISTORY_TABLE)) {
             while (rs.next()) {
@@ -168,7 +189,7 @@ public final class DatabaseCheck {
             }
         }
         if (latestApplied != null && latestKnown != null && latestApplied.isNewerThan(latestKnown.getVersion())) {
-            throw new InvalidDatabaseException("the database is from a newer version of Marginalia (schema version "
+            throw new InvalidDatabaseException("the database is from a newer version of the application (schema version "
                     + latestApplied + ", this version knows up to " + latestKnown + ")");
         }
     }
@@ -176,9 +197,9 @@ public final class DatabaseCheck {
     /**
      * Highest migration version bundled with the application.
      */
-    static MigrationVersion latestMigration() throws IOException {
+    static MigrationVersion latestMigration(Schema schema) throws IOException {
         Resource[] resources = new PathMatchingResourcePatternResolver(DatabaseCheck.class.getClassLoader())
-                .getResources(MIGRATION_PATTERN);
+                .getResources(schema.migrationPattern());
         MigrationVersion latest = null;
         for (Resource resource : resources) {
             Matcher matcher = MIGRATION_NAME.matcher(Objects.toString(resource.getFilename(), ""));

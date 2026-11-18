@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.utils.ClientAddressResolver;
 import org.flywaydb.core.Flyway;
+import org.flywaydb.core.api.configuration.ClassicConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -20,6 +21,7 @@ import java.nio.file.StandardCopyOption;
 import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
+import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -54,6 +56,8 @@ public class Configuration implements InitializingBean {
     private boolean allowPersistentLogin = true;
     private ClientAddressResolver clientAddressResolver = new ClientAddressResolver(null);
     private File folder;
+    private String defaultFolderName = ".marginalia";
+    private DatabaseCheck.Schema databaseSchema = DatabaseCheck.Schema.PLATFORM;
     private File dataFolder;
     private File databaseBackupFolder;
     private File databaseFile;
@@ -104,10 +108,35 @@ public class Configuration implements InitializingBean {
         this.folder = folder;
     }
 
+    /**
+     * The name of the application folder in the user's home when no folder is set (default {@code .marginalia}):
+     * each application on the platform has its own.
+     */
+    public void setDefaultFolderName(String defaultFolderName) {
+        this.defaultFolderName = defaultFolderName;
+    }
+
+    /**
+     * The migrations and the core tables of the application's database (default {@link DatabaseCheck.Schema#PLATFORM}):
+     * the start, a restore and the pre-migration backup check a database against it.
+     */
+    public DatabaseCheck.Schema getDatabaseSchema() {
+        return databaseSchema;
+    }
+
+    public void setDatabaseSchema(DatabaseCheck.Schema databaseSchema) {
+        this.databaseSchema = databaseSchema;
+    }
+
+    /** The Flyway configuration of the application database (the {@code flyway} bean). */
+    public ClassicConfiguration flywayConfiguration(DataSource dataSource) {
+        return DatabaseCheck.flywayConfiguration(dataSource, databaseSchema);
+    }
+
     @Override
     public void afterPropertiesSet() throws Exception {
         if (folder == null) {
-            folder = new File(System.getProperty("user.home"), ".marginalia");
+            folder = new File(System.getProperty("user.home"), defaultFolderName);
         }
         if (!folder.exists() && !folder.mkdirs()) {
             throw new RuntimeException("Cannot create folder " + folder.getAbsolutePath());
@@ -259,7 +288,7 @@ public class Configuration implements InitializingBean {
      */
     private void backupBeforeMigration(File db) {
         try {
-            Optional<String> from = DatabaseCheck.pendingMigrationFrom(db);
+            Optional<String> from = DatabaseCheck.pendingMigrationFrom(db, databaseSchema);
             if (from.isEmpty()) {
                 return;
             }
@@ -325,7 +354,7 @@ public class Configuration implements InitializingBean {
         File rejected = new File(databaseBackupFolder, REJECTED_RESTORE_PREFIX + timestamp + "-" + db.getName());
 
         try {
-            DatabaseCheck.check(pending);
+            DatabaseCheck.check(pending, databaseSchema);
         } catch (DatabaseCheck.InvalidDatabaseException e) {
             Files.move(pending.toPath(), rejected.toPath(), StandardCopyOption.REPLACE_EXISTING);
             log.error("Database restore rejected, {}. The current database is kept, the rejected file was moved to {}",
@@ -360,7 +389,7 @@ public class Configuration implements InitializingBean {
     private void migrate(File db) throws SQLException {
         SQLiteDataSource dataSource = new SQLiteDataSource();
         dataSource.setUrl(jdbcUrl(db));
-        Flyway flyway = new Flyway(DatabaseCheck.flywayConfiguration(dataSource));
+        Flyway flyway = new Flyway(DatabaseCheck.flywayConfiguration(dataSource, databaseSchema));
         flyway.migrate();
         // the WAL is checkpointed and the files released when the last connection closes
         try (Connection connection = dataSource.getConnection(); Statement statement = connection.createStatement()) {

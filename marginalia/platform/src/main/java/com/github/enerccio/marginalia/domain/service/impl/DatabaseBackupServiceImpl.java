@@ -131,7 +131,7 @@ public class DatabaseBackupServiceImpl implements DatabaseBackupService, Applica
     @NoTx
     public synchronized DatabaseBackup importBackup(String fileName, File source) throws Exception {
         adminGuard.requireAdmin();
-        DatabaseCheck.check(source);
+        DatabaseCheck.check(source, configuration.getDatabaseSchema());
         String baseName = FilenameUtils.getBaseName(StringUtils.defaultIfBlank(fileName, "uploaded"));
         File target = uniqueFile(baseName.replaceAll("[^A-Za-z0-9._-]", "_"));
         Files.copy(source.toPath(), target.toPath());
@@ -158,7 +158,7 @@ public class DatabaseBackupServiceImpl implements DatabaseBackupService, Applica
         adminGuard.requireAdmin();
         File file = backupFile(backup);
         // checked again on start, but a file that can't be restored is better reported now
-        DatabaseCheck.check(file);
+        DatabaseCheck.check(file, configuration.getDatabaseSchema());
         File pending = getPendingRestoreFile();
         File tmp = new File(pending.getAbsolutePath() + ".tmp");
         Files.copy(file.toPath(), tmp.toPath(), StandardCopyOption.REPLACE_EXISTING);

@@ -17,6 +17,7 @@ app DefaultsIT
 app DefaultsJA
 app DefaultsKO
 app MarginaliaCssStyles
+app MarginaliaDatabase
 
 platform api
 app api.BookApiTargets

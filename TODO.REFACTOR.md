@@ -221,16 +221,22 @@ Found on the way, to decide:
       `@MarginaliaTemplateDescription` with `M_L`; `@CommandTexts`, `@LocalizedTemplateDescription` with `L`), found by
       the meta-annotations `@CommandTextSource` / `@TemplateDescriptionSource` (`LocalizedAnnotations`), so no app text
       is left in `L`. The layer-2 core enum (and `TODO.VN.MD`) is one more enum with its bundles and annotations.
-- [ ] **Tests.** The platform base from Phase 1 as a `test-jar` of the platform module; the platform's own tests
-      move with it (inference, templates, function/tool, gpu, jobs, security, instruct, CRUD of platform entities).
-      The tests are all still in the app and test the platform through the dependency. Schema of the platform's own
-      tests: decided, test-only migrations of the platform tables in the platform's test resources (Flyway item).
-      With the XML and the unit per application (Spring XML, Entities items), the platform's tests also need a
-      test-only Spring context and `persistence.xml` of the platform beans and entities in its test resources: a small
-      application of its own, which is also the example for Joi. `StylesheetLayersTest` (the styles split) is in the app
-      with the other architecture tests.
-      The coverage profile (JaCoCo) reports the app's classes only until then (`report-aggregate` or the platform's
-      own report).
+- [x] **Tests.** Done (2026-11-18): the platform module has its own tests and a `test-jar`. Its test resources are a
+      small application of the platform alone: `META-INF/spring/test-application-config.xml` (the 42 platform beans
+      of `services-config.xml` without OSGi and the instrumentation, the data sources, Flyway, `LocalizationImpl` with
+      the `L` bundles, `SessionPoint`), `platform-test/persistence.xml` (the 20 platform entities and a
+      `TestUserSetting`), `platform-test-migration/V1__platform.sql` (the 20 platform tables, their sequences and
+      indexes, from Marginalia's schema at V31). `PlatformTestBase` starts `classpath:META-INF/spring/
+      test-application-config.xml`, a file each module has (the platform's is left out of the test-jar, Marginalia's
+      imports its whole application), so the CRUD contracts work in both. The test base (`PlatformTestBase`,
+      `MockLLMServer`, `InferenceCollector`, `ExpectedLog`, `ComponentTree`, `TestImages`, the contracts) and 77 test
+      classes moved (92 files): 673 tests run on the platform alone. Those that need Marginalia (cleanup of books, agent tools,
+      the commands it registers, the API signature check, the weaving tests with their fixtures, which copy the
+      app's test classes) stay in the app. `db/PlatformSchemaTest` (app) checks the
+      platform's test tables against Marginalia's migrations; `LayerDependencyTest` lost its test-code check (the
+      compiler does it now). On the way, `DatabaseCheck` no longer hard-codes Marginalia: the migration location and
+      the core tables are a `DatabaseCheck.Schema` on the `configuration` bean (`MarginaliaDatabase.SCHEMA`), and the
+      default folder name is a property (`defaultFolderName`). JaCoCo still reports the app's classes only.
 - [ ] **Packaging.** The WAR has the platform JAR in `WEB-INF/lib`; the desktop app and Docker image unchanged in
       behaviour. Check the release workflows and `bin/` scripts that call `mvn install` of the app (they must install
       the platform first, the root build does it). Done with the spike, not run yet: the workflows build the app from

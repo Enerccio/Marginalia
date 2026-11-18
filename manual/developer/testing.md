@@ -5,6 +5,8 @@ verified: 9860afee8
 covers:
   - marginalia/src/test
   - marginalia/pom.xml
+  - marginalia/platform/src/test
+  - marginalia/platform/pom.xml
 ---
 
 # Testing
@@ -13,7 +15,11 @@ Marginalia's tests are integration tests first: most of them start the real Spri
 throwaway SQLite database and talk to a fake OpenAI-compatible server. They need no network, no model and no API key,
 and they run in CI on every push and pull request. This page explains the test infrastructure and how to add tests.
 
-All test code is in `marginalia/src/test/java/com/github/enerccio/marginalia/`; paths below are relative to it.
+The tests are in two modules, split like the classes. The platform's own tests and its test base (`PlatformTestBase`,
+the fake LLM, the CRUD contracts) are in `marginalia/platform/src/test/java/com/github/enerccio/marginalia/`, run on the
+platform alone and are published as the platform's test-jar ([below](#the-platform-s-tests-and-the-test-jar)); the
+tests of Marginalia are in `marginalia/src/test/java/com/github/enerccio/marginalia/`. The packages are the same in
+both, so paths below are relative to either.
 
 ## Running the tests
 
@@ -35,6 +41,9 @@ Surefire is configured in `pom.xml` with:
 | `marginalia.test.home=target/test-home` | Folder for the test databases (see [The application folder](#the-application-folder)). |
 | `marginalia.staleSaves=${test.staleSaves}` (default `fail`) | A save of an entity from a copy read before the last save of its row (a stale save, `StaleSaves`) fails the test with `StaleSaveException` instead of only being logged; `-Dtest.staleSaves=log` only logs it. A test that saves a stale copy on purpose sets `StaleSaves.setMode(LOG)` around it and `setMode(null)` after. See [Extended attributes](plugins/extended-attributes.md). |
 | `forkCount=${test.forks}` (default 3), `reuseForks=true` | The test classes are spread over that many JVMs, one class at a time in each. Every JVM has its own Spring context and so its own database: SQLite lets one writer in at a time, and the `@Configurable` aspect (the `@Autowired` fields of the UI classes) is one for the JVM and bound to one Spring context, so threads of one JVM with a context each do not work. `-Dtest.forks=1` runs the classes one after another (times below). |
+
+The platform's POM (`marginalia/platform/pom.xml`) configures its tests the same way, with 2 forks by default and
+`logback.configurationFile` pointing to its test logging ([The platform's tests](#the-platform-s-tests-and-the-test-jar)).
 
 How long `mvn test` takes (about 3,000 tests in the first two rows), with the machine, as the time depends on it. Add a row for yours: the
 `Total time` line of Maven, once with `-Dtest.forks=1` and once as it is. Each fork has a heap of `-Xmx1g` (`test.heap` in the pom; `-Dtest.heap=-Xmx3g` for a test that needs more): the JVM default is a quarter of the RAM, which three forks and the Maven JVM filled on a 16 GB machine.
@@ -192,18 +201,19 @@ classDiagram
 |---|---|---|
 | none | no | Pure units (`CronScheduleTest`, `SillyTavernEntryConverterTest`, `FlywayMigrationTest`). |
 | `TemplateTestBase` | no | Anything rendered by `TemplateServiceImpl`. |
-| `PlatformTestBase` | yes | Code of the platform: users, permissions, AIs, jobs; names no class of the application. |
+| `PlatformTestBase` | yes | Code of the platform: users, permissions, AIs, jobs, inference, GPU locks; in the platform module it runs on the platform alone. |
 | `MarginaliaTestBase` | yes | Services, repositories, backups, cleanup of the application. |
 | `GenerationTestBase` | yes | Anything that needs a real generation. |
 | `OwnedCrudContract` / `ExtendableCrudContract` | yes | The CRUD contract of a new entity. |
 
 ### MarginaliaTestBase
 
-`test/PlatformTestBase` (users, permissions, the login, AIs on the mock LLM; the platform's part, checked by the
-layer test below) and `test/MarginaliaTestBase` on top of it (the background writers of the application, the sizes of
-the books and the activity, see `quietBackgroundWriters`) start the application context from
-`src/test/resources/META-INF/spring/test-application-config.xml`. That file imports the production
-`application-config.xml` and adds `TestContextPostProcessor`, which
+`test/PlatformTestBase` (users, permissions, the login, AIs on the mock LLM; in the platform's test-jar) and
+`test/MarginaliaTestBase` on top of it (the background writers of the application, the sizes of the books and the
+activity, see `quietBackgroundWriters`) start the context `classpath:META-INF/spring/test-application-config.xml`.
+Each module has its own file of that name: Marginalia's (`src/test/resources/META-INF/spring/`) imports the production
+`application-config.xml`, the platform's is the platform alone ([below](#the-platform-s-tests-and-the-test-jar)). Both
+add `TestContextPostProcessor`, which
 
 - removes the OSGi framework (`OsgiServiceImpl`) and the instrumentation agent (`RuntimeInstrumentationInitializer`;
   the classes of the application are woven by the build, so their hooks run in the tests and call the
@@ -509,10 +519,36 @@ every class named in signatures, bodies, annotations and constants) and fails wh
 After a change of the map, `-Dlayers.update=true` rewrites the list from the classes (it writes to
 `src/test/resources`, so run it from the `marginalia` folder).
 
-A second check does the same for the shared test code: the test classes that `layers/test-layers.txt` lists as
-`platform` (`PlatformTestBase`, the mock LLM in `test.llm`, `ExpectedLog`, `ComponentTree`, `TestContextPostProcessor`,
-`TestUserService`, the CRUD contracts) may name no application class, main or test, nor a test class the file does not
-list. There is no allow list for it. These classes are the future test-jar of the platform module.
+The shared test code of the platform (`PlatformTestBase`, the mock LLM in `test.llm`, `ExpectedLog`, `ComponentTree`,
+`TestContextPostProcessor`, `TestUserService`, the CRUD contracts) is compiled in the platform module, where an
+application class does not exist, so it needs no check of its own.
+
+## The platform's tests and the test-jar
+
+The platform module (`marginalia/platform`) has its own tests: the units of its classes and the Spring tests of its
+services (users, permissions, AIs and their sharing and limits, inference and the gate, tools, templates, GPU locks,
+jobs, the database backup schedule, notifications, the CRUD of its entities...), about 670. They run on **the platform
+alone**, the way another application on the platform would start it:
+
+| File (`marginalia/platform/src/test/`) | |
+|---|---|
+| `resources/META-INF/spring/test-application-config.xml` | The Spring XML of the platform: its beans (the platform's part of Marginalia's `services-config.xml`), the data sources, Flyway, the container beans (`LocalizationImpl` with the `L` bundles, `SessionPoint`), and `TestContextPostProcessor`. The example of what an application writes for itself: the platform ships no Spring XML. |
+| `resources/platform-test/persistence.xml` | The platform's entities and `TestUserSetting` (the minimal `BaseUserSetting` an application would have). |
+| `resources/platform-test-migration/V1__platform.sql` | The platform's tables (Flyway location `classpath:platform-test-migration`, set on the `configuration` bean as its `DatabaseCheck.Schema`), written from Marginalia's schema. `db/PlatformSchemaTest` in Marginalia's tests checks that every table there has the same columns and indexes in a database migrated by Marginalia's migrations: a change of a platform table in a Marginalia migration needs the same change here, as a new migration. Hibernate's temporary tables (`HTE_*`) are left out, Hibernate makes them. |
+| `logback-platform-tests.xml` | The logging of these tests, named by the surefire configuration and kept off the class path (in a reactor build Marginalia's tests see the platform's test classes folder). |
+
+Run them from the root: `mvn clean test -pl marginalia/platform`, or both modules with
+`mvn clean test -pl marginalia/platform,marginalia` (with `-Dbuild.dir`, the platform's go to `<build.dir>-platform`).
+A test of a platform class that needs Marginalia (a book, a generation, the commands it registers) stays in
+Marginalia's tests.
+
+The platform's POM makes a **test-jar** of these classes (`marginalia-platform-<version>-tests.jar`, installed with the
+platform), and Marginalia's tests depend on it (`<type>test-jar</type>`, scope `test`): `PlatformTestBase`,
+`MockLLMServer`, `InferenceCollector`, `ExpectedLog`, `ComponentTree`, `TestImages` and the CRUD contracts come from
+there. The platform's context file is left out of the jar, so an application's tests start their own: an application
+on the platform (Joi) depends on the test-jar the same way and puts its wiring into its own
+`META-INF/spring/test-application-config.xml`. Building Marginalia alone in `marginalia/` takes the test-jar from the
+local repository, so install the platform after a change of its tests (`mvn install -DskipTests -pl marginalia -am`).
 
 ## The dataset book
 

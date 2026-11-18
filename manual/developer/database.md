@@ -87,7 +87,7 @@ It holds the [extended attributes](domain-model.md#extendableentity---extended-a
 
 1. Before the data source is created, `Configuration.resolveDb` swaps in a staged database restore, if there is one
    (see [Database backups and restores](#database-backups-and-restores)). Then `Configuration.backupBeforeMigration`
-   asks `DatabaseCheck.pendingMigrationFrom` whether the existing file is behind the newest bundled `V<n>` migration
+   asks `DatabaseCheck.pendingMigrationFrom` (with the schema of the `configuration` bean) whether the existing file is behind the newest bundled `V<n>` migration
    (or has no history table, which Flyway baselines at V1). If so it saves a `VACUUM INTO` copy as
    `db-backups/pre-migration-<time>-V<from>-marginalia.sqlite` and keeps the newest three. A new installation (no file
    or an empty one) and a current database are left alone, and a copy that fails is logged, not fatal. The check
@@ -393,20 +393,24 @@ sequenceDiagram
     Note over C: datasource, Flyway bean (nothing left to migrate), Hibernate validates
 ```
 
-`DatabaseCheck.check(File)` is run on *Upload Backup* (`importBackup`), on `scheduleRestore` and on start. It opens the
-file read-only and refuses it (`InvalidDatabaseException`, an `IllegalArgumentException` with the reason) when:
+`DatabaseCheck.check(File, Schema)` is run on *Upload Backup* (`importBackup`), on `scheduleRestore` and on start. The
+`Schema` is the application's database: where its migrations are and which tables every database of it has. It is set
+on the `configuration` bean (`databaseSchema`, Marginalia's is `MarginaliaDatabase.SCHEMA`; the platform's default,
+`DatabaseCheck.Schema.PLATFORM`, names only the platform's tables and is what another application starts from), and
+`Configuration.getDatabaseSchema()` gives it to the backup service. The check opens the file read-only and refuses it (`InvalidDatabaseException`, an `IllegalArgumentException` with the reason) when:
 
 - it doesn't start with the SQLite header,
 - `PRAGMA integrity_check` reports problems,
-- core tables (`users`, `settings`, `manuscripts`, `messages`, `lorebooks`, `entries`, `ais`, `protocols`, `tags`,
-  `t2e`) are missing - another application's database,
-- `flyway_schema_history` has a failed migration or a version newer than the newest bundled `migration/V*__*.sql` -
-  a database of a newer Marginalia version. A database without the history table predates Flyway and is baselined at
+- core tables of the schema (Marginalia's: `users`, `settings`, `manuscripts`, `messages`, `lorebooks`, `entries`,
+  `ais`, `protocols`, `tags`, `t2e`) are missing - another application's database,
+- `flyway_schema_history` has a failed migration or a version newer than the newest bundled migration of the schema's
+  location (`migration/V*__*.sql`) - a database of a newer Marginalia version. A database without the history table predates Flyway and is baselined at
   V1 as usual.
 
 `Configuration.applyPendingRestore()` migrates the restored database itself, before the datasource is created, with
-the same Flyway configuration as the `flyway` bean (`DatabaseCheck.flywayConfiguration(DataSource)`, used by
-`datasources-config.xml` too). If the check fails, the staged file is moved to
+the same Flyway configuration as the `flyway` bean (`Configuration.flywayConfiguration(DataSource)`, the factory
+method of the `flywayConfiguration` bean in `datasources-config.xml`, which calls `DatabaseCheck.flywayConfiguration`
+with the schema). If the check fails, the staged file is moved to
 `db-backups/rejected-restore-<time>-marginalia.sqlite` and the current database stays. If the migration fails, the
 restored file is moved there as well and the `pre-restore-*` database is moved back. Either way the reason is logged
 as an error and Marginalia starts with the previous database. A backup from an older version is upgraded on start.

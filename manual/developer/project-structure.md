@@ -361,7 +361,7 @@ Test classes mirror the areas they cover (paths relative to `src/test/java/com/g
 
 | Package | |
 |---|---|
-| `test` | Test infrastructure: `MarginaliaTestBase` (Spring context, temp data folder, login helpers), `GenerationTestBase` / `GenerationRun` (running real generations), `InferenceCollector`, `ExpectedLog`, `TestContextPostProcessor`, `TestUserService` (cheap password hashing). |
+| `test` | Test infrastructure: `MarginaliaTestBase` (the application's context on the platform's `PlatformTestBase`), `GenerationTestBase` / `GenerationRun` (running real generations), `AgentTestBase`. The platform's part (`PlatformTestBase`: Spring context, temp data folder, login helpers; `InferenceCollector`, `ExpectedLog`, `TestContextPostProcessor`, `TestUserService` with cheap password hashing, the mock LLM in `test.llm`) is in `platform/src/test`, the platform's test-jar. |
 | `test.llm` | `MockLLMServer` - a fake OpenAI-compatible server with programmable scenarios. |
 | `crud` | CRUD tests for every entity, built on `OwnedCrudContract` / `ExtendableCrudContract`. |
 | `generation` | Generation requests and lorebook activation; the macros of the story (`ClosestMacroTest`: `closest-message`, `closest-summary`, `current-message`; `CommandMacroTest`: {%{`{{command::...}}`}%} and the kept answers). |

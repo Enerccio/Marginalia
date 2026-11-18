@@ -24,6 +24,11 @@
     <maven.compiler.target>25</maven.compiler.target>
     <vaadin.version>25.2.3</vaadin.version>
     <spring.version>7.0.8</spring.version>
+    <!-- the platform's tests, as in the application's POM: the forks, the heap of each, stale saves fail the test -->
+    <test.forks>2</test.forks>
+    <test.heap>-Xmx1g</test.heap>
+    <test.staleSaves>fail</test.staleSaves>
+    <argLine></argLine>
   </properties>
 
   <dependencyManagement>
@@ -326,10 +331,79 @@
       <version>1.18.7</version>
     </dependency>
 
+
+    <!-- TESTS: the platform's own tests and the test-jar (PlatformTestBase, MockLLMServer, the CRUD contracts) that
+         applications on the platform test with -->
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-test</artifactId>
+      <version>${spring.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- EL for hibernate-validator, provided by the servlet container at runtime -->
+    <dependency>
+      <groupId>org.glassfish.expressly</groupId>
+      <artifactId>expressly</artifactId>
+      <version>5.0.0</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <version>3.27.3</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
     <plugins>
+      <!-- the test-jar (classifier tests): the test base of the platform for the tests of the applications on it -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
+            <configuration>
+              <!-- the context of the platform's own tests: an application's tests bring a file of this name with
+                   their wiring (PlatformTestBase starts it) -->
+              <excludes>
+                <exclude>META-INF/spring/test-application-config.xml</exclude>
+              </excludes>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- as in the application's POM: a Spring context (and its database) per JVM -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>3.5.4</version>
+        <configuration>
+          <forkCount>${test.forks}</forkCount>
+          <reuseForks>true</reuseForks>
+          <!-- RuntimeInstrumentationTest installs the ByteBuddy agent into the test JVM -->
+          <argLine>@{argLine} ${test.heap} -XX:+EnableDynamicAgentLoading -Djdk.attach.allowAttachSelf=true -Djava.awt.headless=true -Dapple.awt.UIElement=true</argLine>
+          <systemPropertyVariables>
+            <marginalia.test.home>${project.build.directory}/test-home</marginalia.test.home>
+            <marginalia.staleSaves>${test.staleSaves}</marginalia.staleSaves>
+            <!-- not on the class path, see the file -->
+            <logback.configurationFile>${project.basedir}/src/test/logback-platform-tests.xml</logback.configurationFile>
+          </systemPropertyVariables>
+        </configuration>
+      </plugin>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -381,6 +455,7 @@
           <execution>
             <goals>
               <goal>compile</goal>
+              <goal>test-compile</goal>
             </goals>
           </execution>
         </executions>
