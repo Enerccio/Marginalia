@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.write;
 
+import com.github.enerccio.marginalia.domain.service.command.CommandScope;
 import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
@@ -367,9 +368,9 @@ public class StoryGenerationCommands extends ManuscriptWriteSupport {
             context.setStatus(loc.getValue(L.MSG_COMMAND_GENERATING));
             CompletableFuture<ChatMessage> done = new CompletableFuture<>();
             List<String> warnings = new CopyOnWriteArrayList<>();
-            Manuscript fresh = context.getScope().getManuscript();
+            Manuscript fresh = CommandScope.of(context).getManuscript();
             // the story of the command bar shows the generation as one of its own: the part streams in, its round button stops it
-            GenerationView view = context.getScope().isAgent() ? null : context.getScope().getGenerationView();
+            GenerationView view = context.getScope().isAgent() ? null : CommandScope.of(context).getGenerationView();
             GenerationListener shown = view == null ? null : view.show(fresh, request);
             if (shown != null) {
                 options = options.withPage(view.getPage());

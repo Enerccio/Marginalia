@@ -100,10 +100,11 @@ public interface CommandService {
      * Like {@link #execute(String, Map, boolean)}, for the book and the caller of the {@code scope}: this is how an
      * agent aims a command at its working copy and gets no questions asked.
      *
-     * @param scope what the command works on, see {@link CommandScope}; null for the scope of the session of the calling
-     *              thread ({@link CommandScopes#session()}), which is the book the user has open
+     * @param scope what the command works on, see {@link BaseCommandScope} (in the application a
+     *              {@code CommandScope}); null for the scope of the session of the calling thread
+     *              ({@link CommandScopeSource#session()}), which is the book the user has open
      */
-    CommandRun execute(String commandName, Map<String, Object> arguments, boolean uninterruptable, CommandScope scope);
+    CommandRun execute(String commandName, Map<String, Object> arguments, boolean uninterruptable, BaseCommandScope scope);
 
     /**
      * Runs the command with the arguments by position (any objects, text from a command line included). The overload
@@ -127,9 +128,9 @@ public interface CommandService {
 
     /**
      * Like {@link #executePositional(String, List, boolean)}, with the {@code scope} of
-     * {@link #execute(String, Map, boolean, CommandScope)}.
+     * {@link #execute(String, Map, boolean, BaseCommandScope)}.
      */
-    CommandRun executePositional(String commandName, List<Object> arguments, boolean uninterruptable, CommandScope scope);
+    CommandRun executePositional(String commandName, List<Object> arguments, boolean uninterruptable, BaseCommandScope scope);
 
     /**
      * Runs a command typed as text, {@code /command-name argument argument}, see
@@ -150,8 +151,8 @@ public interface CommandService {
 
     /**
      * Like {@link #executeLine(String, boolean)}, with the {@code scope} of
-     * {@link #execute(String, Map, boolean, CommandScope)}.
+     * {@link #execute(String, Map, boolean, BaseCommandScope)}.
      */
-    CommandRun executeLine(String line, boolean uninterruptable, CommandScope scope);
+    CommandRun executeLine(String line, boolean uninterruptable, BaseCommandScope scope);
 
 }

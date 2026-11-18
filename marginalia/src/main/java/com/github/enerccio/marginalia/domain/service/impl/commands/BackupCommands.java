@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service.impl.commands;
 
+import com.github.enerccio.marginalia.domain.service.command.CommandScope;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.BackupService;
 import com.github.enerccio.marginalia.domain.service.BackupService.ManuscriptBackup;
@@ -38,7 +39,7 @@ public class BackupCommands {
             returns = @CommandReturn(name = "message", type = String.class,
                     description = L.DESC_COMMAND_TAKE_BACKUP_RETURN))
     public void takeBackup(CommandContext context) throws Exception {
-        Manuscript manuscript = context.getScope().getManuscript();
+        Manuscript manuscript = CommandScope.of(context).getManuscript();
         if (manuscript == null) {
             throw new IllegalStateException(loc.getValue(L.ERROR_COMMAND_NO_BOOK_OPEN));
         }

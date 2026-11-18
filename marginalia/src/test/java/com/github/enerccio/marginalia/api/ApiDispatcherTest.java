@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.api;
 
+import com.github.enerccio.marginalia.domain.service.command.CommandScope;
 import com.github.enerccio.marginalia.domain.model.impl.Folder;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.security.model.ApiScope;
@@ -64,7 +65,7 @@ class ApiDispatcherTest extends MarginaliaTestBase {
                 readOnly = true, signature = @CommandParameterSignature,
                 returns = @CommandReturn(name = "book", type = String.class, descriptionText = "x"))
         public void where(CommandContext context) throws Exception {
-            Manuscript book = context.getScope().getManuscript();
+            Manuscript book = CommandScope.of(context).getManuscript();
             context.setReturn(book == null ? "none" : book.getName());
         }
 

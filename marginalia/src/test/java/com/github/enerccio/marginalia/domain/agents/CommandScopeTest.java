@@ -61,7 +61,7 @@ class CommandScopeTest extends AgentTestBase {
         @Command(commandName = "where-am-i", humanNameText = "Where am I", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
                 signature = @CommandParameterSignature, returns = @CommandReturn(name = "name", type = String.class, descriptionText = "x"))
         public void where(CommandContext context) throws Exception {
-            context.setReturn(context.getScope().getManuscript().getUuid());
+            context.setReturn(CommandScope.of(context).getManuscript().getUuid());
         }
 
         @Command(commandName = "ask-me", humanNameText = "Ask me", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,

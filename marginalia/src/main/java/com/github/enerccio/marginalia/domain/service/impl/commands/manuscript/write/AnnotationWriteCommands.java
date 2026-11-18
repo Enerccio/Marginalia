@@ -271,7 +271,7 @@ public class AnnotationWriteCommands extends ManuscriptWriteSupport {
         if (options.ai() == null) {
             // as the Lore Generator does: the model the scope works with (an agent's own model when its definition says so, else the
             // model of the book), and without a choice of the scope (the command bar) the model of the book
-            CommandScope.ModelChoice scoped = context.getScope().getModel();
+            CommandScope.ModelChoice scoped = CommandScope.of(context).getModel();
             if (scoped != null && scoped.ai() != null) {
                 options = options.withModel(scoped.ai(), scoped.protocol());
             }

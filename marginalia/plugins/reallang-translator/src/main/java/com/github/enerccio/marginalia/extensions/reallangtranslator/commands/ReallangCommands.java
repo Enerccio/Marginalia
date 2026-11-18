@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.extensions.reallangtranslator.commands;
 
+import com.github.enerccio.marginalia.domain.service.command.CommandScope;
 import com.github.enerccio.marginalia.domain.model.impl.AnchoredPassage;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Folder;
@@ -109,7 +110,7 @@ public class ReallangCommands extends ManuscriptReadSupport {
 
     private Manuscript scopeBook(CommandContext context) {
         try {
-            return context.getScope().getManuscript();
+            return CommandScope.of(context).getManuscript();
         } catch (Exception e) {
             return null;
         }

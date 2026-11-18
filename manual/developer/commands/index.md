@@ -189,7 +189,7 @@ A suite is one object shared by all users and runs in parallel, so it must be **
 run or a user did. What a command needs to know about the current state it reads when it runs:
 
 - from the services, which resolve the current user and check ownership (`ManuscriptService`, and so on),
-- from the **scope** of the call, `context.getScope()` (below): the book the command works on, its lorebooks and the way to ask a question,
+- from the **scope** of the call, `CommandScope.of(context)` (below): the book the command works on, its lorebooks and the way to ask a question,
 - from the session-scoped `SessionPoint` (`getLanguage()`, `getWorkspace()`), through `CommandUtils`.
 
 The commands that report or set the settings of a book (`get-book-info`, the book settings commands) work with the **effective** values, those the
@@ -198,7 +198,7 @@ book's own fields.
 
 ### The scope
 
-`CommandContext.getScope()` is a `CommandScope`: what the command works on and who answers its questions. A command takes the book from it
+`CommandContext.getScope()` is a `BaseCommandScope` of the command framework (`isAgent()`, `confirm`); in the application it is always a `CommandScope`, which `CommandScope.of(context)` returns: what the command works on and who answers its questions. A command takes the book from it
 (`getManuscript()`, read again from the database every time, `getLorebook()` the root lorebook of the book) and asks with
 `context.confirm(question)`; it never reaches for the open window. The user at the command bar gets the scope of their session
 (`CommandScopes.session()`: the open book, a dialog for the questions), an agent the scope of its working copy
@@ -233,7 +233,7 @@ both:
 | `getWorkspace()`          | The user's `Workspace` (desktop or phone); `null` for an agent.               |
 | `getManuscriptSection()`  | The part of the workspace that holds book windows (`ManuscriptSection`); `null` for an agent. |
 | `getManuscriptWindow()`   | The open book window (`ManuscriptWindow`, the same interface on the desktop and the phone); `null` for an agent. |
-| `getCurrentManuscript()`  | The open book (`SessionPoint.getCurrentManuscript()`) or the book of the agent session; a command takes the book from `context.getScope()` instead. |
+| `getCurrentManuscript()`  | The open book (`SessionPoint.getCurrentManuscript()`) or the book of the agent session; a command takes the book from `CommandScope.of(context)` instead. |
 | `getCurrentAI()`          | The AI of that book.                                                          |
 
 `confirm` and `reloadManuscriptWindow` talk to the window, so in a session without one they answer *no* and do nothing (`CommandContext.confirm` is what a command calls, it is routed by the scope).

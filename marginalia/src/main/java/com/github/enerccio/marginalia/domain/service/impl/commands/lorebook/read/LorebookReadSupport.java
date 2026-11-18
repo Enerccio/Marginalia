@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service.impl.commands.lorebook.read;
 
+import com.github.enerccio.marginalia.domain.service.command.CommandScope;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.model.impl.Tag;
@@ -73,7 +74,7 @@ public abstract class LorebookReadSupport extends ManuscriptReadSupport {
                 return books.getFirst();
             }
             if (isHandle(ref)) {
-                Lorebook found = context.getScope().resolveLorebook(ref.strip());
+                Lorebook found = CommandScope.of(context).resolveLorebook(ref.strip());
                 return books.stream().filter(b -> b.getId().equals(found.getId())).findFirst()
                         .orElseThrow(() -> new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_NO_SUCH_HANDLE)));
             }
@@ -92,7 +93,7 @@ public abstract class LorebookReadSupport extends ManuscriptReadSupport {
             if (!isHandle(handle)) {
                 throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_HANDLE_REQUIRED));
             }
-            Lorebook found = context.getScope().resolveUnusedLorebook(handle.strip());
+            Lorebook found = CommandScope.of(context).resolveUnusedLorebook(handle.strip());
             return books.stream().filter(b -> b.getId().equals(found.getId())).findFirst().orElse(found);
         }
 
@@ -114,7 +115,7 @@ public abstract class LorebookReadSupport extends ManuscriptReadSupport {
          */
         public Found find(String lorebookRef, String entryRef) throws Exception {
             if (entryRef != null && isHandle(entryRef)) {
-                LorebookEntry entry = context.getScope().resolveEntry(entryRef.strip());
+                LorebookEntry entry = CommandScope.of(context).resolveEntry(entryRef.strip());
                 Lorebook owner = books.stream().filter(b -> b.getId().equals(entry.getLorebook().getId())).findFirst()
                         .orElseThrow(() -> new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_NO_SUCH_HANDLE)));
                 List<LorebookEntry> all = entries(owner);

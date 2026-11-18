@@ -183,7 +183,7 @@ the database at every start and resume:
   `RequestAttributes` over two maps in memory (session and request scope). It starts with the `user` bean (a copy of the owner, as the login
   makes it) and an `AgenticSessionPoint`. Any other session bean is created on first use, empty.
 - `AgenticSessionPoint` is a `SessionPoint` that holds the **working copy** directly. `CommandUtils.getSessionPoint()` returns it for these attributes
-  (and the bean of the servlet session for a browser). A command no longer reads the book from there: it takes it from `context.getScope()`, and
+  (and the bean of the servlet session for a browser). A command no longer reads the book from there: it takes it from `CommandScope.of(context)`, and
   the runner runs the commands of an agent in the scope of its run (`CommandScopes.forRun(run)`, see [The scope](commands/index.md#the-scope)), so
   **the same command works at the command bar and for an agent** and never knows who is asking. This is why a command must never keep the book in a
   field or reach for `Workspace`.
@@ -850,7 +850,7 @@ The console shows the model's results cut at `RESULT_LIMIT` (20 000), the same a
 An agent calls the commands that the user ticked in the editor, so **every command is also an agent tool**. The rules for [writing commands](commands/writing-commands.md)
 apply; for an agent these matter most:
 
-- **Get the book from `context.getScope()`**, never from the UI; return the data (text, JSON) instead of showing it. An item that is passed in
+- **Get the book from `CommandScope.of(context)`**, never from the UI; return the data (text, JSON) instead of showing it. An item that is passed in
   is found through the scope (`resolveMessage`, `resolveLorebook`, `resolveEntry`), which keeps the command inside the working copy.
 - **Mark the severity honestly.** `NON_DESTRUCTIVE` commands are what the default selection offers; `DESTRUCTIVE` follows the agent's mode (`DENY` hides them).
   A command that only returns text and leaves the storing to the caller (the lore generator commands do this: they return the text, the agent writes the

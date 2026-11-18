@@ -92,9 +92,14 @@ classes; each item is a registration point or an interface in place of a hard re
 4. [ ] **Generation listener and views in platform signatures.** `GenerationListener` (names `ChatMessage`),
        `GenerationView`, `PromptField`, `PassageKind`, `IPCService`: decide per class; most are app interfaces that
        sit in `domain.service` only by package and simply go to `app` in the map, not leaks to fix.
-5. [ ] **Commands.** `CommandScope` / `CommandScopesImpl` list the story entities: scopes become registered by the
+5. [ ] **Commands.** (framework done, `CommandBar` left) `CommandScope` / `CommandScopesImpl` list the story entities: scopes become registered by the
        app; the framework (`CommandService`, `CommandContext`, `CommandBar`) stays generic. `utils.CommandUtils` goes
        to the app.
+       Done: the built-in suites are registered by the app's `BuiltInCommands` bean, not `CommandServiceImpl`. The
+       framework sees a `BaseCommandScope` (`isAgent`, `confirm`) and gets the default one from a `CommandScopeSource`;
+       `CommandScope` (book, lorebooks, run) is `app` and extends it, commands use `CommandScope.of(context)` (plugin API
+       change, the five plugins that read the scope are fixed). Left: `CommandBar` (`setGenerationView`, the hold of the
+       book for a generation, `CommandScopes.session(view)`) and `ApiDispatcher`, which go with the UI and API items.
 6. [ ] **Cleanup and resources.** (resources done: `SharedResources`, the app's `BookSharedResources`; cleanup left) `CleanupServiceImpl` (1,174 lines, names seven story entities) and
        `JpaResourceRepository` / `ResourceServiceImpl` (resources of a book through `ChatMessage`): story-specific
        cleanup steps and "resources of an owner" queries become contributions the app registers. `@CleanupReference`
@@ -123,7 +128,7 @@ classes; each item is a registration point or an interface in place of a hard re
         `MockLLMServer`, the CRUD contracts) and the app's story helpers on top.
 
 Done when the allow list of `LayerDependencyTest` is empty. Progress: 153 references from 33 classes at the start,
-133 from 21 after items 1, 2, 3, 7 and parts of 6 and 12 (2026-11-19), 115 from 15 after the settings split and items 9, 10.
+133 from 21 after items 1, 2, 3, 7 and parts of 6 and 12 (2026-11-19), 115 from 15 after the settings split and items 9, 10. 70 from 13 after the command framework (item 5).
 
 Found on the way, to decide:
 

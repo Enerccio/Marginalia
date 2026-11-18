@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.write;
 
+import com.github.enerccio.marginalia.domain.service.command.CommandScope;
 import com.github.enerccio.marginalia.domain.model.AgentModelProfile;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Agent;
@@ -219,7 +220,7 @@ public abstract class ManuscriptWriteSupport extends ManuscriptReadSupport {
         if (profile == null || profile.isBlank()) {
             return GenerationOptions.defaults();
         }
-        AgentRun run = context.getScope().getRun();
+        AgentRun run = CommandScope.of(context).getRun();
         if (run == null) {
             throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_PROFILE_AGENT_ONLY));
         }

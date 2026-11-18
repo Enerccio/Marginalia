@@ -1,16 +1,7 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
-import com.github.enerccio.marginalia.domain.service.CommandScopes;
 import com.github.enerccio.marginalia.domain.service.CommandService;
 import com.github.enerccio.marginalia.domain.service.command.*;
-import com.github.enerccio.marginalia.domain.service.impl.commands.BackupCommands;
-import com.github.enerccio.marginalia.domain.service.impl.commands.SearchReplaceChatMessageCommand;
-import com.github.enerccio.marginalia.domain.service.impl.commands.SearchReplaceLoreEntryCommand;
-import com.github.enerccio.marginalia.domain.service.impl.commands.lorebook.read.*;
-import com.github.enerccio.marginalia.domain.service.impl.commands.lorebook.write.LoreEntryWriteCommands;
-import com.github.enerccio.marginalia.domain.service.impl.commands.lorebook.write.LorebookWriteCommands;
-import com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.read.*;
-import com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.write.*;
 import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.domain.traits.Command;
 import com.github.enerccio.marginalia.domain.traits.CommandParameter;
@@ -19,7 +10,6 @@ import com.github.enerccio.marginalia.domain.traits.CommandReturn;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.web.context.request.RequestAttributes;
@@ -34,16 +24,16 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
-public class CommandServiceImpl implements CommandService, InitializingBean, DisposableBean {
+public class CommandServiceImpl implements CommandService, DisposableBean {
 
     @Autowired
     @Lazy
-    private CommandScopes commandScopes;
+    private CommandScopeSource commandScopes;
 
     /**
      * For a service that is made by hand, outside of the application context (the scopes then come from here).
      */
-    public void setCommandScopes(CommandScopes commandScopes) {
+    public void setCommandScopes(CommandScopeSource commandScopes) {
         this.commandScopes = commandScopes;
     }
 
@@ -70,61 +60,6 @@ public class CommandServiceImpl implements CommandService, InitializingBean, Dis
         thread.setDaemon(true);
         return thread;
     });
-
-    @Override
-    public void afterPropertiesSet() {
-        registerCommands(new BackupCommands());
-        registerCommands(new SearchReplaceChatMessageCommand());
-        registerCommands(new SearchReplaceLoreEntryCommand());
-        registerManuscriptReadCommands();
-        registerLorebookReadCommands();
-        registerManuscriptWriteCommands();
-    }
-
-    private void registerManuscriptWriteCommands() {
-        registerCommands(new PartEditCommands());
-        registerCommands(new PartStructureCommands());
-        registerCommands(new SummaryWriteCommands());
-        registerCommands(new AnnotationWriteCommands());
-        registerCommands(new BookSettingsCommands());
-        registerCommands(new StoryGenerationCommands());
-        registerCommands(new SummaryGenerationCommands());
-        registerCommands(new RedraftCommands());
-        registerCommands(new ImpersonateCommands());
-        registerCommands(new LoreEntryWriteCommands());
-        registerCommands(new LorebookWriteCommands());
-        registerCommands(new PlannerCommands());
-    }
-
-    private void registerLorebookReadCommands() {
-        registerCommands(new ListLorebooksCommand());
-        registerCommands(new ListLoreEntriesCommand());
-        registerCommands(new GetLoreEntryCommand());
-        registerCommands(new SearchLoreCommand());
-        registerCommands(new PreviewLoreActivationCommand());
-    }
-
-    private void registerManuscriptReadCommands() {
-        registerCommands(new GetBookInfoCommand());
-        registerCommands(new GetBookStatisticsCommand());
-        registerCommands(new GetStatisticsCommand());
-        registerCommands(new ListPartsCommand());
-        registerCommands(new GetPartCommand());
-        registerCommands(new ListSwipesCommand());
-        registerCommands(new ListBranchesCommand());
-        registerCommands(new GetPartMetricsCommand());
-        registerCommands(new ShowPromptCommand());
-        registerCommands(new SearchPartsCommand());
-        registerCommands(new FindOccurrencesCommand());
-        registerCommands(new ComparePartsCommand());
-        registerCommands(new CountTokensCommand());
-        registerCommands(new ListSummariesCommand());
-        registerCommands(new GetSummaryCommand());
-        registerCommands(new ListAnnotationsCommand());
-        registerCommands(new GetAnnotationCommand());
-        registerCommands(new CheckSummariesCommand());
-        registerCommands(new GetTemplateVariablesCommand());
-    }
 
     @Override
     public List<CommandDefinition> registerCommands(Object suite) {
@@ -322,7 +257,7 @@ public class CommandServiceImpl implements CommandService, InitializingBean, Dis
     }
 
     @Override
-    public CommandRun execute(String commandName, Map<String, Object> arguments, boolean uninterruptable, CommandScope scope) {
+    public CommandRun execute(String commandName, Map<String, Object> arguments, boolean uninterruptable, BaseCommandScope scope) {
         List<Registered> overloads = overloadsOf(commandName);
         if (overloads.isEmpty()) {
             return noSuchCommand(commandName);
@@ -343,7 +278,7 @@ public class CommandServiceImpl implements CommandService, InitializingBean, Dis
     }
 
     @Override
-    public CommandRun executePositional(String commandName, List<Object> arguments, boolean uninterruptable, CommandScope scope) {
+    public CommandRun executePositional(String commandName, List<Object> arguments, boolean uninterruptable, BaseCommandScope scope) {
         List<Registered> overloads = overloadsOf(commandName);
         if (overloads.isEmpty()) {
             return noSuchCommand(commandName);
@@ -364,7 +299,7 @@ public class CommandServiceImpl implements CommandService, InitializingBean, Dis
     }
 
     @Override
-    public CommandRun executeLine(String line, boolean uninterruptable, CommandScope scope) {
+    public CommandRun executeLine(String line, boolean uninterruptable, BaseCommandScope scope) {
         CommandLine parsed = CommandLine.parse(line);
         if (!parsed.command()) {
             return failedRun(new IllegalArgumentException("A command starts with a slash: " + line));
@@ -431,7 +366,7 @@ public class CommandServiceImpl implements CommandService, InitializingBean, Dis
         return new Binding(registered, converted, positional, cost);
     }
 
-    private CommandRun run(String commandName, Binding binding, boolean uninterruptable, CommandScope scope) {
+    private CommandRun run(String commandName, Binding binding, boolean uninterruptable, BaseCommandScope scope) {
         Registered registered = binding.registered();
         CommandRunImpl result = new CommandRunImpl();
         // the scope of the session is made here, on the thread of the caller, for the command to use on its worker thread

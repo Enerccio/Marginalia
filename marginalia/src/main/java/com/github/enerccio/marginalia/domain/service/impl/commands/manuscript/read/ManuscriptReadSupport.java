@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.read;
 
+import com.github.enerccio.marginalia.domain.service.command.CommandScope;
 import com.github.enerccio.marginalia.domain.model.impl.Annotation;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
@@ -81,7 +82,7 @@ public abstract class ManuscriptReadSupport {
 
         public Book(CommandContext context) throws Exception {
             this.context = context;
-            Manuscript fresh = context.getScope().getManuscript();
+            Manuscript fresh = CommandScope.of(context).getManuscript();
             if (fresh == null) {
                 throw new IllegalStateException(loc.getValue(L.ERROR_COMMAND_NO_BOOK_OPEN));
             }
@@ -147,7 +148,7 @@ public abstract class ManuscriptReadSupport {
          * The part with the handle (the uuid), checked to be a part of the book.
          */
         public ChatMessage known(String handle) throws Exception {
-            ChatMessage found = context.getScope().resolveMessage(handle.strip());
+            ChatMessage found = CommandScope.of(context).resolveMessage(handle.strip());
             ChatMessage message = tree().byId.get(found.getId());
             if (message == null) {
                 throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_NO_SUCH_HANDLE));

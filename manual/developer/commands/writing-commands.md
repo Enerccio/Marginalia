@@ -168,7 +168,7 @@ carried by `CommandDataSeverity.getLabel()`/`getDescription()`.
 ```java
 @Command(commandName = "book-title", humanNameText = "Title of the open book", returns = @CommandReturn(name = "title", type = String.class))
 public void title(CommandContext context) {
-    Manuscript book = context.getScope().getManuscript();
+    Manuscript book = CommandScope.of(context).getManuscript();
     if (book == null) {
         context.fail(new IllegalStateException("No book is open"));
         return;
@@ -177,10 +177,10 @@ public void title(CommandContext context) {
 }
 ```
 
-`getScope().getManuscript()` returns `null` when nothing is open (no workspace yet, no book). The same code works in the desktop and in
+`CommandScope.of(context)` is the scope of the book (`context.getScope()` itself is the platform's `BaseCommandScope`, which only knows `isAgent()` and `confirm`). `getManuscript()` returns `null` when nothing is open (no workspace yet, no book). The same code works in the desktop and in
 the phone layout and for an agent, whose scope is its working copy (see [The scope](index.md#the-scope)); a command that must work for
 agents takes the book from the scope and does not go through the workspace or the open window itself. An item that is given to the command
-(a part, a lorebook, an entry) is found with `getScope().resolveMessage(uuid)` and its siblings, which keep the command inside the book.
+(a part, a lorebook, an entry) is found with `CommandScope.of(context).resolveMessage(uuid)` and its siblings, which keep the command inside the book.
 Use the services for data; they check ownership of the current user.
 
 ## Failing
@@ -220,7 +220,7 @@ Tell the user what is going on with `context.setStatus("Taking a backup of Dune"
 advances, `null` clears a line.
 
 `progressInStory = true` is for a command that generates a part of the story and shows it there itself, through
-`context.getScope().getGenerationView()` (see [The command bar](command-bar.md#running-and-asynchronous-commands)): the bar of the
+`CommandScope.of(context).getGenerationView()` (see [The command bar](command-bar.md#running-and-asynchronous-commands)): the bar of the
 story then opens no progress window for it. Only the core's `next`, `swipe` and `regenerate` use it; it requires `async`.
 
 Blocking calls (`Thread.sleep`, a network call) are interrupted when the run is cancelled; let the `InterruptedException`
@@ -231,10 +231,10 @@ does, the call is ignored.
 
 ### The application
 
-Add the suite in `CommandServiceImpl.afterPropertiesSet`:
+Add the suite in `impl.commands.BuiltInCommands.install` (a bean of the application; the command framework itself registers nothing):
 
 ```java
-registerCommands(new BackupCommands());
+commandService.registerCommands(new BackupCommands());
 ```
 
 The application's suites are plain objects, not Spring beans, and are created with `new`; one that needs services is

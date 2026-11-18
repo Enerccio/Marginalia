@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.extensions.audiobook.commands;
 
+import com.github.enerccio.marginalia.domain.service.command.CommandScope;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
@@ -135,7 +136,7 @@ public class AudiobookCommands {
                     + "(name, gender, age, the variation of the base voice they get). Read only; the cast is edited in the Convert to audio dialog.",
             returns = @CommandReturn(name = "result", type = String.class, descriptionText = "JSON: the cast"))
     public void cast(CommandContext context) throws Exception {
-        Manuscript book = context.getScope().getManuscript();
+        Manuscript book = CommandScope.of(context).getManuscript();
         if (book == null) {
             throw new IllegalStateException("No book is open");
         }
@@ -374,7 +375,7 @@ public class AudiobookCommands {
         if (context.getScope().isAgent()) {
             throw new IllegalStateException("The audiobook is made for the book of the user, not for the working copy of an agent; ask the user to convert it. " + CAST + " can be read");
         }
-        Manuscript book = context.getScope().getManuscript();
+        Manuscript book = CommandScope.of(context).getManuscript();
         if (book == null) {
             throw new IllegalStateException("No book is open");
         }
@@ -394,7 +395,7 @@ public class AudiobookCommands {
             }
             return number;
         }
-        ChatMessage found = context.getScope().resolveMessage(text);
+        ChatMessage found = CommandScope.of(context).resolveMessage(text);
         for (int i = 0; i < parts.size(); i++) {
             if (parts.get(i).getUuid().equals(found.getUuid())) {
                 return i + 1;

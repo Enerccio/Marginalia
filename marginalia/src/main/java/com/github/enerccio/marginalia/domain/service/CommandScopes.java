@@ -3,16 +3,18 @@ package com.github.enerccio.marginalia.domain.service;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.command.CommandScope;
+import com.github.enerccio.marginalia.domain.service.command.CommandScopeSource;
 
 /**
  * Makes the {@link CommandScope}s commands run in.
  */
-public interface CommandScopes {
+public interface CommandScopes extends CommandScopeSource {
 
     /**
      * The scope of the user at the command bar: the book that is open in their session (read again every time it is asked,
      * the user may open another one), asking by a dialog.
      */
+    @Override
     CommandScope session();
 
     /**

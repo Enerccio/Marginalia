@@ -5,7 +5,7 @@ import com.github.enerccio.marginalia.domain.service.GenerationView;
 
 /**
  * What a command works on and who answers its questions: the book, the lorebooks of the book and the way to ask for a
- * confirmation. A command gets it from {@link CommandContext#getScope()}, so it needs neither the open window nor the
+ * confirmation. A command gets it with {@link #of(CommandContext)}, so it needs neither the open window nor the
  * session, and the same command works for the user at the command bar (the scope of the open book) and for an agent (the
  * scope of its working copy), see {@link com.github.enerccio.marginalia.domain.service.CommandScopes}.
  * <p>
@@ -14,7 +14,20 @@ import com.github.enerccio.marginalia.domain.service.GenerationView;
  * anything else, a part of another book or a lorebook the book does not use, is refused as if it did not exist, so a
  * command can't be aimed outside of the book by what it is given.
  */
-public interface CommandScope {
+public interface CommandScope extends BaseCommandScope {
+
+    /**
+     * The scope of the context of a command of the application: the application runs every command in a {@code CommandScope}.
+     *
+     * @throws IllegalStateException when the command runs in a scope of something else
+     */
+    static CommandScope of(CommandContext context) {
+        if (context.getScope() instanceof CommandScope scope) {
+            return scope;
+        }
+        throw new IllegalStateException("The command does not run in the scope of a book");
+    }
+
 
     /**
      * The book the command works on, as it is stored now.
@@ -57,9 +70,7 @@ public interface CommandScope {
         return null;
     }
 
-    /**
-     * Whether an agent calls the command.
-     */
+    @Override
     default boolean isAgent() {
         return getRun() != null;
     }
@@ -72,6 +83,7 @@ public interface CommandScope {
      *
      * @param context the context of the command that asks, to see whether it was stopped
      */
+    @Override
     boolean confirm(CommandContext context, String question) throws InterruptedException;
 
     /**

@@ -2,7 +2,7 @@ package com.github.enerccio.marginalia.domain.service.impl;
 
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.service.command.CommandException;
-import com.github.enerccio.marginalia.domain.service.command.CommandScope;
+import com.github.enerccio.marginalia.domain.service.command.BaseCommandScope;
 
 import java.util.*;
 
@@ -20,7 +20,7 @@ class CommandContextImpl implements CommandContext {
     private final CommandRunImpl result;
     /** The caller started the run as uninterruptable, the command can't undo it. */
     private final boolean forcedUninterruptable;
-    private final CommandScope scope;
+    private final BaseCommandScope scope;
 
     private Object value;
     private boolean closed;
@@ -28,7 +28,7 @@ class CommandContextImpl implements CommandContext {
     private String subStatus;
 
     CommandContextImpl(String commandName, Map<String, Object> arguments, List<Object> positional, boolean async,
-                       CommandRunImpl result, boolean forcedUninterruptable, CommandScope scope) {
+                       CommandRunImpl result, boolean forcedUninterruptable, BaseCommandScope scope) {
         this.commandName = commandName;
         // LinkedHashMap and ArrayList, not Map.copyOf: arguments may be null
         this.arguments = arguments == null ? Map.of() : Collections.unmodifiableMap(new LinkedHashMap<>(arguments));
@@ -77,7 +77,7 @@ class CommandContextImpl implements CommandContext {
     }
 
     @Override
-    public CommandScope getScope() {
+    public BaseCommandScope getScope() {
         return scope;
     }
 

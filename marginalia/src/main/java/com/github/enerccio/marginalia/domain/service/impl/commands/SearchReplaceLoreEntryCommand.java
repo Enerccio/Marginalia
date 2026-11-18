@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service.impl.commands;
 
+import com.github.enerccio.marginalia.domain.service.command.CommandScope;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.LorebookReplaceService;
@@ -109,7 +110,7 @@ public class SearchReplaceLoreEntryCommand {
     }
 
     private void run(CommandContext context, boolean regex, boolean caseSensitive, Integer maxHits, boolean dryRun) throws Exception {
-        Manuscript manuscript = context.getScope().getManuscript();
+        Manuscript manuscript = CommandScope.of(context).getManuscript();
         if (manuscript == null) {
             throw new IllegalStateException(loc.getValue(L.ERROR_COMMAND_NO_BOOK_OPEN));
         }

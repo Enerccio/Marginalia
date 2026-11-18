@@ -186,6 +186,7 @@ platform domain.service.UsageListener
 platform domain.service.UsageService
 
 platform domain.service.command
+app domain.service.command.CommandScope
 platform domain.service.function
 platform domain.service.gpu
 platform domain.service.job

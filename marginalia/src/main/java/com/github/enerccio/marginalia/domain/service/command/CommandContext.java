@@ -39,13 +39,14 @@ public interface CommandContext {
     Map<String, Object> getArguments();
 
     /**
-     * What the command works on: the book, its lorebooks and who answers its questions. The user at the command bar and an
-     * agent get different ones, so a command takes the book from here and not from the open window.
+     * What the command works on and who answers its questions. The user at the command bar and an agent get different ones,
+     * so a command takes what it works on from here and not from the open window. In the application it is a
+     * {@code CommandScope} (the book and its lorebooks), see {@code CommandScope.of(context)}.
      */
-    CommandScope getScope();
+    BaseCommandScope getScope();
 
     /**
-     * Asks whoever called the command a yes/no question and waits for the answer, see {@link CommandScope#confirm}.
+     * Asks whoever called the command a yes/no question and waits for the answer, see {@link BaseCommandScope#confirm}.
      */
     boolean confirm(String question) throws InterruptedException;
 
