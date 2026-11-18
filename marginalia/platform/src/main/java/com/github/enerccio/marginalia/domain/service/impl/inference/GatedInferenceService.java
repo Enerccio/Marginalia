@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.domain.service.impl.inference;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
+import com.github.enerccio.marginalia.domain.model.impl.OpenAICompatible;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.AIGate.Permit;
@@ -95,7 +96,9 @@ public class GatedInferenceService implements InferenceService {
                 permit.close();
                 return;
             }
-            CompletableFuture<GpuLease> lease = gpu.acquireAsync(lock, position);
+            // {{model}} of the steps: the model this AI asks for (one lock and its steps serve every model of a router)
+            String model = ai instanceof OpenAICompatible compatible ? compatible.getModel() : null;
+            CompletableFuture<GpuLease> lease = gpu.acquireAsync(lock, GpuService.model(model), position);
             gpuWait.set(lease);
             lease.whenComplete((held, failure) -> {
                 if (failure != null) {

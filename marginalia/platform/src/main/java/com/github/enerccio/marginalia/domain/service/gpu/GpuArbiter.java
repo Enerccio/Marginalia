@@ -89,9 +89,10 @@ public final class GpuArbiter {
     };
 
     /**
-     * A job (or an unload, {@code lock == null}) in the queue of a GPU.
+     * A job (or an unload, {@code lock == null}) in the queue of a GPU, with the variables its steps are filled with.
      */
-    private record Waiter(LockDef lock, CompletableFuture<GpuLease> lease, CompletableFuture<String> unload, IntConsumer position) {
+    private record Waiter(LockDef lock, Map<String, String> variables, CompletableFuture<GpuLease> lease, CompletableFuture<String> unload,
+                          IntConsumer position) {
 
         CompletableFuture<?> future() {
             return lock == null ? unload : lease;
@@ -102,6 +103,8 @@ public final class GpuArbiter {
     private static final class State {
         final String gpuUuid;
         LockDef loaded;
+        /** The variables of the last job of the loaded lock: its release steps are filled with them. */
+        Map<String, String> loadedVariables = Map.of();
         int active;
         boolean switching;
         final Deque<Waiter> queue = new ArrayDeque<>();
@@ -131,6 +134,11 @@ public final class GpuArbiter {
 
     /** See {@code GpuService#acquireAsync}. */
     public CompletableFuture<GpuLease> acquireAsync(String lockUuid, IntConsumer position) {
+        return acquireAsync(lockUuid, Map.of(), position);
+    }
+
+    /** See {@code GpuService#acquireAsync}; {@code variables} fill the steps (null: none). */
+    public CompletableFuture<GpuLease> acquireAsync(String lockUuid, Map<String, String> variables, IntConsumer position) {
         LockDef lock = lockUuid == null || lockUuid.isBlank() ? null : resolver.apply(lockUuid);
         if (lock == null) {
             if (lockUuid != null && !lockUuid.isBlank()) {
@@ -139,13 +147,18 @@ public final class GpuArbiter {
             return CompletableFuture.completedFuture(GpuLease.NONE);
         }
         CompletableFuture<GpuLease> future = new CompletableFuture<>();
-        enqueue(new Waiter(lock, future, null, position));
+        enqueue(new Waiter(lock, variables(lock, variables), future, null, position));
         return future;
     }
 
     /** See {@code GpuService#acquire}. */
     public GpuLease acquire(String lockUuid, BooleanSupplier cancelled) throws GpuException {
-        CompletableFuture<GpuLease> future = acquireAsync(lockUuid, null);
+        return acquire(lockUuid, Map.of(), cancelled);
+    }
+
+    /** See {@code GpuService#acquire}; {@code variables} fill the steps (null: none). */
+    public GpuLease acquire(String lockUuid, Map<String, String> variables, BooleanSupplier cancelled) throws GpuException {
+        CompletableFuture<GpuLease> future = acquireAsync(lockUuid, variables, null);
         while (true) {
             try {
                 return future.get(POLL_MILLIS, TimeUnit.MILLISECONDS);
@@ -186,7 +199,7 @@ public final class GpuArbiter {
      */
     public CompletableFuture<String> unload(String gpuUuid) {
         CompletableFuture<String> future = new CompletableFuture<>();
-        enqueue(new Waiter(null, null, future, null), gpuUuid);
+        enqueue(new Waiter(null, Map.of(), null, future, null), gpuUuid);
         return future;
     }
 
@@ -262,7 +275,8 @@ public final class GpuArbiter {
                 }
                 state.queue.pollFirst();
                 state.active++;
-                Held held = new Held(state, head.lock());
+                state.loadedVariables = head.variables();
+                Held held = new Held(state, head.lock(), head.variables());
                 if (!head.lock().eachJob().isEmpty()) {
                     // the always steps, and on a GPU used outside the acquire steps too: the GPU may have been used by someone else since
                     // (they make room themselves)
@@ -279,7 +293,8 @@ public final class GpuArbiter {
             state.queue.pollFirst();
             state.switching = true;
             LockDef from = state.loaded;
-            after.add(() -> executor.execute(() -> switchTo(state, from, head)));
+            Map<String, String> fromVariables = state.loadedVariables;
+            after.add(() -> executor.execute(() -> switchTo(state, from, fromVariables, head)));
             return;
         }
     }
@@ -318,39 +333,39 @@ public final class GpuArbiter {
     /**
      * Frees the GPU of the lock it is loaded with and loads the lock of the waiter (or nothing, for an unload). Runs on a thread of its own.
      */
-    private void switchTo(State state, LockDef from, Waiter waiter) {
+    private void switchTo(State state, LockDef from, Map<String, String> fromVariables, Waiter waiter) {
         String releaseError = null;
         if (from != null) {
             // the steps as they are now (the administrator may have changed them since the lock was loaded)
             LockDef current = resolver.apply(from.uuid());
             List<Step> release = (current != null ? current : from).release();
             log.info("GPU {}: releasing \"{}\" for {}", state.gpuUuid, from.name(), waiter.lock() == null ? "an unload" : "\"" + waiter.lock().name() + "\"");
-            releaseError = safeRelease(release);
+            releaseError = safeRelease(fill(release, fromVariables));
         }
         if (waiter.lock() == null) {
             // the administrator asked: the GPU is taken as free whatever the steps answered (a dead server must not block it for ever)
-            finish(state, null, null);
+            finish(state, null, Map.of(), null);
             waiter.unload().complete(releaseError);
             return;
         }
         if (releaseError != null) {
             // the GPU may still be full: nothing is loaded on it, it stays with the lock it had (the next switch tries to free it again)
             log.warn("GPU {}: freeing it of \"{}\" failed, \"{}\" is not loaded: {}", state.gpuUuid, from.name(), waiter.lock().name(), releaseError);
-            finish(state, from, null);
+            finish(state, from, fromVariables, null);
             waiter.lease().completeExceptionally(new GpuException("Freeing the GPU of \"" + from.name() + "\" failed: " + releaseError));
             return;
         }
         try {
             log.info("GPU {}: acquiring \"{}\"", state.gpuUuid, waiter.lock().name());
-            runner.runAll(waiter.lock().onSwitch());
+            runner.runAll(fill(waiter.lock().onSwitch(), waiter.variables()));
         } catch (GpuException | RuntimeException e) {
             log.warn("GPU {}: the acquire steps of \"{}\" failed: {}", state.gpuUuid, waiter.lock().name(), e.getMessage());
-            finish(state, null, null);
+            finish(state, null, Map.of(), null);
             waiter.lease().completeExceptionally(e instanceof GpuException ? e : new GpuException(e.getMessage(), e));
             return;
         }
-        Held held = new Held(state, waiter.lock());
-        finish(state, waiter.lock(), held);
+        Held held = new Held(state, waiter.lock(), waiter.variables());
+        finish(state, waiter.lock(), waiter.variables(), held);
         grant(waiter, held);
     }
 
@@ -362,7 +377,7 @@ public final class GpuArbiter {
         LockDef current = resolver.apply(waiter.lock().uuid());
         try {
             log.debug("GPU {}: the steps of \"{}\" before a job", state.gpuUuid, waiter.lock().name());
-            runner.runAll((current != null ? current : waiter.lock()).eachJob());
+            runner.runAll(fill((current != null ? current : waiter.lock()).eachJob(), waiter.variables()));
         } catch (GpuException | RuntimeException e) {
             log.warn("GPU {}: the acquire steps of \"{}\" failed: {}", state.gpuUuid, waiter.lock().name(), e.getMessage());
             synchronized (state) {
@@ -378,6 +393,24 @@ public final class GpuArbiter {
         grant(waiter, held);
     }
 
+    /** The variables of a job: its own, and {@code lock}, the name of the lock. */
+    private static Map<String, String> variables(LockDef lock, Map<String, String> given) {
+        Map<String, String> all = new HashMap<>();
+        if (given != null) {
+            given.forEach((name, value) -> {
+                if (name != null && value != null) {
+                    all.put(name, value);
+                }
+            });
+        }
+        all.putIfAbsent("lock", lock.name());
+        return Map.copyOf(all);
+    }
+
+    private static List<Step> fill(List<Step> steps, Map<String, String> variables) {
+        return steps.stream().map(step -> step.with(variables)).toList();
+    }
+
     private String safeRelease(List<Step> release) {
         try {
             return runner.runAllRegardless(release);
@@ -387,10 +420,11 @@ public final class GpuArbiter {
     }
 
     /** The end of a switch: the GPU is loaded with {@code loaded} (null: unknown), the holder of {@code held} counts, the queue goes on. */
-    private void finish(State state, LockDef loaded, Held held) {
+    private void finish(State state, LockDef loaded, Map<String, String> variables, Held held) {
         List<Runnable> after = new ArrayList<>();
         synchronized (state) {
             state.loaded = loaded;
+            state.loadedVariables = loaded == null ? Map.of() : variables;
             state.switching = false;
             if (held != null) {
                 state.active++;
@@ -405,11 +439,13 @@ public final class GpuArbiter {
 
         private final State state;
         private final LockDef lock;
+        private final Map<String, String> variables;
         private final AtomicBoolean closed = new AtomicBoolean();
 
-        Held(State state, LockDef lock) {
+        Held(State state, LockDef lock, Map<String, String> variables) {
             this.state = state;
             this.lock = lock;
+            this.variables = variables;
         }
 
         @Override
@@ -420,8 +456,8 @@ public final class GpuArbiter {
             LockDef current = resolver.apply(lock.uuid());
             LockDef steps = current != null ? current : lock;
             log.info("GPU {}: reloading \"{}\"", state.gpuUuid, lock.name());
-            safeRelease(steps.release());
-            runner.runAll(steps.onSwitch());
+            safeRelease(fill(steps.release(), variables));
+            runner.runAll(fill(steps.onSwitch(), variables));
         }
 
         @Override

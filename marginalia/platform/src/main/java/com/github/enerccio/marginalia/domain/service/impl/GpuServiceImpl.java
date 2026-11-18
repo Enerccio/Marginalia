@@ -78,14 +78,14 @@ public class GpuServiceImpl implements GpuService {
 
     @Override
     @NoTx
-    public GpuLease acquire(String lockUuid, BooleanSupplier cancelled) throws GpuException {
-        return arbiter.acquire(lockUuid, cancelled);
+    public GpuLease acquire(String lockUuid, Map<String, String> variables, BooleanSupplier cancelled) throws GpuException {
+        return arbiter.acquire(lockUuid, variables, cancelled);
     }
 
     @Override
     @NoTx
-    public CompletableFuture<GpuLease> acquireAsync(String lockUuid, IntConsumer position) {
-        return arbiter.acquireAsync(lockUuid, position);
+    public CompletableFuture<GpuLease> acquireAsync(String lockUuid, Map<String, String> variables, IntConsumer position) {
+        return arbiter.acquireAsync(lockUuid, variables, position);
     }
 
     private LockDef resolve(String lockUuid) {
@@ -284,7 +284,8 @@ public class GpuServiceImpl implements GpuService {
     public String testStep(GpuStep step) throws Exception {
         adminGuard.requireAdmin();
         try {
-            GpuStepRunner.run(Step.of(step));
+            // no job: the variables are empty
+            GpuStepRunner.run(Step.of(step).with(Map.of()));
             return null;
         } catch (GpuException e) {
             return e.getMessage();

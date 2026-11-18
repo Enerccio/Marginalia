@@ -544,6 +544,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_API_ACCESS, "Any combination. The version can be read with every key. Write includes read. Updating and the extensions are for administrators only.");
         setValue(L.HELP_EXPIRES_AFTER_DAYS, "Empty: the key does not expire.");
         setValue(L.HELP_GPU_ALWAYS_STEPS, "Run in order before every job of this lock, also when the GPU already holds it, before the acquire steps when it does not; the first failure stops the job. For a step that must always be made sure of, for example unloading the models of another program except your own.");
+        setValue(L.HELP_GPU_STEP_VARIABLES, "The address, headers and body can name variables of the job: {{model}} is the model it uses (the model id of the AI, the model of the backend), {{lock}} the name of the lock. Filters: {{model | strip:openai/}} removes a prefix, {{model | last}} keeps what follows the last /, json and url escape the value. Release steps get the model of the last job of the lock; Test runs the step with the variables empty.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_NARRATIVE_POV, "Point of view (POV) for the narrative.");

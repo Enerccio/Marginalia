@@ -497,7 +497,7 @@ public class AudiobookService {
         com.github.enerccio.marginalia.extensions.audiobook.recognize.SpeechRecognizer recognizer =
                 com.github.enerccio.marginalia.extensions.audiobook.recognize.SpeechRecognizer.of(config,
                         config.getProtectedApiKey() == null ? null : reveal(config.getProtectedApiKey()));
-        try (SpeechBatch.Lease _ = takeGpu(config.getGpuLock(), cancelled)) {
+        try (SpeechBatch.Lease _ = takeGpu(config.getGpuLock(), config.getModel(), cancelled)) {
             work.run(recognizer);
         }
         return true;
@@ -550,7 +550,7 @@ public class AudiobookService {
      */
     public void testRecognizer(com.github.enerccio.marginalia.extensions.audiobook.model.RecognizerConfig config, java.util.function.Consumer<String> done) {
         inBackground("audiobook-recognizer-test", () -> {
-            try (SpeechBatch.Lease _ = takeGpu(config.getGpuLock(), null)) {
+            try (SpeechBatch.Lease _ = takeGpu(config.getGpuLock(), config.getModel(), null)) {
                 com.github.enerccio.marginalia.extensions.audiobook.recognize.SpeechRecognizer.of(config,
                         config.getProtectedApiKey() == null ? null : reveal(config.getProtectedApiKey())).test();
                 done.accept(null);
@@ -660,7 +660,7 @@ public class AudiobookService {
                     com.github.enerccio.marginalia.extensions.audiobook.clean.ComfyCleaner.Result result;
                     // its own lock: the cleanup models must not be loaded next to the speech or the recognition models
                     // a preset of ffmpeg steps only needs no GPU (taking the lock could restart ComfyUI for nothing)
-                    try (SpeechBatch.Lease _ = takeGpu(preset.usesComfy() ? config.getGpuLock() : null, null)) {
+                    try (SpeechBatch.Lease _ = takeGpu(preset.usesComfy() ? config.getGpuLock() : null, null, null)) {
                         result = new com.github.enerccio.marginalia.extensions.audiobook.clean.ComfyCleaner(config,
                                 config.getProtectedApiKey() == null ? null : reveal(config.getProtectedApiKey()))
                                 .clean(bytes, AudioKind.of(bytes).extension(), preset, null);
@@ -683,7 +683,7 @@ public class AudiobookService {
     public void testCleanup(com.github.enerccio.marginalia.extensions.audiobook.model.CleanupConfig config,
                             java.util.function.BiConsumer<List<String>, String> done) {
         inBackground("audiobook-cleanup-test", () -> {
-            try (SpeechBatch.Lease _ = takeGpu(config.getGpuLock(), null)) {
+            try (SpeechBatch.Lease _ = takeGpu(config.getGpuLock(), null, null)) {
                 var cleaner = new com.github.enerccio.marginalia.extensions.audiobook.clean.ComfyCleaner(config,
                         config.getProtectedApiKey() == null ? null : reveal(config.getProtectedApiKey()));
                 cleaner.test();
@@ -913,23 +913,23 @@ public class AudiobookService {
 
     /** The GPU lock of the backend, taken for a batch (or a test). */
     private SpeechBatch.Gpu gpu(BackendConfig config) {
-        return gpu(config.getGpuLock());
+        return gpu(config.getGpuLock(), config.getModel());
     }
 
-    /** Takes the GPU lock (blank or null: none), blocking. */
-    private SpeechBatch.Lease takeGpu(String lock, java.util.function.BooleanSupplier cancelled) throws BackendException {
-        return gpu(lock).take(cancelled);
+    /** Takes the GPU lock (blank or null: none), blocking; {@code model} is {{model}} of its steps (null: none). */
+    private SpeechBatch.Lease takeGpu(String lock, String model, java.util.function.BooleanSupplier cancelled) throws BackendException {
+        return gpu(lock, model).take(cancelled);
     }
 
-    /** The GPU lock of the uuid, taken for a batch, a test or a recognition. */
-    private SpeechBatch.Gpu gpu(String lock) {
+    /** The GPU lock of the uuid, taken for a batch, a test or a recognition; {@code model} fills {{model}} of the steps. */
+    private SpeechBatch.Gpu gpu(String lock, String model) {
         if (gpuService == null || lock == null || lock.isBlank()) {
             return SpeechBatch.NO_GPU;
         }
         return cancelled -> {
             com.github.enerccio.marginalia.domain.service.gpu.GpuLease lease;
             try {
-                lease = gpuService.acquire(lock, cancelled);
+                lease = gpuService.acquire(lock, com.github.enerccio.marginalia.domain.service.GpuService.model(model), cancelled);
             } catch (com.github.enerccio.marginalia.domain.service.gpu.GpuException e) {
                 throw new BackendException(e.getMessage(), e);
             }

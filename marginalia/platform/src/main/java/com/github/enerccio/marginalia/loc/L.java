@@ -528,6 +528,7 @@ public enum L implements LocalizationKey {
     HELP_API_ACCESS,
     HELP_EXPIRES_AFTER_DAYS,
     HELP_GPU_ALWAYS_STEPS,
+    HELP_GPU_STEP_VARIABLES,
 
     // --- DESC ---
     DESC_TEMPLATE_NARRATIVE_POV,

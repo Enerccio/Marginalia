@@ -553,6 +553,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_API_ACCESS, "可任意组合。任何密钥都能读取版本。写入包含读取。更新和扩展仅限管理员。");
         setValue(L.HELP_EXPIRES_AFTER_DAYS, "留空：密钥不会过期。");
         setValue(L.HELP_GPU_ALWAYS_STEPS, "在此锁的每个作业之前按顺序运行，即使 GPU 已持有此锁也会运行；未持有时在获取步骤之前运行。第一次失败会停止作业。用于每次都必须确保的步骤，例如卸载其他程序的模型（保留您自己的）。");
+        setValue(L.HELP_GPU_STEP_VARIABLES, "地址、请求头和正文可以使用作业的变量：{{model}} 是作业使用的模型（AI 的模型 ID、后端的模型），{{lock}} 是锁的名称。过滤器：{{model | strip:openai/}} 去掉前缀，{{model | last}} 保留最后一个 / 之后的部分，json 和 url 对值进行转义。释放步骤使用该锁最后一个作业的模型；测试时变量为空。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_NARRATIVE_POV, "叙事视角（POV）。");

@@ -9,6 +9,7 @@ import com.github.enerccio.marginalia.domain.service.gpu.GpuLockChoice;
 import com.github.enerccio.marginalia.domain.service.gpu.GpuStatus;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BooleanSupplier;
 import java.util.function.IntConsumer;
@@ -30,9 +31,22 @@ import java.util.function.IntConsumer;
  * </ul>
  * The state is in memory: after a start nothing is known to be loaded, the first job runs only its acquire steps.
  * <p>
+ * The steps can name <b>variables</b> of the job, {@code {{name}}} in their name, address, headers and body: {@link #VAR_MODEL} (the model
+ * the job uses: the model id of an AI, the model of a backend) and {@code {{lock}}} (the name of the lock), and any other a caller passes. The
+ * acquire steps and the steps before every job get the variables of the job; the release steps get the ones of the last job of the lock that
+ * is loaded. A variable a job does not have is empty.
+ * <p>
  * Extensions use the same service (inject it with {@code @Autowired}) and store the uuid of the lock their backend needs.
  */
 public interface GpuService {
+
+    /** The variable of the model a job uses, {@code {{model}}} in a step. */
+    String VAR_MODEL = "model";
+
+    /** The variables of a job that uses a model (null or blank: none). */
+    static Map<String, String> model(String model) {
+        return model == null || model.isBlank() ? Map.of() : Map.of(VAR_MODEL, model.strip());
+    }
 
     // --- for everybody ---
 
@@ -49,7 +63,14 @@ public interface GpuService {
      * @param cancelled asked while waiting (may be null)
      * @throws GpuException a step failed, or the wait was cancelled ({@link GpuException#isCancelled()})
      */
-    GpuLease acquire(String lockUuid, BooleanSupplier cancelled) throws GpuException;
+    default GpuLease acquire(String lockUuid, BooleanSupplier cancelled) throws GpuException {
+        return acquire(lockUuid, Map.of(), cancelled);
+    }
+
+    /**
+     * {@link #acquire(String, BooleanSupplier)} for a job with variables that fill its steps ({@link #model(String)}, may be null).
+     */
+    GpuLease acquire(String lockUuid, Map<String, String> variables, BooleanSupplier cancelled) throws GpuException;
 
     /**
      * Takes the lock for a job without blocking: the future completes with the lease when it is the job's turn and the steps ran, or
@@ -57,7 +78,12 @@ public interface GpuService {
      *
      * @param position told how many jobs are before this one while it waits (may be null); called outside of the lock of the GPU
      */
-    CompletableFuture<GpuLease> acquireAsync(String lockUuid, IntConsumer position);
+    default CompletableFuture<GpuLease> acquireAsync(String lockUuid, IntConsumer position) {
+        return acquireAsync(lockUuid, Map.of(), position);
+    }
+
+    /** {@link #acquireAsync(String, IntConsumer)} for a job with variables that fill its steps (may be null). */
+    CompletableFuture<GpuLease> acquireAsync(String lockUuid, Map<String, String> variables, IntConsumer position);
 
     // --- for the administrator ---
 

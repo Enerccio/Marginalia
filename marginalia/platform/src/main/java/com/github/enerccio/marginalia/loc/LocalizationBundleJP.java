@@ -544,6 +544,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_API_ACCESS, "自由に組み合わせられます。バージョンはどのキーでも読めます。書き込みには読み取りが含まれます。更新と拡張機能は管理者専用です。");
         setValue(L.HELP_EXPIRES_AFTER_DAYS, "空欄：キーは期限切れになりません。");
         setValue(L.HELP_GPU_ALWAYS_STEPS, "このロックのすべてのジョブの前に順番に実行されます。GPU がすでにこのロックを保持しているときも実行され、保持していないときは取得ステップの前に実行されます。最初の失敗でジョブは止まります。他のプログラムのモデルを自分のもの以外アンロードするなど、毎回確かめる必要があるステップ向けです。");
+        setValue(L.HELP_GPU_STEP_VARIABLES, "アドレス、ヘッダー、本文ではジョブの変数を使えます: {{model}} はジョブが使うモデル（AI のモデル ID、バックエンドのモデル）、{{lock}} はロックの名前です。フィルター: {{model | strip:openai/}} は接頭辞を取り除き、{{model | last}} は最後の / の後ろを残し、json と url は値をエスケープします。解放ステップにはそのロックの最後のジョブのモデルが入ります。テストでは変数は空で実行されます。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_NARRATIVE_POV, "語りの視点（POV）。");

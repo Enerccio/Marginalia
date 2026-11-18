@@ -540,6 +540,7 @@ public class LocalizationBundleES extends LocalizationBundleBase {
         setValue(L.HELP_API_ACCESS, "Cualquier combinación. Cualquier clave puede leer la versión. La escritura incluye la lectura. La actualización y las extensiones son solo para administradores.");
         setValue(L.HELP_EXPIRES_AFTER_DAYS, "Vacío: la clave no caduca.");
         setValue(L.HELP_GPU_ALWAYS_STEPS, "Se ejecutan en orden antes de cada trabajo de este bloqueo, también cuando la GPU ya lo tiene, antes de los pasos de adquisición cuando no lo tiene; el primer fallo detiene el trabajo. Para un paso que hay que asegurar siempre, por ejemplo descargar los modelos de otro programa salvo el suyo.");
+        setValue(L.HELP_GPU_STEP_VARIABLES, "La dirección, las cabeceras y el cuerpo pueden nombrar variables del trabajo: {{model}} es el modelo que usa (el id del modelo de la IA, el modelo del backend), {{lock}} el nombre del bloqueo. Filtros: {{model | strip:openai/}} quita un prefijo, {{model | last}} deja lo que sigue a la última /, json y url escapan el valor. Los pasos de liberación reciben el modelo del último trabajo del bloqueo; Probar ejecuta el paso con las variables vacías.");
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_NARRATIVE_POV, "Punto de vista (POV) de la narración.");
         setValue(L.DESC_TEMPLATE_NARRATIVE_TENSE, "Tiempo verbal usado en la narración.");

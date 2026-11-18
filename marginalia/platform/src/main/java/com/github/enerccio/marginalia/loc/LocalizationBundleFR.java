@@ -544,6 +544,7 @@ public class LocalizationBundleFR extends LocalizationBundleBase {
         setValue(L.HELP_API_ACCESS, "Toute combinaison est possible. Toute clé peut lire la version. L'écriture inclut la lecture. La mise à jour et les extensions sont réservées aux administrateurs.");
         setValue(L.HELP_EXPIRES_AFTER_DAYS, "Vide : la clé n'expire pas.");
         setValue(L.HELP_GPU_ALWAYS_STEPS, "Exécutées dans l'ordre avant chaque tâche de ce verrou, même quand le GPU le détient déjà, avant les étapes d'acquisition quand il ne le détient pas ; le premier échec arrête la tâche. Pour une étape à garantir à chaque fois, par exemple décharger les modèles d'un autre programme sauf le vôtre.");
+        setValue(L.HELP_GPU_STEP_VARIABLES, "L'adresse, les en-têtes et le corps peuvent nommer des variables de la tâche : {{model}} est le modèle qu'elle utilise (l'identifiant du modèle de l'IA, le modèle du backend), {{lock}} le nom du verrou. Filtres : {{model | strip:openai/}} retire un préfixe, {{model | last}} garde ce qui suit le dernier /, json et url échappent la valeur. Les étapes de libération reçoivent le modèle de la dernière tâche du verrou ; Tester exécute l'étape avec les variables vides.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_NARRATIVE_POV, "Point de vue (POV) du récit.");

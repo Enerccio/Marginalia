@@ -61,6 +61,8 @@ public class GpuStepDialog extends Dialog {
         headers.setHelperText(loc.getValue(L.HELP_GPU_STEP_HEADERS));
         headers.setPlaceholder("Authorization: Bearer ...");
         body.setLabel(loc.getValue(L.LABEL_HTTP_BODY));
+        body.setHelperText(loc.getValue(L.HELP_GPU_STEP_VARIABLES));
+        body.setPlaceholder("{\"keep\": [\"{{model | strip:openai/}}\"]}");
         timeout.setLabel(loc.getValue(L.LABEL_REQUEST_TIMEOUT));
         timeout.setMin(0);
         timeout.setMax(GpuStep.MAX_TIMEOUT_SECONDS);

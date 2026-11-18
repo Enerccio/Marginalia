@@ -27,6 +27,22 @@ Pick the lock in:
 
 The **GPU lock** box is shown only when at least one lock exists.
 
+## Variables in the steps
+
+A step can name what the job is for, so that one step serves several models and the locks need no editing when you try another one. In the
+address, the headers and the body:
+
+| Variable | Is |
+|---|---|
+| `{{model}}` | the model the job uses: the model id of the AI (as the AI settings have it, for example `openai/big-32b` through LiteLLM), the model of an audiobook backend (`higgs-audio-v3`, `chatterbox-turbo`), of the speech recognition or of the image backend; empty for a job without one (the cleanup of clips) |
+| `{{lock}}` | the name of the lock |
+
+Filters change the value: `{{model | strip:openai/}}` removes the prefix when the value starts with it (LiteLLM's route name, which the
+server behind it does not know), `{{model | last}}` keeps what follows the last `/`, `{{model | json}}` escapes it for a JSON string and
+`{{model | url}}` encodes it for an address; they can be chained (`{{model | last | json}}`). The acquire steps and the steps before every job
+get the job's values; the release steps get the ones of the last job of the lock that is loaded (the model that is to be unloaded). **Test**
+runs a step with the variables empty.
+
 ## How the turns work
 
 - Every request to a model, every image and every audiobook batch or sample takes the lock of its AI or backend **for its own length**.
@@ -102,8 +118,8 @@ lock with *Unload the language model, Start ComfyUI*.
 
 When another program uses **the same `llama-server` router** with a model of its own (for example a small model next to its speech model), *Unload the
 language model* would throw out its model too, and its own unload would throw out Marginalia's. `tools/gpu-control` has a call that unloads every model of
-the router **except** the ones named: a step `POST http://litellm:4000/gpu/llama/unload` with the body `{"keep": ["<your model>"]}` (its README has the
-pass-through). Make it a **step before every job** of *Language model*; the other program does the same with its own model before each of its jobs.
+the router **except** the ones named: a step `POST http://litellm:4000/gpu/llama/unload` with the body `{"keep": ["{{model | strip:openai/}}"]}` (its README has the
+pass-through). Make it a **step before every job** of *Language model*: every AI on that lock keeps its own model, whichever you pick; the other program does the same with its own model before each of its jobs.
 When the kept model is the only one loaded the call does nothing and answers at once, so neither program needs to know about the other.
 
 For ComfyUI the same kind of step is `POST http://litellm:4000/gpu/comfy/ensure`: it does nothing when ComfyUI answers, starts the container when

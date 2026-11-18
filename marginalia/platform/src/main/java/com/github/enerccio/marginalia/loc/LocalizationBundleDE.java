@@ -540,6 +540,7 @@ public class LocalizationBundleDE extends LocalizationBundleBase {
         setValue(L.HELP_API_ACCESS, "Beliebig kombinierbar. Die Version kann jeder Schlüssel lesen. Schreiben schließt Lesen ein. Update und Erweiterungen nur für Administratoren.");
         setValue(L.HELP_EXPIRES_AFTER_DAYS, "Leer: Der Schlüssel läuft nicht ab.");
         setValue(L.HELP_GPU_ALWAYS_STEPS, "Laufen der Reihe nach vor jedem Auftrag dieser Sperre, auch wenn die GPU sie schon hält, sonst vor den Schritten beim Belegen; der erste Fehler stoppt den Auftrag. Für einen Schritt, der jedes Mal sichergestellt werden muss, etwa die Modelle eines anderen Programms außer dem eigenen zu entladen.");
+        setValue(L.HELP_GPU_STEP_VARIABLES, "Adresse, Header und Body können Variablen des Auftrags nennen: {{model}} ist das Modell, das er nutzt (die Modell-ID der KI, das Modell des Backends), {{lock}} der Name der Sperre. Filter: {{model | strip:openai/}} entfernt ein Präfix, {{model | last}} behält, was nach dem letzten / steht, json und url maskieren den Wert. Schritte beim Freigeben erhalten das Modell des letzten Auftrags der Sperre; Testen führt den Schritt mit leeren Variablen aus.");
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_NARRATIVE_POV, "Erzählperspektive (POV) der Erzählung.");
         setValue(L.DESC_TEMPLATE_NARRATIVE_TENSE, "In der Erzählung verwendete Zeitform.");

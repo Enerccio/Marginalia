@@ -502,7 +502,7 @@ public class ImageGeneratorService {
         String protectedKey = StringUtils.isNotBlank(config.getProtectedHooksKey()) ? config.getProtectedHooksKey() : config.getProtectedApiKey();
         String key = protectedKey == null ? null : reveal(protectedKey);
         return ImageJob.run(
-                c -> takeGpu(config.getGpuLock(), c),
+                c -> takeGpu(config.getGpuLock(), config.getModel(), c),
                 createBackend(config),
                 // before: in order, the first failure stops the image
                 () -> HookRunner.runAll(HookKeys.withBearer(config.getBeforeHooks(), key, reveal), config.isLocal(), reveal),
@@ -516,13 +516,14 @@ public class ImageGeneratorService {
                 request, cancel);
     }
 
-    private ImageJob.Lease takeGpu(String lockUuid, ImageBackend.Cancel cancel) throws BackendException {
+    /** {@code model} fills {{model}} of the steps of the lock (null: none). */
+    private ImageJob.Lease takeGpu(String lockUuid, String model, ImageBackend.Cancel cancel) throws BackendException {
         if (gpuService == null || StringUtils.isBlank(lockUuid)) {
             return () -> {
             };
         }
         try {
-            GpuLease lease = gpuService.acquire(lockUuid, cancel == null ? null : cancel::isCancelled);
+            GpuLease lease = gpuService.acquire(lockUuid, GpuService.model(model), cancel == null ? null : cancel::isCancelled);
             return lease::close;
         } catch (GpuException e) {
             throw new BackendException(e.getMessage(), e);

@@ -161,6 +161,26 @@ class GpuArbiterTest {
     }
 
     @Test
+    void theStepsAreFilledWithTheVariablesOfTheJobAndTheReleaseWithTheLastJobOfTheLock() throws Exception {
+        locks.put("llm", new LockDef("llm", "Language model", "gpu", 0, List.of(step("load {{model}}")), List.of(step("free {{model}} of {{lock}}")),
+                false, List.of(step("keep {{ model | strip:openai/ }}"))));
+        lock("comfy", "gpu", 0);
+        get(arbiter.acquireAsync("llm", Map.of("model", "openai/big-32b"), null)).close();
+        get(arbiter.acquireAsync("llm", Map.of("model", "openai/mid-12b"), null)).close();
+        get(arbiter.acquireAsync("comfy", null)).close();
+
+        assertThat(log).containsExactly("keep big-32b", "load openai/big-32b", "keep mid-12b",
+                "free openai/mid-12b of Language model", "load comfy");
+    }
+
+    @Test
+    void aJobWithoutTheVariableGetsItEmpty() throws Exception {
+        locks.put("img", new LockDef("img", "img", "gpu", 0, List.of(step("keep [{{model}}]")), List.of()));
+        get(arbiter.acquireAsync("img", null)).close();
+        assertThat(log).containsExactly("keep []");
+    }
+
+    @Test
     void onAGpuUsedOutsideAFailedRecheckFailsTheJobAndTheNextOneLoadsAgain() throws Exception {
         outsideLock("comfy", "gpu");
         lock("llm", "gpu", 0);

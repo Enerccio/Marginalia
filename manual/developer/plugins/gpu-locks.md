@@ -53,6 +53,16 @@ resolver over an in-memory snapshot of the entities (read in a read-only transac
 - `unload(gpu)` queues like a job, runs the release steps and leaves the GPU unknown whatever they answered.
 - `GpuLease.reload()` runs the release, the always and the acquire steps of the held lock again (a server that died in the middle of a long job).
 
+## Variables
+
+A step names variables of the job as `{{name}}` (filters `strip:prefix`, `last`, `json`, `url`, chained with `|`; an unknown filter is
+ignored with a warning, a missing variable is empty) in its name, address, headers and body: `GpuStepRunner.Step.with(variables)` fills
+them. The caller passes them with `acquire(lock, variables, cancelled)` / `acquireAsync(lock, variables, position)` (the old signatures pass
+none); the arbiter adds `lock` (the lock's name). `GpuService.model(id)` makes the map of `{{model}}` (`GpuService.VAR_MODEL`): an
+`OpenAICompatible` AI passes its model id (`GatedInferenceService`), the audiobook its backend's and recognizer's model, the image
+generator its backend's model. The acquire and always steps are filled with the job's variables; the release steps with the ones of the
+last job of the loaded lock (`State.loadedVariables`), also for `unload`; `reload()` with the variables of the held job; `testStep` with none.
+
 ## Using it from a plugin
 
 ```java
@@ -68,7 +78,7 @@ if (gpuLock.isVisible()) {
 }
 
 // around one job, on a worker thread
-try (GpuLease lease = gpuService.acquire(config.getGpuLock(), cancel::isCancelled)) {   // blank or unknown uuid: GpuLease.NONE at once
+try (GpuLease lease = gpuService.acquire(config.getGpuLock(), GpuService.model(config.getModel()), cancel::isCancelled)) {   // blank or unknown uuid: GpuLease.NONE at once
     runMyHooks();
     backend.work();
 } catch (GpuException e) {

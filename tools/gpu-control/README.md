@@ -46,6 +46,9 @@ curl -X POST http://litellm:4000/gpu/llama/unload -H "Authorization: Bearer $LIT
   -H "Content-Type: application/json" -d '{"keep": ["joi-4b"]}'
 ```
 
+In a Marginalia GPU step the body can take the model of the AI the job is for: `{"keep": ["{{model | strip:openai/}}"]}` (the AI's model goes
+through LiteLLM as `openai/<name>`, the router knows only `<name>`; see *Variables in the steps* of the GPU page of the manual).
+
 ## Making sure a server is alive
 
 `start` is already safe to repeat (a running container is fine), but it calls Docker every time and does not notice a container whose service died inside.

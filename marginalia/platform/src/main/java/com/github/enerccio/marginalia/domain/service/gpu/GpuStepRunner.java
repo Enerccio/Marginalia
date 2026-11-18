@@ -13,6 +13,9 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Makes the HTTP request of a {@link GpuStep}. The administrator set the step up, so any address is allowed (the servers are usually on the
@@ -30,6 +33,9 @@ public final class GpuStepRunner {
             .followRedirects(HttpClient.Redirect.NORMAL)
             .build();
 
+    /** {@code {{name}}} or {@code {{name | filter | filter:argument}}} in a step, spaces inside the braces allowed. */
+    private static final Pattern VARIABLE = Pattern.compile("\\{\\{\\s*([A-Za-z0-9_.-]+)((?:\\s*\\|\\s*[A-Za-z]+(?::[^|}]*)?)*)\\s*}}");
+
     /** A step as it is run: a copy that does not need the database. */
     public record Step(String name, String url, String method, String headers, String body, int timeoutSeconds, int waitSeconds) {
 
@@ -37,6 +43,76 @@ public final class GpuStepRunner {
             return new Step(step.getName(), step.getUrl(), step.getMethod(), step.getHeaders(), step.getBody(), step.effectiveTimeoutSeconds(),
                     step.effectiveWaitSeconds());
         }
+
+        /**
+         * The step with the variables of a job filled in ({@code {{model}}}, {@code {{lock}}}, see {@code GpuService}) in its name, address,
+         * headers and body; a variable the job does not have becomes empty. The values are put in as they are, unless a filter changes them:
+         * {@code strip:prefix} (removes the prefix when the value starts with it, {@code {{model | strip:openai/}}}), {@code last} (what follows
+         * the last {@code /}), {@code json} (escaped for a JSON string) and {@code url} (encoded for an address); an unknown filter is ignored (with a warning in the log).
+         */
+        public Step with(Map<String, String> variables) {
+            return new Step(fill(name, variables), fill(url, variables), method, fill(headers, variables), fill(body, variables), timeoutSeconds,
+                    waitSeconds);
+        }
+    }
+
+    static String fill(String text, Map<String, String> variables) {
+        if (text == null || !text.contains("{{")) {
+            return text;
+        }
+        Matcher matcher = VARIABLE.matcher(text);
+        StringBuilder out = new StringBuilder();
+        while (matcher.find()) {
+            String value = variables == null ? null : variables.get(matcher.group(1));
+            value = value == null ? "" : value;
+            for (String filter : matcher.group(2).split("\\|")) {
+                value = filter(value, filter.strip());
+            }
+            matcher.appendReplacement(out, Matcher.quoteReplacement(value));
+        }
+        matcher.appendTail(out);
+        return out.toString();
+    }
+
+    private static String filter(String value, String filter) {
+        if (filter.isEmpty()) {
+            return value;
+        }
+        int colon = filter.indexOf(':');
+        String name = (colon < 0 ? filter : filter.substring(0, colon)).strip().toLowerCase(Locale.ROOT);
+        String argument = colon < 0 ? "" : filter.substring(colon + 1).strip();
+        return switch (name) {
+            case "strip" -> !argument.isEmpty() && value.startsWith(argument) ? value.substring(argument.length()) : value;
+            case "last" -> value.substring(value.lastIndexOf('/') + 1);
+            case "json" -> jsonEscape(value);
+            case "url" -> java.net.URLEncoder.encode(value, java.nio.charset.StandardCharsets.UTF_8).replace("+", "%20");
+            default -> {
+                // a typo must not fail a release step (they run whatever happens): the value stays as it is
+                log.warn("Unknown filter \"{}\" of a GPU step variable, ignored", name);
+                yield value;
+            }
+        };
+    }
+
+    private static String jsonEscape(String value) {
+        StringBuilder out = new StringBuilder(value.length());
+        for (char c : value.toCharArray()) {
+            switch (c) {
+                case '"' -> out.append("\\\"");
+                case '\\' -> out.append("\\\\");
+                case '\n' -> out.append("\\n");
+                case '\r' -> out.append("\\r");
+                case '\t' -> out.append("\\t");
+                default -> {
+                    if (c < 0x20) {
+                        out.append(String.format("\\u%04x", (int) c));
+                    } else {
+                        out.append(c);
+                    }
+                }
+            }
+        }
+        return out.toString();
     }
 
     private GpuStepRunner() {
