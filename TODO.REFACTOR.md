@@ -221,8 +221,13 @@ Found on the way, to decide:
       the root with `-pl marginalia -am`; the Dockerfile installs the platform before the app (and downloads only the
       platform's dependencies in its cache layer, the app's POM can't be resolved before); `install-plugins.sh`
       already uses `-am`. Building the app on its own in `marginalia/` (`mvn jetty:run`, the screenshot scripts) needs
-      the platform installed first. To check: the WAR and the Docker image start, Vaadin finds `JobsView` (`@Route`)
-      and the `@JsModule`s of platform widgets in the JAR.
+      the platform installed first. Checked (2026-11-18, `mvn package -pl marginalia -am`, then `jetty:run-war` on an
+      empty home): the WAR has `marginalia-platform-1.9.0.jar` in `WEB-INF/lib` and no platform class in
+      `WEB-INF/classes`; Vaadin runs in production mode; first start, login and the workspace work; `/jobs` (the
+      platform's `JobsView`) opens; the modules of the platform widgets are in the bundle (`renderChart`,
+      `renderGraph`, `renderTreant`, `marginalia-markdown-editor`), and the frontend build found their npm packages
+      (`package.json` unchanged). The WAR build needs a `-Dbuild.dir` inside the project (Vite, see Notes). Not run yet:
+      the Docker image, the desktop distribution and the workflows.
 - [ ] **Docs.** `CLAUDE.md` (commands, module layout), `manual/developer/building.md`, architecture and plugin pages;
       `tools/check_dev_docs.py` `covers` paths that moved.
 
