@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.ui.workspace.parts;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.UIConstants;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.service.UserService;
@@ -174,7 +175,7 @@ public class AdminPart implements WorkspaceComponent {
         Div container = new Div(tabSheet);
         container.setSizeFull();
         if (phone) {
-            container.addClassName(CssStyles.PHONE_PAGE);
+            container.addClassName(MarginaliaCssStyles.PHONE_PAGE);
         }
         return container;
     }

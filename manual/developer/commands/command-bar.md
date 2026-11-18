@@ -69,7 +69,7 @@ click outside.
 
 The help and the result are **popovers** over the target, so the bar is one row high and never changes the layout (an
 earlier version put the help under the field and misaligned its neighbours). Popovers are opened and closed from the
-server (`setOpenOnClick/Focus/Hover(false)`, `setModal(false)`). The CSS classes are in `shared-styles.css` and `CssStyles`
+server (`setOpenOnClick/Focus/Hover(false)`, `setModal(false)`). The CSS classes are in `shared-styles.css` and `MarginaliaCssStyles`
 (`command-box`, `command-bar`, `command-help*`, `command-item-*`, `command-severity*`, `command-result*`).
 
 ## How the field works

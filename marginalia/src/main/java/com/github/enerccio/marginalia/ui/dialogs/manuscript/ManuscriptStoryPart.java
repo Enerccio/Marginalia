@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.ui.dialogs.manuscript;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.components.SummaryNode;
 import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.impl.Annotation;
@@ -229,7 +230,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
 
         centerContentPanel = new ScrollPanel();
         centerContentPanel.setSizeFull();
-        centerContentPanel.addClassName(CssStyles.STORY_SCROLL_PANEL);
+        centerContentPanel.addClassName(MarginaliaCssStyles.STORY_SCROLL_PANEL);
 
         lazyLoader = new StoryLazyLoader<>(centerContentPanel, cards, ChatMessageCard::new, () -> isFrozen, loc);
 
@@ -442,7 +443,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             returns = @APIReturn(type = Component.class))
     private Component createCommandBox() {
         commandBar = new CommandBar();
-        commandBar.addClassName(CssStyles.COMMAND_BOX);
+        commandBar.addClassName(MarginaliaCssStyles.COMMAND_BOX);
         commandResultView = new CommandResultView();
         commandResultView.create(commandBar);
         commandBar.setResultTarget(commandResultView);
@@ -1147,7 +1148,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
         Button sidebarBtn = new Button(String.format(loc.getValue(M_L.LABEL_CHAPTER_OUTLINE_NODE), orderId, dbId));
         sidebarBtn.setThemeName("tertiary small");
         sidebarBtn.setWidthFull();
-        sidebarBtn.addClassName(CssStyles.SIDEBAR_BUTTON);
+        sidebarBtn.addClassName(MarginaliaCssStyles.SIDEBAR_BUTTON);
         OutlineSummaryMarks.init(sidebarBtn, msg, dbId, loc);
 
         sidebarBtn.addClickListener(event -> {
@@ -1168,7 +1169,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
         leftBar.add(CHAPTERS_TAB, loc.getValue(M_L.LABEL_CHAPTERS), TabDockIcon.CHAPTERS, leftMarginLayout);
 
         sidebarHeader = new Span();
-        sidebarHeader.addClassName(CssStyles.SIDEBAR_HEADER);
+        sidebarHeader.addClassName(MarginaliaCssStyles.SIDEBAR_HEADER);
 
         sidebarList = new VerticalLayout();
         sidebarList.setPadding(false);
@@ -1178,7 +1179,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
         branchSearch = new StoryBranchSearch(this::currentBranch,
                 ids -> lazyLoader.renderResponses(ids), id -> {
             showStory();
-            lazyLoader.showMatch(id, CssStyles.SEARCH_MATCH_CURRENT);
+            lazyLoader.showMatch(id, MarginaliaCssStyles.SEARCH_MATCH_CURRENT);
         });
 
         leftMarginLayout.add(branchSearch, sidebarHeader, sidebarList);
@@ -1693,7 +1694,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
         private Button menuBtn;
         private final MassDeleteBox massDeleteBox = new MassDeleteBox((checked, shift) -> {
             massDelete.clicked(this.message.getId(), checked, shift);
-            getClassNames().set(CssStyles.MARKED_FOR_DELETE, checked);
+            getClassNames().set(MarginaliaCssStyles.MARKED_FOR_DELETE, checked);
         });
         @PublicAPI(from = "1.1.0", type = ContextMenu.class)
         private ContextMenu hamburgerMenu;
@@ -1742,13 +1743,13 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             setWidthFull();
             setPadding(false);
             setSpacing(false);
-            addClassName(CssStyles.CHAT_MESSAGE);
+            addClassName(MarginaliaCssStyles.CHAT_MESSAGE);
 
             contentLayout = new VerticalLayout();
             contentLayout.setWidthFull();
             contentLayout.setPadding(false);
             contentLayout.setSpacing(false);
-            contentLayout.addClassName(CssStyles.CHAT_MESSAGE_CONTENT);
+            contentLayout.addClassName(MarginaliaCssStyles.CHAT_MESSAGE_CONTENT);
 
             HorizontalLayout headerBar = new HorizontalLayout();
             headerBar.setWidthFull();
@@ -1762,7 +1763,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
 
             createHamburgerMenu();
 
-            busyBadge.addClassName(CssStyles.PART_BUSY);
+            busyBadge.addClassName(MarginaliaCssStyles.PART_BUSY);
             busyBadge.setVisible(false);
             addAttachListener(event -> {
                 busyRegistration = RunsOnPage.listen(event.getUI(), this::refreshBusy);
@@ -1784,7 +1785,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             headerBar.add(UIUtils.voidComponent(), actions);
 
             reasoningMarkdown = new Markdown();
-            reasoningMarkdown.addClassName(CssStyles.CHAT_MESSAGE_MARKDOWN);
+            reasoningMarkdown.addClassName(MarginaliaCssStyles.CHAT_MESSAGE_MARKDOWN);
             if (StringUtils.isNotBlank(message.getResponseReasoning())) {
                 reasoningMarkdown.setContent(message.getResponseReasoning());
             }
@@ -1794,7 +1795,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             reasoningDetails.addClassNames(CssStyles.MAX_WIDTH_FULL, CssStyles.MIN_WIDTH_0, CssStyles.BORDER_BOX);
 
             responseMarkdown = new Markdown();
-            responseMarkdown.addClassName(CssStyles.CHAT_MESSAGE_MARKDOWN);
+            responseMarkdown.addClassName(MarginaliaCssStyles.CHAT_MESSAGE_MARKDOWN);
             renderResponse();
 
             // a click on a mark of an annotation opens its note at the mark
@@ -1810,7 +1811,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
 
             metaLayout = new VerticalLayout();
             metaLayout.setWidth("220px");
-            metaLayout.addClassName(CssStyles.CHAT_MESSAGE_META);
+            metaLayout.addClassName(MarginaliaCssStyles.CHAT_MESSAGE_META);
             metaLayout.setPadding(false);
             metaLayout.setSpacing(false);
 
@@ -1884,7 +1885,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
         public void showMassDelete(boolean shown, boolean selected) {
             massDeleteBox.setVisible(shown && message.getId() != null);
             massDeleteBox.setChecked(selected);
-            getClassNames().set(CssStyles.MARKED_FOR_DELETE, shown && selected);
+            getClassNames().set(MarginaliaCssStyles.MARKED_FOR_DELETE, shown && selected);
         }
 
         /**
@@ -2462,7 +2463,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
         @PublicAPI(from = "1.5.0",
                 returns = @APIReturn(type = void.class))
         private void applyAnnotationMargin() {
-            contentLayout.setClassName(CssStyles.ANNOTATION_MARGIN_LAYOUT, annotationsInMargin);
+            contentLayout.setClassName(MarginaliaCssStyles.ANNOTATION_MARGIN_LAYOUT, annotationsInMargin);
             cardAnnotations.setMarginMode(annotationsInMargin);
         }
 

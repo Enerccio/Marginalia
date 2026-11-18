@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.dialogs.manuscript;
 
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.components.SummaryNode;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
@@ -106,7 +107,7 @@ public class ResummarizeDialog extends Dialog {
 
         progress.addClassName(CssStyles.TEXT_BOLD);
 
-        reasoningMarkdown.addClassName(CssStyles.CHAT_MESSAGE_MARKDOWN);
+        reasoningMarkdown.addClassName(MarginaliaCssStyles.CHAT_MESSAGE_MARKDOWN);
         reasoningDetails.setSummaryText(loc.getValue(M_L.LABEL_VIEW_REASONING));
         reasoningDetails.add(reasoningMarkdown);
         reasoningDetails.setWidthFull();

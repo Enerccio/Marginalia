@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.styles;
 
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.service.PartStyleService;
 import com.github.enerccio.marginalia.domain.styles.PartStyle;
 import com.github.enerccio.marginalia.domain.styles.PartStyleOption;
@@ -157,7 +158,7 @@ public class PartStyleEditor extends HorizontalLayout {
         defaultButton.setWidthFull();
 
         VerticalLayout column = new VerticalLayout(grid, buttons, createTransferButtons(), defaultButton);
-        column.addClassNames(CssStyles.STYLE_EDITOR_LIST, CssStyles.MIN_HEIGHT_0);
+        column.addClassNames(MarginaliaCssStyles.STYLE_EDITOR_LIST, CssStyles.MIN_HEIGHT_0);
         // a VerticalLayout is as wide as its parent unless told otherwise, which the stylesheet can't override
         column.setWidth("18rem");
         column.setPadding(false);
@@ -286,9 +287,9 @@ public class PartStyleEditor extends HorizontalLayout {
         tabs.add(loc.getValue(M_L.LABEL_STYLE_OPTIONS), createOptionsTab());
         tabs.add(loc.getValue(M_L.LABEL_STYLE_CUSTOM_CSS), createCssTab());
 
-        preview.addClassName(CssStyles.STYLE_EDITOR_PREVIEW);
+        preview.addClassName(MarginaliaCssStyles.STYLE_EDITOR_PREVIEW);
         Markdown sample = new Markdown(loc.getValue(M_L.MSG_STYLE_PREVIEW_SAMPLE));
-        sample.addClassName(CssStyles.CHAT_MESSAGE_MARKDOWN);
+        sample.addClassName(MarginaliaCssStyles.CHAT_MESSAGE_MARKDOWN);
         preview.add(sample);
         Span previewLabel = new Span(loc.getValue(M_L.LABEL_STYLE_PREVIEW));
         previewLabel.addClassName(CssStyles.TEXT_SEMIBOLD);
@@ -374,7 +375,7 @@ public class PartStyleEditor extends HorizontalLayout {
         customCssField.setLabel(loc.getValue(M_L.LABEL_STYLE_CUSTOM_CSS));
         customCssField.setWidthFull();
         customCssField.setMinHeight("10rem");
-        customCssField.addClassName(CssStyles.STYLE_EDITOR_CSS);
+        customCssField.addClassName(MarginaliaCssStyles.STYLE_EDITOR_CSS);
         customCssField.setValueChangeMode(ValueChangeMode.LAZY);
         customCssField.addValueChangeListener(event -> changed());
 
@@ -382,7 +383,7 @@ public class PartStyleEditor extends HorizontalLayout {
         generatedCssField.setWidthFull();
         generatedCssField.setMinHeight("10rem");
         generatedCssField.setReadOnly(true);
-        generatedCssField.addClassName(CssStyles.STYLE_EDITOR_CSS);
+        generatedCssField.addClassName(MarginaliaCssStyles.STYLE_EDITOR_CSS);
 
         tab.add(help, customCssField, generatedCssField);
         return tab;

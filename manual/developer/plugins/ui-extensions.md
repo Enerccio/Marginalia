@@ -391,7 +391,8 @@ What plugins can't do:
   Vaadin component and add-on the application already uses (Vaadin core components, the FontAwesome icons,
   Viritin's `VTabSheet`...), but `@CssImport`, `@JsModule`, `@NpmPackage` and add-ons with their own web
   components don't work from a plugin. Style with the classes of `CssStyles`
-  (`addClassName(CssStyles.TEXT_SECONDARY)`), which the application's `shared-styles.css` defines. A style only your
+  (`addClassName(CssStyles.TEXT_SECONDARY)`: the shared look, defined by the platform's `platform-styles.css`) and of
+  `MarginaliaCssStyles` (Marginalia's own, such as the annotation marks, defined by its `shared-styles.css`). A style only your
   plugin uses goes into a CSS file in the bundle's `src/main/resources` that the application puts into the page for
   you ([Styles of a plugin](#styles-of-a-plugin)), with its class names as constants in the plugin. Use `getStyle()` only for a value known at runtime.
   Charts are the exception: the application's `ChartJs` widget (`ui.widgets`) draws any Chart.js configuration given as

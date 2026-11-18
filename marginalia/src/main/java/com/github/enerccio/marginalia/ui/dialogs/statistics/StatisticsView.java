@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.dialogs.statistics;
 
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.collections.StatisticRange;
 import com.github.enerccio.marginalia.domain.collections.StatisticSide;
 import com.github.enerccio.marginalia.domain.components.*;
@@ -132,9 +133,9 @@ public class StatisticsView extends VerticalLayout {
 
         add(createControls());
         totals = new Div();
-        totals.addClassName(CssStyles.STATISTIC_TOTALS);
+        totals.addClassName(MarginaliaCssStyles.STATISTIC_TOTALS);
         notes = new Div();
-        notes.addClassName(CssStyles.TOKEN_USAGE_SUMMARY);
+        notes.addClassName(MarginaliaCssStyles.TOKEN_USAGE_SUMMARY);
         tabs = new TabSheet();
         tabs.setWidthFull();
         addTab(loc.getValue(M_L.LABEL_STATISTICS_DAYS), createDays(), null);
@@ -560,7 +561,7 @@ public class StatisticsView extends VerticalLayout {
 
     private void addTotal(LocalizationKey label, String value) {
         Span item = new Span(loc.getValue(label) + ": " + value);
-        item.addClassName(CssStyles.STATISTIC_TOTAL_ITEM);
+        item.addClassName(MarginaliaCssStyles.STATISTIC_TOTAL_ITEM);
         totals.add(item);
     }
 
@@ -617,9 +618,9 @@ public class StatisticsView extends VerticalLayout {
 
     private static String signPart(long words) {
         if (words > 0) {
-            return CssStyles.STATISTIC_GROWTH_UP;
+            return MarginaliaCssStyles.STATISTIC_GROWTH_UP;
         }
-        return words < 0 ? CssStyles.STATISTIC_GROWTH_DOWN : null;
+        return words < 0 ? MarginaliaCssStyles.STATISTIC_GROWTH_DOWN : null;
     }
 
 }

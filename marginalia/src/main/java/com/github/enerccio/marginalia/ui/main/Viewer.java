@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.ui.main;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.bound.ApplicationPoint;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Folder;
@@ -653,16 +654,16 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
         // Simple floating back button optimized for phone/touch
         Button backButton = new Button(Solid.ARROW_LEFT.create(), event -> UI.getCurrent().navigate(Viewer.class));
         backButton.setThemeName("primary icon");
-        backButton.addClassName(CssStyles.FLOATING_BACK_BUTTON);
+        backButton.addClassName(MarginaliaCssStyles.FLOATING_BACK_BUTTON);
 
         ScrollPanel scrollPanel = new ScrollPanel();
         scrollPanel.setSizeFull();
-        scrollPanel.addClassName(CssStyles.READER_SCROLL_PANEL);
+        scrollPanel.addClassName(MarginaliaCssStyles.READER_SCROLL_PANEL);
 
         VerticalLayout contentWrapper = new VerticalLayout();
         contentWrapper.setWidthFull();
         contentWrapper.setMaxWidth("800px");
-        contentWrapper.addClassName(CssStyles.READER_CONTENT);
+        contentWrapper.addClassName(MarginaliaCssStyles.READER_CONTENT);
         contentWrapper.setPadding(false);
         contentWrapper.setSpacing(true);
 

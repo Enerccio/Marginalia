@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.dialogs.story;
 
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
@@ -70,7 +71,7 @@ public class AnnotationDialog extends Dialog {
 
         if (StringUtils.isNotBlank(passage)) {
             Div quote = new Div(new Span(StringUtils.abbreviate(passage.strip(), 400)));
-            quote.addClassName(CssStyles.ANNOTATION_QUOTE);
+            quote.addClassName(MarginaliaCssStyles.ANNOTATION_QUOTE);
             content.add(quote);
         } else {
             Span whole = new Span(loc.getValue(M_L.MSG_ANNOTATION_WHOLE_PART));

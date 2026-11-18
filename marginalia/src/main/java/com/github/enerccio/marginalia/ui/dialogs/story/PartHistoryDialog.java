@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.dialogs.story;
 
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.collections.RevisionDetail;
 import com.github.enerccio.marginalia.domain.components.RevisionClearing;
 import com.github.enerccio.marginalia.domain.components.RevisionRow;
@@ -157,7 +158,7 @@ public class PartHistoryDialog extends Dialog {
 
         grid.addThemeVariants(GridVariant.LUMO_COMPACT, GridVariant.LUMO_ROW_STRIPES, GridVariant.LUMO_NO_BORDER);
         grid.setSelectionMode(Grid.SelectionMode.SINGLE);
-        grid.setPartNameGenerator(row -> row.deleted() ? CssStyles.HISTORY_ROW_DELETED : null);
+        grid.setPartNameGenerator(row -> row.deleted() ? MarginaliaCssStyles.HISTORY_ROW_DELETED : null);
         if (phone) {
             grid.addComponentColumn(this::card);
         } else {

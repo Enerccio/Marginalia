@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.dialogs.story;
 
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.service.search.FulltextQuery;
 import com.github.enerccio.marginalia.loc.L;
@@ -139,7 +140,7 @@ public class StoryBranchSearch extends VerticalLayout {
         if (current >= 0 && Objects.equals(matches.get(current).messageId(), messageId)) {
             at = matches.get(current).index();
         }
-        return SearchHighlighter.highlight(text, pattern, CssStyles.SEARCH_MATCH, at, CssStyles.SEARCH_MATCH_CURRENT);
+        return SearchHighlighter.highlight(text, pattern, MarginaliaCssStyles.SEARCH_MATCH, at, MarginaliaCssStyles.SEARCH_MATCH_CURRENT);
     }
 
     /**
@@ -159,7 +160,7 @@ public class StoryBranchSearch extends VerticalLayout {
         List<int[]> ranges = SearchHighlighter.ranges(text, pattern);
         for (int i = 0; i < ranges.size(); i++) {
             marks.add(new TextMarkup.Mark(ranges.get(i)[0], ranges.get(i)[1],
-                    i == at ? CssStyles.SEARCH_MATCH + " " + CssStyles.SEARCH_MATCH_CURRENT : CssStyles.SEARCH_MATCH));
+                    i == at ? MarginaliaCssStyles.SEARCH_MATCH + " " + MarginaliaCssStyles.SEARCH_MATCH_CURRENT : MarginaliaCssStyles.SEARCH_MATCH));
         }
         return marks;
     }

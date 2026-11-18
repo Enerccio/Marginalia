@@ -134,7 +134,7 @@ sequenceDiagram
    `MarginaliaExtension`. A JAR that fails is logged and skipped. When the root context closes, the extensions are
    unloaded and the framework is stopped.
 7. `MarginaliaServlet` (`@WebServlet("/*")`, a `VaadinServlet`) serves the UI. `AppShellConfig` configures the page:
-   push enabled, dark Lumo theme, `shared-styles.css`, the icons (`icons/icon.svg` as the vector favicon, `icons/icon.png` and the PWA icons).
+   push enabled, dark Lumo theme, `shared-styles.css` (which imports the platform's `platform-styles.css` first), the icons (`icons/icon.svg` as the vector favicon, `icons/icon.png` and the PWA icons).
 
 ## Layers and packages
 

@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.UIConstants;
 import com.github.enerccio.marginalia.domain.model.impl.Folder;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
@@ -552,7 +553,7 @@ public class MassRenameDialog extends Dialog implements LLMInteract {
      */
     private static <T extends Component> T dimmed(T component, Row row) {
         if (row.locked) {
-            component.addClassName(CssStyles.MULTI_TAG_LOCKED);
+            component.addClassName(MarginaliaCssStyles.MULTI_TAG_LOCKED);
         }
         return component;
     }

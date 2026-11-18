@@ -1,6 +1,6 @@
 package com.github.enerccio.marginalia.ui;
 
-import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.collections.AnnotationSource;
 import com.github.enerccio.marginalia.domain.collections.AnnotationStatus;
 import com.github.enerccio.marginalia.domain.model.impl.Annotation;
@@ -202,7 +202,7 @@ class StoryAnnotationsDialogTest extends MarginaliaTestBase {
         assertThat(cardAnnotations(card).getMargin().isVisible()).isFalse();
         assertThat(cardAnnotations(card).getMargin().getComponentCount()).isZero();
         assertThat(((com.vaadin.flow.component.orderedlayout.VerticalLayout) field(card, "contentLayout")).getClassNames())
-                .doesNotContain(CssStyles.ANNOTATION_MARGIN_LAYOUT);
+                .doesNotContain(MarginaliaCssStyles.ANNOTATION_MARGIN_LAYOUT);
     }
 
     @Test
@@ -221,7 +221,7 @@ class StoryAnnotationsDialogTest extends MarginaliaTestBase {
                 .containsExactly(earlier.getId(), later.getId());
         assertThat(margin.getComponentAt(0).getElement().getAttribute("data-annotation-id")).isEqualTo(earlier.getUuid());
         assertThat(((com.vaadin.flow.component.orderedlayout.VerticalLayout) field(card, "contentLayout")).getClassNames())
-                .contains(CssStyles.ANNOTATION_MARGIN_LAYOUT);
+                .contains(MarginaliaCssStyles.ANNOTATION_MARGIN_LAYOUT);
     }
 
     @Test

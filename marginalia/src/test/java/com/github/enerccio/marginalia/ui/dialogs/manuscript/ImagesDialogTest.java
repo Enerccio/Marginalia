@@ -1,6 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs.manuscript;
 
-import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.model.ImageAnchor;
 import com.github.enerccio.marginalia.domain.model.ImageAttachment;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
@@ -105,7 +105,7 @@ class ImagesDialogTest extends MarginaliaTestBase {
 
     /** A place of the picker is a ring; the chosen one has it filled (a CSS class on the dot the button holds). */
     private static boolean isChosen(Button place) {
-        return place.getIcon() != null && place.getIcon().getElement().getClassList().contains(com.github.enerccio.marginalia.CssStyles.IMAGE_ANCHOR_DOT_SELECTED);
+        return place.getIcon() != null && place.getIcon().getElement().getClassList().contains(com.github.enerccio.marginalia.MarginaliaCssStyles.IMAGE_ANCHOR_DOT_SELECTED);
     }
 
     private Checkbox checkbox(String label) {
@@ -235,15 +235,15 @@ class ImagesDialogTest extends MarginaliaTestBase {
 
         PartView view = new PartView("One.\n\nTwo.\n\nThree.", List.of(end, top));
 
-        List<String> shape = view.getChildren().map(c -> c.getClassNames().contains(CssStyles.PART_PICTURES) ? "pictures" : "text").toList();
+        List<String> shape = view.getChildren().map(c -> c.getClassNames().contains(MarginaliaCssStyles.PART_PICTURES) ? "pictures" : "text").toList();
         assertThat(shape).containsExactly("pictures", "text", "pictures");
-        assertThat(view.getClassNames()).contains(CssStyles.PART_VIEW);
+        assertThat(view.getClassNames()).contains(MarginaliaCssStyles.PART_VIEW);
 
-        Div floated = (Div) all(view).filter(c -> c.getClassNames().contains(CssStyles.PART_PICTURE_FLOAT_RIGHT)).findFirst().orElseThrow();
+        Div floated = (Div) all(view).filter(c -> c.getClassNames().contains(MarginaliaCssStyles.PART_PICTURE_FLOAT_RIGHT)).findFirst().orElseThrow();
         assertThat(floated.getStyle().get("width")).isEqualTo("30%");
-        assertThat(floated.getClassNames()).contains(CssStyles.PART_PICTURE, CssStyles.PART_PICTURE_SIZED);
+        assertThat(floated.getClassNames()).contains(MarginaliaCssStyles.PART_PICTURE, MarginaliaCssStyles.PART_PICTURE_SIZED);
 
-        Div block = (Div) all(view).filter(c -> c.getClassNames().contains(CssStyles.PART_PICTURES_LEFT)).findFirst().orElseThrow();
+        Div block = (Div) all(view).filter(c -> c.getClassNames().contains(MarginaliaCssStyles.PART_PICTURES_LEFT)).findFirst().orElseThrow();
         assertThat(block.getChildren().findFirst().orElseThrow().getStyle().get("width")).isNull();
     }
 
@@ -254,13 +254,13 @@ class ImagesDialogTest extends MarginaliaTestBase {
 
         PartView view = new PartView("One" + lorem + "\n\nTwo" + lorem + "\n\nThree" + lorem, List.of(middle));
 
-        Div band = (Div) all(view).filter(c -> c.getClassNames().contains(CssStyles.PART_BAND)).findFirst().orElseThrow();
+        Div band = (Div) all(view).filter(c -> c.getClassNames().contains(MarginaliaCssStyles.PART_BAND)).findFirst().orElseThrow();
         assertThat(band.getStyle().get("grid-template-columns")).isEqualTo("1fr 25% 1fr");
         List<Component> cells = band.getChildren().toList();
         assertThat(cells).hasSize(3);
-        assertThat(cells.get(0).getClassNames()).contains(CssStyles.PART_BAND_TEXT);
-        assertThat(cells.get(1).getClassNames()).contains(CssStyles.PART_BAND_MIDDLE);
-        assertThat(cells.get(2).getClassNames()).contains(CssStyles.PART_BAND_TEXT);
+        assertThat(cells.get(0).getClassNames()).contains(MarginaliaCssStyles.PART_BAND_TEXT);
+        assertThat(cells.get(1).getClassNames()).contains(MarginaliaCssStyles.PART_BAND_MIDDLE);
+        assertThat(cells.get(2).getClassNames()).contains(MarginaliaCssStyles.PART_BAND_TEXT);
     }
 
     @Test

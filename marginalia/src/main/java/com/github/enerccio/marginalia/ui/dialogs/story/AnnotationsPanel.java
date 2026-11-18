@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.dialogs.story;
 
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.collections.AnnotationStatus;
 import com.github.enerccio.marginalia.domain.model.impl.Annotation;
 import com.github.enerccio.marginalia.loc.LocalizationKey;
@@ -73,7 +74,7 @@ public class AnnotationsPanel extends VerticalLayout {
         setSizeFull();
         setPadding(false);
         setSpacing(false);
-        addClassNames(CssStyles.GAP_S, CssStyles.ANNOTATION_PANEL);
+        addClassNames(CssStyles.GAP_S, MarginaliaCssStyles.ANNOTATION_PANEL);
 
         filter.setItems(Filter.values());
         filter.setItemLabelGenerator(item -> loc.getValue(item.label));
@@ -149,11 +150,11 @@ public class AnnotationsPanel extends VerticalLayout {
         Integer position = positions.get(annotation.getPartId());
         if (position == null) {
             Span other = new Span(loc.getValue(M_L.MSG_ANNOTATION_OTHER_BRANCH));
-            other.addClassNames(CssStyles.ANNOTATION_PART, CssStyles.TEXT_SECONDARY);
+            other.addClassNames(MarginaliaCssStyles.ANNOTATION_PART, CssStyles.TEXT_SECONDARY);
             return other;
         }
         Span header = new Span();
-        header.addClassName(CssStyles.ANNOTATION_PART);
+        header.addClassName(MarginaliaCssStyles.ANNOTATION_PART);
         Button go = new Button(String.format(loc.getValue(M_L.LABEL_ANNOTATION_PART_NUMBER), position),
                 event -> host.goToPart(annotation));
         go.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);

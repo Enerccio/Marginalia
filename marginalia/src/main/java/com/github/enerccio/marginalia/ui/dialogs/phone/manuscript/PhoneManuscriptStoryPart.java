@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.ui.dialogs.phone.manuscript;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.components.SummaryNode;
 import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.impl.Annotation;
@@ -167,7 +168,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
     @Override
     public Component create() throws Exception {
         layout = new AppLayout();
-        layout.addClassNames(CssStyles.FULL_SIZE, CssStyles.PHONE_STORY_LAYOUT);
+        layout.addClassNames(CssStyles.FULL_SIZE, MarginaliaCssStyles.PHONE_STORY_LAYOUT);
 
         drawerToggle = new DrawerToggle();
         navTitle = new Span();
@@ -186,7 +187,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
 
         centerContentPanel = new ScrollPanel();
         centerContentPanel.setSizeFull();
-        centerContentPanel.addClassName(CssStyles.STORY_SCROLL_PANEL);
+        centerContentPanel.addClassName(MarginaliaCssStyles.STORY_SCROLL_PANEL);
 
         lazyLoader = new StoryLazyLoader<>(centerContentPanel, cards, ChatMessageCard::new, () -> isFrozen, loc);
 
@@ -708,7 +709,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
                 startGeneration();
             }
         });
-        content.addClassName(CssStyles.PHONE_POPOVER_CONTENT);
+        content.addClassName(MarginaliaCssStyles.PHONE_POPOVER_CONTENT);
         popover.add(content);
 
         popover.addOpenedChangeListener(event -> {
@@ -817,7 +818,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
         Button sidebarBtn = new Button(String.format(loc.getValue(M_L.LABEL_CHAPTER_OUTLINE_NODE), orderId, dbId));
         sidebarBtn.setThemeName("tertiary small");
         sidebarBtn.setWidthFull();
-        sidebarBtn.addClassName(CssStyles.SIDEBAR_BUTTON);
+        sidebarBtn.addClassName(MarginaliaCssStyles.SIDEBAR_BUTTON);
         OutlineSummaryMarks.init(sidebarBtn, msg, dbId, loc);
 
         sidebarBtn.addClickListener(event -> {
@@ -848,7 +849,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
         outlineTab.setSpacing(false);
 
         sidebarHeader = new Span();
-        sidebarHeader.addClassName(CssStyles.SIDEBAR_HEADER);
+        sidebarHeader.addClassName(MarginaliaCssStyles.SIDEBAR_HEADER);
 
         sidebarList = new VerticalLayout();
         sidebarList.setPadding(false);
@@ -859,7 +860,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
                 ids -> lazyLoader.renderResponses(ids), id -> {
                     // the drawer covers the story, the user opens it again for the next match
                     layout.setDrawerOpened(false);
-                    lazyLoader.showMatch(id, CssStyles.SEARCH_MATCH_CURRENT);
+                    lazyLoader.showMatch(id, MarginaliaCssStyles.SEARCH_MATCH_CURRENT);
                 });
 
         outlineTab.add(branchSearch, sidebarHeader, sidebarList);
@@ -1155,7 +1156,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
         private final Button infoBtn;
         private final MassDeleteBox massDeleteBox = new MassDeleteBox((checked, shift) -> {
             massDelete.clicked(this.message.getId(), checked, shift);
-            getClassNames().set(CssStyles.MARKED_FOR_DELETE, checked);
+            getClassNames().set(MarginaliaCssStyles.MARKED_FOR_DELETE, checked);
         });
         @PublicAPI(from = "1.1.0", type = ContextMenu.class)
         private ContextMenu hamburgerMenu;
@@ -1202,14 +1203,14 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
             setWidthFull();
             setPadding(false);
             setSpacing(false);
-            addClassName(CssStyles.PHONE_MESSAGE);
+            addClassName(MarginaliaCssStyles.PHONE_MESSAGE);
 
             HorizontalLayout headerBar = new HorizontalLayout();
             headerBar.setWidthFull();
             headerBar.setPadding(false);
             headerBar.setSpacing(false);
             headerBar.setAlignItems(FlexComponent.Alignment.CENTER);
-            headerBar.addClassName(CssStyles.PHONE_MESSAGE_HEADER);
+            headerBar.addClassName(MarginaliaCssStyles.PHONE_MESSAGE_HEADER);
 
             menuBtn = new Button(Solid.HAMBURGER.create());
             menuBtn.setThemeName("tertiary icon small");
@@ -1223,7 +1224,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
 
             showMassDelete(massDelete.isActive(), massDelete.isSelected(message.getId()));
 
-            busyBadge.addClassName(CssStyles.PART_BUSY);
+            busyBadge.addClassName(MarginaliaCssStyles.PART_BUSY);
             busyBadge.setVisible(false);
             addAttachListener(event -> {
                 busyRegistration = RunsOnPage.listen(event.getUI(), this::refreshBusy);
@@ -1239,7 +1240,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
             headerBar.add(massDeleteBox, menuBtn, infoBtn, busyBadge);
 
             reasoningMarkdown = new Markdown();
-            reasoningMarkdown.addClassName(CssStyles.CHAT_MESSAGE_MARKDOWN);
+            reasoningMarkdown.addClassName(MarginaliaCssStyles.CHAT_MESSAGE_MARKDOWN);
             if (StringUtils.isNotBlank(message.getResponseReasoning())) {
                 reasoningMarkdown.setContent(message.getResponseReasoning());
             }
@@ -1249,7 +1250,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
             reasoningDetails.addClassNames(CssStyles.MAX_WIDTH_FULL, CssStyles.MIN_WIDTH_0, CssStyles.BORDER_BOX);
 
             responseMarkdown = new Markdown();
-            responseMarkdown.addClassName(CssStyles.CHAT_MESSAGE_MARKDOWN);
+            responseMarkdown.addClassName(MarginaliaCssStyles.CHAT_MESSAGE_MARKDOWN);
             renderResponse();
 
             // a tap on a mark of an annotation opens its note at the mark
@@ -1305,7 +1306,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
         public void showMassDelete(boolean shown, boolean selected) {
             massDeleteBox.setVisible(shown && message.getId() != null);
             massDeleteBox.setChecked(selected);
-            getClassNames().set(CssStyles.MARKED_FOR_DELETE, shown && selected);
+            getClassNames().set(MarginaliaCssStyles.MARKED_FOR_DELETE, shown && selected);
         }
 
         @PublicAPI(from = "1.1.0",
@@ -1340,7 +1341,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
             VerticalLayout content = new VerticalLayout();
             content.setPadding(false);
             content.setSpacing(false);
-            content.addClassName(CssStyles.PHONE_POPOVER_CONTENT);
+            content.addClassName(MarginaliaCssStyles.PHONE_POPOVER_CONTENT);
 
             Span detailsHeader = new Span(loc.getValue(M_L.LABEL_TURN_DETAILS));
             detailsHeader.addClassNames(CssStyles.TEXT_SEMIBOLD, CssStyles.TEXT_XS);

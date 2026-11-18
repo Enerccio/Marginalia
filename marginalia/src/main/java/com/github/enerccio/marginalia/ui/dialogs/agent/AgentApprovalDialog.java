@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.dialogs.agent;
 
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.service.AgentApprovalService;
 import com.github.enerccio.marginalia.domain.service.AgentApprovalService.PendingApproval;
 import com.github.enerccio.marginalia.domain.traits.*;
@@ -76,7 +77,7 @@ public class AgentApprovalDialog extends Dialog implements LLMInteract {
             Span title = new Span(loc.getValue(M_L.LABEL_ARGUMENTS));
             title.addClassNames(CssStyles.TEXT_SEMIBOLD);
             Div arguments = new Div();
-            arguments.addClassNames(CssStyles.HELP_MESSAGE, CssStyles.TEXT_MONOSPACE, CssStyles.PRE_WRAP);
+            arguments.addClassNames(MarginaliaCssStyles.HELP_MESSAGE, CssStyles.TEXT_MONOSPACE, CssStyles.PRE_WRAP);
             arguments.setText(describe(approval.arguments()));
             content.add(title, arguments);
         }

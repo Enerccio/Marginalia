@@ -1,7 +1,7 @@
 package com.github.enerccio.marginalia.ui.styles;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
-import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.service.PartStyleService;
 import com.github.enerccio.marginalia.domain.styles.PartStyle;
 import com.github.enerccio.marginalia.domain.styles.PartStyleRegistry;
@@ -86,7 +86,7 @@ public class ReaderStyleChooser extends Button {
         this.onChosen = onChosen;
         this.store = store;
         setThemeName("primary icon");
-        addClassName(CssStyles.FLOATING_STYLE_BUTTON);
+        addClassName(MarginaliaCssStyles.FLOATING_STYLE_BUTTON);
         UIUtils.addTooltip(this, loc.getValue(M_L.LABEL_CHANGE_STYLES));
 
         try {

@@ -1,6 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
-import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.components.LoreUsageReport;
 import com.github.enerccio.marginalia.domain.components.LoreUsageReport.Scope;
 import com.github.enerccio.marginalia.domain.components.LoreUsageReport.Status;
@@ -97,10 +97,10 @@ public class BookLoreUsageDialog extends Dialog {
         controls.setWrap(true);
 
         summary = new Div();
-        summary.addClassName(CssStyles.TOKEN_USAGE_SUMMARY);
+        summary.addClassName(MarginaliaCssStyles.TOKEN_USAGE_SUMMARY);
         grid = table();
         help = new Div(loc.getValue(M_L.MSG_LORE_USAGE_HELP));
-        help.addClassName(CssStyles.TOKEN_USAGE_SUMMARY);
+        help.addClassName(MarginaliaCssStyles.TOKEN_USAGE_SUMMARY);
 
         VerticalLayout content = new VerticalLayout(controls, summary, grid, help);
         content.setPadding(false);

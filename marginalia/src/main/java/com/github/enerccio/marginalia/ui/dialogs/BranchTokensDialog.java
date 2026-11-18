@@ -1,6 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
-import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.components.BranchTokens;
 import com.github.enerccio.marginalia.domain.components.TokenLimits;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
@@ -139,7 +139,7 @@ public class BranchTokensDialog extends Dialog {
 
     private Div note(String text) {
         Div note = new Div(text);
-        note.addClassName(CssStyles.TOKEN_USAGE_SUMMARY);
+        note.addClassName(MarginaliaCssStyles.TOKEN_USAGE_SUMMARY);
         return note;
     }
 

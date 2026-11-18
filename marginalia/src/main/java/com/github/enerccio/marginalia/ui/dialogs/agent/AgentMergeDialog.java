@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.ui.dialogs.agent;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.model.impl.Annotation;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
@@ -237,7 +238,7 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
         }
         AgentFindingsView view = new AgentFindingsView(loc);
         view.setFindings(findings);
-        view.addClassName(CssStyles.AGENT_FINDINGS_COMPACT);
+        view.addClassName(MarginaliaCssStyles.AGENT_FINDINGS_COMPACT);
         Details details = new Details(loc.getValue(M_L.LABEL_AGENT_FINDINGS) + " (" + findings.size() + ")", view);
         details.setOpened(true);
         details.setWidthFull();
@@ -762,7 +763,7 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
         }
         String applied = edits.getOrDefault(item.id(), Map.of()).getOrDefault(field.name(), defaultValue(field));
         TextArea toApply = readOnlyArea(M_L.LABEL_MERGE_TO_APPLY, JsonText.pretty(applied));
-        toApply.addClassName(CssStyles.JSON_MERGE_TEXT);
+        toApply.addClassName(MarginaliaCssStyles.JSON_MERGE_TEXT);
         toApply.setMaxRows(14);
 
         Button merge = new Button(loc.getValue(M_L.LABEL_JSON_MERGE), Solid.CODE_MERGE.create(), event -> {
@@ -800,7 +801,7 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
             view.add(note(String.format(loc.getValue(M_L.MSG_JSON_RESULT_CONFLICTS), conflicts), "error"));
         }
         TextArea inBook = readOnlyArea(M_L.LABEL_MERGE_IN_BOOK_NOW, JsonText.pretty(field.book()));
-        inBook.addClassName(CssStyles.JSON_MERGE_TEXT);
+        inBook.addClassName(MarginaliaCssStyles.JSON_MERGE_TEXT);
         view.add(inBook, toApply, buttons);
         WordDiffView changes = new WordDiffView(loc.getValue(M_L.MSG_MERGE_NO_DIFFERENCE));
         changes.show(JsonText.pretty(field.book()), JsonText.pretty(applied));

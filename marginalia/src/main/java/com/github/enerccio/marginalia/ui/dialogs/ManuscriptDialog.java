@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.AIService;
@@ -122,7 +123,7 @@ public class ManuscriptDialog extends Dialog implements ManuscriptWindow {
         setCloseOnOutsideClick(false);
         setModality(ModalityMode.STRICT);
         addThemeVariants(DialogVariant.NO_PADDING);
-        addClassName(CssStyles.MANUSCRIPT_DIALOG);
+        addClassName(MarginaliaCssStyles.MANUSCRIPT_DIALOG);
 
         VerticalLayout mainLayout = new VerticalLayout();
         mainLayout.setSizeFull();

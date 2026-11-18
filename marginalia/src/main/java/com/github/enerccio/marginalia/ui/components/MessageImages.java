@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.components;
 
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.model.ImageAttachment;
 import com.github.enerccio.marginalia.domain.model.impl.Resource;
 import com.github.enerccio.marginalia.domain.service.ResourceService;
@@ -32,7 +33,7 @@ public class MessageImages extends Div {
 
     public MessageImages(List<ImageAttachment> images) {
         setWidthFull();
-        addClassName(CssStyles.MESSAGE_IMAGES);
+        addClassName(MarginaliaCssStyles.MESSAGE_IMAGES);
         setImages(images);
     }
 
@@ -84,7 +85,7 @@ public class MessageImages extends Div {
 
         Image image = new Image(stream, StringUtils.defaultString(caption));
         image.setMaxWidth(maxWidth);
-        image.addClassName(CssStyles.MESSAGE_IMAGE);
+        image.addClassName(MarginaliaCssStyles.MESSAGE_IMAGE);
 
         Div figure = new Div(image);
         figure.addClassName(CssStyles.MAX_WIDTH_FULL);

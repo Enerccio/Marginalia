@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.dialogs.agent;
 
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.service.agent.jsonmerge.JsonMergeNode;
 import com.github.enerccio.marginalia.domain.service.agent.jsonmerge.JsonMergeNode.Choice;
 import com.github.enerccio.marginalia.domain.service.agent.jsonmerge.JsonMergeNode.Side;
@@ -306,9 +307,9 @@ public class JsonMergeDialog extends Dialog {
                     @APILocals(name = "full", type = String.class)})
     private Span cell(JsonElement value) {
         Span cell = new Span(preview(value));
-        cell.addClassName(CssStyles.JSON_MERGE_CELL);
+        cell.addClassName(MarginaliaCssStyles.JSON_MERGE_CELL);
         if (value == null) {
-            cell.addClassName(CssStyles.JSON_MERGE_ABSENT);
+            cell.addClassName(MarginaliaCssStyles.JSON_MERGE_ABSENT);
         } else {
             String full = JsonText.pretty(value);
             cell.setTitle(full.length() > 600 ? full.substring(0, 600) + "…" : full);
@@ -325,8 +326,8 @@ public class JsonMergeDialog extends Dialog {
         Span cell = cell(node.get(side));
         boolean changed = side == Side.AGENT ? node.agentChanged() : side == Side.BOOK && node.bookChanged();
         if (changed) {
-            cell.addClassName(node.conflict() ? CssStyles.JSON_MERGE_CELL_CONFLICT
-                    : side == Side.AGENT ? CssStyles.JSON_MERGE_CELL_AGENT : CssStyles.JSON_MERGE_CELL_BOOK);
+            cell.addClassName(node.conflict() ? MarginaliaCssStyles.JSON_MERGE_CELL_CONFLICT
+                    : side == Side.AGENT ? MarginaliaCssStyles.JSON_MERGE_CELL_AGENT : MarginaliaCssStyles.JSON_MERGE_CELL_BOOK);
         }
         return cell;
     }
@@ -345,7 +346,7 @@ public class JsonMergeDialog extends Dialog {
     private Component choiceCell(JsonMergeNode node) {
         Span choice = new Span(loc.getValue(choiceText(node.effectiveChoice())));
         if (node.isOverruled()) {
-            choice.addClassName(CssStyles.JSON_MERGE_ABSENT);
+            choice.addClassName(MarginaliaCssStyles.JSON_MERGE_ABSENT);
         } else if (node.conflict() && !node.isDecided() && node.container() == null) {
             choice.addClassName(CssStyles.TEXT_ERROR);
         }
@@ -660,7 +661,7 @@ public class JsonMergeDialog extends Dialog {
         textArea = new TextArea();
         textArea.setWidthFull();
         textArea.setMinRows(10);
-        textArea.addClassName(CssStyles.JSON_MERGE_TEXT);
+        textArea.addClassName(MarginaliaCssStyles.JSON_MERGE_TEXT);
         textArea.setValueChangeMode(ValueChangeMode.LAZY);
         textArea.setValueChangeTimeout(500);
         textArea.addValueChangeListener(event -> {

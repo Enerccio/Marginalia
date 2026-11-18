@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.ui.dialogs;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.UIConstants;
 import com.github.enerccio.marginalia.domain.collections.ActivationContext;
 import com.github.enerccio.marginalia.domain.collections.FilteringMode;
@@ -577,7 +578,7 @@ public class LorebookMassEditDialog extends Dialog {
     private Div contentCell(Row row) {
         String text = StringUtils.defaultString(row.entry.getPayload());
         Div cell = new Div(new Span(StringUtils.abbreviate(text, CONTENT_PREVIEW_LENGTH)));
-        cell.addClassName(CssStyles.MASS_EDIT_CONTENT);
+        cell.addClassName(MarginaliaCssStyles.MASS_EDIT_CONTENT);
         return dimmed(cell, row);
     }
 
@@ -590,7 +591,7 @@ public class LorebookMassEditDialog extends Dialog {
                     @APIParameter(name = "row", type = LorebookMassEditDialog.Row.class)})
     private <T extends Component> T dimmed(T component, Row row) {
         if (row.locked) {
-            component.addClassName(CssStyles.MULTI_TAG_LOCKED);
+            component.addClassName(MarginaliaCssStyles.MULTI_TAG_LOCKED);
             UIUtils.addTooltip(component, loc.getValue(M_L.LABEL_LOCKED_BY_AGENT));
         }
         return component;

@@ -1,6 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
-import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.test.AgentTestBase;
@@ -122,8 +122,8 @@ class MultiTagDialogTest extends AgentTestBase {
         assertThat(names(dialog)).containsExactly("Charlie", "Alpha", "Bravo");
         List<Span> chips = dialog.tagsCell(row(dialog, "Charlie")).getChildren().map(Span.class::cast).toList();
         assertThat(chips).extracting(chip -> chip.getText()).containsExactly("cozy", "noir");
-        assertThat(chips.get(0).getClassNames()).doesNotContain(CssStyles.MULTI_TAG_CHIP_MARKED);
-        assertThat(chips.get(1).getClassNames()).contains(CssStyles.MULTI_TAG_CHIP, CssStyles.MULTI_TAG_CHIP_MARKED);
+        assertThat(chips.get(0).getClassNames()).doesNotContain(MarginaliaCssStyles.MULTI_TAG_CHIP_MARKED);
+        assertThat(chips.get(1).getClassNames()).contains(MarginaliaCssStyles.MULTI_TAG_CHIP, MarginaliaCssStyles.MULTI_TAG_CHIP_MARKED);
 
         dialog.getTagBox().setValue(cozy);
 

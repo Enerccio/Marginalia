@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.ui.workspace.phone;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.service.UserService;
 import com.github.enerccio.marginalia.domain.service.AgentService;
@@ -305,7 +306,7 @@ public class PhoneWorkspace implements Workspace {
             }
         });
         attentionCue.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
-        attentionCue.addClassName(CssStyles.AGENT_ATTENTION_CUE);
+        attentionCue.addClassName(MarginaliaCssStyles.AGENT_ATTENTION_CUE);
         attentionCue.setTooltipText(loc.getValue(M_L.LABEL_AGENTS_WAITING));
         attentionCue.setAriaLabel(loc.getValue(M_L.LABEL_AGENTS_WAITING));
         attentionCue.setVisible(false);

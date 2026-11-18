@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.ui.dialogs.agent;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.service.AgentRunner;
 import com.github.enerccio.marginalia.domain.service.agent.AgentDiagnostics;
@@ -95,7 +96,7 @@ public class AgentDiagnosticsView extends VerticalLayout implements LLMInteract 
 
         report = new Markdown();
         report.setWidthFull();
-        report.addClassName(CssStyles.AGENT_REPORT);
+        report.addClassName(MarginaliaCssStyles.AGENT_REPORT);
 
         add(help, header, emptyLabel, report);
         showEmpty();

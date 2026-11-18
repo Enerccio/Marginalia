@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.ui.dialogs.story;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.model.PlannedScene;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.PlannerService;
@@ -147,7 +148,7 @@ public class PlannerPanel extends VerticalLayout {
         String detail = StringUtils.firstNonBlank(scene.getInstructions(), scene.getSceneSetting());
         if (StringUtils.isNotBlank(detail)) {
             Div text = new Div(new Span(detail));
-            text.addClassName(CssStyles.PLANNER_SCENE_TEXT);
+            text.addClassName(MarginaliaCssStyles.PLANNER_SCENE_TEXT);
             content.add(text);
         }
         String doneTooltip = loc.getValue(scene.isDone() ? M_L.LABEL_MARK_NOT_DONE : M_L.LABEL_MARK_DONE);

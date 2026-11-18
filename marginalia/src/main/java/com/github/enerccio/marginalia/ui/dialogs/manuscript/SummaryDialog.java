@@ -1,6 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs.manuscript;
 
-import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Summary;
@@ -101,7 +101,7 @@ public class SummaryDialog extends Dialog implements LLMInteract {
         layout.setSpacing(true);
 
         reasoningMarkdown = new Markdown();
-        reasoningMarkdown.addClassName(CssStyles.CHAT_MESSAGE_MARKDOWN);
+        reasoningMarkdown.addClassName(MarginaliaCssStyles.CHAT_MESSAGE_MARKDOWN);
 
         reasoningDetails = new Details(loc.getValue(M_L.LABEL_VIEW_REASONING), reasoningMarkdown);
         reasoningDetails.setWidthFull();

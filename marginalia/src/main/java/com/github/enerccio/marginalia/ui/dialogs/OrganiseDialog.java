@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.Folder;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
@@ -757,9 +758,9 @@ public class OrganiseDialog extends Dialog {
                 }
             }
         }
-        left.layout.removeClassName(CssStyles.ORGANISE_PANE_ACTIVE);
-        right.layout.removeClassName(CssStyles.ORGANISE_PANE_ACTIVE);
-        pane.layout.addClassName(CssStyles.ORGANISE_PANE_ACTIVE);
+        left.layout.removeClassName(MarginaliaCssStyles.ORGANISE_PANE_ACTIVE);
+        right.layout.removeClassName(MarginaliaCssStyles.ORGANISE_PANE_ACTIVE);
+        pane.layout.addClassName(MarginaliaCssStyles.ORGANISE_PANE_ACTIVE);
     }
 
     /**
@@ -788,7 +789,7 @@ public class OrganiseDialog extends Dialog {
             grid.addColumn(entry -> entry.kind() == Kind.FOLDER ? count(entry.folder()) : "")
                     .setHeader(loc.getValue(M_L.LABEL_BOOKS)).setFlexGrow(0).setWidth("100px");
             // only the pane the keyboard is in shows its cursor row
-            grid.setPartNameGenerator(entry -> entry == cursor && active == this ? CssStyles.ORGANISE_CURSOR_ROW : null);
+            grid.setPartNameGenerator(entry -> entry == cursor && active == this ? MarginaliaCssStyles.ORGANISE_CURSOR_ROW : null);
             grid.addCellFocusListener(event -> {
                 moveCursor(event.getItem().orElse(null));
                 activate(this);
@@ -806,7 +807,7 @@ public class OrganiseDialog extends Dialog {
             layout = new VerticalLayout(path, grid);
             layout.setPadding(false);
             layout.setSpacing(false);
-            layout.addClassNames(CssStyles.ORGANISE_PANE, CssStyles.MIN_HEIGHT_0);
+            layout.addClassNames(MarginaliaCssStyles.ORGANISE_PANE, CssStyles.MIN_HEIGHT_0);
             layout.expand(grid);
         }
 

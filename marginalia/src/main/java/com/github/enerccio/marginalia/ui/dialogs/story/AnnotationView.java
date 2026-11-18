@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.ui.dialogs.story;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.collections.AnnotationStatus;
 import com.github.enerccio.marginalia.domain.model.impl.Annotation;
 import com.github.enerccio.marginalia.loc.L;
@@ -83,7 +84,7 @@ public class AnnotationView extends VerticalLayout {
         this.host = host == null ? Host.NONE : host;
         setPadding(false);
         setSpacing(false);
-        addClassNames(CssStyles.ANNOTATION_VIEW, CssStyles.GAP_S);
+        addClassNames(MarginaliaCssStyles.ANNOTATION_VIEW, CssStyles.GAP_S);
         // the margin finds the note of a mark by this, see JavascriptLibrary.linkMarginNotes
         getElement().setAttribute(StoryAnnotations.NOTE_ATTRIBUTE, annotation.getUuid());
         build();
@@ -108,11 +109,11 @@ public class AnnotationView extends VerticalLayout {
 
     private Component buildHeader() {
         Span status = new Span(loc.getValue(statusLabel(annotation.getStatus())));
-        status.addClassNames(CssStyles.ANNOTATION_STATUS, switch (annotation.getStatus()) {
-            case RESOLVED -> CssStyles.ANNOTATION_STATUS_RESOLVED;
-            case DISMISSED -> CssStyles.ANNOTATION_STATUS_DISMISSED;
-            case ORPHANED -> CssStyles.ANNOTATION_STATUS_ORPHANED;
-            default -> CssStyles.ANNOTATION_STATUS_OPEN;
+        status.addClassNames(MarginaliaCssStyles.ANNOTATION_STATUS, switch (annotation.getStatus()) {
+            case RESOLVED -> MarginaliaCssStyles.ANNOTATION_STATUS_RESOLVED;
+            case DISMISSED -> MarginaliaCssStyles.ANNOTATION_STATUS_DISMISSED;
+            case ORPHANED -> MarginaliaCssStyles.ANNOTATION_STATUS_ORPHANED;
+            default -> MarginaliaCssStyles.ANNOTATION_STATUS_OPEN;
         });
 
         Span source = new Span(sourceText());
@@ -121,7 +122,7 @@ public class AnnotationView extends VerticalLayout {
         HorizontalLayout header = new HorizontalLayout(status, source);
         if (StringUtils.isNotBlank(annotation.getType())) {
             Span type = new Span(annotation.getType());
-            type.addClassName(CssStyles.ANNOTATION_TYPE);
+            type.addClassName(MarginaliaCssStyles.ANNOTATION_TYPE);
             header.add(type);
         }
         header.setAlignItems(FlexComponent.Alignment.CENTER);
@@ -182,7 +183,7 @@ public class AnnotationView extends VerticalLayout {
         }
         if (annotation.hasRange() && StringUtils.isNotBlank(annotation.getQuote())) {
             Div quote = new Div(new Span(StringUtils.abbreviate(annotation.getQuote(), 240)));
-            quote.addClassName(CssStyles.ANNOTATION_QUOTE);
+            quote.addClassName(MarginaliaCssStyles.ANNOTATION_QUOTE);
             return quote;
         }
         return null;
@@ -193,7 +194,7 @@ public class AnnotationView extends VerticalLayout {
         hint.addClassName(CssStyles.HINT_TEXT);
         if (StringUtils.isNotBlank(quote)) {
             Div old = new Div(new Span(StringUtils.abbreviate(quote, 240)));
-            old.addClassName(CssStyles.ANNOTATION_QUOTE);
+            old.addClassName(MarginaliaCssStyles.ANNOTATION_QUOTE);
             Div both = new Div(hint, old);
             return both;
         }
@@ -203,7 +204,7 @@ public class AnnotationView extends VerticalLayout {
     private Component buildNote() {
         Div note = new Div();
         note.setText(StringUtils.defaultString(annotation.getText()));
-        note.addClassName(CssStyles.ANNOTATION_NOTE);
+        note.addClassName(MarginaliaCssStyles.ANNOTATION_NOTE);
         return note;
     }
 

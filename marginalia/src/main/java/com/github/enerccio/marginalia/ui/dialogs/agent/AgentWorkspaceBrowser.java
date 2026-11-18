@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.ui.dialogs.agent;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.Agent;
 import com.github.enerccio.marginalia.domain.service.AgentVirtualFileSystemService;
 import com.github.enerccio.marginalia.domain.service.agent.*;
@@ -123,7 +124,7 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
         setPadding(false);
         setSpacing(false);
         // the list and the viewer share the height of the tab and scroll by themselves, the tab does not scroll over them
-        addClassNames(CssStyles.WORKSPACE_BROWSER, CssStyles.MIN_HEIGHT_0, CssStyles.OVERFLOW_AUTO);
+        addClassNames(MarginaliaCssStyles.WORKSPACE_BROWSER, CssStyles.MIN_HEIGHT_0, CssStyles.OVERFLOW_AUTO);
 
         upButton = new Button(loc.getValue(M_L.LABEL_UP), Solid.ARROW_UP.create(), event -> {
             folder = folder.isRoot() ? folder : folder.getParent();

@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.dialogs.agent;
 
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.service.agent.AgentFindings;
 import com.github.enerccio.marginalia.domain.service.agent.RunTools;
 import com.github.enerccio.marginalia.domain.service.agent.RunTools.Finding;
@@ -27,7 +28,7 @@ final class AgentFindingsView extends VerticalLayout {
         this.loc = loc;
         setPadding(false);
         setSpacing(false);
-        addClassName(CssStyles.AGENT_FINDINGS);
+        addClassName(MarginaliaCssStyles.AGENT_FINDINGS);
     }
 
     /**
@@ -44,14 +45,14 @@ final class AgentFindingsView extends VerticalLayout {
         for (Finding finding : findings) {
             Span severity = new Span(loc.getValue(severityLabel(finding.severity())));
             if (AgentFindings.WARNING.equals(finding.severity())) {
-                severity.addClassName(CssStyles.AGENT_FINDING_WARNING);
+                severity.addClassName(MarginaliaCssStyles.AGENT_FINDING_WARNING);
             } else if (AgentFindings.PROBLEM.equals(finding.severity())) {
-                severity.addClassName(CssStyles.AGENT_FINDING_PROBLEM);
+                severity.addClassName(MarginaliaCssStyles.AGENT_FINDING_PROBLEM);
             } else {
                 severity.addClassName(CssStyles.HINT_TEXT);
             }
             Div row = new Div(new Span(finding.number() + "."), severity, new Span(finding.text()));
-            row.addClassName(CssStyles.AGENT_FINDING);
+            row.addClassName(MarginaliaCssStyles.AGENT_FINDING);
             add(row);
         }
     }

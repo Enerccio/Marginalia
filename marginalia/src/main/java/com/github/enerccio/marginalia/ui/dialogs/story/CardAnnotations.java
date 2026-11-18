@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.ui.dialogs.story;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.collections.AnnotationStatus;
 import com.github.enerccio.marginalia.domain.model.impl.Annotation;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
@@ -86,16 +87,16 @@ public class CardAnnotations {
         this.redraftSelection = redraftSelection;
 
         badge.setThemeName("tertiary small");
-        badge.addClassName(CssStyles.ANNOTATION_BADGE);
+        badge.addClassName(MarginaliaCssStyles.ANNOTATION_BADGE);
         badge.setVisible(false);
         badge.addClickListener(event -> show(null));
 
-        anchor.addClassName(CssStyles.ANNOTATION_ANCHOR);
+        anchor.addClassName(MarginaliaCssStyles.ANNOTATION_ANCHOR);
         popover.setTarget(anchor);
         popover.setOpenOnClick(false);
         margin.setPadding(false);
         margin.setSpacing(false);
-        margin.addClassNames(CssStyles.ANNOTATION_MARGIN, CssStyles.GAP_S);
+        margin.addClassNames(MarginaliaCssStyles.ANNOTATION_MARGIN, CssStyles.GAP_S);
         margin.setVisible(false);
         JavascriptLibrary.linkMarginNotes(response.getElement(), margin.getElement());
         JavascriptLibrary.fireAnnotationClickEvent(response.getElement(), anchor.getElement());
@@ -200,7 +201,7 @@ public class CardAnnotations {
         VerticalLayout content = new VerticalLayout();
         content.setPadding(false);
         content.setSpacing(false);
-        content.addClassNames(CssStyles.GAP_S, CssStyles.ANNOTATION_POPOVER);
+        content.addClassNames(CssStyles.GAP_S, MarginaliaCssStyles.ANNOTATION_POPOVER);
         for (Annotation annotation : shown) {
             content.add(new AnnotationView(annotation, annotations, host));
         }

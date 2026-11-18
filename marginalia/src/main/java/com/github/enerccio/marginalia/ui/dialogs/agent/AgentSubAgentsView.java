@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.ui.dialogs.agent;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.AgentMessage;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.service.AgentMessageService;
@@ -110,7 +111,7 @@ public class AgentSubAgentsView extends VerticalLayout implements LLMInteract {
         transcriptBox = new VerticalLayout();
         transcriptBox.setPadding(false);
         transcriptBox.setSpacing(false);
-        transcriptBox.addClassNames(CssStyles.HELP_MESSAGES, CssStyles.FULL_WIDTH, CssStyles.MIN_HEIGHT_0);
+        transcriptBox.addClassNames(MarginaliaCssStyles.HELP_MESSAGES, CssStyles.FULL_WIDTH, CssStyles.MIN_HEIGHT_0);
         renderer = new AgentTranscriptRenderer(loc, transcriptBox);
 
         content = new VerticalLayout(picker, info, transcriptBox);
@@ -293,7 +294,7 @@ public class AgentSubAgentsView extends VerticalLayout implements LLMInteract {
             if (row.isRewound()) {
                 // what the agent went back over is still there to read
                 for (int i = before; i < transcriptBox.getComponentCount(); i++) {
-                    transcriptBox.getComponentAt(i).getElement().getClassList().add(CssStyles.AGENT_REWOUND);
+                    transcriptBox.getComponentAt(i).getElement().getClassList().add(MarginaliaCssStyles.AGENT_REWOUND);
                 }
             }
         }

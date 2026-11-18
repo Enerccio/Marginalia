@@ -1,6 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
-import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.components.PartLoreUsage;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.service.LoreUsageService;
@@ -84,7 +84,7 @@ public class LoreUsageDialog extends Dialog {
 
     private Div note(String text) {
         Div note = new Div(text);
-        note.addClassName(CssStyles.TOKEN_USAGE_SUMMARY);
+        note.addClassName(MarginaliaCssStyles.TOKEN_USAGE_SUMMARY);
         return note;
     }
 }

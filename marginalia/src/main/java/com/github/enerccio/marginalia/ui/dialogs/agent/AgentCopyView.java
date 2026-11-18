@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.ui.dialogs.agent;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.service.AgentCopyService;
 import com.github.enerccio.marginalia.domain.service.AgentCopyService.CopyBranch;
@@ -303,9 +304,9 @@ public class AgentCopyView extends VerticalLayout implements LLMInteract {
                     @APILocals(name = "line", type = Span.class)})
     private Component card(CopyPart part) {
         Div card = new Div();
-        card.addClassName(CssStyles.AGENT_COPY_PART);
+        card.addClassName(MarginaliaCssStyles.AGENT_COPY_PART);
         Div head = new Div(new Span("#" + part.position()));
-        head.addClassName(CssStyles.AGENT_COPY_PART_HEAD);
+        head.addClassName(MarginaliaCssStyles.AGENT_COPY_PART_HEAD);
         if (part.swipes() > 1) {
             head.add(new Span(loc.getValue(M_L.LABEL_SWIPE) + " " + part.swipe() + "/" + part.swipes()));
         }

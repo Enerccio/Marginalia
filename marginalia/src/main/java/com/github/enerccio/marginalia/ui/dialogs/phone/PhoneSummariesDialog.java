@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.ui.dialogs.phone;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.collections.SummaryType;
 import com.github.enerccio.marginalia.domain.components.SummaryNode;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
@@ -181,7 +182,7 @@ public class PhoneSummariesDialog extends Dialog implements LLMInteract {
         treeGrid.addComponentColumn(this::createRevalidateButton).setAutoWidth(true).setFlexGrow(0);
         treeGrid.addComponentColumn(this::createDeleteButton).setAutoWidth(true).setFlexGrow(0);
         // the summaries that no longer describe the story have another background
-        treeGrid.setPartNameGenerator(node -> node.isValid() ? null : CssStyles.SUMMARY_OUTDATED);
+        treeGrid.setPartNameGenerator(node -> node.isValid() ? null : MarginaliaCssStyles.SUMMARY_OUTDATED);
         return treeGrid;
     }
 
@@ -321,7 +322,7 @@ public class PhoneSummariesDialog extends Dialog implements LLMInteract {
             Summary summary = node.getSummary();
             setWidthFull();
             setHeight(HEIGHT);
-            addClassName(CssStyles.SUMMARY_CONTENT);
+            addClassName(MarginaliaCssStyles.SUMMARY_CONTENT);
 
             view.setSizeFull();
             view.addClassNames(CssStyles.OVERFLOW_AUTO, CssStyles.BORDER_BOX);
@@ -343,7 +344,7 @@ public class PhoneSummariesDialog extends Dialog implements LLMInteract {
 
             if (StringUtils.isNotBlank(summary.getReasoning())) {
                 Markdown reasoning = new Markdown(summary.getReasoning());
-                reasoning.addClassName(CssStyles.CHAT_MESSAGE_MARKDOWN);
+                reasoning.addClassName(MarginaliaCssStyles.CHAT_MESSAGE_MARKDOWN);
                 Details details = new Details(loc.getValue(M_L.LABEL_VIEW_REASONING), reasoning);
                 details.setWidthFull();
                 view.add(details);
@@ -409,7 +410,7 @@ public class PhoneSummariesDialog extends Dialog implements LLMInteract {
             for (VerticalLayout actions : List.of(viewActions, editActions)) {
                 actions.setSpacing(false);
                 actions.setPadding(false);
-                actions.addClassName(CssStyles.SUMMARY_ACTIONS);
+                actions.addClassName(MarginaliaCssStyles.SUMMARY_ACTIONS);
             }
             add(viewActions);
         }

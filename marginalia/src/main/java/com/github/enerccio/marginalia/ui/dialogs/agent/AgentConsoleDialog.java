@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.ui.dialogs.agent;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.collections.AgentRunStatus;
 import com.github.enerccio.marginalia.domain.model.impl.Agent;
 import com.github.enerccio.marginalia.domain.model.impl.AgentMessage;
@@ -262,7 +263,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         setCloseOnEsc(false);
         UIUtils.fitPhone(this, true);
         if (phone) {
-            addClassName(CssStyles.AGENT_CONSOLE_PHONE);
+            addClassName(MarginaliaCssStyles.AGENT_CONSOLE_PHONE);
         }
 
         statusLabel = new Span();
@@ -272,7 +273,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         planBox = new VerticalLayout();
         planBox.setPadding(false);
         planBox.setSpacing(false);
-        planBox.addClassName(CssStyles.AGENT_PLAN);
+        planBox.addClassName(MarginaliaCssStyles.AGENT_PLAN);
         planButton = new Button(loc.getValue(M_L.LABEL_AGENT_PLAN), Solid.LIST_CHECK.create());
         planButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
         planButton.setVisible(false);
@@ -300,7 +301,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         transcriptBox = new VerticalLayout();
         transcriptBox.setPadding(false);
         transcriptBox.setSpacing(false);
-        transcriptBox.addClassNames(CssStyles.HELP_MESSAGES, CssStyles.FULL_WIDTH, CssStyles.MIN_HEIGHT_0);
+        transcriptBox.addClassNames(MarginaliaCssStyles.HELP_MESSAGES, CssStyles.FULL_WIDTH, CssStyles.MIN_HEIGHT_0);
         renderer = new AgentTranscriptRenderer(loc, transcriptBox);
         renderer.setOnSubAgent(this::openSubAgent);
 
@@ -831,12 +832,12 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         icon.getElement().setAttribute("title", icon.getElement().getAttribute("aria-label"));
         Span text = new Span(item.text());
         if (done) {
-            text.addClassName(CssStyles.AGENT_PLAN_DONE);
+            text.addClassName(MarginaliaCssStyles.AGENT_PLAN_DONE);
         } else if (active) {
-            text.addClassName(CssStyles.AGENT_PLAN_ACTIVE);
+            text.addClassName(MarginaliaCssStyles.AGENT_PLAN_ACTIVE);
         }
         Div row = new Div(icon, text);
-        row.addClassName(CssStyles.AGENT_PLAN_ITEM);
+        row.addClassName(MarginaliaCssStyles.AGENT_PLAN_ITEM);
         return row;
     }
 
@@ -947,7 +948,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
             if (row.isRewound()) {
                 // what the agent forgot is still there to read
                 for (int i = before; i < transcriptBox.getComponentCount(); i++) {
-                    transcriptBox.getComponentAt(i).getElement().getClassList().add(CssStyles.AGENT_REWOUND);
+                    transcriptBox.getComponentAt(i).getElement().getClassList().add(MarginaliaCssStyles.AGENT_REWOUND);
                 }
             } else if (row.toChatMessage().getRole() == LLMRole.USER && !row.isSummary()
                     && transcriptBox.getComponentCount() > before && transcriptBox.getComponentAt(before) instanceof Div bubble) {
@@ -1098,7 +1099,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         header.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
         Div bubble = new Div(header, message.command() ? renderer.text(StringUtils.defaultString(message.text()), false)
                 : new Markdown(StringUtils.defaultString(message.text())));
-        bubble.addClassNames(CssStyles.HELP_MESSAGE, CssStyles.HELP_MESSAGE_USER, CssStyles.HELP_MESSAGE_QUEUED);
+        bubble.addClassNames(MarginaliaCssStyles.HELP_MESSAGE, MarginaliaCssStyles.HELP_MESSAGE_USER, MarginaliaCssStyles.HELP_MESSAGE_QUEUED);
         return bubble;
     }
 

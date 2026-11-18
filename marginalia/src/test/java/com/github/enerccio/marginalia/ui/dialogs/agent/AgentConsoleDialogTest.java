@@ -1,6 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs.agent;
 
-import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.Defaults;
 import com.github.enerccio.marginalia.domain.collections.AgentRunStatus;
 import com.github.enerccio.marginalia.domain.model.impl.Agent;
@@ -321,7 +321,7 @@ class AgentConsoleDialogTest extends AgentTestBase {
         checkpointService.ensureStart(run);
         say(run, LLMChatMessage.of(LLMRole.ASSISTANT, "second"));
         AgentConsoleDialog dialog = console();
-        assertThat(dialog.getTranscriptBox().getChildren().filter(c -> c.hasClassName(CssStyles.AGENT_REWOUND))).isEmpty();
+        assertThat(dialog.getTranscriptBox().getChildren().filter(c -> c.hasClassName(MarginaliaCssStyles.AGENT_REWOUND))).isEmpty();
         run = agentRunService.pause(agentRunService.find(run.getId()));
 
         checkpointService.rewind(run, checkpointService.list(run).getFirst().id());
@@ -330,7 +330,7 @@ class AgentConsoleDialogTest extends AgentTestBase {
         List<Component> shown = dialog.getTranscriptBox().getChildren().toList();
         // task, first, second (greyed), the notice of the run
         assertThat(shown).hasSize(4);
-        assertThat(shown.stream().map(c -> c.hasClassName(CssStyles.AGENT_REWOUND)).toList()).containsExactly(false, false, true, false);
+        assertThat(shown.stream().map(c -> c.hasClassName(MarginaliaCssStyles.AGENT_REWOUND)).toList()).containsExactly(false, false, true, false);
         assertThat(textOf(shown.getLast())).contains("rewound the run to checkpoint");
     }
 
@@ -357,7 +357,7 @@ class AgentConsoleDialogTest extends AgentTestBase {
         List<Component> shown = dialog.getTranscriptBox().getChildren().toList();
         // task, first, do it differently (greyed), second (greyed), the notice of the run
         assertThat(shown).hasSize(5);
-        assertThat(shown.stream().map(c -> c.hasClassName(CssStyles.AGENT_REWOUND)).toList())
+        assertThat(shown.stream().map(c -> c.hasClassName(MarginaliaCssStyles.AGENT_REWOUND)).toList())
                 .containsExactly(false, false, true, true, false);
         assertThat(textOf(shown.getLast())).contains("rewound the run to checkpoint");
         assertThat(dialog.getRollbackButtons()).as("the forgotten messages have none: the first one and the notice have").hasSize(2);
@@ -374,7 +374,7 @@ class AgentConsoleDialogTest extends AgentTestBase {
         assertThat(shown).hasSize(2);
         for (Component block : shown) {
             Component time = block.getChildren().findFirst().orElseThrow();
-            assertThat(time.hasClassName(CssStyles.AGENT_TIME)).as("the time comes first in the block").isTrue();
+            assertThat(time.hasClassName(MarginaliaCssStyles.AGENT_TIME)).as("the time comes first in the block").isTrue();
             assertThat(textOf(time).strip()).as("today: the time of day only").matches("\\d{1,2}:\\d{2}:\\d{2}.*");
             assertThat(time.getElement().getAttribute("title")).isNotBlank();
         }
@@ -886,10 +886,10 @@ class AgentConsoleDialogTest extends AgentTestBase {
         List<Component> rows = dialog.getPlanBox().getChildren().toList();
         assertThat(rows).hasSize(3);
         assertThat(rows.get(0).getChildren().skip(1).findFirst().orElseThrow().getElement().getText()).isEqualTo("Read the book");
-        assertThat(rows.get(0).getChildren().skip(1).findFirst().orElseThrow().getElement().getClassList()).contains(CssStyles.AGENT_PLAN_DONE);
-        assertThat(rows.get(1).getChildren().skip(1).findFirst().orElseThrow().getElement().getClassList()).contains(CssStyles.AGENT_PLAN_ACTIVE);
+        assertThat(rows.get(0).getChildren().skip(1).findFirst().orElseThrow().getElement().getClassList()).contains(MarginaliaCssStyles.AGENT_PLAN_DONE);
+        assertThat(rows.get(1).getChildren().skip(1).findFirst().orElseThrow().getElement().getClassList()).contains(MarginaliaCssStyles.AGENT_PLAN_ACTIVE);
         assertThat(rows.get(2).getChildren().skip(1).findFirst().orElseThrow().getElement().getClassList())
-                .doesNotContain(CssStyles.AGENT_PLAN_DONE, CssStyles.AGENT_PLAN_ACTIVE);
+                .doesNotContain(MarginaliaCssStyles.AGENT_PLAN_DONE, MarginaliaCssStyles.AGENT_PLAN_ACTIVE);
         assertThat(rows.get(1).getChildren().findFirst().orElseThrow().getElement().getAttribute("title")).isEqualTo("In progress");
     }
 
@@ -934,7 +934,7 @@ class AgentConsoleDialogTest extends AgentTestBase {
         List<Component> rows = dialog.getFindingsView().getChildren().toList();
         assertThat(rows).hasSize(2);
         assertThat(rows.get(0).getChildren().map(c -> c.getElement().getText()).toList()).containsExactly("1.", "Problem", "Kira has green eyes in part 3");
-        assertThat(rows.get(0).getChildren().skip(1).findFirst().orElseThrow().getElement().getClassList()).contains(CssStyles.AGENT_FINDING_PROBLEM);
+        assertThat(rows.get(0).getChildren().skip(1).findFirst().orElseThrow().getElement().getClassList()).contains(MarginaliaCssStyles.AGENT_FINDING_PROBLEM);
         assertThat(rows.get(1).getChildren().skip(1).findFirst().orElseThrow().getElement().getText()).isEqualTo("Note");
 
         fileSystemService.writeFindings(run, "[{\"number\":1,\"severity\":\"warning\",\"text\":\"Only one\",\"time\":\"\"}]");

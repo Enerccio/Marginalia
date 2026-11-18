@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.ui.dialogs;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.UIConstants;
 import com.github.enerccio.marginalia.domain.model.BaseEntity;
 import com.github.enerccio.marginalia.domain.model.impl.*;
@@ -425,9 +426,9 @@ public class MultiTagDialog extends Dialog implements LLMInteract {
         Div cell = new Div();
         for (Tag tag : row.tags) {
             Span chip = new Span(tag.getValue());
-            chip.addClassName(CssStyles.MULTI_TAG_CHIP);
+            chip.addClassName(MarginaliaCssStyles.MULTI_TAG_CHIP);
             if (picked != null && Objects.equals(picked.getId(), tag.getId())) {
-                chip.addClassName(CssStyles.MULTI_TAG_CHIP_MARKED);
+                chip.addClassName(MarginaliaCssStyles.MULTI_TAG_CHIP_MARKED);
             }
             cell.add(chip);
         }
@@ -456,7 +457,7 @@ public class MultiTagDialog extends Dialog implements LLMInteract {
      */
     private static <T extends Component> T dimmed(T component, Row row) {
         if (row.locked) {
-            component.addClassName(CssStyles.MULTI_TAG_LOCKED);
+            component.addClassName(MarginaliaCssStyles.MULTI_TAG_LOCKED);
         }
         return component;
     }

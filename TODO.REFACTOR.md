@@ -184,11 +184,14 @@ Found on the way, to decide:
       `LayerDependencyTest` read both modules (`architecture.ModuleClasses`: a classes folder in a reactor build, the
       installed JAR when the app is built alone); `LayerDependencyTest` also fails for a class compiled into the module
       of the other layer.
-- [ ] **Spring XML.** `services-config.xml` (125 beans) split into a platform file shipped in the platform JAR
-      (`META-INF/spring/platform/*.xml`) and the app's; `application-config.xml` imports both.
-- [ ] **Entities.** `persistence.xml` (40 classes): the app lists its own, a platform `PersistenceUnitPostProcessor`
-      adds the platform ones, so Joi does not copy the list. A test checks every `@Entity` on the class path is in
-      the unit.
+- [x] **Spring XML.** Decided (2026-11-18): the XML is per application, the platform ships none. Marginalia keeps its
+      `services-config.xml` and the rest as they are, the platform's beans included; Joi (or any other app) writes its
+      own wiring of the platform services it uses. The beans are duplicated, like the migrations, but each application
+      picks and configures the services it needs; the platform's own tests get a test-only context (Tests item).
+- [x] **Entities.** Decided (2026-11-18): `persistence.xml` stays per application, the platform ships no unit and no
+      post-processor. Marginalia's lists all its 40 classes, the platform's among them; another app lists the platform
+      entities it uses (with their migrations, Flyway item). `hbm2ddl=validate` and each app's tests catch a missing
+      one.
 - [x] **Flyway.** Decided: the migrations stay with each final application, the platform ships none. Marginalia
       keeps its one history (V1 to V31 and on), unchanged in versions and checksums, so existing installs need nothing.
       Joi (or any other app on the platform) writes its own migrations, platform tables included; the SQL for those
@@ -197,10 +200,19 @@ Found on the way, to decide:
       app's tests catches a missing one. The Flyway bean and the migration location stay in the app's Spring XML.
       The platform's own tests (Tests item) get test-only migrations of the platform tables in the platform's test
       resources, kept in step with Marginalia's by a test that compares the two schemas.
-- [ ] **Styles and frontend.** `CssStyles` is used by 43 classes, platform widgets among them. Either the platform
-      ships its part of `shared-styles.css` as a JAR resource (`META-INF/resources/frontend/...`) and the app keeps
-      the rest, or the stylesheet stays in the app for now and Joi copies it. Check how Vaadin picks up frontend files
-      from a dependency JAR in production mode (`optimizeBundle=false` is set already).
+- [x] **Styles and frontend.** Done (2026-11-18): the shared look is the platform's, an application adds its own on
+      top. The platform JAR has `META-INF/frontend/styles/platform-styles.css` (utilities, typography, panels, the tab
+      dock, Markdown wrapping, the story tree look, the platform widgets, Vaadin's own elements) with the constants in
+      `CssStyles` (108); Marginalia's `shared-styles.css` keeps its own rules (story text, parts, annotations, agents,
+      help, statistics, planner...) with the constants in the new `MarginaliaCssStyles` (144, app layer) and imports the
+      platform's file in its first line (`@import "../generated/jar-resources/styles/platform-styles.css"`, Vaadin copies
+      the JAR's `META-INF/frontend` there). A rule went to the app when its selector names an app class or grid part
+      (`::part`); the move changed no cascade order between rules on the same class. The connectors of the platform
+      widgets (`chart-connector.js`, `graph-connector.js`, `treant-connector.js`, `markdown-editor.tsx`) moved to the
+      platform JAR's `META-INF/frontend` too, next to their `@NpmPackage`s. `StylesheetLayersTest` checks every constant
+      has its rule in the file of its layer and that the platform's file names no Marginalia class. Checked in the
+      production WAR: both files are in the bundle (platform first), the widget modules load. Building the app alone
+      (`jetty:run-war` in `marginalia/`) needs the platform installed first, or the frontend build misses the modules.
 - [x] **Localization.** The keys are split: one enum per layer (`LocalizationKey`), the platform's `L` with the
       `LocalizationBundle*` (the language and its formats), the app's `M_L` with the `MarginaliaLocalizationBundle*`
       (`TextBundle`s registered with `Localization.registerTexts`, by an extension with
@@ -213,6 +225,10 @@ Found on the way, to decide:
       move with it (inference, templates, function/tool, gpu, jobs, security, instruct, CRUD of platform entities).
       The tests are all still in the app and test the platform through the dependency. Schema of the platform's own
       tests: decided, test-only migrations of the platform tables in the platform's test resources (Flyway item).
+      With the XML and the unit per application (Spring XML, Entities items), the platform's tests also need a
+      test-only Spring context and `persistence.xml` of the platform beans and entities in its test resources: a small
+      application of its own, which is also the example for Joi. `StylesheetLayersTest` (the styles split) is in the app
+      with the other architecture tests.
       The coverage profile (JaCoCo) reports the app's classes only until then (`report-aggregate` or the platform's
       own report).
 - [ ] **Packaging.** The WAR has the platform JAR in `WEB-INF/lib`; the desktop app and Docker image unchanged in
@@ -229,7 +245,11 @@ Found on the way, to decide:
       (`package.json` unchanged). The WAR build needs a `-Dbuild.dir` inside the project (Vite, see Notes). The Docker
       image too (Colima, classic builder): the builder stage installs the platform and the app, the plugin stages build
       the 3 libraries and 30 plugins, and the runtime image starts in production mode with the same checks passing
-      (first start, login, `/jobs`, the widget modules). Not run yet: the desktop distribution and the workflows.
+      (first start, login, `/jobs`, the widget modules). The macOS desktop
+      distribution too (2026-11-18, `mvn -Pdesktop -Ddesktop.installerRequired=true -pl marginalia -am package`, Apple
+      Silicon): the portable folder, the app image and the `.dmg` are built, the WAR inside has the platform JAR, and the
+      app image and the portable launcher both start and serve the page and `/jobs` (the smoke test of `desktop.yml`).
+      Not run yet: the workflows (Linux and Windows desktop builds, the plugins job).
 - [ ] **Docs.** `CLAUDE.md` (commands, module layout), `manual/developer/building.md`, architecture and plugin pages;
       `tools/check_dev_docs.py` `covers` paths that moved.
 

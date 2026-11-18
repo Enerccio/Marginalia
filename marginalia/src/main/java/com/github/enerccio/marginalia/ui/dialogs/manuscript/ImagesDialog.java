@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.dialogs.manuscript;
 
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.model.ImageAnchor;
 import com.github.enerccio.marginalia.domain.model.ImageAttachment;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
@@ -183,15 +184,15 @@ public class ImagesDialog extends Dialog implements LLMInteract {
         ImageAnchor anchor = attachment.effectiveAnchor();
 
         Div picker = new Div();
-        picker.addClassName(CssStyles.IMAGE_ANCHOR_PICKER);
+        picker.addClassName(MarginaliaCssStyles.IMAGE_ANCHOR_PICKER);
         List<Div> dots = new ArrayList<>();
         for (ImageAnchor candidate : ImageAnchor.values()) {
             boolean selected = candidate == anchor;
             Div dot = new Div();
             dots.add(dot);
-            dot.addClassName(CssStyles.IMAGE_ANCHOR_DOT);
+            dot.addClassName(MarginaliaCssStyles.IMAGE_ANCHOR_DOT);
             if (selected) {
-                dot.addClassName(CssStyles.IMAGE_ANCHOR_DOT_SELECTED);
+                dot.addClassName(MarginaliaCssStyles.IMAGE_ANCHOR_DOT_SELECTED);
             }
             Button button = new Button(dot,
                     _ -> change(index, current -> current.withLayout(candidate, current.wrap(), current.width()), true, onChanged));
@@ -241,7 +242,7 @@ public class ImagesDialog extends Dialog implements LLMInteract {
         syncs.put(index, saved -> {
             ImageAnchor now = saved.effectiveAnchor();
             for (int i = 0; i < dots.size(); i++) {
-                dots.get(i).setClassName(CssStyles.IMAGE_ANCHOR_DOT_SELECTED, ImageAnchor.values()[i] == now);
+                dots.get(i).setClassName(MarginaliaCssStyles.IMAGE_ANCHOR_DOT_SELECTED, ImageAnchor.values()[i] == now);
             }
             wrap.setValue(saved.wrap());
             automatic.setValue(saved.width() == null);

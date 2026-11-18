@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.dialogs.story;
 
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
@@ -731,7 +732,7 @@ public class AnnotateDialog extends Dialog {
         }
         if (batchRun) {
             Span header = new Span(String.format(loc.getValue(M_L.LABEL_ANNOTATION_PART_NUMBER), positionOf(about)));
-            header.addClassName(CssStyles.ANNOTATION_PART);
+            header.addClassName(MarginaliaCssStyles.ANNOTATION_PART);
             proposalsLayout.add(header);
         }
         for (Proposal proposal : found) {
@@ -741,10 +742,10 @@ public class AnnotateDialog extends Dialog {
             VerticalLayout row = new VerticalLayout(chosen);
             row.setPadding(false);
             row.setSpacing(false);
-            row.addClassNames(CssStyles.ANNOTATION_VIEW);
+            row.addClassNames(MarginaliaCssStyles.ANNOTATION_VIEW);
             if (proposal.located()) {
                 Div quote = new Div(new Span(StringUtils.abbreviate(proposal.quote(), 240)));
-                quote.addClassName(CssStyles.ANNOTATION_QUOTE);
+                quote.addClassName(MarginaliaCssStyles.ANNOTATION_QUOTE);
                 row.add(quote);
             } else {
                 Span lost = new Span(loc.getValue(M_L.MSG_ANNOTATE_NOT_LOCATED)

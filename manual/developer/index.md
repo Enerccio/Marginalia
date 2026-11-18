@@ -43,7 +43,7 @@ Marginalia/
 │   ├── src/main/java      application code (com.github.enerccio.marginalia)
 │   ├── src/main/resources Spring XML, Flyway migrations, logging
 │   ├── src/main/webapp    configuration.properties, persistence.xml
-│   ├── src/main/frontend  CSS and JS used by the Vaadin frontend
+│   ├── src/main/frontend  Marginalia's CSS for the Vaadin frontend (the platform's CSS and JS are in its JAR)
 │   ├── src/desktop        desktop launcher (tray icon, starts Jetty) and launch scripts
 │   ├── src/test           tests
 │   ├── libs/              code that plugins share, embedded in their bundles (`translator-common`, `story-tracker-common`, `http-hooks`)

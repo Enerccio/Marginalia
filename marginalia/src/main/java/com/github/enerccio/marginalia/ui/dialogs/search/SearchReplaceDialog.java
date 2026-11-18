@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.ui.dialogs.search;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.service.search.replace.TaskProgress;
 import com.github.enerccio.marginalia.domain.service.search.replace.TextHit;
 import com.github.enerccio.marginalia.domain.service.search.replace.TextSearch;
@@ -288,7 +289,7 @@ public abstract class SearchReplaceDialog extends ThreadAccessDialog {
             replaceButton.setWidthFull();
             // side by side when they fit, below each other when they do not
             Div buttons = new Div(searchButton, replaceButton);
-            buttons.addClassName(CssStyles.SEARCH_BUTTON_ROW);
+            buttons.addClassName(MarginaliaCssStyles.SEARCH_BUTTON_ROW);
             VerticalLayout area = new VerticalLayout(fields, buttons);
             area.setPadding(false);
             area.setSpacing(true);
@@ -299,7 +300,7 @@ public abstract class SearchReplaceDialog extends ThreadAccessDialog {
             // the buttons is as wide as the longer text, whatever the language. The elements are in the order the
             // tab key goes through them (the fields, the options, the buttons), the grid places them, see the style.
             Div area = new Div(searchField, replaceField, options, searchButton, replaceButton);
-            area.addClassName(CssStyles.SEARCH_INPUT_GRID);
+            area.addClassName(MarginaliaCssStyles.SEARCH_INPUT_GRID);
             searchButton.setWidthFull();
             replaceButton.setWidthFull();
             inputArea = area;
@@ -423,7 +424,7 @@ public abstract class SearchReplaceDialog extends ThreadAccessDialog {
         Span name = new Span(label + ": ");
         name.addClassNames(CssStyles.TEXT_SECONDARY, CssStyles.TEXT_S);
         Div div = new Div(name, content);
-        div.addClassName(CssStyles.SEARCH_HIT_CONTEXT);
+        div.addClassName(MarginaliaCssStyles.SEARCH_HIT_CONTEXT);
         return div;
     }
 
@@ -442,12 +443,12 @@ public abstract class SearchReplaceDialog extends ThreadAccessDialog {
         String text = oneLine(replacement ? hit.replacement() : hit.match());
         boolean tooLong = text.length() > MAX_SHOWN_TEXT;
         Span middle = new Span(tooLong ? loc.getValue(replacement ? M_L.LABEL_REPLACE_TEXT_PLACEHOLDER : M_L.LABEL_SEARCHED_TEXT_PLACEHOLDER) : text);
-        middle.addClassName(replacement ? CssStyles.SEARCH_HIT_REPLACEMENT : CssStyles.SEARCH_HIT_MATCH);
+        middle.addClassName(replacement ? MarginaliaCssStyles.SEARCH_HIT_REPLACEMENT : MarginaliaCssStyles.SEARCH_HIT_MATCH);
         if (tooLong) {
-            middle.addClassName(CssStyles.SEARCH_HIT_PLACEHOLDER);
+            middle.addClassName(MarginaliaCssStyles.SEARCH_HIT_PLACEHOLDER);
         }
         Div div = new Div(new Span(hit.before()), middle, new Span(hit.after()));
-        div.addClassName(CssStyles.SEARCH_HIT_CONTEXT);
+        div.addClassName(MarginaliaCssStyles.SEARCH_HIT_CONTEXT);
         return div;
     }
 

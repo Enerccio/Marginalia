@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.dialogs.manuscript;
 
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.components.SummaryPlanner;
 import com.github.enerccio.marginalia.domain.components.SummaryPlanner.Mode;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
@@ -332,7 +333,7 @@ public class CreateSummariesDialog extends Dialog {
         floating.size("700px", "500px");
 
         progress.addClassName(CssStyles.TEXT_BOLD);
-        reasoningMarkdown.addClassName(CssStyles.CHAT_MESSAGE_MARKDOWN);
+        reasoningMarkdown.addClassName(MarginaliaCssStyles.CHAT_MESSAGE_MARKDOWN);
         reasoningDetails.setSummaryText(loc.getValue(M_L.LABEL_VIEW_REASONING));
         reasoningDetails.add(reasoningMarkdown);
         reasoningDetails.setWidthFull();

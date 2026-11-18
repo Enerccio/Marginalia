@@ -1,6 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs.story;
 
-import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.collections.AnnotationSource;
 import com.github.enerccio.marginalia.domain.collections.AnnotationStatus;
 import com.github.enerccio.marginalia.domain.model.impl.Annotation;
@@ -138,7 +138,7 @@ class AnnotationViewsTest extends MarginaliaTestBase {
     }
 
     private static String statusOf(Component root) {
-        return all(root, Span.class).stream().filter(s -> s.getClassNames().contains(CssStyles.ANNOTATION_STATUS))
+        return all(root, Span.class).stream().filter(s -> s.getClassNames().contains(MarginaliaCssStyles.ANNOTATION_STATUS))
                 .map(Span::getText).findFirst().orElse(null);
     }
 

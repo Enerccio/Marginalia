@@ -62,7 +62,7 @@ marginalia/
 ├── src/main/resources-release/   WAR-only resources: the release logback.xml, the mark of a woven build
 ├── src/main/resources-raw/       copied into WEB-INF/classes without filtering (binary files: the font of the PDF export); also a resource folder of the classes
 ├── src/main/webapp/config/       configuration.properties, persistence.xml
-├── src/main/frontend/            CSS and JavaScript for the Vaadin frontend
+├── src/main/frontend/            Marginalia's CSS for the Vaadin frontend
 ├── src/desktop/                  desktop launcher and launch scripts (not part of the WAR)
 ├── src/test/                     tests
 └── plugins/                      bundled extensions
@@ -83,7 +83,7 @@ Application code lives in `com.github.enerccio.marginalia` (paths below are rela
 | `Configuration.java` | The `configuration` bean: data folder and its subfolders, database URL, staged database restore, the copy saved before a migration, saved login settings. |
 | `Defaults.java`, `DefaultsJA.java`, `DefaultsFR.java`, `DefaultsES.java`, `DefaultsDE.java`, `DefaultsIT.java`, `DefaultsKO.java` | The built-in prompts (master template, POV, tense, style, the user, summary, redraft, annotate and impersonate prompts, the texts of the agents) as an object per prompt language, used when neither the book, its folders nor the user's settings override them; `Localization.getDefaults()` picks the one of the user's prompt language, see [Templating](templating.md#the-built-in-prompts-and-their-languages). |
 | `Constants.java` | Application constants: `DEAD_SESSION_CHECK_TIMEOUT` (seconds without a heartbeat before `SessionManager` closes a UI, default 120). |
-| `UIConstants.java`, `CssStyles.java` | Column widths and dialog offsets; CSS class names defined in `shared-styles.css`. |
+| `UIConstants.java`, `CssStyles.java`, `MarginaliaCssStyles.java` | Column widths and dialog offsets; CSS class names of the platform (`platform-styles.css`, `CssStyles` in the platform module) and of Marginalia (`shared-styles.css`). |
 | `SaneSQLiteDialect.java` | Hibernate's community SQLite dialect without generated `CHECK` constraints. |
 
 ### `bound` - startup and sessions
@@ -324,11 +324,17 @@ plugins, see [HTTP hooks](plugins/libraries/http-hooks.md)),
 
 ## Frontend (`src/main/frontend/`)
 
-There is no hand-written frontend application - Vaadin generates it. The only sources are:
+There is no hand-written frontend application - Vaadin generates it. The app's only source is
+`styles/shared-styles.css`: Marginalia's own CSS (the classes of `MarginaliaCssStyles`: story text, parts, annotations,
+agents, help, statistics...), imported by `AppShellConfig`; its first line imports the platform's stylesheet.
+
+The frontend files of the platform are in the platform JAR, `platform/src/main/resources/META-INF/frontend/` (the
+place of an add-on: Vaadin copies them to `src/main/frontend/generated/jar-resources/` and resolves `@JsModule` and the
+import from there):
 
 | File | |
 |---|---|
-| `styles/shared-styles.css` | Global CSS, imported by `AppShellConfig`: spacing helpers, utility classes, story text and Markdown wrapping, story tree. |
+| `styles/platform-styles.css` | The shared look (the classes of `CssStyles`): spacing helpers, utility classes, panels, the tab dock, Markdown wrapping, story tree, the platform widgets. |
 | `chart-connector.js` | Draws Chart.js charts for the `ChartJs` widget (npm package `chart.js`, declared with `@NpmPackage` on `ChartJs`). |
 | `graph-connector.js` | Draws Cytoscape.js graphs for the `GraphView` widget (npm package `cytoscape`, declared with `@NpmPackage` on `GraphView`). |
 | `markdown-editor.tsx` | The React Markdown editor of the `MarkdownEditor` widget (npm packages `@uiw/react-md-editor` and `rehype-sanitize`, declared with `@NpmPackage` on `MarkdownEditor`): our toolbar with localized tooltips, the debounced value, the mode reported to the server. |
@@ -457,7 +463,7 @@ See [Plugin development](plugins/index.md).
 | A new service | interface in `domain/service/`, implementation in `impl/`, a bean in `services-config.xml` |
 | The help assistant | `HelpAssistantServiceImpl`, `HelpPrompts` (prompts), `ui/components/HelpAssistantWidget.java`, `ui/LLMInteract.java` (what a part of the UI says and offers), `utils/UiProblems.java` and `bound/ProblemLog.java` (what went wrong), `domain/service/impl/HelpAdminData.java` (the data of the Admin page), `ui/workspace/parts/admin/HelpAssistantPanel.java` (settings) |
 | What an extension can hook into | classes annotated `@Extendable` in `ui/` |
-| Global styles | `src/main/frontend/styles/shared-styles.css` (the book style of the text is code now, `PartStyle`, not a stylesheet) |
+| Global styles | `platform/src/main/resources/META-INF/frontend/styles/platform-styles.css` (shared) and `src/main/frontend/styles/shared-styles.css` (Marginalia's; the book style of the text is code now, `PartStyle`, not a stylesheet) |
 | Login and saved logins | `ui/main/LoginCheckRoute.java`, `UserServiceImpl` |
 | Backups | `BackupServiceImpl` (books), `DatabaseBackupServiceImpl` (database), `Configuration` (pending restore, copy before a migration) |
 | The desktop app | `src/desktop/java/.../DesktopLauncher.java`, the `desktop` profile in `pom.xml` |

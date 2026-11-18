@@ -1,6 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
-import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.components.PromptComparison;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.MessagePrompt;
@@ -158,7 +158,7 @@ public class PromptComparisonDialog extends Dialog {
 
         verdict = new Div();
         shared = new Div();
-        shared.addClassName(CssStyles.TOKEN_USAGE_SUMMARY);
+        shared.addClassName(MarginaliaCssStyles.TOKEN_USAGE_SUMMARY);
 
         grid = new Grid<>(PromptComparison.Row.class, false);
         grid.addThemeVariants(GridVariant.LUMO_COMPACT, GridVariant.LUMO_ROW_STRIPES);
@@ -177,7 +177,7 @@ public class PromptComparisonDialog extends Dialog {
             if (comparison == null || row.cacheKept()) {
                 return null;
             }
-            return row.index() == comparison.getFirstDifference() ? CssStyles.PROMPT_COMPARE_FIRST_DIFFERENCE : CssStyles.PROMPT_COMPARE_LOST;
+            return row.index() == comparison.getFirstDifference() ? MarginaliaCssStyles.PROMPT_COMPARE_FIRST_DIFFERENCE : MarginaliaCssStyles.PROMPT_COMPARE_LOST;
         });
         grid.addSelectionListener(event -> showTexts(event.getFirstSelectedItem().orElse(null)));
 

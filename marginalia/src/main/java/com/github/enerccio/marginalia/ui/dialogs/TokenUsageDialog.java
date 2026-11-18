@@ -1,7 +1,7 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
 import com.github.enerccio.marginalia.ui.LLMInteract;
-import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.components.PromptTokenBreakdown;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
@@ -135,11 +135,11 @@ public class TokenUsageDialog extends Dialog implements LLMInteract {
 
         Div summary = new Div(loc.getValue(M_L.LABEL_TOKEN_CONTEXT) + ": " + breakdown.getContextTokens()
                 + " | " + loc.getValue(M_L.LABEL_TOKENS) + ": " + used);
-        summary.addClassName(CssStyles.TOKEN_USAGE_SUMMARY);
+        summary.addClassName(MarginaliaCssStyles.TOKEN_USAGE_SUMMARY);
         content.add(summary, chart);
         if (breakdown.getCutMessages() > 0) {
             Div cut = new Div(String.format(loc.getValue(M_L.MSG_TOKEN_CUT), breakdown.getCutMessages(), breakdown.getCutTokens()));
-            cut.addClassName(CssStyles.TOKEN_USAGE_SUMMARY);
+            cut.addClassName(MarginaliaCssStyles.TOKEN_USAGE_SUMMARY);
             content.add(cut);
         }
     }
@@ -201,7 +201,7 @@ public class TokenUsageDialog extends Dialog implements LLMInteract {
         chart.setChartConfig(gson.toJson(config));
 
         Div summary = new Div(loc.getValue(M_L.LABEL_TOKENS) + ": " + breakdown.getPayloadTokens());
-        summary.addClassName(CssStyles.TOKEN_USAGE_SUMMARY);
+        summary.addClassName(MarginaliaCssStyles.TOKEN_USAGE_SUMMARY);
         content.add(new H4(loc.getValue(M_L.LABEL_PAYLOAD_MESSAGES)), summary, chart);
     }
 

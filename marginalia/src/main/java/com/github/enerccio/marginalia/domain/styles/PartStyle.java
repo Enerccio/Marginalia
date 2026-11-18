@@ -1,6 +1,6 @@
 package com.github.enerccio.marginalia.domain.styles;
 
-import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.loc.LocalizationKey;
 import com.github.enerccio.marginalia.loc.Localization;
 import org.apache.commons.lang3.StringUtils;
@@ -298,7 +298,7 @@ public class PartStyle {
 
     private String buildCss(boolean withCustomCss) {
         String root = "." + getCssClass();
-        String md = root + " ." + CssStyles.CHAT_MESSAGE_MARKDOWN;
+        String md = root + " ." + MarginaliaCssStyles.CHAT_MESSAGE_MARKDOWN;
         StringBuilder css = new StringBuilder();
 
         // the background fills the whole element that holds the text, not only the blocks of the messages inside it

@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.dialogs.story;
 
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.collections.AnnotationStatus;
 import com.github.enerccio.marginalia.domain.collections.RevisionSource;
 import com.github.enerccio.marginalia.domain.components.RevisionOrigin;
@@ -250,7 +251,7 @@ public class RedraftDialog extends Dialog {
         start.addClickListener(_ -> startOrStop());
         showGenerating(false);
 
-        reasoningMarkdown.addClassName(CssStyles.CHAT_MESSAGE_MARKDOWN);
+        reasoningMarkdown.addClassName(MarginaliaCssStyles.CHAT_MESSAGE_MARKDOWN);
         reasoningDetails = new Details(loc.getValue(M_L.LABEL_VIEW_REASONING), reasoningMarkdown);
         reasoningDetails.setWidthFull();
         reasoningDetails.setVisible(false);
@@ -357,7 +358,7 @@ public class RedraftDialog extends Dialog {
             StoryAnnotations annotations = new StoryAnnotations(() -> manuscript, _ -> {
             });
             Markdown text = new Markdown(TextMarkup.apply(partText, annotations.marks(part, partText)));
-            text.addClassName(CssStyles.CHAT_MESSAGE_MARKDOWN);
+            text.addClassName(MarginaliaCssStyles.CHAT_MESSAGE_MARKDOWN);
             original.add(text);
             List<Annotation> open = openAnnotations();
             if (!open.isEmpty()) {
@@ -366,12 +367,12 @@ public class RedraftDialog extends Dialog {
                 VerticalLayout notes = new VerticalLayout();
                 notes.setPadding(false);
                 notes.setSpacing(false);
-                notes.addClassNames(CssStyles.ANNOTATION_MARGIN, CssStyles.GAP_S);
+                notes.addClassNames(MarginaliaCssStyles.ANNOTATION_MARGIN, CssStyles.GAP_S);
                 for (Annotation annotation : open) {
                     notes.add(note(annotation));
                 }
                 Div anchor = new Div();
-                anchor.addClassName(CssStyles.ANNOTATION_ANCHOR);
+                anchor.addClassName(MarginaliaCssStyles.ANNOTATION_ANCHOR);
                 original.add(new Span(loc.getValue(M_L.LABEL_ANNOTATIONS)), notes, anchor);
                 JavascriptLibrary.linkMarginNotes(text.getElement(), notes.getElement());
                 JavascriptLibrary.fireAnnotationClickEvent(text.getElement(), anchor.getElement());
@@ -391,15 +392,15 @@ public class RedraftDialog extends Dialog {
      */
     private static Div note(Annotation annotation) {
         Div note = new Div();
-        note.addClassName(CssStyles.ANNOTATION_VIEW);
+        note.addClassName(MarginaliaCssStyles.ANNOTATION_VIEW);
         note.getElement().setAttribute(StoryAnnotations.NOTE_ATTRIBUTE, annotation.getUuid());
         if (StringUtils.isNotBlank(annotation.getQuote())) {
             Div quote = new Div("\u201c" + annotation.getQuote() + "\u201d");
-            quote.addClassName(CssStyles.ANNOTATION_QUOTE);
+            quote.addClassName(MarginaliaCssStyles.ANNOTATION_QUOTE);
             note.add(quote);
         }
         Div text = new Div(StringUtils.defaultString(annotation.getText()));
-        text.addClassName(CssStyles.ANNOTATION_NOTE);
+        text.addClassName(MarginaliaCssStyles.ANNOTATION_NOTE);
         note.add(text);
         return note;
     }

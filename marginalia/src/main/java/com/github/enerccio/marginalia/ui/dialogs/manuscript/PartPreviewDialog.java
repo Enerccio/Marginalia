@@ -1,6 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs.manuscript;
 
-import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.model.ImageAttachment;
 import com.github.enerccio.marginalia.domain.styles.PartStyle;
 import com.github.enerccio.marginalia.loc.L;
@@ -36,7 +36,7 @@ public class PartPreviewDialog extends Dialog {
         setMaxHeight("90vh");
 
         Div frame = new Div(new PartView(markdown, images));
-        frame.addClassName(CssStyles.PART_PREVIEW_FRAME);
+        frame.addClassName(MarginaliaCssStyles.PART_PREVIEW_FRAME);
         if (style != null) {
             PartStyleApplier.apply(frame, style);
         }
@@ -47,9 +47,9 @@ public class PartPreviewDialog extends Dialog {
         width.setValue(false);
         width.addValueChangeListener(e -> {
             if (e.getValue()) {
-                frame.addClassName(CssStyles.PART_PREVIEW_PHONE);
+                frame.addClassName(MarginaliaCssStyles.PART_PREVIEW_PHONE);
             } else {
-                frame.removeClassName(CssStyles.PART_PREVIEW_PHONE);
+                frame.removeClassName(MarginaliaCssStyles.PART_PREVIEW_PHONE);
             }
         });
 

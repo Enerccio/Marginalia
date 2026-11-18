@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.dialogs.story;
 
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
@@ -117,7 +118,7 @@ public class ImpersonateDialog extends Dialog {
         start.addClickListener(_ -> startOrStop());
         showGenerating(false);
 
-        reasoningMarkdown.addClassName(CssStyles.CHAT_MESSAGE_MARKDOWN);
+        reasoningMarkdown.addClassName(MarginaliaCssStyles.CHAT_MESSAGE_MARKDOWN);
         reasoningDetails = new Details(loc.getValue(M_L.LABEL_VIEW_REASONING), reasoningMarkdown);
         reasoningDetails.setWidthFull();
         reasoningDetails.setVisible(false);
