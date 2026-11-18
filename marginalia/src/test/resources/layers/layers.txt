@@ -160,6 +160,7 @@ platform domain.service.InferenceService
 platform domain.service.InferenceServices
 platform domain.service.InferenceSession
 platform domain.service.JobService
+platform domain.service.LockedException
 platform domain.service.ManualService
 platform domain.service.NotificationService
 platform domain.service.OsgiService

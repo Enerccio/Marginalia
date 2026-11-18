@@ -4,7 +4,7 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
-import com.github.enerccio.marginalia.domain.service.ManuscriptLockedException;
+import com.github.enerccio.marginalia.domain.service.LockedException;
 import com.github.enerccio.marginalia.extensions.lorebookvcs.model.LoreEntryRevision;
 import com.github.enerccio.marginalia.extensions.lorebookvcs.model.LoreEntryVCSData;
 import com.github.enerccio.marginalia.extensions.lorebookvcs.service.LorebookVCSService;
@@ -144,7 +144,7 @@ public class LoreEntryRevisionPanel extends HorizontalLayout {
                 }
             });
             refreshDisplay();
-        } catch (ManuscriptLockedException locked) {
+        } catch (LockedException locked) {
             // an agent works on the lorebook: the history can be looked at, but opening an entry must not write to it
             LoreEntryVCSData stored = vcsService.getVCSData(lorebook).getEntries().get(entry.getUuid());
             entryVcsData = stored == null ? new LoreEntryVCSData() : stored;
@@ -168,7 +168,7 @@ public class LoreEntryRevisionPanel extends HorizontalLayout {
         try {
             LoreEntryRevision liveState = vcsService.createSnapshot(entry);
             entryVcsData = vcsService.updateEntryData(lorebook, entry.getUuid(), data -> syncActive(data, liveState));
-        } catch (ManuscriptLockedException locked) {
+        } catch (LockedException locked) {
             // nothing of the entry could have changed while an agent has the lorebook
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);

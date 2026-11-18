@@ -9,7 +9,7 @@ import com.github.enerccio.marginalia.domain.service.FolderService.Choice;
 import com.github.enerccio.marginalia.domain.service.FolderService.Outcome;
 import com.github.enerccio.marginalia.domain.service.FolderService.Resolution;
 import com.github.enerccio.marginalia.domain.service.FolderService.Transfer;
-import com.github.enerccio.marginalia.domain.service.ManuscriptLockedException;
+import com.github.enerccio.marginalia.domain.service.LockedException;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.SettingService;
 import com.github.enerccio.marginalia.loc.L;
@@ -535,7 +535,7 @@ public class OrganiseDialog extends Dialog {
     private void report(Outcome outcome, Exception failure) {
         if (failure == null) {
             Notification.success(String.format(loc.getValue(L.MSG_ORGANISE_DONE), outcome.books(), outcome.folders(), outcome.skipped()));
-        } else if (failure instanceof ManuscriptLockedException) {
+        } else if (failure instanceof LockedException) {
             UIUtils.internalServerError(loc, failure);
         } else if (failure instanceof IllegalStateException) {
             Notification.warning(loc.getValue(L.ERROR_FOLDER_TRANSFER_REFUSED));

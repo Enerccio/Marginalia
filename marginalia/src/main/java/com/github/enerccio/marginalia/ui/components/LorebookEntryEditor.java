@@ -1,5 +1,7 @@
 package com.github.enerccio.marginalia.ui.components;
 
+import com.github.enerccio.marginalia.domain.service.LockedException;
+
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.collections.ActivationContext;
@@ -847,7 +849,7 @@ public class LorebookEntryEditor extends VerticalLayout {
      * @param after run after a save, before the dialog is told
      * @return whether it was saved
      */
-    @PublicAPI(from = "1.8.0",
+    @PublicAPI(from = "1.9.0",
             returns = @APIReturn(type = boolean.class),
             parameters = {@APIParameter(name = "getter", type = Function.class),
                     @APIParameter(name = "setter", type = BiConsumer.class),
@@ -859,7 +861,7 @@ public class LorebookEntryEditor extends VerticalLayout {
                     @APILocals(name = "tabPayload", type = String.class),
                     @APILocals(name = "tabComment", type = String.class),
                     @APILocals(name = "saved", type = LorebookEntry.class),
-                    @APILocals(name = "locked", type = ManuscriptLockedException.class)})
+                    @APILocals(name = "locked", type = LockedException.class)})
     private <T> boolean saveField(Function<LorebookEntry, T> getter, BiConsumer<LorebookEntry, T> setter, T value,
                                   boolean guarded, Runnable after) {
         if (readOnly) {
@@ -898,7 +900,7 @@ public class LorebookEntryEditor extends VerticalLayout {
                 entry.setComment(tabComment);
             }
         } catch (Exception e) {
-            ManuscriptLockedException locked = lockOf(e);
+            LockedException locked = lockOf(e);
             if (locked != null && onLocked != null) {
                 onLocked.accept(locked.getAgentName());
                 return false;
@@ -928,9 +930,9 @@ public class LorebookEntryEditor extends VerticalLayout {
         }
     }
 
-    private static ManuscriptLockedException lockOf(Throwable error) {
+    private static LockedException lockOf(Throwable error) {
         for (Throwable t = error; t != null; t = t.getCause() == t ? null : t.getCause()) {
-            if (t instanceof ManuscriptLockedException locked) {
+            if (t instanceof LockedException locked) {
                 return locked;
             }
         }

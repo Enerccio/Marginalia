@@ -6,7 +6,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Folder;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.AgentRunService;
 import com.github.enerccio.marginalia.domain.service.FolderService;
-import com.github.enerccio.marginalia.domain.service.ManuscriptLockedException;
+import com.github.enerccio.marginalia.domain.service.LockedException;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
@@ -612,7 +612,7 @@ public class MassRenameDialog extends Dialog implements LLMInteract {
                 try {
                     manuscriptService.update(entry.getKey().book, stored -> stored.setName(entry.getValue()));
                     renamed++;
-                } catch (ManuscriptLockedException ignored) {
+                } catch (LockedException ignored) {
                     // an agent started on the book meanwhile
                 }
             }

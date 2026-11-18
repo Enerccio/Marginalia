@@ -1,8 +1,8 @@
 package com.github.enerccio.marginalia.domain.service.run;
 
 import com.github.enerccio.marginalia.domain.model.BaseEntity;
-import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
-import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.model.OwnedEntity;
+import com.github.enerccio.marginalia.domain.service.LockedException;
 import com.github.enerccio.marginalia.domain.service.job.Jobs;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.shared.Registration;
@@ -116,7 +116,7 @@ public final class Runs {
     /**
      * A conflicting operation: the run that is in the way.
      */
-    public static final class HeldException extends com.github.enerccio.marginalia.domain.service.ManuscriptLockedException {
+    public static final class HeldException extends LockedException {
         private final transient Run run;
 
         HeldException(Run run) {
@@ -498,7 +498,7 @@ public final class Runs {
         public Long getWrittenPart() {
             Long found = null;
             for (Hold hold : holds) {
-                if (hold.type() == ChatMessage.class && hold.mode() == Mode.WRITE) {
+                if (SCOPE.isPart(hold.type()) && hold.mode() == Mode.WRITE) {
                     if (found != null) {
                         return null;
                     }
@@ -512,7 +512,7 @@ public final class Runs {
         public Set<Long> getParts(Mode mode) {
             Set<Long> ids = new HashSet<>();
             for (Hold hold : holds) {
-                if (hold.type() == ChatMessage.class && hold.mode() == mode) {
+                if (SCOPE.isPart(hold.type()) && hold.mode() == mode) {
                     ids.add(hold.id());
                 }
             }
@@ -539,7 +539,7 @@ public final class Runs {
             if (ended) {
                 return;
             }
-            holds.removeIf(h -> h.type() == ChatMessage.class);
+            holds.removeIf(h -> SCOPE.isPart(h.type()));
             for (BaseEntity part : parts) {
                 Hold hold = holdOf(part, mode);
                 if (hold != null) {
@@ -559,7 +559,7 @@ public final class Runs {
             }
             Set<Long> held = new HashSet<>();
             for (Hold hold : holds) {
-                if (hold.type() == ChatMessage.class) {
+                if (SCOPE.isPart(hold.type())) {
                     held.add(hold.id());
                 }
             }
@@ -699,14 +699,14 @@ public final class Runs {
             this.label = label;
         }
 
-        /** The book it works on (needed: the holds of its parts are by book). */
-        public Builder book(Manuscript book) {
+        /** The book (the container of the {@link RunScope}) it works on (needed: the holds of its parts are by book). */
+        public Builder book(OwnedEntity book) {
             if (book != null) {
                 this.bookId = idOf(book);
                 // a proxy of a book read in another session is not touched
                 boolean plain = !(book instanceof HibernateProxy);
                 this.ownerId = !plain || book.getOwner() == null ? null : idOf(book.getOwner());
-                this.bookName = plain ? book.getName() : null;
+                this.bookName = plain ? SCOPE.nameOf(book) : null;
             }
             return this;
         }
@@ -834,6 +834,8 @@ public final class Runs {
 
     private static final AtomicLong SEQUENCE = new AtomicLong();
     private static final List<Run> RUNS = new CopyOnWriteArrayList<>();
+    /** What the runs know of the objects of the application, see {@link #setScope}. */
+    private static volatile RunScope SCOPE = RunScope.NONE;
     private static final List<Runnable> LISTENERS = new CopyOnWriteArrayList<>();
     private static final List<Consumer<Run>> TEXT_LISTENERS = new CopyOnWriteArrayList<>();
     private static final List<Consumer<Run>> END_LISTENERS = new CopyOnWriteArrayList<>();
@@ -987,6 +989,13 @@ public final class Runs {
     /**
      * Called after every change of a run (started, held more, moved on to a stage, ended), on the thread that changed it.
      */
+    /**
+     * Tells the runs which objects are containers and parts ({@link RunScope}); the application calls it once at start.
+     */
+    public static void setScope(RunScope scope) {
+        SCOPE = scope == null ? RunScope.NONE : scope;
+    }
+
     public static Registration addListener(Runnable listener) {
         LISTENERS.add(listener);
         return () -> LISTENERS.remove(listener);
@@ -1002,7 +1011,7 @@ public final class Runs {
         for (Run run : RUNS) {
             if (run.marksParts() && !run.isEnded()) {
                 for (Hold hold : run.holds) {
-                    if (hold.type() == ChatMessage.class && partId.equals(hold.id()) && hold.mode() != Mode.READ) {
+                    if (SCOPE.isPart(hold.type()) && partId.equals(hold.id()) && hold.mode() != Mode.READ) {
                         return run.getLabel();
                     }
                 }
@@ -1030,7 +1039,7 @@ public final class Runs {
                 // the command's own generation
                 continue;
             }
-            if (type == Manuscript.class) {
+            if (SCOPE.isContainer(type)) {
                 if (refusesBook(run, entity.getId(), operation, current)) {
                     return run;
                 }
@@ -1193,7 +1202,7 @@ public final class Runs {
      * @throws HeldException naming the generation
      */
     public static void saving(BaseEntity entity) {
-        if (entity == null || entity.getId() == null || RUNS.isEmpty() || type(entity) != ChatMessage.class) {
+        if (entity == null || entity.getId() == null || RUNS.isEmpty() || !SCOPE.isPart(type(entity))) {
             return;
         }
         Run own = current();
@@ -1202,7 +1211,7 @@ public final class Runs {
                 continue;
             }
             for (Hold hold : run.holds) {
-                if (hold.mode() == Mode.WRITE && hold.type() == ChatMessage.class && entity.getId().equals(hold.id())) {
+                if (hold.mode() == Mode.WRITE && SCOPE.isPart(hold.type()) && entity.getId().equals(hold.id())) {
                     throw new HeldException(run);
                 }
             }
@@ -1255,22 +1264,13 @@ public final class Runs {
             return null;
         }
         Class<?> type = type(entity);
-        Long book = fallbackBook;
-        if (entity instanceof Manuscript) {
-            book = entity.getId();
-        } else if (entity instanceof ChatMessage part && part.getParentScript() != null) {
-            book = idOf(part.getParentScript());
-        }
-        return new Hold(type, entity.getId(), book, mode);
+        Long book = SCOPE.containerOf(entity);
+        return new Hold(type, entity.getId(), book == null ? fallbackBook : book, mode);
     }
 
     /** The id of an entity without initializing a proxy (it may be detached). */
     private static Long idOf(Object entity) {
-        if (entity instanceof HibernateProxy proxy) {
-            Object id = proxy.getHibernateLazyInitializer().getIdentifier();
-            return id instanceof Long value ? value : null;
-        }
-        return entity instanceof BaseEntity base ? base.getId() : null;
+        return RunScope.idOf(entity);
     }
 
     /** The class of the entity, without initializing a proxy. */

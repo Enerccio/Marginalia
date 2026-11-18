@@ -1,5 +1,7 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
+import com.github.enerccio.marginalia.domain.service.LockedException;
+
 import com.github.enerccio.marginalia.domain.model.impl.Folder;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Tag;
@@ -674,7 +676,7 @@ public class FolderServiceImpl extends ExtendableServiceImpl<Folder, FolderRepos
         for (Manuscript book : booksIn(folders)) {
             try {
                 agentRunService.checkNotLocked(book);
-            } catch (ManuscriptLockedException e) {
+            } catch (LockedException e) {
                 throw new FolderBookLockedException(e.getAgentName(), book.getName());
             }
         }

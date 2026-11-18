@@ -2,7 +2,7 @@ package com.github.enerccio.marginalia.ui.dialogs;
 
 import com.github.enerccio.marginalia.domain.model.impl.Folder;
 import com.github.enerccio.marginalia.domain.service.FolderService;
-import com.github.enerccio.marginalia.domain.service.ManuscriptLockedException;
+import com.github.enerccio.marginalia.domain.service.LockedException;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.PhraseWatchService;
 import com.github.enerccio.marginalia.extensions.InheritedSettingValues;
@@ -179,7 +179,7 @@ public class FolderDialog extends Dialog {
             }
             close();
             done.accept(saved);
-        } catch (ManuscriptLockedException e) {
+        } catch (LockedException e) {
             UIUtils.internalServerError(loc, e);
         } catch (IllegalArgumentException e) {
             Notification.warning(loc.getValue(L.ERROR_FOLDER_NAME_INVALID));

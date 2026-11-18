@@ -380,4 +380,7 @@
     </bean>
 
     <bean class="com.github.enerccio.marginalia.instruct.RuntimeInstrumentationInitializer" />
+
+    <!-- the books and parts of the runs (Runs names no story class) -->
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.BookRunScope" init-method="install" />
 </beans>

@@ -90,9 +90,6 @@ domain.service.impl.UsageServiceImpl -> domain.model.impl.Manuscript
 domain.service.impl.UsageServiceImpl -> domain.service.ManuscriptService
 domain.service.impl.UsageServiceImpl -> domain.service.ManuscriptStatisticService
 domain.service.impl.inference.OpenAICompatibleInferenceService -> domain.service.ActivityTracker
-domain.service.run.Runs -> domain.model.impl.ChatMessage
-domain.service.run.Runs -> domain.model.impl.Manuscript
-domain.service.run.Runs -> domain.service.ManuscriptLockedException
 extensions.ExtensionHasCss -> ui.main.ApplicationEntryPoint
 extensions.ExtensionHasLocalization -> Defaults
 loc.Localization -> Defaults
