@@ -3,7 +3,7 @@ package com.github.enerccio.marginalia.ui.dialogs.story;
 import com.github.enerccio.marginalia.domain.components.RevisionClearing;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.MessageRevisionService;
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
@@ -37,7 +37,7 @@ public class BookHistoryActions {
         if (manuscript == null) {
             return;
         }
-        new ClearHistoryDialog(loc.getValue(L.LABEL_CLEAR_BOOK_HISTORY), new ClearHistoryDialog.Clearing() {
+        new ClearHistoryDialog(loc.getValue(M_L.LABEL_CLEAR_BOOK_HISTORY), new ClearHistoryDialog.Clearing() {
             @Override
             public RevisionClearing preview(boolean keepSnapshots) throws Exception {
                 return messageRevisionService.previewClear(manuscript, keepSnapshots);
@@ -56,14 +56,14 @@ public class BookHistoryActions {
      */
     public void emptyTrash() {
         if (manuscript != null) {
-            ConfirmDialog.show(loc.getValue(L.MSG_HISTORY_CONFIRM_EMPTY_TRASH), this::doEmptyTrash);
+            ConfirmDialog.show(loc.getValue(M_L.MSG_HISTORY_CONFIRM_EMPTY_TRASH), this::doEmptyTrash);
         }
     }
 
     private void doEmptyTrash() {
         try {
             int removed = messageRevisionService.emptyTrash(manuscript);
-            Notification.success(String.format(loc.getValue(removed == 0 ? L.MSG_HISTORY_NO_TRASH : L.MSG_HISTORY_TRASH_EMPTIED), removed));
+            Notification.success(String.format(loc.getValue(removed == 0 ? M_L.MSG_HISTORY_NO_TRASH : M_L.MSG_HISTORY_TRASH_EMPTIED), removed));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }

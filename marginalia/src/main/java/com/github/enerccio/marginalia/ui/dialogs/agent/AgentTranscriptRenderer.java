@@ -7,8 +7,8 @@ import com.github.enerccio.marginalia.domain.service.agent.RunToolsImpl;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMToolCall;
 import com.github.enerccio.marginalia.domain.traits.*;
-import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.vaadin.flow.component.Component;
@@ -59,8 +59,8 @@ class AgentTranscriptRenderer {
     AgentTranscriptRenderer(Localization loc, VerticalLayout box) {
         this.loc = loc;
         this.box = box;
-        this.userLabel = loc.getValue(L.LABEL_YOU);
-        this.assistantLabel = loc.getValue(L.ENUM_DOMAIN_AGENT);
+        this.userLabel = loc.getValue(M_L.LABEL_YOU);
+        this.assistantLabel = loc.getValue(M_L.ENUM_DOMAIN_AGENT);
     }
 
     @PublicAPI(from = "1.4.0",
@@ -140,9 +140,9 @@ class AgentTranscriptRenderer {
                     return;
                 }
                 if (body != null) {
-                    body.add(stamped(text(loc.getValue(L.LABEL_RESULT), true), created), text(cut(message.getContent()), false));
+                    body.add(stamped(text(loc.getValue(M_L.LABEL_RESULT), true), created), text(cut(message.getContent()), false));
                 } else {
-                    box.add(stamped(bubble(loc.getValue(L.LABEL_RESULT), cut(message.getContent()), false), created));
+                    box.add(stamped(bubble(loc.getValue(M_L.LABEL_RESULT), cut(message.getContent()), false), created));
                 }
             }
             default -> {
@@ -193,7 +193,7 @@ class AgentTranscriptRenderer {
         String body = content.substring(authorCommandNote(content).length()).strip();
         int result = body.indexOf("\n\nResult:\n");
         String line = (result < 0 ? body : body.substring(0, result)).replaceFirst("^Command:\\s*", "");
-        Div bubble = new Div(text(loc.getValue(L.LABEL_COMMAND) + ": " + line, true));
+        Div bubble = new Div(text(loc.getValue(M_L.LABEL_COMMAND) + ": " + line, true));
         if (result >= 0) {
             bubble.add(text(cut(body.substring(result + "\n\nResult:\n".length())), false));
         }
@@ -210,7 +210,7 @@ class AgentTranscriptRenderer {
             locals = {@APILocals(name = "details", type = Details.class),
                     @APILocals(name = "block", type = Div.class)})
     private Div summaryBubble(String content) {
-        Details details = new Details(loc.getValue(L.LABEL_AGENT_SUMMARY), new Markdown(StringUtils.defaultString(content)));
+        Details details = new Details(loc.getValue(M_L.LABEL_AGENT_SUMMARY), new Markdown(StringUtils.defaultString(content)));
         Div block = new Div(details);
         block.addClassNames(CssStyles.HELP_MESSAGE, CssStyles.HELP_MESSAGE_USER, CssStyles.HELP_MESSAGE_FOLDED);
         return block;
@@ -240,7 +240,7 @@ class AgentTranscriptRenderer {
             locals = {@APILocals(name = "details", type = Details.class),
                     @APILocals(name = "block", type = Div.class)})
     private Div reasoningBlock(String reasoning) {
-        Details details = new Details(loc.getValue(L.LABEL_REASONING), text(reasoning, false));
+        Details details = new Details(loc.getValue(M_L.LABEL_REASONING), text(reasoning, false));
         details.addClassName(CssStyles.HINT_TEXT);
         Div block = new Div(details);
         block.addClassName(CssStyles.HELP_MESSAGE);
@@ -284,7 +284,7 @@ class AgentTranscriptRenderer {
         if (StringUtils.isBlank(text)) {
             return null;
         }
-        Div bubble = new Div(text(loc.getValue(report ? L.LABEL_AGENT_REPORT : L.LABEL_AGENT_QUESTION), true), new Markdown(text.strip()));
+        Div bubble = new Div(text(loc.getValue(report ? M_L.LABEL_AGENT_REPORT : M_L.LABEL_AGENT_QUESTION), true), new Markdown(text.strip()));
         bubble.addClassName(CssStyles.HELP_MESSAGE);
         return bubble;
     }
@@ -307,7 +307,7 @@ class AgentTranscriptRenderer {
         Div block = new Div(details);
         block.addClassName(CssStyles.HELP_MESSAGE);
         if (onSubAgent != null && "spawn_agent".equals(call.getName())) {
-            Button open = new Button(loc.getValue(L.LABEL_AGENT_SUBAGENT), Solid.ROBOT.create(), event -> onSubAgent.accept(call.getId()));
+            Button open = new Button(loc.getValue(M_L.LABEL_AGENT_SUBAGENT), Solid.ROBOT.create(), event -> onSubAgent.accept(call.getId()));
             open.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
             block.add(open);
         }

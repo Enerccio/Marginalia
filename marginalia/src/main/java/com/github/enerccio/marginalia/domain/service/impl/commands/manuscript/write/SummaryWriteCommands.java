@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Summary;
 import com.github.enerccio.marginalia.domain.service.SummaryService;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.traits.*;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.L;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -79,7 +80,7 @@ public class SummaryWriteCommands extends ManuscriptWriteSupport {
         Book book = new Book(context);
         ChatMessage message = part(book, handle);
         if (message.getSummary() == null) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_NO_SUMMARY));
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_COMMAND_NO_SUMMARY));
         }
         Book.Located at = book.locate(handle, null);
         Set<Long> before = outdatedHeads(at.path());
@@ -97,10 +98,10 @@ public class SummaryWriteCommands extends ManuscriptWriteSupport {
         Book book = new Book(context);
         ChatMessage message = part(book, handle);
         if (message.getSummary() == null) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_NO_SUMMARY));
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_COMMAND_NO_SUMMARY));
         }
         Book.Located at = book.locate(handle, null);
-        if (!confirmed(context, String.format(loc.getValue(L.MSG_COMMAND_REMOVE_SUMMARY_CONFIRM), at.position()))) {
+        if (!confirmed(context, String.format(loc.getValue(M_L.MSG_COMMAND_REMOVE_SUMMARY_CONFIRM), at.position()))) {
             return;
         }
         ChatMessage saved = summaryService.removeSummary(message, Boolean.TRUE.equals(unwind));

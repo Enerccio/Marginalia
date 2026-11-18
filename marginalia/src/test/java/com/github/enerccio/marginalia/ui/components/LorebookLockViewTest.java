@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
 import com.github.enerccio.marginalia.domain.service.LorebookService;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.test.AgentTestBase;
 import com.vaadin.flow.component.Component;
@@ -85,7 +86,7 @@ class LorebookLockViewTest extends AgentTestBase {
         LorebookView view = view();
 
         assertThat(all(view).anyMatch(PhoneLorebookView.class::isInstance)).isFalse();
-        assertThat(visibleButton(view, loc.getValue(L.LABEL_ADD_ENTRY))).isTrue();
+        assertThat(visibleButton(view, loc.getValue(M_L.LABEL_ADD_ENTRY))).isTrue();
     }
 
     @Test
@@ -96,13 +97,13 @@ class LorebookLockViewTest extends AgentTestBase {
         PhoneLorebookView phone = all(view).filter(PhoneLorebookView.class::isInstance).map(PhoneLorebookView.class::cast)
                 .findFirst().orElseThrow();
         assertThat(phone.isVisible()).isTrue();
-        assertThat(visibleButton(view, loc.getValue(L.LABEL_ADD_ENTRY))).as("no editing").isFalse();
-        String banner = String.format(loc.getValue(L.MSG_AGENT_LOREBOOK_LOCKED), agent.getName());
+        assertThat(visibleButton(view, loc.getValue(M_L.LABEL_ADD_ENTRY))).as("no editing").isFalse();
+        String banner = String.format(loc.getValue(M_L.MSG_AGENT_LOREBOOK_LOCKED), agent.getName());
         assertThat(all(phone).filter(Span.class::isInstance).map(Span.class::cast)
                 .anyMatch(s -> s.isVisible() && banner.equals(s.getText()))).as("the banner names the agent").isTrue();
         assertThat(all(phone).filter(com.vaadin.flow.component.checkbox.Checkbox.class::isInstance)
                 .map(com.vaadin.flow.component.checkbox.Checkbox.class::cast)
-                .filter(c -> c.getLabel() != null && c.getLabel().equals(loc.getValue(L.LABEL_ENABLED)))
+                .filter(c -> c.getLabel() != null && c.getLabel().equals(loc.getValue(M_L.LABEL_ENABLED)))
                 .allMatch(com.vaadin.flow.component.checkbox.Checkbox::isReadOnly)).isTrue();
 
         // when the run lets go, a refresh gives the editing back
@@ -110,7 +111,7 @@ class LorebookLockViewTest extends AgentTestBase {
         view.refreshEntries();
 
         assertThat(all(view).anyMatch(PhoneLorebookView.class::isInstance)).isFalse();
-        assertThat(visibleButton(view, loc.getValue(L.LABEL_ADD_ENTRY))).isTrue();
+        assertThat(visibleButton(view, loc.getValue(M_L.LABEL_ADD_ENTRY))).isTrue();
     }
 
     @Test
@@ -122,13 +123,13 @@ class LorebookLockViewTest extends AgentTestBase {
         view.refresh();
 
         assertThat(all(view).anyMatch(PhoneLorebookView.class::isInstance)).as("the locked one is read only").isTrue();
-        assertThat(visibleButton(view, loc.getValue(L.LABEL_ADD_LOREBOOK))).as("add").isTrue();
+        assertThat(visibleButton(view, loc.getValue(M_L.LABEL_ADD_LOREBOOK))).as("add").isTrue();
         List<Button> imports = all(view).filter(Button.class::isInstance).map(Button.class::cast)
                 .filter(b -> b.getIcon() != null && b.getIcon().getElement().getAttribute("icon") != null
                         && b.getIcon().getElement().getAttribute("icon").contains("file-import")).toList();
         assertThat(imports).as("the import button").isNotEmpty().allMatch(Button::isVisible);
-        assertThat(visibleButton(view, loc.getValue(L.LABEL_DELETE_LOREBOOK))).as("a locked lorebook is not deleted").isFalse();
-        assertThat(visibleButton(view, loc.getValue(L.LABEL_ADD_ENTRY))).isFalse();
+        assertThat(visibleButton(view, loc.getValue(M_L.LABEL_DELETE_LOREBOOK))).as("a locked lorebook is not deleted").isFalse();
+        assertThat(visibleButton(view, loc.getValue(M_L.LABEL_ADD_ENTRY))).isFalse();
     }
 
     private static HorizontalLayout rowOf(LorebookView view, String text) {
@@ -142,16 +143,16 @@ class LorebookLockViewTest extends AgentTestBase {
         LorebookView view = new LorebookView(false);
         view.create();
 
-        HorizontalLayout lorebooks = rowOf(view, loc.getValue(L.LABEL_ADD_LOREBOOK));
-        HorizontalLayout entries = rowOf(view, loc.getValue(L.LABEL_ADD_ENTRY));
+        HorizontalLayout lorebooks = rowOf(view, loc.getValue(M_L.LABEL_ADD_LOREBOOK));
+        HorizontalLayout entries = rowOf(view, loc.getValue(M_L.LABEL_ADD_ENTRY));
         assertThat(entries).isNotSameAs(lorebooks);
         assertThat(entries.getChildren().filter(Button.class::isInstance).map(c -> ((Button) c).getText()))
-                .contains(loc.getValue(L.LABEL_SEARCH_AND_REPLACE), loc.getValue(L.LABEL_REFRESH));
+                .contains(loc.getValue(M_L.LABEL_SEARCH_AND_REPLACE), loc.getValue(L.LABEL_REFRESH));
         assertThat(all(entries).filter(Button.class::isInstance).map(Button.class::cast)
-                .anyMatch(b -> b.getTooltip() != null && loc.getValue(L.LABEL_TAG_ENTRIES).equals(b.getTooltip().getText())))
+                .anyMatch(b -> b.getTooltip() != null && loc.getValue(M_L.LABEL_TAG_ENTRIES).equals(b.getTooltip().getText())))
                 .as("tag entries is with the entries").isTrue();
         assertThat(all(lorebooks).filter(Button.class::isInstance).map(Button.class::cast)
-                .anyMatch(b -> b.getTooltip() != null && loc.getValue(L.LABEL_TAG_LOREBOOKS).equals(b.getTooltip().getText())))
+                .anyMatch(b -> b.getTooltip() != null && loc.getValue(M_L.LABEL_TAG_LOREBOOKS).equals(b.getTooltip().getText())))
                 .as("tag lorebooks is with the lorebooks").isTrue();
         assertThat(all(lorebooks).anyMatch(c -> c instanceof Button b && loc.getValue(L.LABEL_REFRESH).equals(b.getText()))).isFalse();
         assertThat(lorebooks.isWrap()).isTrue();
@@ -178,12 +179,12 @@ class LorebookLockViewTest extends AgentTestBase {
         PhoneLorebookView phone = new PhoneLorebookView(lorebook);
         phone.create();
 
-        String banner = String.format(loc.getValue(L.MSG_AGENT_LOREBOOK_LOCKED), agent.getName());
+        String banner = String.format(loc.getValue(M_L.MSG_AGENT_LOREBOOK_LOCKED), agent.getName());
         assertThat(all(phone).filter(Span.class::isInstance).map(Span.class::cast)
                 .anyMatch(s -> s.isVisible() && banner.equals(s.getText()))).isTrue();
         assertThat(all(phone).filter(Button.class::isInstance).map(Button.class::cast)
                 .filter(b -> b.getIcon() != null && b.getTooltip() != null
-                        && loc.getValue(L.LABEL_SEARCH_AND_REPLACE).equals(b.getTooltip().getText()))
+                        && loc.getValue(M_L.LABEL_SEARCH_AND_REPLACE).equals(b.getTooltip().getText()))
                 .noneMatch(Button::isVisible)).as("no search and replace").isTrue();
     }
 }

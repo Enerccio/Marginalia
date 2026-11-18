@@ -13,8 +13,8 @@ import com.github.enerccio.marginalia.domain.security.service.UserService;
 import com.github.enerccio.marginalia.domain.service.AgentAttentionService.Notice;
 import com.github.enerccio.marginalia.domain.service.AgentWebhookService;
 import com.github.enerccio.marginalia.domain.service.SettingService;
-import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Language;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
@@ -130,11 +130,11 @@ public class AgentWebhookServiceImpl implements AgentWebhookService, DisposableB
     private String text(Language language, Notice notice) {
         String reason = notice.reason() == null ? "" : notice.reason();
         return switch (notice.status()) {
-            case WAITING_APPROVAL -> String.format(loc.getValue(language, L.MSG_AGENT_NOTICE_APPROVAL), notice.agentName(), reason);
-            case DONE -> String.format(loc.getValue(language, L.MSG_AGENT_NOTICE_DONE), notice.agentName());
-            case FAILED -> String.format(loc.getValue(language, L.MSG_AGENT_NOTICE_FAILED), notice.agentName());
-            case PAUSED -> String.format(loc.getValue(language, L.MSG_AGENT_NOTICE_PAUSED), notice.agentName(), reason);
-            default -> String.format(loc.getValue(language, L.MSG_AGENT_NOTICE_IDLE), notice.agentName());
+            case WAITING_APPROVAL -> String.format(loc.getValue(language, M_L.MSG_AGENT_NOTICE_APPROVAL), notice.agentName(), reason);
+            case DONE -> String.format(loc.getValue(language, M_L.MSG_AGENT_NOTICE_DONE), notice.agentName());
+            case FAILED -> String.format(loc.getValue(language, M_L.MSG_AGENT_NOTICE_FAILED), notice.agentName());
+            case PAUSED -> String.format(loc.getValue(language, M_L.MSG_AGENT_NOTICE_PAUSED), notice.agentName(), reason);
+            default -> String.format(loc.getValue(language, M_L.MSG_AGENT_NOTICE_IDLE), notice.agentName());
         };
     }
 
@@ -152,7 +152,7 @@ public class AgentWebhookServiceImpl implements AgentWebhookService, DisposableB
             return problem;
         }
         try {
-            return send(clientFor(currentUser), url.strip(), format, "Marginalia", loc.getValue(L.MSG_AGENT_WEBHOOK_TEST_TEXT));
+            return send(clientFor(currentUser), url.strip(), format, "Marginalia", loc.getValue(M_L.MSG_AGENT_WEBHOOK_TEST_TEXT));
         } catch (Exception e) {
             return "The permission could not be checked";
         }

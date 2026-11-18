@@ -8,6 +8,8 @@ import com.github.enerccio.marginalia.domain.service.PromptField;
 import com.github.enerccio.marginalia.domain.service.TemplateService;
 import com.github.enerccio.marginalia.domain.templates.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
@@ -92,35 +94,35 @@ public class PromptSettingsForm {
         return editor;
     }
 
-    private static L label(PromptField field) {
+    private static LocalizationKey label(PromptField field) {
         return switch (field) {
-            case MASTER_TEMPLATE -> L.LABEL_MASTER_TEMPLATE;
-            case POV -> L.LABEL_POV;
-            case TENSE -> L.LABEL_TENSE;
-            case STYLE -> L.LABEL_STYLE;
-            case USER_PROMPT -> L.LABEL_USER_PROMPT;
-            case SUMMARY_PROMPT -> L.LABEL_SUMMARY_PROMPT;
-            case META_SUMMARY_PROMPT -> L.LABEL_META_SUMMARY_PROMPT;
-            case REDRAFT_SYSTEM_PROMPT -> L.LABEL_REDRAFT_SYSTEM_PROMPT;
-            case REDRAFT_PROMPT -> L.LABEL_REDRAFT_PROMPT;
-            case REDRAFT_SHORTER -> L.LABEL_REDRAFT_SHORTER_PROMPT;
-            case REDRAFT_LONGER -> L.LABEL_REDRAFT_LONGER_PROMPT;
-            case ANNOTATE_SYSTEM_PROMPT -> L.LABEL_ANNOTATE_SYSTEM_PROMPT;
-            case ANNOTATE_PROMPT -> L.LABEL_ANNOTATE_PROMPT;
-            case ANNOTATE_INSTRUCTIONS -> L.LABEL_ANNOTATE_INSTRUCTIONS;
-            case IMPERSONATE_PROMPT -> L.LABEL_IMPERSONATE_PROMPT;
+            case MASTER_TEMPLATE -> M_L.LABEL_MASTER_TEMPLATE;
+            case POV -> M_L.LABEL_POV;
+            case TENSE -> M_L.LABEL_TENSE;
+            case STYLE -> M_L.LABEL_STYLE;
+            case USER_PROMPT -> M_L.LABEL_USER_PROMPT;
+            case SUMMARY_PROMPT -> M_L.LABEL_SUMMARY_PROMPT;
+            case META_SUMMARY_PROMPT -> M_L.LABEL_META_SUMMARY_PROMPT;
+            case REDRAFT_SYSTEM_PROMPT -> M_L.LABEL_REDRAFT_SYSTEM_PROMPT;
+            case REDRAFT_PROMPT -> M_L.LABEL_REDRAFT_PROMPT;
+            case REDRAFT_SHORTER -> M_L.LABEL_REDRAFT_SHORTER_PROMPT;
+            case REDRAFT_LONGER -> M_L.LABEL_REDRAFT_LONGER_PROMPT;
+            case ANNOTATE_SYSTEM_PROMPT -> M_L.LABEL_ANNOTATE_SYSTEM_PROMPT;
+            case ANNOTATE_PROMPT -> M_L.LABEL_ANNOTATE_PROMPT;
+            case ANNOTATE_INSTRUCTIONS -> M_L.LABEL_ANNOTATE_INSTRUCTIONS;
+            case IMPERSONATE_PROMPT -> M_L.LABEL_IMPERSONATE_PROMPT;
         };
     }
 
     /**
      * The help under the field that is about the field and not about where its value comes from.
      */
-    private static L help(PromptField field) {
+    private static LocalizationKey help(PromptField field) {
         return switch (field) {
-            case REDRAFT_SYSTEM_PROMPT, ANNOTATE_SYSTEM_PROMPT -> L.HELP_PART_SYSTEM_PROMPT;
-            case REDRAFT_PROMPT, ANNOTATE_PROMPT -> L.HELP_PART_LAST_PROMPT;
-            case ANNOTATE_INSTRUCTIONS -> L.HELP_ANNOTATE_INSTRUCTIONS;
-            case REDRAFT_SHORTER, REDRAFT_LONGER -> L.HELP_REDRAFT_LENGTH_PROMPT;
+            case REDRAFT_SYSTEM_PROMPT, ANNOTATE_SYSTEM_PROMPT -> M_L.HELP_PART_SYSTEM_PROMPT;
+            case REDRAFT_PROMPT, ANNOTATE_PROMPT -> M_L.HELP_PART_LAST_PROMPT;
+            case ANNOTATE_INSTRUCTIONS -> M_L.HELP_ANNOTATE_INSTRUCTIONS;
+            case REDRAFT_SHORTER, REDRAFT_LONGER -> M_L.HELP_REDRAFT_LENGTH_PROMPT;
             default -> null;
         };
     }
@@ -324,9 +326,9 @@ public class PromptSettingsForm {
      */
     public static String origin(Localization loc, EffectiveSetting<?> setting) {
         return switch (setting.origin()) {
-            case FOLDER -> String.format(loc.getValue(L.LABEL_INHERITED_FROM_FOLDER), setting.folder().getName());
-            case USER -> loc.getValue(L.LABEL_INHERITED_FROM_USER);
-            default -> loc.getValue(L.LABEL_INHERITED_DEFAULT);
+            case FOLDER -> String.format(loc.getValue(M_L.LABEL_INHERITED_FROM_FOLDER), setting.folder().getName());
+            case USER -> loc.getValue(M_L.LABEL_INHERITED_FROM_USER);
+            default -> loc.getValue(M_L.LABEL_INHERITED_DEFAULT);
         };
     }
 

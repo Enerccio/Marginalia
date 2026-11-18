@@ -10,6 +10,7 @@ import com.github.enerccio.marginalia.instruct.verify.ExtensionVerification;
 import com.github.enerccio.marginalia.instruct.verify.ExtensionVerifier;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.loc.LocalizationBundle;
+import com.github.enerccio.marginalia.loc.TextBundle;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.shared.Registration;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -84,7 +85,7 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
     private final Map<ServiceReference<?>, MarginaliaExtension> activeExtensions = new ConcurrentHashMap<>();
     private final Map<MarginaliaExtension, Set<ComponentBinding>> componentCallbacks = new ConcurrentHashMap<>();
     private final Map<ServiceReference<?>, LoadedExtension> loadedExtensions = new ConcurrentHashMap<>();
-    private final Map<MarginaliaExtension, List<LocalizationBundle>> localizationBundles = new ConcurrentHashMap<>();
+    private final Map<MarginaliaExtension, List<TextBundle<?>>> localizationBundles = new ConcurrentHashMap<>();
     private final Set<WeakReference<ExtensionObserver>> observers = new HashSet<>();
     private final List<WeakReference<ExtensionListener>> extensionListeners = new CopyOnWriteArrayList<>();
     private final Map<String, String> sha256Cache = new ConcurrentHashMap<>();
@@ -722,24 +723,31 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
     }
 
     /**
-     * Adds the languages of an {@link ExtensionHasLocalization} extension; a bundle that is refused (its language is
-     * taken) is logged and doesn't stop the extension. A {@link LinkageError} (a bundle that names a key this version
+     * Adds the languages of an {@link ExtensionHasLocalization} extension, then the texts of the layers above the
+     * platform it has for them; a bundle that is refused (its language is taken) is logged and doesn't stop the
+     * extension. A {@link LinkageError} (a bundle that names a key this version
      * doesn't have) is passed on: it fails the extension, and what was registered until then is undone with it.
      */
     private void registerLocalizationBundles(MarginaliaExtension extension) {
         if (!(extension instanceof ExtensionHasLocalization hasLocalization)) {
             return;
         }
-        List<LocalizationBundle> registered = new ArrayList<>();
+        List<TextBundle<?>> registered = new ArrayList<>();
         localizationBundles.put(extension, registered);
         try {
-            for (LocalizationBundle bundle : hasLocalization.getLocalizationBundles()) {
+            List<TextBundle<?>> bundles = new ArrayList<>(hasLocalization.getLocalizationBundles());
+            bundles.addAll(hasLocalization.getTextBundles());
+            for (TextBundle<?> bundle : bundles) {
                 try {
-                    localization.registerBundle(bundle);
+                    if (bundle instanceof LocalizationBundle language) {
+                        localization.registerBundle(language);
+                    } else {
+                        localization.registerTexts(bundle);
+                    }
                     registered.add(bundle);
                 } catch (RuntimeException e) {
-                    log.error("Extension {} localization bundle {} is not registered: {}", extension.getClass().getName(),
-                            bundle.getLanguage(), e.getMessage());
+                    log.error("Extension {} localization bundle {} ({}) is not registered: {}", extension.getClass().getName(),
+                            bundle.getLanguage(), bundle.getKeys().getSimpleName(), e.getMessage());
                 }
             }
         } catch (RuntimeException e) {
@@ -748,9 +756,15 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
     }
 
     private void unregisterLocalizationBundles(MarginaliaExtension extension) {
-        List<LocalizationBundle> registered = localizationBundles.remove(extension);
+        List<TextBundle<?>> registered = localizationBundles.remove(extension);
         if (registered != null) {
-            registered.forEach(localization::unregisterBundle);
+            for (TextBundle<?> bundle : registered.reversed()) {
+                if (bundle instanceof LocalizationBundle language) {
+                    localization.unregisterBundle(language);
+                } else {
+                    localization.unregisterTexts(bundle);
+                }
+            }
         }
     }
 

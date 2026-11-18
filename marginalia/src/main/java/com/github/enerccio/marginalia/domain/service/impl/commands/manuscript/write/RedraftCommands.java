@@ -10,6 +10,7 @@ import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationOptions;
 import com.github.enerccio.marginalia.domain.templates.RedraftTemplateData;
 import com.github.enerccio.marginalia.domain.traits.*;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.L;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
@@ -104,7 +105,7 @@ public class RedraftCommands extends ManuscriptWriteSupport {
         Book book = new Book(context);
         ChatMessage message = part(book, handle);
         if (StringUtils.isBlank(message.getResponse())) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_REDRAFT_NOT_POSSIBLE));
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_COMMAND_REDRAFT_NOT_POSSIBLE));
         }
         if (StringUtils.isNotBlank(prompt)) {
             var checked = templateService.isValidTemplate(prompt, "redraftPrompt", RedraftTemplateData.class);
@@ -113,7 +114,7 @@ public class RedraftCommands extends ManuscriptWriteSupport {
             }
         }
         GenerationOptions options = options(context, profile);
-        if (apply && !confirmed(context, String.format(loc.getValue(L.MSG_COMMAND_REDRAFT_CONFIRM), book.locate(message.getUuid(), null).position()))) {
+        if (apply && !confirmed(context, String.format(loc.getValue(M_L.MSG_COMMAND_REDRAFT_CONFIRM), book.locate(message.getUuid(), null).position()))) {
             return;
         }
 
@@ -134,7 +135,7 @@ public class RedraftCommands extends ManuscriptWriteSupport {
 
             @Override
             public void onTerminated(String reasoning, String text) {
-                done.completeExceptionally(new CancellationException(loc.getValue(L.ERROR_COMMAND_GENERATION_CANCELLED)));
+                done.completeExceptionally(new CancellationException(loc.getValue(M_L.ERROR_COMMAND_GENERATION_CANCELLED)));
             }
 
             @Override
@@ -142,17 +143,17 @@ public class RedraftCommands extends ManuscriptWriteSupport {
                 done.completeExceptionally(throwable);
             }
         };
-        context.setStatus(loc.getValue(L.MSG_COMMAND_REDRAFTING));
+        context.setStatus(loc.getValue(M_L.MSG_COMMAND_REDRAFTING));
         String text;
         {
             CancellationToken token;
             try {
                 token = redraftService.redraft(book.manuscript, message, instructions, prompt, options, callback);
             } catch (RedraftService.ContextInsufficient e) {
-                throw new IllegalArgumentException(String.format(loc.getValue(L.ERROR_COMMAND_REDRAFT_CONTEXT), e.getRequired(), e.getMax()));
+                throw new IllegalArgumentException(String.format(loc.getValue(M_L.ERROR_COMMAND_REDRAFT_CONTEXT), e.getRequired(), e.getMax()));
             }
             if (token == null) {
-                throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_REDRAFT_NOT_POSSIBLE));
+                throw new IllegalArgumentException(loc.getValue(M_L.ERROR_COMMAND_REDRAFT_NOT_POSSIBLE));
             }
             text = await(context, done, token);
         }
@@ -160,7 +161,7 @@ public class RedraftCommands extends ManuscriptWriteSupport {
             return;
         }
         if (StringUtils.isBlank(text)) {
-            throw new IllegalStateException(loc.getValue(L.ERROR_COMMAND_REDRAFT_NOT_POSSIBLE));
+            throw new IllegalStateException(loc.getValue(M_L.ERROR_COMMAND_REDRAFT_NOT_POSSIBLE));
         }
 
         // the book as it is now: the story may have changed while the model wrote

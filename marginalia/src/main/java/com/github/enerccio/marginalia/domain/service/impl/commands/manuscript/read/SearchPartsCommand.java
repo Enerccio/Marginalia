@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.service.search.FulltextHit;
 import com.github.enerccio.marginalia.domain.traits.*;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.L;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -54,7 +55,7 @@ public class SearchPartsCommand extends ManuscriptReadSupport {
 
     private void searchParts(CommandContext context, String query, Integer limit, boolean includeVersions) throws Exception {
         if (query == null || query.isBlank()) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_SEARCH_TEXT_EMPTY));
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_SEARCH_TEXT_EMPTY));
         }
         Book book = new Book(context);
         List<FulltextHit> found = chatMessageService.searchFulltext(book.manuscript, query, includeVersions);

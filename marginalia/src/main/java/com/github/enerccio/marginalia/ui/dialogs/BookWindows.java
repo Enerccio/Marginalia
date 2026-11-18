@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.bound.ApplicationPoint;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.agent.AgentLockCheck;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
@@ -57,13 +58,13 @@ public class BookWindows {
             return;
         }
         if (restoring) {
-            Notification.warning(loc.getValue(L.MSG_BOOK_OPEN_ELSEWHERE_NOT_RESTORED));
+            Notification.warning(loc.getValue(M_L.MSG_BOOK_OPEN_ELSEWHERE_NOT_RESTORED));
             return;
         }
         List<Runs.Run> generations = Runs.ofBook(book.getId()).stream().filter(run -> Runs.GENERATION.equals(run.getSource())).toList();
         String since = SINCE.format(other.getStarted().atZone(ZoneId.systemDefault()));
-        String message = String.format(loc.getValue(generations.isEmpty() ? L.MSG_BOOK_OPEN_ELSEWHERE : L.MSG_BOOK_OPEN_ELSEWHERE_GENERATING), since);
-        ConfirmDialog.show(message, loc.getValue(L.LABEL_OPEN_HERE), loc.getValue(L.LABEL_CANCEL), () -> {
+        String message = String.format(loc.getValue(generations.isEmpty() ? M_L.MSG_BOOK_OPEN_ELSEWHERE : M_L.MSG_BOOK_OPEN_ELSEWHERE_GENERATING), since);
+        ConfirmDialog.show(message, loc.getValue(M_L.LABEL_OPEN_HERE), loc.getValue(L.LABEL_CANCEL), () -> {
             // the Stop the author knows: what arrived is kept
             generations.forEach(Runs.Run::stop);
             other.stop();
@@ -108,7 +109,7 @@ public class BookWindows {
                 then.accept(open);
                 return true;
             }
-            Notification.warning(String.format(loc.getValue(L.MSG_CLOSE_OPEN_BOOK_FIRST), shown == null ? "" : shown.getName()));
+            Notification.warning(String.format(loc.getValue(M_L.MSG_CLOSE_OPEN_BOOK_FIRST), shown == null ? "" : shown.getName()));
             return false;
         }
         open(book, () -> {
@@ -184,7 +185,7 @@ public class BookWindows {
             }
             UI ui = window.getUI().orElse(UI.getCurrent());
             Localization localization = loc;
-            run = Runs.run(Runs.BOOK_WINDOW, () -> localization.getValue(L.LABEL_BOOK_OPEN_ELSEWHERE))
+            run = Runs.run(Runs.BOOK_WINDOW, () -> localization.getValue(M_L.LABEL_BOOK_OPEN_ELSEWHERE))
                     .book(manuscript).hold(manuscript, Runs.Mode.OPEN).page(ui).window().quiet()
                     .onStop(() -> closeThere(ui))
                     .start();
@@ -210,7 +211,7 @@ public class BookWindows {
                 ui.access(() -> {
                     if (window.isOpened()) {
                         closeHere.run();
-                        Notification.warning(loc.getValue(L.MSG_BOOK_CLOSED_ELSEWHERE));
+                        Notification.warning(loc.getValue(M_L.MSG_BOOK_CLOSED_ELSEWHERE));
                     }
                     UIPushGuard.push(ui);
                 });

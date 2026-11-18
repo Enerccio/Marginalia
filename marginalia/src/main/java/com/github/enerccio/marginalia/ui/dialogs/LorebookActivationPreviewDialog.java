@@ -15,7 +15,8 @@ import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
 import com.github.enerccio.marginalia.domain.templates.TemplateContext;
 import com.github.enerccio.marginalia.domain.templates.TemplateVariables;
 import com.github.enerccio.marginalia.loc.L;
-import com.github.enerccio.marginalia.loc.StoryLocalization;
+import com.github.enerccio.marginalia.loc.M_L;
+import com.github.enerccio.marginalia.loc.MarginaliaLocalization;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.BookLabels;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -50,7 +51,7 @@ import java.util.Map;
 public class LorebookActivationPreviewDialog extends Dialog {
 
     @Autowired
-    private StoryLocalization loc;
+    private MarginaliaLocalization loc;
 
     @Autowired
     private LorebookActivationService activationService;
@@ -91,7 +92,7 @@ public class LorebookActivationPreviewDialog extends Dialog {
     }
 
     public void create() {
-        setHeaderTitle(loc.getValue(L.LABEL_PREVIEW_ACTIVATION) + ": " + StringUtils.defaultString(root.getName()));
+        setHeaderTitle(loc.getValue(M_L.LABEL_PREVIEW_ACTIVATION) + ": " + StringUtils.defaultString(root.getName()));
         setWidth("1000px");
         setMaxWidth("96%");
         setHeight("85%");
@@ -99,16 +100,16 @@ public class LorebookActivationPreviewDialog extends Dialog {
         setCloseOnOutsideClick(false);
         UIUtils.fitPhone(this, true);
 
-        Span hint = new Span(loc.getValue(L.HELP_ACTIVATION_PREVIEW));
+        Span hint = new Span(loc.getValue(M_L.HELP_ACTIVATION_PREVIEW));
         hint.addClassName(CssStyles.HINT_TEXT);
 
-        textField = new TextArea(loc.getValue(L.LABEL_ACTIVATION_PREVIEW_TEXT));
+        textField = new TextArea(loc.getValue(M_L.LABEL_ACTIVATION_PREVIEW_TEXT));
         textField.setWidthFull();
         textField.setMinHeight("120px");
         textField.setValueChangeMode(ValueChangeMode.LAZY);
         textField.addValueChangeListener(event -> update());
 
-        bookBox = new ComboBox<>(loc.getValue(L.LABEL_TAKE_TAGS_OF_BOOK));
+        bookBox = new ComboBox<>(loc.getValue(M_L.LABEL_TAKE_TAGS_OF_BOOK));
         new BookLabels().apply(bookBox);
         bookBox.setClearButtonVisible(true);
         bookBox.setWidthFull();
@@ -139,14 +140,14 @@ public class LorebookActivationPreviewDialog extends Dialog {
             return icon;
         }).setHeader("").setFlexGrow(0).setWidth(UIConstants.TOOL_COLUMN_SIZE);
         grid.addColumn(verdict -> StringUtils.defaultString(verdict.entry().getName()))
-                .setHeader(loc.getValue(L.LABEL_ENTRY_NAME)).setFlexGrow(2);
+                .setHeader(loc.getValue(M_L.LABEL_ENTRY_NAME)).setFlexGrow(2);
         grid.addColumn(verdict -> bookNames.getOrDefault(verdict.entry().getId(), ""))
-                .setHeader(loc.getValue(L.LABEL_LOREBOOK)).setFlexGrow(1);
-        grid.addColumn(verdict -> verdict.entry().getOrder()).setHeader(loc.getValue(L.LABEL_ORDER))
+                .setHeader(loc.getValue(M_L.LABEL_LOREBOOK)).setFlexGrow(1);
+        grid.addColumn(verdict -> verdict.entry().getOrder()).setHeader(loc.getValue(M_L.LABEL_ORDER))
                 .setFlexGrow(0).setWidth(UIConstants.TOOL_COLUMN_SIZE_LARGE);
         grid.addColumn(verdict -> verdict.depth() > 0 ? String.valueOf(verdict.depth()) : "")
-                .setHeader(loc.getValue(L.LABEL_ACTIVATION_PASS)).setFlexGrow(0).setWidth(UIConstants.TOOL_COLUMN_SIZE_LARGE);
-        grid.addColumn(verdict -> reason(verdict.verdict())).setHeader(loc.getValue(L.LABEL_REASON)).setFlexGrow(3);
+                .setHeader(loc.getValue(M_L.LABEL_ACTIVATION_PASS)).setFlexGrow(0).setWidth(UIConstants.TOOL_COLUMN_SIZE_LARGE);
+        grid.addColumn(verdict -> reason(verdict.verdict())).setHeader(loc.getValue(M_L.LABEL_REASON)).setFlexGrow(3);
 
         Button refresh = new Button(loc.getValue(L.LABEL_REFRESH), Solid.REFRESH.create(), event -> update());
         Button close = new Button(loc.getValue(L.LABEL_CLOSE), event -> close());
@@ -199,7 +200,7 @@ public class LorebookActivationPreviewDialog extends Dialog {
                     tokens += tokenizerService.countTokensApprox(StringUtils.defaultString(verdict.entry().getPayload()));
                 }
             }
-            summary.setText(String.format(loc.getValue(L.MSG_ACTIVATION_PREVIEW_SUMMARY), used, verdicts.size(), tokens));
+            summary.setText(String.format(loc.getValue(M_L.MSG_ACTIVATION_PREVIEW_SUMMARY), used, verdicts.size(), tokens));
             showFocus(verdicts);
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
@@ -245,7 +246,7 @@ public class LorebookActivationPreviewDialog extends Dialog {
             return;
         }
         boolean used = mine.verdict().activated();
-        focusLine.setText(String.format(loc.getValue(used ? L.MSG_ACTIVATION_PREVIEW_ENTRY_USED : L.MSG_ACTIVATION_PREVIEW_ENTRY_NOT_USED),
+        focusLine.setText(String.format(loc.getValue(used ? M_L.MSG_ACTIVATION_PREVIEW_ENTRY_USED : M_L.MSG_ACTIVATION_PREVIEW_ENTRY_NOT_USED),
                 StringUtils.defaultString(mine.entry().getName()), reason(mine.verdict())));
         focusLine.addClassName(used ? CssStyles.TEXT_SUCCESS : CssStyles.HINT_TEXT);
         grid.select(mine);

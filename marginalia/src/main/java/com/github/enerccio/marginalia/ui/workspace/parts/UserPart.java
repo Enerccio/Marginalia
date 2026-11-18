@@ -14,8 +14,10 @@ import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrateg
 import com.github.enerccio.marginalia.domain.templates.*;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
 import com.github.enerccio.marginalia.loc.Language;
-import com.github.enerccio.marginalia.loc.StoryLocalization;
+import com.github.enerccio.marginalia.loc.MarginaliaLocalization;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.LLMInteract;
@@ -79,7 +81,7 @@ public class UserPart implements WorkspaceComponent {
     private SessionPoint sessionPoint;
 
     @Autowired
-    private StoryLocalization loc;
+    private MarginaliaLocalization loc;
 
     @Autowired
     private SettingService settingService;
@@ -207,7 +209,7 @@ public class UserPart implements WorkspaceComponent {
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = String.class))
     public String getName() {
-        return loc.getValue(L.LABEL_SETTINGS);
+        return loc.getValue(M_L.LABEL_SETTINGS);
     }
 
     @PublicAPI(from = "1.1.0",
@@ -295,29 +297,29 @@ public class UserPart implements WorkspaceComponent {
         templatesFormLayout.add(defaultAgentCompactionPromptField);
         templatesFormLayout.setColspan(defaultAgentCompactionPromptField, 2);
 
-        tabSheet.add(loc.getValue(L.LABEL_TEMPLATES), templatesFormLayout);
+        tabSheet.add(loc.getValue(M_L.LABEL_TEMPLATES), templatesFormLayout);
 
-        tabSheet.add(loc.getValue(L.LABEL_STYLES), createStylesTab());
+        tabSheet.add(loc.getValue(M_L.LABEL_STYLES), createStylesTab());
 
-        tabSheet.add(loc.getValue(L.LABEL_EXPORTS), createExportsTab());
+        tabSheet.add(loc.getValue(M_L.LABEL_EXPORTS), createExportsTab());
 
         tagsView = new TagsView();
-        tabSheet.add(loc.getValue(L.LABEL_TAGS), tagsView);
+        tabSheet.add(loc.getValue(M_L.LABEL_TAGS), tagsView);
 
-        tabSheet.add(loc.getValue(L.LABEL_KEYBOARD_SHORTCUTS), createShortcutsTab());
+        tabSheet.add(loc.getValue(M_L.LABEL_KEYBOARD_SHORTCUTS), createShortcutsTab());
 
-        tabSheet.add(loc.getValue(L.LABEL_NOTIFICATIONS), createNotificationsTab());
+        tabSheet.add(loc.getValue(M_L.LABEL_NOTIFICATIONS), createNotificationsTab());
 
-        tabSheet.add(loc.getValue(L.LABEL_PHRASE_WATCH), createPhraseWatchTab());
+        tabSheet.add(loc.getValue(M_L.LABEL_PHRASE_WATCH), createPhraseWatchTab());
 
         // the keys are stored at once, not by the Save of the settings
-        tabSheet.add(loc.getValue(L.LABEL_API_KEYS), new ApiKeysView());
+        tabSheet.add(loc.getValue(M_L.LABEL_API_KEYS), new ApiKeysView());
 
         extensionSettings = new Accordion();
         extensionSettings.setSizeFull();
         // the first panel is open by default; the panels are added by the extensions and the user opens the one wanted
         extensionSettings.close();
-        tabSheet.add(loc.getValue(L.LABEL_EXTENSION_SETTINGS), extensionSettings);
+        tabSheet.add(loc.getValue(M_L.LABEL_EXTENSION_SETTINGS), extensionSettings);
 
         mainLayout.add(headerLayout, tabSheet);
         mainLayout.setFlexGrow(1, tabSheet);
@@ -341,7 +343,7 @@ public class UserPart implements WorkspaceComponent {
         VerticalLayout layout = new VerticalLayout();
         layout.setPadding(false);
         layout.setSizeFull();
-        Span help = new Span(loc.getValue(L.HELP_STYLES));
+        Span help = new Span(loc.getValue(M_L.HELP_STYLES));
         help.addClassName(CssStyles.TEXT_SECONDARY);
         PartStyleEditor editor = new PartStyleEditor(loc, partStyleService);
         editor.setOnChange(() -> {
@@ -368,7 +370,7 @@ public class UserPart implements WorkspaceComponent {
         VerticalLayout layout = new VerticalLayout();
         layout.setPadding(false);
         layout.setWidthFull();
-        Span help = new Span(loc.getValue(L.HELP_EXPORT_SETTINGS));
+        Span help = new Span(loc.getValue(M_L.HELP_EXPORT_SETTINGS));
         help.addClassName(CssStyles.TEXT_SECONDARY);
         ExportSettingsEditor editor = new ExportSettingsEditor(loc, exporterService, exportSettingsService, partStyleService, templateService);
         editor.setOnChange(() -> {
@@ -426,8 +428,8 @@ public class UserPart implements WorkspaceComponent {
                 setChanged(true);
             }
         });
-        H4 phrasesTitle = new H4(loc.getValue(L.LABEL_PHRASE_WATCH));
-        H4 templatesTitle = new H4(loc.getValue(L.LABEL_ANNOTATION_TEMPLATES));
+        H4 phrasesTitle = new H4(loc.getValue(M_L.LABEL_PHRASE_WATCH));
+        H4 templatesTitle = new H4(loc.getValue(M_L.LABEL_ANNOTATION_TEMPLATES));
         layout.add(phrasesTitle, watchedPhrasesEditor, templatesTitle, annotationTemplatesEditor);
         return layout;
     }
@@ -444,7 +446,7 @@ public class UserPart implements WorkspaceComponent {
         keyBindingsEditor.setWidthFull();
         VerticalLayout layout = new VerticalLayout();
         layout.setPadding(false);
-        Span help = new Span(loc.getValue(L.HELP_KEYBOARD_SHORTCUTS));
+        Span help = new Span(loc.getValue(M_L.HELP_KEYBOARD_SHORTCUTS));
         help.addClassName(CssStyles.TEXT_SECONDARY);
         layout.add(help, keyBindingsEditor);
         return layout;
@@ -468,7 +470,7 @@ public class UserPart implements WorkspaceComponent {
         Span titleSpan = createTitle();
         unsavedChangesSpan = createUnsavedChangesSpan();
 
-        Button importBackupAsNewButton = new Button(loc.getValue(L.LABEL_IMPORT_BACKUP_AS_NEW), event -> openImportBackupAsNewDialog());
+        Button importBackupAsNewButton = new Button(loc.getValue(M_L.LABEL_IMPORT_BACKUP_AS_NEW), event -> openImportBackupAsNewDialog());
 
         discardButton = createDiscardButton();
         Button saveButton = createSaveButton();
@@ -483,7 +485,7 @@ public class UserPart implements WorkspaceComponent {
             returns = @APIReturn(type = Span.class),
             locals = {@APILocals(name = "titleSpan", type = Span.class)})
     protected Span createTitle() {
-        Span titleSpan = new Span(loc.getValue(L.LABEL_SETTINGS));
+        Span titleSpan = new Span(loc.getValue(M_L.LABEL_SETTINGS));
         titleSpan.addClassName(CssStyles.SECTION_TITLE);
         return titleSpan;
     }
@@ -492,7 +494,7 @@ public class UserPart implements WorkspaceComponent {
             returns = @APIReturn(type = Span.class),
             locals = {@APILocals(name = "span", type = Span.class)})
     protected Span createUnsavedChangesSpan() {
-        Span span = new Span(loc.getValue(L.MSG_UNSAVED_SETTINGS));
+        Span span = new Span(loc.getValue(M_L.MSG_UNSAVED_SETTINGS));
         span.addClassName(CssStyles.TEXT_ERROR);
         span.setVisible(false);
         return span;
@@ -502,7 +504,7 @@ public class UserPart implements WorkspaceComponent {
             returns = @APIReturn(type = Button.class),
             locals = {@APILocals(name = "button", type = Button.class)})
     protected Button createDiscardButton() {
-        Button button = new Button(loc.getValue(L.LABEL_DISCARD_CHANGES), event -> discard());
+        Button button = new Button(loc.getValue(M_L.LABEL_DISCARD_CHANGES), event -> discard());
         button.setEnabled(false);
         return button;
     }
@@ -519,170 +521,170 @@ public class UserPart implements WorkspaceComponent {
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = void.class))
     private void createFields() {
-        defaultModelCombo = new ComboBox<>(loc.getValue(L.LABEL_DEFAULT_MODEL));
+        defaultModelCombo = new ComboBox<>(loc.getValue(M_L.LABEL_DEFAULT_MODEL));
         defaultModelCombo.setWidthFull();
         defaultModelCombo.setItemLabelGenerator(AI::getName);
         defaultModelCombo.setClearButtonVisible(true);
 
-        defaultProtocolCombo = new ComboBox<>(loc.getValue(L.LABEL_DEFAULT_PROTOCOL));
+        defaultProtocolCombo = new ComboBox<>(loc.getValue(M_L.LABEL_DEFAULT_PROTOCOL));
         defaultProtocolCombo.setWidthFull();
         defaultProtocolCombo.setItemLabelGenerator(Protocol::getName);
         defaultProtocolCombo.setClearButtonVisible(true);
 
-        defaultAnnotateModelCombo = new ComboBox<>(loc.getValue(L.LABEL_DEFAULT_ANNOTATE_MODEL));
+        defaultAnnotateModelCombo = new ComboBox<>(loc.getValue(M_L.LABEL_DEFAULT_ANNOTATE_MODEL));
         defaultAnnotateModelCombo.setWidthFull();
         defaultAnnotateModelCombo.setItemLabelGenerator(AI::getName);
         defaultAnnotateModelCombo.setClearButtonVisible(true);
 
-        defaultAnnotateProtocolCombo = new ComboBox<>(loc.getValue(L.LABEL_DEFAULT_ANNOTATE_PROTOCOL));
+        defaultAnnotateProtocolCombo = new ComboBox<>(loc.getValue(M_L.LABEL_DEFAULT_ANNOTATE_PROTOCOL));
         defaultAnnotateProtocolCombo.setWidthFull();
         defaultAnnotateProtocolCombo.setItemLabelGenerator(Protocol::getName);
         defaultAnnotateProtocolCombo.setClearButtonVisible(true);
 
-        backupStrategyCombo = new ComboBox<>(loc.getValue(L.LABEL_BACKUP_STRATEGY));
+        backupStrategyCombo = new ComboBox<>(loc.getValue(M_L.LABEL_BACKUP_STRATEGY));
         backupStrategyCombo.setWidthFull();
         backupStrategyCombo.setItems(BackupStrategy.values());
         backupStrategyCombo.setClearButtonVisible(true);
         backupStrategyCombo.setItemLabelGenerator(s -> {
             if (s == null) {
-                return loc.getValue(L.ENUM_BACKUP_STRATEGY_NONE);
+                return loc.getValue(M_L.ENUM_BACKUP_STRATEGY_NONE);
             }
             return loc.getValue(loc.getBackupStrategy(s));
         });
 
-        backupStrategyValueField = new IntegerField(loc.getValue(L.LABEL_BACKUP_STRATEGY_VALUE_MESSAGES));
+        backupStrategyValueField = new IntegerField(loc.getValue(M_L.LABEL_BACKUP_STRATEGY_VALUE_MESSAGES));
         backupStrategyValueField.setWidthFull();
         backupStrategyValueField.setMin(1);
         backupStrategyValueField.setStepButtonsVisible(true);
 
         backupStrategyCombo.addValueChangeListener(e -> updateBackupStrategyValueField(e.getValue()));
 
-        storyPartsLimitField = new IntegerField(loc.getValue(L.LABEL_STORY_PARTS_LIMIT));
+        storyPartsLimitField = new IntegerField(loc.getValue(M_L.LABEL_STORY_PARTS_LIMIT));
         storyPartsLimitField.setWidthFull();
         storyPartsLimitField.setMin(1);
         storyPartsLimitField.setStepButtonsVisible(true);
         storyPartsLimitField.setClearButtonVisible(true);
-        storyPartsLimitField.setHelperText(loc.getValue(L.HELP_STORY_PARTS_LIMIT));
+        storyPartsLimitField.setHelperText(loc.getValue(M_L.HELP_STORY_PARTS_LIMIT));
 
-        historyLimitField = new HistoryLimitField(loc.getValue(L.LABEL_HISTORY_MAX_VERSIONS));
+        historyLimitField = new HistoryLimitField(loc.getValue(M_L.LABEL_HISTORY_MAX_VERSIONS));
 
-        dailyGoalWordsField = goalField(L.LABEL_DAILY_GOAL_WORDS);
-        dailyGoalMinutesField = goalField(L.LABEL_DAILY_GOAL_MINUTES);
+        dailyGoalWordsField = goalField(M_L.LABEL_DAILY_GOAL_WORDS);
+        dailyGoalMinutesField = goalField(M_L.LABEL_DAILY_GOAL_MINUTES);
         // one help text for the two goals
         dailyGoalMinutesField.setHelperText(null);
 
-        statisticsRecordingBox = new Checkbox(loc.getValue(L.LABEL_STATISTICS_RECORD));
-        statisticsRecordingBox.setHelperText(loc.getValue(L.HELP_STATISTICS_RECORD));
-        statisticsKeepMonthsField = new IntegerField(loc.getValue(L.LABEL_STATISTICS_KEEP_MONTHS));
+        statisticsRecordingBox = new Checkbox(loc.getValue(M_L.LABEL_STATISTICS_RECORD));
+        statisticsRecordingBox.setHelperText(loc.getValue(M_L.HELP_STATISTICS_RECORD));
+        statisticsKeepMonthsField = new IntegerField(loc.getValue(M_L.LABEL_STATISTICS_KEEP_MONTHS));
         statisticsKeepMonthsField.setWidthFull();
         statisticsKeepMonthsField.setMin(0);
         statisticsKeepMonthsField.setStepButtonsVisible(true);
-        statisticsKeepMonthsField.setHelperText(loc.getValue(L.HELP_STATISTICS_KEEP_MONTHS));
+        statisticsKeepMonthsField.setHelperText(loc.getValue(M_L.HELP_STATISTICS_KEEP_MONTHS));
 
-        agentWebhookUrlField = new TextField(loc.getValue(L.LABEL_AGENT_WEBHOOK_URL));
+        agentWebhookUrlField = new TextField(loc.getValue(M_L.LABEL_AGENT_WEBHOOK_URL));
         agentWebhookUrlField.setWidthFull();
         agentWebhookUrlField.setClearButtonVisible(true);
-        agentWebhookUrlField.setHelperText(loc.getValue(L.HELP_AGENT_WEBHOOK_URL));
+        agentWebhookUrlField.setHelperText(loc.getValue(M_L.HELP_AGENT_WEBHOOK_URL));
         agentWebhookUrlField.setPlaceholder("https://ntfy.sh/...");
-        agentWebhookFormatCombo = new ComboBox<>(loc.getValue(L.LABEL_AGENT_WEBHOOK_FORMAT));
+        agentWebhookFormatCombo = new ComboBox<>(loc.getValue(M_L.LABEL_AGENT_WEBHOOK_FORMAT));
         agentWebhookFormatCombo.setItems(WebhookFormat.values());
         agentWebhookFormatCombo.setItemLabelGenerator(format -> loc.getValue(format.getLabel()));
         agentWebhookFormatCombo.setAllowCustomValue(false);
         agentWebhookFormatCombo.setClearButtonVisible(false);
         agentWebhookFormatCombo.setWidthFull();
-        agentWebhookAlwaysBox = new Checkbox(loc.getValue(L.LABEL_AGENT_WEBHOOK_ALWAYS));
-        agentWebhookTestButton = new Button(loc.getValue(L.LABEL_AGENT_WEBHOOK_TEST), event -> sendTestMessage());
+        agentWebhookAlwaysBox = new Checkbox(loc.getValue(M_L.LABEL_AGENT_WEBHOOK_ALWAYS));
+        agentWebhookTestButton = new Button(loc.getValue(M_L.LABEL_AGENT_WEBHOOK_TEST), event -> sendTestMessage());
 
-        promptLanguageCombo = new ComboBox<>(loc.getValue(L.LABEL_PROMPT_LANGUAGE));
+        promptLanguageCombo = new ComboBox<>(loc.getValue(M_L.LABEL_PROMPT_LANGUAGE));
         promptLanguageCombo.setItems(loc.getPromptLanguages());
         promptLanguageCombo.setItemLabelGenerator(language -> loc.getDefaults(language).getDisplayName());
         promptLanguageCombo.setAllowCustomValue(false);
-        promptLanguageCombo.setHelperText(loc.getValue(L.HELP_PROMPT_LANGUAGE));
+        promptLanguageCombo.setHelperText(loc.getValue(M_L.HELP_PROMPT_LANGUAGE));
         promptLanguageCombo.addValueChangeListener(e -> showDefaultPrompts(e.getValue()));
 
-        masterTemplateField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_MASTER_TEMPLATE));
+        masterTemplateField = new TextAreaPopoverComponent(loc.getValue(M_L.LABEL_MASTER_TEMPLATE));
         masterTemplateField.setWidthFull();
         ResizableTextArea.install(loc, masterTemplateField, "240px");
 
-        defaultUserPromptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_USER_PROMPT));
+        defaultUserPromptField = new TextAreaPopoverComponent(loc.getValue(M_L.LABEL_USER_PROMPT));
         defaultUserPromptField.setWidthFull();
         ResizableTextArea.install(loc, defaultUserPromptField, "240px");
 
-        defaultStyleField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_STYLE));
+        defaultStyleField = new TextAreaPopoverComponent(loc.getValue(M_L.LABEL_STYLE));
         defaultStyleField.setWidthFull();
         ResizableTextArea.install(loc, defaultStyleField, "160px");
 
-        defaultPovField = new TextFieldPopOverComponent(loc.getValue(L.LABEL_POV));
+        defaultPovField = new TextFieldPopOverComponent(loc.getValue(M_L.LABEL_POV));
         defaultPovField.setWidthFull();
 
-        defaultTenseField = new TextFieldPopOverComponent(loc.getValue(L.LABEL_TENSE));
+        defaultTenseField = new TextFieldPopOverComponent(loc.getValue(M_L.LABEL_TENSE));
         defaultTenseField.setWidthFull();
 
-        defaultSummaryPromptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_SUMMARY_PROMPT));
+        defaultSummaryPromptField = new TextAreaPopoverComponent(loc.getValue(M_L.LABEL_SUMMARY_PROMPT));
         defaultSummaryPromptField.setWidthFull();
         ResizableTextArea.install(loc, defaultSummaryPromptField, "160px");
 
-        defaultMetaSummaryPromptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_META_SUMMARY_PROMPT));
+        defaultMetaSummaryPromptField = new TextAreaPopoverComponent(loc.getValue(M_L.LABEL_META_SUMMARY_PROMPT));
         defaultMetaSummaryPromptField.setWidthFull();
         ResizableTextArea.install(loc, defaultMetaSummaryPromptField, "160px");
 
-        defaultAnnotateSystemPromptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_ANNOTATE_SYSTEM_PROMPT));
+        defaultAnnotateSystemPromptField = new TextAreaPopoverComponent(loc.getValue(M_L.LABEL_ANNOTATE_SYSTEM_PROMPT));
         defaultAnnotateSystemPromptField.setWidthFull();
-        defaultAnnotateSystemPromptField.setHelperText(loc.getValue(L.HELP_PART_SYSTEM_PROMPT));
+        defaultAnnotateSystemPromptField.setHelperText(loc.getValue(M_L.HELP_PART_SYSTEM_PROMPT));
         ResizableTextArea.install(loc, defaultAnnotateSystemPromptField, "160px");
 
-        defaultAnnotatePromptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_ANNOTATE_PROMPT));
+        defaultAnnotatePromptField = new TextAreaPopoverComponent(loc.getValue(M_L.LABEL_ANNOTATE_PROMPT));
         defaultAnnotatePromptField.setWidthFull();
-        defaultAnnotatePromptField.setHelperText(loc.getValue(L.HELP_PART_LAST_PROMPT));
+        defaultAnnotatePromptField.setHelperText(loc.getValue(M_L.HELP_PART_LAST_PROMPT));
         ResizableTextArea.install(loc, defaultAnnotatePromptField, "160px");
 
-        defaultAnnotateInstructionsField = new TextArea(loc.getValue(L.LABEL_ANNOTATE_INSTRUCTIONS));
+        defaultAnnotateInstructionsField = new TextArea(loc.getValue(M_L.LABEL_ANNOTATE_INSTRUCTIONS));
         defaultAnnotateInstructionsField.setWidthFull();
-        defaultAnnotateInstructionsField.setHelperText(loc.getValue(L.HELP_ANNOTATE_INSTRUCTIONS));
-        defaultAnnotateInstructionsField.setPlaceholder(loc.getValue(L.MSG_ANNOTATE_PLACEHOLDER));
+        defaultAnnotateInstructionsField.setHelperText(loc.getValue(M_L.HELP_ANNOTATE_INSTRUCTIONS));
+        defaultAnnotateInstructionsField.setPlaceholder(loc.getValue(M_L.MSG_ANNOTATE_PLACEHOLDER));
         ResizableTextArea.install(loc, defaultAnnotateInstructionsField, "100px");
 
-        defaultImpersonatePromptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_IMPERSONATE_PROMPT));
+        defaultImpersonatePromptField = new TextAreaPopoverComponent(loc.getValue(M_L.LABEL_IMPERSONATE_PROMPT));
         defaultImpersonatePromptField.setWidthFull();
         ResizableTextArea.install(loc, defaultImpersonatePromptField, "160px");
 
-        defaultRedraftSystemPromptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_REDRAFT_SYSTEM_PROMPT));
+        defaultRedraftSystemPromptField = new TextAreaPopoverComponent(loc.getValue(M_L.LABEL_REDRAFT_SYSTEM_PROMPT));
         defaultRedraftSystemPromptField.setWidthFull();
-        defaultRedraftSystemPromptField.setHelperText(loc.getValue(L.HELP_PART_SYSTEM_PROMPT));
+        defaultRedraftSystemPromptField.setHelperText(loc.getValue(M_L.HELP_PART_SYSTEM_PROMPT));
         ResizableTextArea.install(loc, defaultRedraftSystemPromptField, "160px");
 
-        defaultRedraftPromptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_REDRAFT_PROMPT));
+        defaultRedraftPromptField = new TextAreaPopoverComponent(loc.getValue(M_L.LABEL_REDRAFT_PROMPT));
         defaultRedraftPromptField.setWidthFull();
-        defaultRedraftPromptField.setHelperText(loc.getValue(L.HELP_PART_LAST_PROMPT));
+        defaultRedraftPromptField.setHelperText(loc.getValue(M_L.HELP_PART_LAST_PROMPT));
         ResizableTextArea.install(loc, defaultRedraftPromptField, "160px");
 
         // plain texts that the redraft adds to the instructions when it is asked to be shorter or longer
-        defaultRedraftShorterField = new TextArea(loc.getValue(L.LABEL_REDRAFT_SHORTER_PROMPT));
+        defaultRedraftShorterField = new TextArea(loc.getValue(M_L.LABEL_REDRAFT_SHORTER_PROMPT));
         defaultRedraftShorterField.setWidthFull();
-        defaultRedraftShorterField.setHelperText(loc.getValue(L.HELP_REDRAFT_LENGTH_PROMPT));
+        defaultRedraftShorterField.setHelperText(loc.getValue(M_L.HELP_REDRAFT_LENGTH_PROMPT));
         ResizableTextArea.install(loc, defaultRedraftShorterField, "100px");
 
-        defaultRedraftLongerField = new TextArea(loc.getValue(L.LABEL_REDRAFT_LONGER_PROMPT));
+        defaultRedraftLongerField = new TextArea(loc.getValue(M_L.LABEL_REDRAFT_LONGER_PROMPT));
         defaultRedraftLongerField.setWidthFull();
-        defaultRedraftLongerField.setHelperText(loc.getValue(L.HELP_REDRAFT_LENGTH_PROMPT));
+        defaultRedraftLongerField.setHelperText(loc.getValue(M_L.HELP_REDRAFT_LENGTH_PROMPT));
         ResizableTextArea.install(loc, defaultRedraftLongerField, "100px");
 
         // plain text, not a template; what it follows is the placeholder (see refreshAgentPrompt)
-        defaultAgentPromptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_AGENT_DEFAULT_PROMPT));
+        defaultAgentPromptField = new TextAreaPopoverComponent(loc.getValue(M_L.LABEL_AGENT_DEFAULT_PROMPT));
         defaultAgentPromptField.setWidthFull();
-        defaultAgentPromptField.setHelperText(loc.getValue(L.HELP_AGENT_DEFAULT_PROMPT_USER));
+        defaultAgentPromptField.setHelperText(loc.getValue(M_L.HELP_AGENT_DEFAULT_PROMPT_USER));
         ResizableTextArea.install(loc, defaultAgentPromptField, "160px");
 
         // plain text; blank is no instructions
-        defaultAgentInstructionsField = new TextArea(loc.getValue(L.LABEL_AGENT_DEFAULT_INSTRUCTIONS));
+        defaultAgentInstructionsField = new TextArea(loc.getValue(M_L.LABEL_AGENT_DEFAULT_INSTRUCTIONS));
         defaultAgentInstructionsField.setWidthFull();
         defaultAgentInstructionsField.setMaxLength(AgentService.MAX_INSTRUCTIONS_LENGTH);
-        defaultAgentInstructionsField.setHelperText(loc.getValue(L.HELP_AGENT_DEFAULT_INSTRUCTIONS_USER));
+        defaultAgentInstructionsField.setHelperText(loc.getValue(M_L.HELP_AGENT_DEFAULT_INSTRUCTIONS_USER));
         ResizableTextArea.install(loc, defaultAgentInstructionsField, "160px");
 
-        defaultAgentCompactionPromptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_AGENT_DEFAULT_COMPACTION_PROMPT));
+        defaultAgentCompactionPromptField = new TextAreaPopoverComponent(loc.getValue(M_L.LABEL_AGENT_DEFAULT_COMPACTION_PROMPT));
         defaultAgentCompactionPromptField.setWidthFull();
-        defaultAgentCompactionPromptField.setHelperText(loc.getValue(L.HELP_AGENT_DEFAULT_COMPACTION_PROMPT_USER));
+        defaultAgentCompactionPromptField.setHelperText(loc.getValue(M_L.HELP_AGENT_DEFAULT_COMPACTION_PROMPT_USER));
         ResizableTextArea.install(loc, defaultAgentCompactionPromptField, "160px");
     }
 
@@ -771,17 +773,17 @@ public class UserPart implements WorkspaceComponent {
      * The address, its format and the wish for the message while the application is open, into the setting. Only for a user who
      * sees them: they are hidden where the administrator turned the messages off, and what was set stays then.
      */
-    @PublicAPI(from = "1.6.0",
+    @PublicAPI(from = "1.9.0",
             returns = @APIReturn(type = IntegerField.class),
-            parameters = {@APIParameter(name = "label", type = L.class)},
+            parameters = {@APIParameter(name = "label", type = LocalizationKey.class)},
             locals = {@APILocals(name = "field", type = IntegerField.class)})
-    private IntegerField goalField(L label) {
+    private IntegerField goalField(LocalizationKey label) {
         IntegerField field = new IntegerField(loc.getValue(label));
         field.setWidthFull();
         field.setMin(1);
         field.setStepButtonsVisible(true);
         field.setClearButtonVisible(true);
-        field.setHelperText(loc.getValue(L.HELP_DAILY_GOAL));
+        field.setHelperText(loc.getValue(M_L.HELP_DAILY_GOAL));
         return field;
     }
 
@@ -813,9 +815,9 @@ public class UserPart implements WorkspaceComponent {
         String problem = agentWebhookService.sendTest(agentWebhookUrlField.getValue(),
                 agentWebhookFormatCombo.getValue() == null ? WebhookFormat.PLAIN : agentWebhookFormatCombo.getValue());
         if (problem == null) {
-            Notification.success(loc.getValue(L.MSG_AGENT_WEBHOOK_TEST_OK));
+            Notification.success(loc.getValue(M_L.MSG_AGENT_WEBHOOK_TEST_OK));
         } else {
-            Notification.warning(String.format(loc.getValue(L.MSG_AGENT_WEBHOOK_TEST_FAILED), problem));
+            Notification.warning(String.format(loc.getValue(M_L.MSG_AGENT_WEBHOOK_TEST_FAILED), problem));
         }
     }
 
@@ -827,10 +829,10 @@ public class UserPart implements WorkspaceComponent {
             backupStrategyValueField.setVisible(false);
         } else if (strategy == BackupStrategy.AFTER_N_MESSAGES) {
             backupStrategyValueField.setVisible(true);
-            backupStrategyValueField.setLabel(loc.getValue(L.LABEL_BACKUP_STRATEGY_VALUE_MESSAGES));
+            backupStrategyValueField.setLabel(loc.getValue(M_L.LABEL_BACKUP_STRATEGY_VALUE_MESSAGES));
         } else if (strategy == BackupStrategy.AFTER_N_MINUTES) {
             backupStrategyValueField.setVisible(true);
-            backupStrategyValueField.setLabel(loc.getValue(L.LABEL_BACKUP_STRATEGY_VALUE_MINUTES));
+            backupStrategyValueField.setLabel(loc.getValue(M_L.LABEL_BACKUP_STRATEGY_VALUE_MINUTES));
         }
     }
 
@@ -1255,7 +1257,7 @@ public class UserPart implements WorkspaceComponent {
                     @APILocals(name = "cancelBtn", type = Button.class)})
     protected void openImportBackupAsNewDialog() {
         Dialog dialog = new Dialog();
-        dialog.setHeaderTitle(loc.getValue(L.LABEL_IMPORT_BACKUP_AS_NEW));
+        dialog.setHeaderTitle(loc.getValue(M_L.LABEL_IMPORT_BACKUP_AS_NEW));
         dialog.setWidth("450px");
         UIUtils.fitPhone(dialog, false);
 
@@ -1263,7 +1265,7 @@ public class UserPart implements WorkspaceComponent {
         layout.setPadding(true);
         layout.setSpacing(true);
 
-        TextField nameField = new TextField(loc.getValue(L.LABEL_NEW_MANUSCRIPT_NAME));
+        TextField nameField = new TextField(loc.getValue(M_L.LABEL_NEW_MANUSCRIPT_NAME));
         nameField.setRequired(true);
         nameField.setWidthFull();
         nameField.setValueChangeMode(ValueChangeMode.EAGER);
@@ -1290,7 +1292,7 @@ public class UserPart implements WorkspaceComponent {
                     try {
                         Manuscript newManuscript = backupService.restoreAsNewManuscript(file, newName, decisions);
                         dialog.close();
-                        Notification.success(loc.getValue(L.LABEL_IMPORT_BACKUP) + ": " + newManuscript.getName());
+                        Notification.success(loc.getValue(M_L.LABEL_IMPORT_BACKUP) + ": " + newManuscript.getName());
                     } catch (IllegalArgumentException e) {
                         Notification.warning(e.getMessage());
                     } catch (Exception e) {

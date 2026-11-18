@@ -1,6 +1,8 @@
 package com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.write;
 
 import com.github.enerccio.marginalia.domain.service.command.CommandScope;
+import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
@@ -14,7 +16,6 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationO
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequest;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequestType;
 import com.github.enerccio.marginalia.domain.traits.*;
-import com.github.enerccio.marginalia.loc.L;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.vaadin.flow.component.UI;
@@ -343,13 +344,13 @@ public class StoryGenerationCommands extends ManuscriptWriteSupport {
             } else {
                 target = partHandle != null ? part(book, partHandle) : book.manuscript.getActiveLeaf();
                 if (target == null) {
-                    throw new IllegalStateException(loc.getValue(L.ERROR_COMMAND_NO_STORY));
+                    throw new IllegalStateException(loc.getValue(M_L.ERROR_COMMAND_NO_STORY));
                 }
                 if (!book.childrenOf(target).isEmpty()) {
-                    throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_PART_NOT_LAST));
+                    throw new IllegalArgumentException(loc.getValue(M_L.ERROR_COMMAND_PART_NOT_LAST));
                 }
                 if (type == GenerationRequestType.REGENERATE && !confirmed(context,
-                        String.format(loc.getValue(L.MSG_COMMAND_REGENERATE_CONFIRM), book.locate(target.getUuid(), null).position()))) {
+                        String.format(loc.getValue(M_L.MSG_COMMAND_REGENERATE_CONFIRM), book.locate(target.getUuid(), null).position()))) {
                     return;
                 }
                 activate(book, target);
@@ -365,7 +366,7 @@ public class StoryGenerationCommands extends ManuscriptWriteSupport {
                 case REGENERATE -> GenerationRequest.regenerate(target);
             };
 
-            context.setStatus(loc.getValue(L.MSG_COMMAND_GENERATING));
+            context.setStatus(loc.getValue(M_L.MSG_COMMAND_GENERATING));
             CompletableFuture<ChatMessage> done = new CompletableFuture<>();
             List<String> warnings = new CopyOnWriteArrayList<>();
             Manuscript fresh = CommandScope.of(context).getManuscript();
@@ -492,7 +493,7 @@ public class StoryGenerationCommands extends ManuscriptWriteSupport {
                     shown.onWaitingForModel(ahead);
                 }
                 if (ahead > 0) {
-                    context.setStatus(loc.getValue(L.MSG_COMMAND_WAITING_FOR_MODEL));
+                    context.setStatus(loc.getValue(M_L.MSG_COMMAND_WAITING_FOR_MODEL));
                 }
             }
 
@@ -501,7 +502,7 @@ public class StoryGenerationCommands extends ManuscriptWriteSupport {
                 if (shown != null) {
                     shown.onCancelled(partialMessage);
                 }
-                done.completeExceptionally(new CancellationException(loc.getValue(L.ERROR_COMMAND_GENERATION_CANCELLED)));
+                done.completeExceptionally(new CancellationException(loc.getValue(M_L.ERROR_COMMAND_GENERATION_CANCELLED)));
             }
 
             @Override

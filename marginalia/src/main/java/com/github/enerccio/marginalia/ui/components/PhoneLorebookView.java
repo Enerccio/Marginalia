@@ -14,7 +14,9 @@ import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
-import com.github.enerccio.marginalia.loc.StoryLocalization;
+import com.github.enerccio.marginalia.loc.M_L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
+import com.github.enerccio.marginalia.loc.MarginaliaLocalization;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.Restorable;
@@ -80,7 +82,7 @@ import java.util.stream.Collectors;
 public class PhoneLorebookView extends VerticalLayout implements Restorable, LLMInteract {
 
     @Autowired
-    private StoryLocalization loc;
+    private MarginaliaLocalization loc;
 
     @Autowired
     private LorebookService lorebookService;
@@ -178,7 +180,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
         setPadding(false);
         setSpacing(true);
 
-        lorebookCombo = new ComboBox<>(loc.getValue(L.LABEL_LOREBOOK));
+        lorebookCombo = new ComboBox<>(loc.getValue(M_L.LABEL_LOREBOOK));
         lorebookCombo.setItemLabelGenerator(Lorebook::getName);
         lorebookCombo.setWidthFull();
         lorebookCombo.setVisible(!pinnedLorebook);
@@ -200,7 +202,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
         });
 
         lorebookMenuButton = new Button(Solid.ELLIPSIS_V.create());
-        lorebookMenuButton.setAriaLabel(loc.getValue(L.LABEL_LOREBOOKS));
+        lorebookMenuButton.setAriaLabel(loc.getValue(M_L.LABEL_LOREBOOKS));
         createLorebookMenu();
 
         HorizontalLayout controlsLayout = new HorizontalLayout(lorebookCombo, lorebookMenuButton, refreshButton);
@@ -210,7 +212,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
         // a pinned lorebook has no box to choose from, it still has the menu (export, description) and the refresh
         controlsLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
 
-        lorebookEnabledCheckbox = new Checkbox(loc.getValue(L.LABEL_ENABLED));
+        lorebookEnabledCheckbox = new Checkbox(loc.getValue(M_L.LABEL_ENABLED));
         lorebookEnabledCheckbox.addValueChangeListener(e -> {
             if (currentLorebook != null && e.isFromClient()) {
                 try {
@@ -225,13 +227,13 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
         lorebookTokensSpan = createTokensSpan();
 
         searchReplaceButton = new Button(Solid.EXCHANGE_ALT.create(), _ -> openSearchReplaceDialog());
-        searchReplaceButton.setTooltipText(loc.getValue(L.LABEL_SEARCH_AND_REPLACE));
+        searchReplaceButton.setTooltipText(loc.getValue(M_L.LABEL_SEARCH_AND_REPLACE));
 
         previewActivationButton = new Button(Solid.EYE.create(), _ -> openActivationPreview());
-        previewActivationButton.setTooltipText(loc.getValue(L.LABEL_PREVIEW_ACTIVATION));
+        previewActivationButton.setTooltipText(loc.getValue(M_L.LABEL_PREVIEW_ACTIVATION));
 
         entrySearchField = new TextField();
-        entrySearchField.setPlaceholder(loc.getValue(L.LABEL_SEARCH));
+        entrySearchField.setPlaceholder(loc.getValue(M_L.LABEL_SEARCH));
         entrySearchField.setPrefixComponent(Solid.SEARCH.create());
         entrySearchField.setClearButtonVisible(true);
         entrySearchField.setWidthFull();
@@ -256,11 +258,11 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
         deleteSelectedButton.setWidthFull();
         deleteSelectedButton.setVisible(false);
 
-        addEntryButton = new Button(loc.getValue(L.LABEL_ADD_ENTRY), Solid.PLUS_CIRCLE.create(), _ -> createNewEntry());
+        addEntryButton = new Button(loc.getValue(M_L.LABEL_ADD_ENTRY), Solid.PLUS_CIRCLE.create(), _ -> createNewEntry());
         addEntryButton.setThemeName("primary");
 
         entriesMenuButton = new Button(Solid.ELLIPSIS_V.create());
-        entriesMenuButton.setAriaLabel(loc.getValue(L.LABEL_ENTRIES));
+        entriesMenuButton.setAriaLabel(loc.getValue(M_L.LABEL_ENTRIES));
         createEntriesMenu();
 
         HorizontalLayout enabledLayout = new HorizontalLayout(lorebookEnabledCheckbox, lorebookTokensSpan, searchReplaceButton, previewActivationButton);
@@ -319,30 +321,30 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
         lorebookMenu.setOpenOnClick(true);
 
         if (!pinnedLorebook) {
-            lorebookMenuItems.add(lorebookMenu.addItem(loc.getValue(L.LABEL_ADD_LOREBOOK), _ -> createNewLorebook()));
-            lorebookMenuItems.add(lorebookMenu.addItem(loc.getValue(L.LABEL_CLONE_LOREBOOK), _ -> cloneCurrentLorebook()));
-            deleteLorebookItem = lorebookMenu.addItem(loc.getValue(L.LABEL_DELETE_LOREBOOK), _ -> deleteCurrentLorebook());
+            lorebookMenuItems.add(lorebookMenu.addItem(loc.getValue(M_L.LABEL_ADD_LOREBOOK), _ -> createNewLorebook()));
+            lorebookMenuItems.add(lorebookMenu.addItem(loc.getValue(M_L.LABEL_CLONE_LOREBOOK), _ -> cloneCurrentLorebook()));
+            deleteLorebookItem = lorebookMenu.addItem(loc.getValue(M_L.LABEL_DELETE_LOREBOOK), _ -> deleteCurrentLorebook());
             lorebookMenuItems.add(deleteLorebookItem);
 
-            MenuItem importItem = lorebookMenu.addItem(loc.getValue(L.LABEL_IMPORT));
-            importItem.getSubMenu().addItem(loc.getValue(L.LABEL_IMPORT_LOREBOOK), _ ->
-                    openImportDialog(loc.getValue(L.LABEL_IMPORT_LOREBOOK), lorebookService::importLorebook));
-            importItem.getSubMenu().addItem(loc.getValue(L.LABEL_IMPORT_FROM_SILLYTAVERN), _ ->
-                    openImportDialog(loc.getValue(L.LABEL_IMPORT_FROM_SILLYTAVERN), lorebookService::importFromSillytavern));
-            importItem.getSubMenu().addItem(loc.getValue(L.LABEL_IMPORT_FROM_ARCHIVE), _ -> openArchiveImportDialog());
-            importItem.getSubMenu().addItem(loc.getValue(L.LABEL_IMPORT_FROM_OTHER_USER), _ ->
+            MenuItem importItem = lorebookMenu.addItem(loc.getValue(M_L.LABEL_IMPORT));
+            importItem.getSubMenu().addItem(loc.getValue(M_L.LABEL_IMPORT_LOREBOOK), _ ->
+                    openImportDialog(loc.getValue(M_L.LABEL_IMPORT_LOREBOOK), lorebookService::importLorebook));
+            importItem.getSubMenu().addItem(loc.getValue(M_L.LABEL_IMPORT_FROM_SILLYTAVERN), _ ->
+                    openImportDialog(loc.getValue(M_L.LABEL_IMPORT_FROM_SILLYTAVERN), lorebookService::importFromSillytavern));
+            importItem.getSubMenu().addItem(loc.getValue(M_L.LABEL_IMPORT_FROM_ARCHIVE), _ -> openArchiveImportDialog());
+            importItem.getSubMenu().addItem(loc.getValue(M_L.LABEL_IMPORT_FROM_OTHER_USER), _ ->
                     SharedImportDialog.forLorebooks(loc, lorebookService, this::showImported).open());
             lorebookMenuItems.add(importItem);
         }
 
-        exportItem = lorebookMenu.addItem(loc.getValue(L.LABEL_EXPORT_LOREBOOK));
-        exportItem.getSubMenu().addItem(createExportLink(loc.getValue(L.LABEL_EXPORT_LOREBOOK), lorebookService::exportLorebook));
-        exportItem.getSubMenu().addItem(createExportLink(loc.getValue(L.LABEL_EXPORT_TO_SILLYTAVERN), lorebookService::exportToSillytavern));
+        exportItem = lorebookMenu.addItem(loc.getValue(M_L.LABEL_EXPORT_LOREBOOK));
+        exportItem.getSubMenu().addItem(createExportLink(loc.getValue(M_L.LABEL_EXPORT_LOREBOOK), lorebookService::exportLorebook));
+        exportItem.getSubMenu().addItem(createExportLink(loc.getValue(M_L.LABEL_EXPORT_TO_SILLYTAVERN), lorebookService::exportToSillytavern));
 
         if (!pinnedLorebook) {
-            lorebookMenuItems.add(lorebookMenu.addItem(loc.getValue(L.LABEL_TAG_LOREBOOKS), _ -> openTagDialog(false)));
+            lorebookMenuItems.add(lorebookMenu.addItem(loc.getValue(M_L.LABEL_TAG_LOREBOOKS), _ -> openTagDialog(false)));
         }
-        lorebookMenuItems.add(lorebookMenu.addItem(loc.getValue(L.LABEL_EDIT_DESCRIPTION), _ -> editDescription()));
+        lorebookMenuItems.add(lorebookMenu.addItem(loc.getValue(M_L.LABEL_EDIT_DESCRIPTION), _ -> editDescription()));
     }
 
     /**
@@ -355,9 +357,9 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
         ContextMenu menu = new ContextMenu();
         menu.setTarget(entriesMenuButton);
         menu.setOpenOnClick(true);
-        menu.addItem(loc.getValue(L.LABEL_MASS_EDIT), _ -> openMassEditDialog());
-        menu.addItem(loc.getValue(L.LABEL_TAG_ENTRIES), _ -> openTagDialog(true));
-        selectEntriesItem = menu.addItem(loc.getValue(L.LABEL_SELECT_ENTRIES), _ -> toggleSelection());
+        menu.addItem(loc.getValue(M_L.LABEL_MASS_EDIT), _ -> openMassEditDialog());
+        menu.addItem(loc.getValue(M_L.LABEL_TAG_ENTRIES), _ -> openTagDialog(true));
+        selectEntriesItem = menu.addItem(loc.getValue(M_L.LABEL_SELECT_ENTRIES), _ -> toggleSelection());
         selectEntriesItem.setCheckable(true);
     }
 
@@ -376,7 +378,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
                 try {
                     if (StringUtils.isBlank(e.getValue())) {
                         lorebookNameField.setInvalid(true);
-                        lorebookNameField.setErrorMessage(loc.getValue(L.ERROR_NAME_CANT_BE_EMPTY));
+                        lorebookNameField.setErrorMessage(loc.getValue(M_L.ERROR_NAME_CANT_BE_EMPTY));
                     } else {
                         lorebookNameField.setInvalid(false);
                         lorebookNameField.setErrorMessage("");
@@ -393,7 +395,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
             }
         });
 
-        subLorebooksCombo = new MultiSelectComboBox<>(loc.getValue(L.LABEL_SUB_LOREBOOKS));
+        subLorebooksCombo = new MultiSelectComboBox<>(loc.getValue(M_L.LABEL_SUB_LOREBOOKS));
         subLorebooksCombo.setItemLabelGenerator(Lorebook::getName);
         subLorebooksCombo.setWidthFull();
         subLorebooksCombo.addValueChangeListener(e -> {
@@ -402,7 +404,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
                     currentLorebook = lorebookService.setSubbooks(currentLorebook, e.getValue());
                     updateLorebookInfo();
                 } catch (LorebookCycleException ex) {
-                    Notification.warning(loc.getValue(L.MSG_CYCLE_DETECTED));
+                    Notification.warning(loc.getValue(M_L.MSG_CYCLE_DETECTED));
                     subLorebooksCombo.setValue(e.getOldValue() != null ? e.getOldValue() : Collections.emptySet());
                 } catch (Exception ex) {
                     UIUtils.internalServerError(loc, ex);
@@ -410,15 +412,15 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
             }
         });
 
-        tagMultiComboBox = new TagMultiComboBox(loc.getValue(L.LABEL_TAGS));
+        tagMultiComboBox = new TagMultiComboBox(loc.getValue(M_L.LABEL_TAGS));
         tagMultiComboBox.setWidthFull();
 
-        scanDepthField = new IntegerField(loc.getValue(L.LABEL_SCAN_DEPTH));
+        scanDepthField = new IntegerField(loc.getValue(M_L.LABEL_SCAN_DEPTH));
         scanDepthField.setMin(0);
         scanDepthField.setMax(LorebookActivationService.MAX_SCAN_DEPTH);
         scanDepthField.setStepButtonsVisible(true);
         scanDepthField.setWidthFull();
-        scanDepthField.setHelperText(loc.getValue(L.HELP_SCAN_DEPTH));
+        scanDepthField.setHelperText(loc.getValue(M_L.HELP_SCAN_DEPTH));
         scanDepthField.addValueChangeListener(e -> {
             if (currentLorebook != null && e.isFromClient() && e.getValue() != null) {
                 try {
@@ -431,13 +433,13 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
         });
 
         // empty = the scan depth of the lorebook the book uses; only counts while this lorebook is a sub lorebook of another
-        ownScanDepthField = new IntegerField(loc.getValue(L.LABEL_OWN_SCAN_DEPTH));
+        ownScanDepthField = new IntegerField(loc.getValue(M_L.LABEL_OWN_SCAN_DEPTH));
         ownScanDepthField.setMin(0);
         ownScanDepthField.setMax(LorebookActivationService.MAX_SCAN_DEPTH);
         ownScanDepthField.setStepButtonsVisible(true);
         ownScanDepthField.setClearButtonVisible(true);
         ownScanDepthField.setWidthFull();
-        ownScanDepthField.setHelperText(loc.getValue(L.HELP_OWN_SCAN_DEPTH));
+        ownScanDepthField.setHelperText(loc.getValue(M_L.HELP_OWN_SCAN_DEPTH));
         ownScanDepthField.addValueChangeListener(e -> {
             if (currentLorebook != null && e.isFromClient()) {
                 try {
@@ -451,7 +453,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
         });
 
         lorebookSharedCheckbox = new Checkbox(loc.getValue(L.LABEL_SHARE_WITH_OTHER_USERS));
-        lorebookSharedCheckbox.setHelperText(loc.getValue(L.HELP_LOREBOOK_SHARED));
+        lorebookSharedCheckbox.setHelperText(loc.getValue(M_L.HELP_LOREBOOK_SHARED));
         lorebookSharedCheckbox.addValueChangeListener(e -> {
             if (currentLorebook != null && e.isFromClient()) {
                 changeShared(Boolean.TRUE.equals(e.getValue()));
@@ -462,7 +464,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
         content.setPadding(false);
         content.setSpacing(false);
         content.getThemeList().add("spacing-xs");
-        settingsDetails = new Details(loc.getValue(L.LABEL_SETTINGS), content);
+        settingsDetails = new Details(loc.getValue(M_L.LABEL_SETTINGS), content);
         settingsDetails.setWidthFull();
 
         lorebookDescriptionLine = new Span();
@@ -533,7 +535,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
                 dialog.close();
                 showImported(importedLorebook);
             } catch (IllegalArgumentException | JsonParseException e) {
-                Notification.warning(loc.getValue(L.MSG_INVALID_LOREBOOK_FILE));
+                Notification.warning(loc.getValue(M_L.MSG_INVALID_LOREBOOK_FILE));
             } catch (Exception e) {
                 UIUtils.internalServerError(loc, e);
             }
@@ -553,7 +555,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
     @PublicAPI(from = "1.7.0",
             returns = @APIReturn(type = void.class))
     private void openArchiveImportDialog() {
-        ArchiveUploadDialog.show(loc.getValue(L.LABEL_IMPORT_FROM_ARCHIVE), loc.getValue(L.MSG_IMPORT_FROM_ARCHIVE),
+        ArchiveUploadDialog.show(loc.getValue(M_L.LABEL_IMPORT_FROM_ARCHIVE), loc.getValue(M_L.MSG_IMPORT_FROM_ARCHIVE),
                 (archive, fileName) -> {
                     MarkdownArchive.Content content = MarkdownArchive.read(archive);
                     ArchiveEntryNamesDialog.show(content, names ->
@@ -599,7 +601,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
                 return;
             }
             lorebookSharedCheckbox.setValue(false);
-            ConfirmDialog.show(String.format(loc.getValue(L.MSG_SHARE_SUB_LOREBOOKS), unshared.size()),
+            ConfirmDialog.show(String.format(loc.getValue(M_L.MSG_SHARE_SUB_LOREBOOKS), unshared.size()),
                     () -> shareLorebook(true), () -> shareLorebook(false), true);
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
@@ -625,7 +627,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
         if (currentLorebook == null) {
             return;
         }
-        DescriptionDialog.show(loc, loc.getValue(L.LABEL_EDIT_DESCRIPTION), currentLorebook.getDescription(), text -> {
+        DescriptionDialog.show(loc, loc.getValue(M_L.LABEL_EDIT_DESCRIPTION), currentLorebook.getDescription(), text -> {
             try {
                 currentLorebook.setDescription(StringUtils.trimToNull(text));
                 currentLorebook = lorebookService.save(currentLorebook);
@@ -652,7 +654,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
     private void createNewLorebook() {
         try {
             Lorebook newLorebook = new Lorebook();
-            newLorebook.setName(loc.getValue(L.LABEL_NEW_LOREBOOK));
+            newLorebook.setName(loc.getValue(M_L.LABEL_NEW_LOREBOOK));
             newLorebook.setEnabled(true);
             currentLorebook = lorebookService.save(newLorebook);
             openEntries.clear();
@@ -671,7 +673,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
             return;
         }
         Lorebook source = currentLorebook;
-        CloneNameDialog.show(loc, loc.getValue(L.LABEL_CLONE_LOREBOOK), source.getName(), name -> {
+        CloneNameDialog.show(loc, loc.getValue(M_L.LABEL_CLONE_LOREBOOK), source.getName(), name -> {
             try {
                 currentLorebook = lorebookService.cloneLorebook(source, name);
                 openEntries.clear();
@@ -713,7 +715,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
         try {
             LorebookEntry entry = new LorebookEntry();
             entry.setLorebook(currentLorebook);
-            entry.setName(loc.getValue(L.LABEL_NEW_LOREBOOK_ENTRY));
+            entry.setName(loc.getValue(M_L.LABEL_NEW_LOREBOOK_ENTRY));
             entry.setEnabled(true);
             entry.setOrder(100);
             lorebookEntryService.save(entry);
@@ -790,7 +792,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
                     @APILocals(name = "commentField", type = TextArea.class),
                     @APILocals(name = "deleteButton", type = Button.class)})
     private List<Component> createEntryFields(VerticalLayout detailsLayout, LorebookEntry entry) {
-        TextField nameField = new TextField(loc.getValue(L.LABEL_ENTRY_NAME));
+        TextField nameField = new TextField(loc.getValue(M_L.LABEL_ENTRY_NAME));
         nameField.setWidthFull();
         nameField.setValue(StringUtils.defaultString(entry.getName()));
         nameField.addValueChangeListener(e -> {
@@ -800,7 +802,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
             }
         });
 
-        IntegerField orderField = new IntegerField(loc.getValue(L.LABEL_ORDER));
+        IntegerField orderField = new IntegerField(loc.getValue(M_L.LABEL_ORDER));
         orderField.setWidthFull();
         orderField.setValue(entry.getOrder());
         orderField.addValueChangeListener(e -> {
@@ -810,11 +812,11 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
             }
         });
 
-        TagMultiComboBox tagCombo = new TagMultiComboBox(loc.getValue(L.LABEL_TAGS));
+        TagMultiComboBox tagCombo = new TagMultiComboBox(loc.getValue(M_L.LABEL_TAGS));
         tagCombo.setWidthFull();
         tagCombo.setForEntity(entry);
 
-        ComboBox<FilteringMode> filteringModeCombo = new ComboBox<>(loc.getValue(L.LABEL_FILTERING_MODE));
+        ComboBox<FilteringMode> filteringModeCombo = new ComboBox<>(loc.getValue(M_L.LABEL_FILTERING_MODE));
         filteringModeCombo.setItems(FilteringMode.values());
         filteringModeCombo.setItemLabelGenerator(mode -> loc.getValue(loc.getFilteringMode(mode)));
         filteringModeCombo.setValue(entry.getFilteringMode());
@@ -826,7 +828,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
             }
         });
 
-        TextField filteringField = new TextField(loc.getValue(L.LABEL_FILTERING));
+        TextField filteringField = new TextField(loc.getValue(M_L.LABEL_FILTERING));
         filteringField.setWidthFull();
         filteringField.setValue(StringUtils.defaultString(entry.getFiltering()));
         filteringField.addValueChangeListener(e -> {
@@ -836,7 +838,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
             }
         });
 
-        ComboBox<InsertionMode> insertionModeCombo = new ComboBox<>(loc.getValue(L.LABEL_INSERTION_MODE));
+        ComboBox<InsertionMode> insertionModeCombo = new ComboBox<>(loc.getValue(M_L.LABEL_INSERTION_MODE));
         insertionModeCombo.setItems(InsertionMode.values());
         insertionModeCombo.setItemLabelGenerator(mode -> loc.getValue(loc.getInsertionMode(mode)));
         insertionModeCombo.setValue(entry.getInsertionMode());
@@ -848,17 +850,17 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
             }
         });
 
-        TagMultiComboBox negativeTagCombo = new TagMultiComboBox(loc.getValue(L.LABEL_NEGATIVE_TAGS), true);
+        TagMultiComboBox negativeTagCombo = new TagMultiComboBox(loc.getValue(M_L.LABEL_NEGATIVE_TAGS), true);
         negativeTagCombo.setWidthFull();
         negativeTagCombo.setForEntity(entry, true);
 
-        IntegerField activationPartsField = new IntegerField(loc.getValue(L.LABEL_PARTS));
+        IntegerField activationPartsField = new IntegerField(loc.getValue(M_L.LABEL_PARTS));
         activationPartsField.setWidthFull();
         activationPartsField.setMin(1);
         activationPartsField.setStepButtonsVisible(true);
         activationPartsField.setValue(entry.getActivationParts());
         activationPartsField.setVisible(entry.getActivationContext() == ActivationContext.INCLUDE_PARTS);
-        activationPartsField.setHelperText(loc.getValue(L.HELP_ACTIVATION_PARTS));
+        activationPartsField.setHelperText(loc.getValue(M_L.HELP_ACTIVATION_PARTS));
         activationPartsField.addValueChangeListener(e -> {
             if (e.isFromClient() && e.getValue() != null) {
                 entry.setActivationParts(e.getValue());
@@ -866,7 +868,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
             }
         });
 
-        ComboBox<ActivationContext> activationContextCombo = new ComboBox<>(loc.getValue(L.LABEL_ACTIVATION_CONTEXT));
+        ComboBox<ActivationContext> activationContextCombo = new ComboBox<>(loc.getValue(M_L.LABEL_ACTIVATION_CONTEXT));
         activationContextCombo.setItems(ActivationContext.values());
         activationContextCombo.setItemLabelGenerator(context -> loc.getValue(loc.getActivationContext(context)));
         activationContextCombo.setAllowCustomValue(false);
@@ -880,12 +882,12 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
             }
         });
 
-        IntegerField fromMessageField = new IntegerField(loc.getValue(L.LABEL_FROM_MESSAGE));
+        IntegerField fromMessageField = new IntegerField(loc.getValue(M_L.LABEL_FROM_MESSAGE));
         fromMessageField.setWidthFull();
         fromMessageField.setMin(1);
         fromMessageField.setStepButtonsVisible(true);
         fromMessageField.setValue(entry.getFromMessage());
-        fromMessageField.setHelperText(loc.getValue(L.HELP_ACTIVATION_RANGE));
+        fromMessageField.setHelperText(loc.getValue(M_L.HELP_ACTIVATION_RANGE));
         fromMessageField.addValueChangeListener(e -> {
             if (e.isFromClient()) {
                 entry.setFromMessage(e.getValue());
@@ -893,7 +895,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
             }
         });
 
-        IntegerField toMessageField = new IntegerField(loc.getValue(L.LABEL_TO_MESSAGE));
+        IntegerField toMessageField = new IntegerField(loc.getValue(M_L.LABEL_TO_MESSAGE));
         toMessageField.setWidthFull();
         toMessageField.setMin(1);
         toMessageField.setStepButtonsVisible(true);
@@ -907,8 +909,8 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
 
         TextArea conditionField = LoreConditionField.create(loc, templateService, entry, () -> saveEntry(entry));
 
-        Checkbox preventRecursionCheckbox = new Checkbox(loc.getValue(L.LABEL_PREVENT_RECURSION), entry.isPreventRecursion());
-        preventRecursionCheckbox.setHelperText(loc.getValue(L.HELP_PREVENT_RECURSION));
+        Checkbox preventRecursionCheckbox = new Checkbox(loc.getValue(M_L.LABEL_PREVENT_RECURSION), entry.isPreventRecursion());
+        preventRecursionCheckbox.setHelperText(loc.getValue(M_L.HELP_PREVENT_RECURSION));
         preventRecursionCheckbox.addValueChangeListener(e -> {
             if (e.isFromClient()) {
                 entry.setPreventRecursion(Boolean.TRUE.equals(e.getValue()));
@@ -916,8 +918,8 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
             }
         });
 
-        Checkbox recursionOnlyCheckbox = new Checkbox(loc.getValue(L.LABEL_RECURSION_ONLY), entry.isRecursionOnly());
-        recursionOnlyCheckbox.setHelperText(loc.getValue(L.HELP_RECURSION_ONLY));
+        Checkbox recursionOnlyCheckbox = new Checkbox(loc.getValue(M_L.LABEL_RECURSION_ONLY), entry.isRecursionOnly());
+        recursionOnlyCheckbox.setHelperText(loc.getValue(M_L.HELP_RECURSION_ONLY));
         recursionOnlyCheckbox.addValueChangeListener(e -> {
             if (e.isFromClient()) {
                 entry.setRecursionOnly(Boolean.TRUE.equals(e.getValue()));
@@ -925,8 +927,8 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
             }
         });
 
-        Checkbox activationSummariesCheckbox = new Checkbox(loc.getValue(L.LABEL_ACTIVATION_SUMMARIES), entry.isActivationSummaries());
-        activationSummariesCheckbox.setHelperText(loc.getValue(L.HELP_ACTIVATION_SUMMARIES));
+        Checkbox activationSummariesCheckbox = new Checkbox(loc.getValue(M_L.LABEL_ACTIVATION_SUMMARIES), entry.isActivationSummaries());
+        activationSummariesCheckbox.setHelperText(loc.getValue(M_L.HELP_ACTIVATION_SUMMARIES));
         activationSummariesCheckbox.addValueChangeListener(e -> {
             if (e.isFromClient()) {
                 entry.setActivationSummaries(Boolean.TRUE.equals(e.getValue()));
@@ -934,7 +936,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
             }
         });
 
-        TextArea commentField = new TextArea(loc.getValue(L.LABEL_NOTE));
+        TextArea commentField = new TextArea(loc.getValue(M_L.LABEL_NOTE));
         commentField.setWidthFull();
         ResizableTextArea.install(loc, commentField, "100px");
         commentField.setValue(StringUtils.defaultString(entry.getComment()));
@@ -945,7 +947,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
             }
         });
 
-        Button deleteButton = new Button(loc.getValue(L.LABEL_DELETE_ENTRY), Solid.TRASH.create(), _ -> deleteEntry(entry));
+        Button deleteButton = new Button(loc.getValue(M_L.LABEL_DELETE_ENTRY), Solid.TRASH.create(), _ -> deleteEntry(entry));
         deleteButton.setThemeName("error");
 
         detailsLayout.add(nameField, orderField, tagCombo);
@@ -1017,36 +1019,36 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
         if (lockedBy == null) {
             belowContent = createEntryFields(detailsLayout, entry);
         } else {
-            detailsLayout.add(infoSpan(L.LABEL_ENTRY_NAME, entry.getName()));
-            detailsLayout.add(infoSpan(L.LABEL_ORDER, String.valueOf(entry.getOrder())));
-            detailsLayout.add(infoSpan(L.LABEL_TAGS, tagsOf(entry, false)));
-            detailsLayout.add(infoSpan(L.LABEL_FILTERING_MODE,
+            detailsLayout.add(infoSpan(M_L.LABEL_ENTRY_NAME, entry.getName()));
+            detailsLayout.add(infoSpan(M_L.LABEL_ORDER, String.valueOf(entry.getOrder())));
+            detailsLayout.add(infoSpan(M_L.LABEL_TAGS, tagsOf(entry, false)));
+            detailsLayout.add(infoSpan(M_L.LABEL_FILTERING_MODE,
                     entry.getFilteringMode() != null ? loc.getValue(loc.getFilteringMode(entry.getFilteringMode())) : null));
-            detailsLayout.add(infoSpan(L.LABEL_FILTERING, entry.getFiltering()));
-            detailsLayout.add(infoSpan(L.LABEL_INSERTION_MODE,
+            detailsLayout.add(infoSpan(M_L.LABEL_FILTERING, entry.getFiltering()));
+            detailsLayout.add(infoSpan(M_L.LABEL_INSERTION_MODE,
                     entry.getInsertionMode() != null ? loc.getValue(loc.getInsertionMode(entry.getInsertionMode())) : null));
-            detailsLayout.add(infoSpan(L.LABEL_NEGATIVE_TAGS, tagsOf(entry, true)));
+            detailsLayout.add(infoSpan(M_L.LABEL_NEGATIVE_TAGS, tagsOf(entry, true)));
             if (entry.getActivationContext() == ActivationContext.INCLUDE_PARTS) {
-                detailsLayout.add(infoSpan(L.LABEL_ACTIVATION_CONTEXT,
+                detailsLayout.add(infoSpan(M_L.LABEL_ACTIVATION_CONTEXT,
                         loc.getValue(loc.getActivationContext(entry.getActivationContext())) + " (" + entry.getActivationParts() + ")"));
             }
             if (entry.getFromMessage() != null) {
-                detailsLayout.add(infoSpan(L.LABEL_FROM_MESSAGE, String.valueOf(entry.getFromMessage())));
+                detailsLayout.add(infoSpan(M_L.LABEL_FROM_MESSAGE, String.valueOf(entry.getFromMessage())));
             }
             if (entry.getToMessage() != null) {
-                detailsLayout.add(infoSpan(L.LABEL_TO_MESSAGE, String.valueOf(entry.getToMessage())));
+                detailsLayout.add(infoSpan(M_L.LABEL_TO_MESSAGE, String.valueOf(entry.getToMessage())));
             }
             if (entry.hasActivationCondition()) {
-                detailsLayout.add(infoSpan(L.LABEL_ACTIVATION_CONDITION, entry.getActivationCondition()));
+                detailsLayout.add(infoSpan(M_L.LABEL_ACTIVATION_CONDITION, entry.getActivationCondition()));
             }
             if (entry.isPreventRecursion()) {
-                detailsLayout.add(infoSpan(L.LABEL_PREVENT_RECURSION, "✓"));
+                detailsLayout.add(infoSpan(M_L.LABEL_PREVENT_RECURSION, "✓"));
             }
-            detailsLayout.add(infoSpan(L.LABEL_NOTE, entry.getComment()));
+            detailsLayout.add(infoSpan(M_L.LABEL_NOTE, entry.getComment()));
 
         }
 
-        TextAreaPopoverComponent payloadField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_CONTENT));
+        TextAreaPopoverComponent payloadField = new TextAreaPopoverComponent(loc.getValue(M_L.LABEL_CONTENT));
         payloadField.setWidthFull();
         ResizableTextArea.install(loc, payloadField, "160px");
         payloadField.setValue(StringUtils.defaultString(entry.getPayload()));
@@ -1076,14 +1078,14 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
     /**
      * A "label: value" line, empty when there is no value.
      */
-    @PublicAPI(from = "1.1.0",
+    @PublicAPI(from = "1.9.0",
             returns = @APIReturn(type = Span.class),
-            parameters = {@APIParameter(name = "label", type = L.class),
+            parameters = {@APIParameter(name = "label", type = LocalizationKey.class),
                     @APIParameter(name = "value", type = String.class)},
             locals = {@APILocals(name = "span", type = Span.class),
                     @APILocals(name = "labelSpan", type = Span.class),
                     @APILocals(name = "valueSpan", type = Span.class)})
-    private Span infoSpan(L label, String value) {
+    private Span infoSpan(LocalizationKey label, String value) {
         Span span = new Span();
         span.addClassNames(CssStyles.WHITE_SPACE_NORMAL, CssStyles.WRAP_ANYWHERE);
         if (StringUtils.isBlank(value)) {
@@ -1129,7 +1131,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
             returns = @APIReturn(type = String.class),
             parameters = {@APIParameter(name = "tokens", type = long.class)})
     private String formatTokens(long tokens) {
-        return "~" + tokens + " " + loc.getValue(L.LABEL_TOKENS);
+        return "~" + tokens + " " + loc.getValue(M_L.LABEL_TOKENS);
     }
 
     @PublicAPI(from = "1.1.0",
@@ -1190,11 +1192,11 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
         }
         try {
             TemplateService.ValidationResult result = templateService.isValidTemplate(payload, "lorebookEntry", LorebookTemplateData.class);
-            payloadField.setErrorMessage(result.isValid() ? null : loc.getValue(L.MSG_INVALID_TEMPLATE) + result.errorMessage());
+            payloadField.setErrorMessage(result.isValid() ? null : loc.getValue(M_L.MSG_INVALID_TEMPLATE) + result.errorMessage());
             payloadField.setInvalid(!result.isValid());
             TemplateHints.showWarnings(loc, payloadField, result);
         } catch (Exception e) {
-            payloadField.setErrorMessage(loc.getValue(L.MSG_INVALID_TEMPLATE) + e.getMessage());
+            payloadField.setErrorMessage(loc.getValue(M_L.MSG_INVALID_TEMPLATE) + e.getMessage());
             payloadField.setInvalid(true);
         }
     }
@@ -1332,7 +1334,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
         if (selected.isEmpty()) {
             return;
         }
-        ConfirmDialog.show(String.format(loc.getValue(L.MSG_CONFIRM_DELETE_ENTRIES), selected.size()), () -> {
+        ConfirmDialog.show(String.format(loc.getValue(M_L.MSG_CONFIRM_DELETE_ENTRIES), selected.size()), () -> {
             try {
                 for (LorebookEntry entry : selected) {
                     lorebookEntryService.delete(entry, false);
@@ -1374,7 +1376,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
             UIUtils.internalServerError(loc, e);
         }
         lockedSpan.setVisible(lockedBy != null);
-        lockedSpan.setText(lockedBy == null ? "" : String.format(loc.getValue(L.MSG_AGENT_LOREBOOK_LOCKED), lockedBy));
+        lockedSpan.setText(lockedBy == null ? "" : String.format(loc.getValue(M_L.MSG_AGENT_LOREBOOK_LOCKED), lockedBy));
     }
 
 
@@ -1485,7 +1487,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
         StringBuilder info = new StringBuilder();
         try {
             if (currentLorebook.getSubbooks() != null && !currentLorebook.getSubbooks().isEmpty()) {
-                info.append(loc.getValue(L.LABEL_SUB_LOREBOOKS)).append(": ")
+                info.append(loc.getValue(M_L.LABEL_SUB_LOREBOOKS)).append(": ")
                         .append(currentLorebook.getSubbooks().stream().map(Lorebook::getName).sorted()
                                 .reduce((a, b) -> a + ", " + b).orElse(""));
             }
@@ -1493,14 +1495,14 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
                 if (!info.isEmpty()) {
                     info.append("\n");
                 }
-                info.append(loc.getValue(L.LABEL_SCAN_DEPTH)).append(": ").append(currentLorebook.getScanDepth());
+                info.append(loc.getValue(M_L.LABEL_SCAN_DEPTH)).append(": ").append(currentLorebook.getScanDepth());
             }
             String tags = joinTags(tagRelationService.getTagsForObject(currentLorebook));
             if (!tags.isEmpty()) {
                 if (!info.isEmpty()) {
                     info.append("\n");
                 }
-                info.append(loc.getValue(L.LABEL_TAGS)).append(": ").append(tags);
+                info.append(loc.getValue(M_L.LABEL_TAGS)).append(": ").append(tags);
             }
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);

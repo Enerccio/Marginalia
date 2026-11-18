@@ -9,6 +9,8 @@ import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.search.ManuscriptFilterValues;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.widgets.BookLabels;
@@ -55,14 +57,14 @@ public class MultiTagDialog extends Dialog implements LLMInteract {
      */
     public enum Kind {
         BOOKS(Manuscript.class, L.LABEL_TAG_BOOKS),
-        FOLDERS(Folder.class, L.LABEL_TAG_FOLDERS),
-        LOREBOOKS(Lorebook.class, L.LABEL_TAG_LOREBOOKS),
-        ENTRIES(LorebookEntry.class, L.LABEL_TAG_ENTRIES);
+        FOLDERS(Folder.class, M_L.LABEL_TAG_FOLDERS),
+        LOREBOOKS(Lorebook.class, M_L.LABEL_TAG_LOREBOOKS),
+        ENTRIES(LorebookEntry.class, M_L.LABEL_TAG_ENTRIES);
 
         private final Class<? extends BaseEntity> clazz;
-        private final L title;
+        private final LocalizationKey title;
 
-        Kind(Class<? extends BaseEntity> clazz, L title) {
+        Kind(Class<? extends BaseEntity> clazz, LocalizationKey title) {
             this.clazz = clazz;
             this.title = title;
         }
@@ -204,10 +206,10 @@ public class MultiTagDialog extends Dialog implements LLMInteract {
         setCloseOnOutsideClick(false);
         UIUtils.fitPhone(this, true);
 
-        Span hint = new Span(loc.getValue(L.HELP_MULTI_TAG));
+        Span hint = new Span(loc.getValue(M_L.HELP_MULTI_TAG));
         hint.addClassName(CssStyles.HINT_TEXT);
 
-        subfolders = new Checkbox(loc.getValue(L.LABEL_INCLUDE_SUBFOLDERS));
+        subfolders = new Checkbox(loc.getValue(M_L.LABEL_INCLUDE_SUBFOLDERS));
         subfolders.setVisible(listsFolder() && chosen == null);
         subfolders.addValueChangeListener(event -> {
             load();
@@ -248,12 +250,12 @@ public class MultiTagDialog extends Dialog implements LLMInteract {
         grid.addThemeVariants(GridVariant.LUMO_COMPACT);
         grid.addComponentColumn(this::checkbox).setHeader(allBox).setFlexGrow(0).setWidth(UIConstants.TOOL_COLUMN_SIZE);
         grid.addComponentColumn(this::nameCell).setHeader(loc.getValue(L.LABEL_NAME)).setFlexGrow(2);
-        grid.addComponentColumn(this::tagsCell).setHeader(loc.getValue(L.LABEL_TAGS)).setFlexGrow(3);
+        grid.addComponentColumn(this::tagsCell).setHeader(loc.getValue(M_L.LABEL_TAGS)).setFlexGrow(3);
         grid.addComponentColumn(this::actions).setHeader("").setFlexGrow(0).setWidth(UIConstants.TOOL_COLUMN_SIZE_HUGE);
 
-        applyChecked = new Button(loc.getValue(L.LABEL_APPLY_TAG_TO_CHECKED), Solid.TAG.create(), event -> applyToChecked(true));
+        applyChecked = new Button(loc.getValue(M_L.LABEL_APPLY_TAG_TO_CHECKED), Solid.TAG.create(), event -> applyToChecked(true));
         applyChecked.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        removeChecked = new Button(loc.getValue(L.LABEL_REMOVE_TAG_FROM_CHECKED), Solid.TAG.create(), event -> applyToChecked(false));
+        removeChecked = new Button(loc.getValue(M_L.LABEL_REMOVE_TAG_FROM_CHECKED), Solid.TAG.create(), event -> applyToChecked(false));
         Button close = new Button(loc.getValue(L.LABEL_CLOSE), event -> close());
         HorizontalLayout footer = new HorizontalLayout(applyChecked, removeChecked);
         footer.setWidthFull();
@@ -406,7 +408,7 @@ public class MultiTagDialog extends Dialog implements LLMInteract {
     private Span nameCell(Row row) {
         Span name = new Span(StringUtils.defaultString(row.name));
         if (row.locked) {
-            UIUtils.addTooltip(name, loc.getValue(L.LABEL_LOCKED_BY_AGENT));
+            UIUtils.addTooltip(name, loc.getValue(M_L.LABEL_LOCKED_BY_AGENT));
         }
         return dimmed(name, row);
     }
@@ -441,11 +443,11 @@ public class MultiTagDialog extends Dialog implements LLMInteract {
         Button apply = new Button(Solid.PLUS.create(), event -> change(List.of(row), true));
         apply.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         apply.setEnabled(!row.locked);
-        UIUtils.addTooltip(apply, loc.getValue(L.LABEL_APPLY_TAG));
+        UIUtils.addTooltip(apply, loc.getValue(M_L.LABEL_APPLY_TAG));
         Button remove = new Button(Solid.MINUS.create(), event -> change(List.of(row), false));
         remove.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ERROR);
         remove.setEnabled(!row.locked);
-        UIUtils.addTooltip(remove, loc.getValue(L.LABEL_REMOVE_TAG));
+        UIUtils.addTooltip(remove, loc.getValue(M_L.LABEL_REMOVE_TAG));
         return dimmed(new HorizontalLayout(apply, remove), row);
     }
 
@@ -490,11 +492,11 @@ public class MultiTagDialog extends Dialog implements LLMInteract {
     private void change(List<Row> targets, boolean apply) {
         Tag tag = tagBox.getValue();
         if (tag == null) {
-            Notification.warning(loc.getValue(L.MSG_TAG_PICK_FIRST));
+            Notification.warning(loc.getValue(M_L.MSG_TAG_PICK_FIRST));
             return;
         }
         if (targets.isEmpty()) {
-            Notification.warning(loc.getValue(L.MSG_TAG_CHECK_FIRST));
+            Notification.warning(loc.getValue(M_L.MSG_TAG_CHECK_FIRST));
             return;
         }
         int changed = 0;
@@ -515,7 +517,7 @@ public class MultiTagDialog extends Dialog implements LLMInteract {
         }
         load();
         updateButtons();
-        Notification.success(String.format(loc.getValue(apply ? L.MSG_TAG_APPLIED : L.MSG_TAG_REMOVED), tag.getValue(), changed));
+        Notification.success(String.format(loc.getValue(apply ? M_L.MSG_TAG_APPLIED : M_L.MSG_TAG_REMOVED), tag.getValue(), changed));
         if (changed > 0 && onChange != null) {
             onChange.run();
         }
@@ -533,9 +535,9 @@ public class MultiTagDialog extends Dialog implements LLMInteract {
     private String scopeName() {
         try {
             if (chosen != null) {
-                return loc.getValue(L.LABEL_BOOKS) + " (" + chosen.size() + ")";
+                return loc.getValue(M_L.LABEL_BOOKS) + " (" + chosen.size() + ")";
             }
-            return folder == null ? loc.getValue(L.LABEL_TOP_LEVEL) : folderService.getPath(folder);
+            return folder == null ? loc.getValue(M_L.LABEL_TOP_LEVEL) : folderService.getPath(folder);
         } catch (Exception e) {
             return folder.getName();
         }

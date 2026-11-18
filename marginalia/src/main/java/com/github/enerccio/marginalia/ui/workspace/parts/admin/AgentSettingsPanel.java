@@ -8,7 +8,8 @@ import com.github.enerccio.marginalia.domain.traits.APIReturn;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.domain.traits.PublicAPI;
 import com.github.enerccio.marginalia.loc.L;
-import com.github.enerccio.marginalia.loc.StoryLocalization;
+import com.github.enerccio.marginalia.loc.M_L;
+import com.github.enerccio.marginalia.loc.MarginaliaLocalization;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
@@ -34,7 +35,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 public class AgentSettingsPanel implements LLMInteract {
 
     @Autowired
-    private StoryLocalization loc;
+    private MarginaliaLocalization loc;
 
     @Autowired
     private AgentService agentService;
@@ -57,28 +58,28 @@ public class AgentSettingsPanel implements LLMInteract {
         VerticalLayout layout = new VerticalLayout();
         layout.setSizeFull();
 
-        Span description = new Span(loc.getValue(L.HELP_AGENT_DEFAULT_PROMPT_APP));
+        Span description = new Span(loc.getValue(M_L.HELP_AGENT_DEFAULT_PROMPT_APP));
         description.addClassName(CssStyles.TEXT_SECONDARY);
 
-        promptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_AGENT_DEFAULT_PROMPT));
+        promptField = new TextAreaPopoverComponent(loc.getValue(M_L.LABEL_AGENT_DEFAULT_PROMPT));
         promptField.setWidthFull();
         promptField.setPlaceholder(loc.getDefaults().agentPrompt());
         promptField.setPopoverContent(TemplateHints.create(loc, promptField, promptField.getPopover(), null,
                 loc.getDefaults().agentPrompt()));
         ResizableTextArea.install(loc, promptField, "240px");
 
-        Span compactionDescription = new Span(loc.getValue(L.HELP_AGENT_DEFAULT_COMPACTION_PROMPT_APP));
+        Span compactionDescription = new Span(loc.getValue(M_L.HELP_AGENT_DEFAULT_COMPACTION_PROMPT_APP));
         compactionDescription.addClassName(CssStyles.TEXT_SECONDARY);
 
-        compactionField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_AGENT_DEFAULT_COMPACTION_PROMPT));
+        compactionField = new TextAreaPopoverComponent(loc.getValue(M_L.LABEL_AGENT_DEFAULT_COMPACTION_PROMPT));
         compactionField.setWidthFull();
         compactionField.setPlaceholder(loc.getDefaults().agentCompactionPrompt());
         compactionField.setPopoverContent(TemplateHints.create(loc, compactionField, compactionField.getPopover(), null,
                 loc.getDefaults().agentCompactionPrompt()));
         ResizableTextArea.install(loc, compactionField, "240px");
 
-        webhooksAllowed = new Checkbox(loc.getValue(L.LABEL_AGENT_WEBHOOKS_ALLOWED));
-        webhooksAllowed.setHelperText(loc.getValue(L.HELP_AGENT_WEBHOOKS_ALLOWED));
+        webhooksAllowed = new Checkbox(loc.getValue(M_L.LABEL_AGENT_WEBHOOKS_ALLOWED));
+        webhooksAllowed.setHelperText(loc.getValue(M_L.HELP_AGENT_WEBHOOKS_ALLOWED));
 
         Button save = new Button(loc.getValue(L.LABEL_SAVE), e -> save());
         save.setThemeName("primary");

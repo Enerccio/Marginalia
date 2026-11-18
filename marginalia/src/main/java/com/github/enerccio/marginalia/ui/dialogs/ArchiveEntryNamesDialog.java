@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.domain.traits.APIReturn;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.domain.traits.PublicAPI;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.utils.MarkdownArchive;
 import com.vaadin.flow.component.ModalityMode;
@@ -75,7 +76,7 @@ public class ArchiveEntryNamesDialog extends Dialog {
         setCloseOnOutsideClick(false);
         setModality(ModalityMode.STRICT);
         setWidth("900px");
-        setHeaderTitle(loc.getValue(L.LABEL_ENTRY_NAMES));
+        setHeaderTitle(loc.getValue(M_L.LABEL_ENTRY_NAMES));
 
         Grid<Row> grid = new Grid<>();
         grid.setHeight("450px");
@@ -84,7 +85,7 @@ public class ArchiveEntryNamesDialog extends Dialog {
                 .setFlexGrow(0)
                 .setWidth("80px");
         grid.addColumn(row -> row.path)
-                .setHeader(loc.getValue(L.LABEL_ARCHIVE_FILE))
+                .setHeader(loc.getValue(M_L.LABEL_ARCHIVE_FILE))
                 .setFlexGrow(1);
         grid.addComponentColumn(row -> {
                     TextField field = new TextField();
@@ -97,11 +98,11 @@ public class ArchiveEntryNamesDialog extends Dialog {
                 .setFlexGrow(2);
         grid.setItems(rows);
 
-        VerticalLayout layout = new VerticalLayout(new Span(loc.getValue(L.MSG_ARCHIVE_ENTRY_NAMES)), grid);
+        VerticalLayout layout = new VerticalLayout(new Span(loc.getValue(M_L.MSG_ARCHIVE_ENTRY_NAMES)), grid);
         layout.setPadding(false);
         add(layout);
 
-        Button importButton = new Button(loc.getValue(L.LABEL_IMPORT), e -> {
+        Button importButton = new Button(loc.getValue(M_L.LABEL_IMPORT), e -> {
             close();
             onConfirm.accept(rows.stream().map(row -> row.name).toList());
         });

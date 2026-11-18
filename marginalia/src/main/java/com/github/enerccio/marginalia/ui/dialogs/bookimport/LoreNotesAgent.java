@@ -7,7 +7,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.loc.Language;
-import com.github.enerccio.marginalia.loc.StoryLocalization;
+import com.github.enerccio.marginalia.loc.MarginaliaLocalization;
 import com.github.enerccio.marginalia.loc.Localization;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
@@ -47,7 +47,7 @@ public final class LoreNotesAgent {
     }
 
     @Autowired
-    private StoryLocalization loc;
+    private MarginaliaLocalization loc;
 
     @Autowired
     private AgentService agentService;

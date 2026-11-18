@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.domain.service.UpdateService;
 import com.github.enerccio.marginalia.domain.service.UpdateService.UpdateStatus;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
 import com.github.enerccio.marginalia.utils.BuildInfo;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,10 +37,18 @@ class UpdateServiceTest extends MarginaliaTestBase {
     void setUp() throws Exception {
         folder = configuration.getFolder().toPath().resolve(UpdateService.FOLDER);
         Files.createDirectories(folder);
+        removeWatcherFiles();
+        loginAdmin();
+    }
+
+    /**
+     * The data folder is shared by the test classes of the context: a status left behind would be a watcher for them.
+     */
+    @AfterEach
+    void removeWatcherFiles() throws Exception {
         Files.deleteIfExists(folder.resolve(UpdateService.STATUS_FILE));
         Files.deleteIfExists(folder.resolve(UpdateService.REQUEST_FILE));
         Files.deleteIfExists(folder.resolve(UpdateService.LOG_FILE));
-        loginAdmin();
     }
 
     @Test

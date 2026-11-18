@@ -7,6 +7,8 @@ import com.github.enerccio.marginalia.domain.components.LoreUsageReport.Status;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.LoreUsageService;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.button.Button;
@@ -67,24 +69,24 @@ public class BookLoreUsageDialog extends Dialog {
     }
 
     public void create() throws Exception {
-        setHeaderTitle(loc.getValue(L.LABEL_LORE_USAGE));
+        setHeaderTitle(loc.getValue(M_L.LABEL_LORE_USAGE));
         setWidth("1000px");
         setMaxWidth("100vw");
         setResizable(true);
         setDraggable(true);
 
         scopeSelect = new Select<>();
-        scopeSelect.setLabel(loc.getValue(L.LABEL_PARTS));
+        scopeSelect.setLabel(loc.getValue(M_L.LABEL_PARTS));
         scopeSelect.setItems(Scope.values());
         scopeSelect.setItemLabelGenerator(this::label);
         scopeSelect.setValue(Scope.ACTIVE_BRANCH);
         scopeSelect.addValueChangeListener(event -> reload());
 
-        fromField = partNumberField(L.LABEL_ANNOTATE_FROM_PART);
-        toField = partNumberField(L.LABEL_ANNOTATE_TO_PART);
+        fromField = partNumberField(M_L.LABEL_ANNOTATE_FROM_PART);
+        toField = partNumberField(M_L.LABEL_ANNOTATE_TO_PART);
 
         showSelect = new Select<>();
-        showSelect.setLabel(loc.getValue(L.LABEL_JSON_SHOW));
+        showSelect.setLabel(loc.getValue(M_L.LABEL_JSON_SHOW));
         showSelect.setItems(Show.values());
         showSelect.setItemLabelGenerator(this::label);
         showSelect.setValue(Show.ALL);
@@ -97,7 +99,7 @@ public class BookLoreUsageDialog extends Dialog {
         summary = new Div();
         summary.addClassName(CssStyles.TOKEN_USAGE_SUMMARY);
         grid = table();
-        help = new Div(loc.getValue(L.MSG_LORE_USAGE_HELP));
+        help = new Div(loc.getValue(M_L.MSG_LORE_USAGE_HELP));
         help.addClassName(CssStyles.TOKEN_USAGE_SUMMARY);
 
         VerticalLayout content = new VerticalLayout(controls, summary, grid, help);
@@ -112,7 +114,7 @@ public class BookLoreUsageDialog extends Dialog {
         reload();
     }
 
-    private IntegerField partNumberField(L label) {
+    private IntegerField partNumberField(LocalizationKey label) {
         IntegerField field = new IntegerField(loc.getValue(label));
         field.setMin(1);
         field.setStepButtonsVisible(true);
@@ -125,24 +127,24 @@ public class BookLoreUsageDialog extends Dialog {
         Grid<LoreUsageReport.Row> table = new Grid<>(LoreUsageReport.Row.class, false);
         table.addThemeVariants(GridVariant.LUMO_COMPACT, GridVariant.LUMO_NO_BORDER);
         table.setHeight("420px");
-        table.addColumn(row -> row.name() == null ? loc.getValue(L.LABEL_LORE_USAGE_UNKNOWN_ENTRY) : row.name())
-                .setHeader(loc.getValue(L.ENUM_MERGE_KIND_ENTRY)).setFlexGrow(3).setResizable(true)
+        table.addColumn(row -> row.name() == null ? loc.getValue(M_L.LABEL_LORE_USAGE_UNKNOWN_ENTRY) : row.name())
+                .setHeader(loc.getValue(M_L.ENUM_MERGE_KIND_ENTRY)).setFlexGrow(3).setResizable(true)
                 .setComparator(Comparator.comparing(row -> row.name() == null ? "" : row.name(), String.CASE_INSENSITIVE_ORDER));
         table.addColumn(row -> row.lorebook() == null ? "" : row.lorebook())
-                .setHeader(loc.getValue(L.LABEL_LOREBOOK)).setFlexGrow(2).setResizable(true)
+                .setHeader(loc.getValue(M_L.LABEL_LOREBOOK)).setFlexGrow(2).setResizable(true)
                 .setComparator(Comparator.comparing(row -> row.lorebook() == null ? "" : row.lorebook(), String.CASE_INSENSITIVE_ORDER));
         table.addColumn(this::statusText).setHeader(loc.getValue(L.LABEL_STATUS)).setFlexGrow(3).setResizable(true)
                 .setComparator(Comparator.comparing(LoreUsageReport.Row::status));
-        table.addColumn(this::usedText).setHeader(loc.getValue(L.LABEL_LORE_USAGE_USED_IN)).setFlexGrow(2)
+        table.addColumn(this::usedText).setHeader(loc.getValue(M_L.LABEL_LORE_USAGE_USED_IN)).setFlexGrow(2)
                 .setComparator(Comparator.comparingInt(LoreUsageReport.Row::used)).setTextAlign(ColumnTextAlign.END);
-        table.addColumn(row -> String.format("%,d", row.tokens())).setHeader(loc.getValue(L.LABEL_TOKENS))
+        table.addColumn(row -> String.format("%,d", row.tokens())).setHeader(loc.getValue(M_L.LABEL_TOKENS))
                 .setComparator(Comparator.comparingLong(LoreUsageReport.Row::tokens)).setTextAlign(ColumnTextAlign.END);
         table.addColumn(row -> row.used() == 0 ? "" : String.format("%,d", row.averageTokens()))
-                .setHeader(loc.getValue(L.LABEL_LORE_USAGE_AVERAGE_TOKENS))
+                .setHeader(loc.getValue(M_L.LABEL_LORE_USAGE_AVERAGE_TOKENS))
                 .setComparator(Comparator.comparingLong(LoreUsageReport.Row::averageTokens)).setTextAlign(ColumnTextAlign.END);
-        table.addColumn(row -> row.used() == 0 ? "" : String.valueOf(row.firstPart())).setHeader(loc.getValue(L.LABEL_LORE_USAGE_FIRST_PART))
+        table.addColumn(row -> row.used() == 0 ? "" : String.valueOf(row.firstPart())).setHeader(loc.getValue(M_L.LABEL_LORE_USAGE_FIRST_PART))
                 .setComparator(Comparator.comparingInt(LoreUsageReport.Row::firstPart)).setTextAlign(ColumnTextAlign.END);
-        table.addColumn(row -> row.used() == 0 ? "" : String.valueOf(row.lastPart())).setHeader(loc.getValue(L.LABEL_LORE_USAGE_LAST_PART))
+        table.addColumn(row -> row.used() == 0 ? "" : String.valueOf(row.lastPart())).setHeader(loc.getValue(M_L.LABEL_LORE_USAGE_LAST_PART))
                 .setComparator(Comparator.comparingInt(LoreUsageReport.Row::lastPart)).setTextAlign(ColumnTextAlign.END);
         return table;
     }
@@ -150,9 +152,9 @@ public class BookLoreUsageDialog extends Dialog {
     private String statusText(LoreUsageReport.Row row) {
         StringBuilder text = new StringBuilder(label(row.status()));
         if (!row.inLorebook()) {
-            text.append(" · ").append(loc.getValue(L.LABEL_LORE_USAGE_NOT_IN_LOREBOOK));
+            text.append(" · ").append(loc.getValue(M_L.LABEL_LORE_USAGE_NOT_IN_LOREBOOK));
         } else if (!row.enabled()) {
-            text.append(" · ").append(loc.getValue(L.LABEL_AGENT_DISABLED));
+            text.append(" · ").append(loc.getValue(M_L.LABEL_AGENT_DISABLED));
         }
         return text.toString();
     }
@@ -163,19 +165,19 @@ public class BookLoreUsageDialog extends Dialog {
     }
 
     private String label(Scope scope) {
-        return loc.getValue(scope == Scope.ACTIVE_BRANCH ? L.ENUM_LORE_USAGE_SCOPE_ACTIVE_BRANCH : L.ENUM_LORE_USAGE_SCOPE_ALL_BRANCHES);
+        return loc.getValue(scope == Scope.ACTIVE_BRANCH ? M_L.ENUM_LORE_USAGE_SCOPE_ACTIVE_BRANCH : M_L.ENUM_LORE_USAGE_SCOPE_ALL_BRANCHES);
     }
 
     private String label(Status status) {
         return loc.getValue(switch (status) {
-            case NEVER -> L.ENUM_LORE_USAGE_STATUS_NEVER;
-            case SOMETIMES -> L.ENUM_LORE_USAGE_STATUS_SOMETIMES;
-            case ALWAYS -> L.ENUM_LORE_USAGE_STATUS_ALWAYS;
+            case NEVER -> M_L.ENUM_LORE_USAGE_STATUS_NEVER;
+            case SOMETIMES -> M_L.ENUM_LORE_USAGE_STATUS_SOMETIMES;
+            case ALWAYS -> M_L.ENUM_LORE_USAGE_STATUS_ALWAYS;
         });
     }
 
     private String label(Show show) {
-        return show == Show.ALL ? loc.getValue(L.LABEL_ALL) : label(Status.valueOf(show.name()));
+        return show == Show.ALL ? loc.getValue(M_L.LABEL_ALL) : label(Status.valueOf(show.name()));
     }
 
     /**
@@ -201,14 +203,14 @@ public class BookLoreUsageDialog extends Dialog {
             return;
         }
         if (report.recordedParts() == 0) {
-            summary.setText(loc.getValue(report.hasLorebook() ? L.MSG_LORE_USAGE_NO_RECORDS : L.MSG_LORE_USAGE_NO_LOREBOOK));
+            summary.setText(loc.getValue(report.hasLorebook() ? M_L.MSG_LORE_USAGE_NO_RECORDS : M_L.MSG_LORE_USAGE_NO_LOREBOOK));
             grid.setItems(List.of());
             return;
         }
-        String text = String.format(loc.getValue(L.MSG_LORE_USAGE_SUMMARY), report.parts(), report.recordedParts());
+        String text = String.format(loc.getValue(M_L.MSG_LORE_USAGE_SUMMARY), report.parts(), report.recordedParts());
         int unrecorded = report.parts() - report.recordedParts();
         if (unrecorded > 0) {
-            text += " " + String.format(loc.getValue(L.MSG_LORE_USAGE_UNRECORDED), unrecorded);
+            text += " " + String.format(loc.getValue(M_L.MSG_LORE_USAGE_UNRECORDED), unrecorded);
         }
         summary.setText(text);
         Show show = showSelect.getValue() == null ? Show.ALL : showSelect.getValue();

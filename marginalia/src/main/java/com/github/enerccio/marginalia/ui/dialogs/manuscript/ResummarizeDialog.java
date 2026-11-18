@@ -8,6 +8,7 @@ import com.github.enerccio.marginalia.domain.service.CancellationToken;
 import com.github.enerccio.marginalia.domain.service.NotificationService;
 import com.github.enerccio.marginalia.domain.service.SummaryService;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
@@ -79,10 +80,10 @@ public class ResummarizeDialog extends Dialog {
                 List<SummaryNode> roots = summaryService.collectTree(manuscript);
                 int count = roots.stream().mapToInt(SummaryNode::countAll).sum();
                 if (count == 0) {
-                    Notification.warning(loc.getValue(L.MSG_RESUMMARIZE_NO_SUMMARIES));
+                    Notification.warning(loc.getValue(M_L.MSG_RESUMMARIZE_NO_SUMMARIES));
                     return;
                 }
-                ConfirmDialog.show(String.format(loc.getValue(L.MSG_RESUMMARIZE_CONFIRM), count), () -> {
+                ConfirmDialog.show(String.format(loc.getValue(M_L.MSG_RESUMMARIZE_CONFIRM), count), () -> {
                     ResummarizeDialog dialog = new ResummarizeDialog(manuscript, onDone);
                     dialog.create();
                     dialog.open();
@@ -106,7 +107,7 @@ public class ResummarizeDialog extends Dialog {
         progress.addClassName(CssStyles.TEXT_BOLD);
 
         reasoningMarkdown.addClassName(CssStyles.CHAT_MESSAGE_MARKDOWN);
-        reasoningDetails.setSummaryText(loc.getValue(L.LABEL_VIEW_REASONING));
+        reasoningDetails.setSummaryText(loc.getValue(M_L.LABEL_VIEW_REASONING));
         reasoningDetails.add(reasoningMarkdown);
         reasoningDetails.setWidthFull();
         reasoningDetails.setVisible(false);
@@ -189,8 +190,8 @@ public class ResummarizeDialog extends Dialog {
             @Override
             public void onStep(int number, int total, ChatMessage part, boolean meta) {
                 ui.access(() -> {
-                    String text = String.format(loc.getValue(L.MSG_RESUMMARIZE_PROGRESS), number, total);
-                    progress.setText(meta ? text + " - " + loc.getValue(L.LABEL_META_SUMMARY) : text);
+                    String text = String.format(loc.getValue(M_L.MSG_RESUMMARIZE_PROGRESS), number, total);
+                    progress.setText(meta ? text + " - " + loc.getValue(M_L.LABEL_META_SUMMARY) : text);
                     reasoningMarkdown.setContent("");
                     reasoningDetails.setVisible(false);
                     summaryArea.setValue("");
@@ -216,7 +217,7 @@ public class ResummarizeDialog extends Dialog {
             public void onFinished(int count) {
                 ui.access(() -> {
                     setRunning(false);
-                    Notification.success(String.format(loc.getValue(L.MSG_RESUMMARIZE_FINISHED), count));
+                    Notification.success(String.format(loc.getValue(M_L.MSG_RESUMMARIZE_FINISHED), count));
                     new DesktopNotifier(ui).finished(NotificationService.RESUMMARIZE, false, manuscript.getName());
                     floating.closeForGood();
                     UIPushGuard.push(ui);
@@ -227,7 +228,7 @@ public class ResummarizeDialog extends Dialog {
             public void onTerminated() {
                 ui.access(() -> {
                     setRunning(false);
-                    progress.setText(loc.getValue(L.MSG_RESUMMARIZE_STOPPED));
+                    progress.setText(loc.getValue(M_L.MSG_RESUMMARIZE_STOPPED));
                     UIPushGuard.push(ui);
                 });
             }
@@ -236,7 +237,7 @@ public class ResummarizeDialog extends Dialog {
             public void onError(Throwable throwable) {
                 ui.access(() -> {
                     setRunning(false);
-                    progress.setText(loc.getValue(L.LABEL_SUMMARY_ERROR));
+                    progress.setText(loc.getValue(M_L.LABEL_SUMMARY_ERROR));
                     UIUtils.inferenceError(loc, throwable);
                     new DesktopNotifier(ui).failed(NotificationService.RESUMMARIZE, false, manuscript.getName());
                     UIPushGuard.push(ui);
@@ -249,12 +250,12 @@ public class ResummarizeDialog extends Dialog {
             floating.follow("summaries");
             if (cancellationToken == null) {
                 setRunning(false);
-                progress.setText(loc.getValue(L.LABEL_SUMMARY_ERROR));
-                Notification.error(loc.getValue(L.ERROR_SUMMARY_FAILED));
+                progress.setText(loc.getValue(M_L.LABEL_SUMMARY_ERROR));
+                Notification.error(loc.getValue(M_L.ERROR_SUMMARY_FAILED));
             }
         } catch (Exception e) {
             setRunning(false);
-            progress.setText(loc.getValue(L.LABEL_SUMMARY_ERROR));
+            progress.setText(loc.getValue(M_L.LABEL_SUMMARY_ERROR));
             UIUtils.inferenceError(loc, e);
         }
     }

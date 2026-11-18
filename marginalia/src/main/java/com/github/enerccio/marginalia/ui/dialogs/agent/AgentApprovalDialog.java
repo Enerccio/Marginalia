@@ -4,7 +4,7 @@ import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.service.AgentApprovalService;
 import com.github.enerccio.marginalia.domain.service.AgentApprovalService.PendingApproval;
 import com.github.enerccio.marginalia.domain.traits.*;
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -62,18 +62,18 @@ public class AgentApprovalDialog extends Dialog implements LLMInteract {
                     @APILocals(name = "arguments", type = Div.class),
                     @APILocals(name = "footer", type = HorizontalLayout.class)})
     public void create() {
-        setHeaderTitle(loc.getValue(L.LABEL_AGENT_APPROVAL));
+        setHeaderTitle(loc.getValue(M_L.LABEL_AGENT_APPROVAL));
         setWidth("560px");
         UIUtils.fitPhone(this, false);
         setCloseOnEsc(false);
         setCloseOnOutsideClick(false);
 
-        Span question = new Span(String.format(loc.getValue(L.MSG_AGENT_APPROVAL_QUESTION), agentName, approval.command()));
+        Span question = new Span(String.format(loc.getValue(M_L.MSG_AGENT_APPROVAL_QUESTION), agentName, approval.command()));
         question.addClassName(CssStyles.WRAP_ANYWHERE);
         VerticalLayout content = new VerticalLayout(question);
         content.setPadding(false);
         if (!approval.arguments().isEmpty()) {
-            Span title = new Span(loc.getValue(L.LABEL_ARGUMENTS));
+            Span title = new Span(loc.getValue(M_L.LABEL_ARGUMENTS));
             title.addClassNames(CssStyles.TEXT_SEMIBOLD);
             Div arguments = new Div();
             arguments.addClassNames(CssStyles.HELP_MESSAGE, CssStyles.TEXT_MONOSPACE, CssStyles.PRE_WRAP);
@@ -82,9 +82,9 @@ public class AgentApprovalDialog extends Dialog implements LLMInteract {
         }
         add(content);
 
-        denyButton = new Button(loc.getValue(L.LABEL_DENY), event -> decide(false));
+        denyButton = new Button(loc.getValue(M_L.LABEL_DENY), event -> decide(false));
         denyButton.setThemeName("error");
-        approveButton = new Button(loc.getValue(L.LABEL_APPROVE), event -> decide(true));
+        approveButton = new Button(loc.getValue(M_L.LABEL_APPROVE), event -> decide(true));
         approveButton.setThemeName("primary");
         HorizontalLayout footer = new HorizontalLayout(denyButton, approveButton);
         footer.setWidthFull();

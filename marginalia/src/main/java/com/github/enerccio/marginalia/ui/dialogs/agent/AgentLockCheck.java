@@ -4,7 +4,7 @@ import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.AgentRunService;
 import com.github.enerccio.marginalia.domain.traits.*;
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -39,7 +39,7 @@ public class AgentLockCheck {
             if (locking == null) {
                 return false;
             }
-            Notification.warning(String.format(loc.getValue(L.MSG_AGENT_BOOK_LOCKED), locking.getAgent().getName()));
+            Notification.warning(String.format(loc.getValue(M_L.MSG_AGENT_BOOK_LOCKED), locking.getAgent().getName()));
             return true;
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);

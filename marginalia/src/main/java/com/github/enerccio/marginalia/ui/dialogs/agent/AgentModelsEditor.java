@@ -9,6 +9,7 @@ import com.github.enerccio.marginalia.domain.service.AIService;
 import com.github.enerccio.marginalia.domain.service.ProtocolService;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.button.Button;
@@ -55,25 +56,25 @@ public class AgentModelsEditor extends VerticalLayout {
     private final Map<String, String> protocolNames = new HashMap<>();
 
     public AgentModelsEditor() {
-        Span title = new Span(loc.getValue(L.LABEL_AGENT_MODELS));
+        Span title = new Span(loc.getValue(M_L.LABEL_AGENT_MODELS));
         title.addClassName(CssStyles.SECTION_TITLE);
-        Span help = new Span(loc.getValue(L.HELP_AGENT_MODELS));
+        Span help = new Span(loc.getValue(M_L.HELP_AGENT_MODELS));
         help.addClassName(CssStyles.HINT_TEXT);
 
-        selfCheckbox = new Checkbox(loc.getValue(L.LABEL_AGENT_SELF_SUBAGENT), true);
-        selfCheckbox.setHelperText(loc.getValue(L.HELP_AGENT_SELF_SUBAGENT));
+        selfCheckbox = new Checkbox(loc.getValue(M_L.LABEL_AGENT_SELF_SUBAGENT), true);
+        selfCheckbox.setHelperText(loc.getValue(M_L.HELP_AGENT_SELF_SUBAGENT));
 
         grid = new Grid<>(AgentModelProfile.class, false);
         grid.addThemeVariants(GridVariant.LUMO_COMPACT, GridVariant.LUMO_ROW_STRIPES);
         grid.setAllRowsVisible(true);
-        grid.addColumn(this::roleOf).setHeader(loc.getValue(L.LABEL_ROLE)).setFlexGrow(1).setResizable(true);
+        grid.addColumn(this::roleOf).setHeader(loc.getValue(M_L.LABEL_ROLE)).setFlexGrow(1).setResizable(true);
         grid.addColumn(this::modelOf).setHeader(loc.getValue(L.LABEL_MODEL)).setFlexGrow(2).setResizable(true);
         grid.addColumn(profile -> StringUtils.defaultString(profile.getDescription())).setHeader(loc.getValue(L.LABEL_DESCRIPTION))
                 .setFlexGrow(3).setResizable(true);
-        grid.addColumn(this::commandsOf).setHeader(loc.getValue(L.LABEL_AGENT_COMMANDS)).setFlexGrow(1).setResizable(true);
+        grid.addColumn(this::commandsOf).setHeader(loc.getValue(M_L.LABEL_AGENT_COMMANDS)).setFlexGrow(1).setResizable(true);
         grid.addComponentColumn(this::buttons).setFlexGrow(0).setWidth("170px");
 
-        Button addButton = new Button(loc.getValue(L.LABEL_AGENT_ADD_MODEL), event -> edit(new AgentModelProfile(), false));
+        Button addButton = new Button(loc.getValue(M_L.LABEL_AGENT_ADD_MODEL), event -> edit(new AgentModelProfile(), false));
         addButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
 
         setPadding(false);
@@ -163,7 +164,7 @@ public class AgentModelsEditor extends VerticalLayout {
             returns = @APIReturn(type = String.class),
             parameters = {@APIParameter(name = "profile", type = AgentModelProfile.class)})
     private String roleOf(AgentModelProfile profile) {
-        return isMain(profile) ? loc.getValue(L.LABEL_AGENT_MAIN_MODEL) : profile.getRole();
+        return isMain(profile) ? loc.getValue(M_L.LABEL_AGENT_MAIN_MODEL) : profile.getRole();
     }
 
     @PublicAPI(from = "1.4.0",
@@ -181,13 +182,13 @@ public class AgentModelsEditor extends VerticalLayout {
             parameters = {@APIParameter(name = "profile", type = AgentModelProfile.class)})
     private String commandsOf(AgentModelProfile profile) {
         if (!isMain(profile) && !profile.isTools()) {
-            return loc.getValue(L.LABEL_AGENT_TEXT_ONLY);
+            return loc.getValue(M_L.LABEL_AGENT_TEXT_ONLY);
         }
         if (profile.getCommands() == null) {
-            return loc.getValue(L.LABEL_AGENT_COMMANDS_SAME);
+            return loc.getValue(M_L.LABEL_AGENT_COMMANDS_SAME);
         }
-        return profile.getCommands().isEmpty() ? loc.getValue(L.LABEL_AGENT_COMMANDS_NONE)
-                : String.format(loc.getValue(L.MSG_AGENT_COMMANDS_COUNT), profile.getCommands().size());
+        return profile.getCommands().isEmpty() ? loc.getValue(M_L.LABEL_AGENT_COMMANDS_NONE)
+                : String.format(loc.getValue(M_L.MSG_AGENT_COMMANDS_COUNT), profile.getCommands().size());
     }
 
     @PublicAPI(from = "1.4.0",

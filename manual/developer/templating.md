@@ -33,9 +33,9 @@ The built-in templates (what an empty field of a book, a folder and the settings
 (`masterTemplate()`, `userPrompt()`, `summaryPrompt()`, `redraftSystemPrompt()`, `agentRunnerNote()`...). `Defaults` is an
 object, not a set of constants: the English texts, with `DefaultsJA`, `DefaultsFR`, `DefaultsES`, `DefaultsDE`, `DefaultsIT` and `DefaultsKO` overriding every text method. Italian and Korean exist only as prompt languages, the interface has no bundle for them; the plugins with prompts translate all of them (`PluginLocalizationBundle.ES`, `DE`, `IT`, `KO` as keys of `forPromptLanguage`).
 An extension can bring more languages: `ExtensionHasLocalizedPrompts.getPromptDefaults()` returns its `Defaults` subclasses,
-which `ExtensionPromptsRegistrar` (a listener of the extensions) registers with `StoryLocalization.registerDefaults` when the extension is loaded and removes on unload (the
+which `ExtensionPromptsRegistrar` (a listener of the extensions) registers with `MarginaliaLocalization.registerDefaults` when the extension is loaded and removes on unload (the
 Chinese localization plugin brings `DefaultsZH` this way; a language that already has prompts is refused, the ones of the
-application can't be removed). `StoryLocalization.getDefaults()` returns the one of the **prompt language** of the session,
+application can't be removed). `MarginaliaLocalization.getDefaults()` returns the one of the **prompt language** of the session,
 `getDefaults(language)` the one of a language (English when it has none). `Defaults.builtIn()` lists the application's own,
 `Defaults.all()` every language there is now (a snapshot replaced when an extension adds or removes one) for code that has to
 recognize a text in any language (`AgentDiagnostics` rebuilds its patterns when the snapshot changes,

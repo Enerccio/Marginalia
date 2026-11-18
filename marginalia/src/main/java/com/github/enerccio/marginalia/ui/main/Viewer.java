@@ -14,6 +14,7 @@ import com.github.enerccio.marginalia.domain.service.search.Sorter;
 import com.github.enerccio.marginalia.domain.service.search.Sorter.Ordering;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.components.PartView;
 import com.github.enerccio.marginalia.ui.dialogs.story.ReaderLazyLoader;
@@ -128,14 +129,14 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
             returns = @APIReturn(type = String.class))
     @Override
     protected String getAppTitle() {
-        return loc.getValue(L.LABEL_VIEWER_TITLE);
+        return loc.getValue(M_L.LABEL_VIEWER_TITLE);
     }
 
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = String.class))
     @Override
     protected String getAppDescription() {
-        return loc.getValue(L.LABEL_VIEWER_DESC);
+        return loc.getValue(M_L.LABEL_VIEWER_DESC);
     }
 
     @PublicAPI(from = "1.1.0",
@@ -242,7 +243,7 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
         headerLayout.setWidthFull();
         headerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
 
-        Span titleSpan = new Span(loc.getValue(L.LABEL_BOOKS));
+        Span titleSpan = new Span(loc.getValue(M_L.LABEL_BOOKS));
         titleSpan.addClassName(CssStyles.SECTION_TITLE);
 
         headerLayout.add(titleSpan);
@@ -257,7 +258,7 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
         breadcrumb = new FlexLayout();
         breadcrumb.setAlignItems(FlexComponent.Alignment.CENTER);
         breadcrumb.addClassNames(CssStyles.FLEX_WRAP, CssStyles.GAP_S);
-        includeSubfolders = new Checkbox(loc.getValue(L.LABEL_INCLUDE_SUBFOLDERS));
+        includeSubfolders = new Checkbox(loc.getValue(M_L.LABEL_INCLUDE_SUBFOLDERS));
         includeSubfolders.addValueChangeListener(event -> refreshGrid());
 
         nameFilter = new TextField();
@@ -272,7 +273,7 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
         });
 
         tagFilter = new MultiSelectComboBox<>();
-        tagFilter.setPlaceholder(loc.getValue(L.LABEL_TAGS));
+        tagFilter.setPlaceholder(loc.getValue(M_L.LABEL_TAGS));
         tagFilter.setWidthFull();
         tagFilter.setItemLabelGenerator(Tag::getValue);
         tagFilter.setClearButtonVisible(true);
@@ -295,7 +296,7 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
         sortButtonsLayout.setWidthFull();
         sortButtonsLayout.setAlignItems(FlexComponent.Alignment.CENTER);
 
-        Button sortDateBtn = new Button(loc.getValue(L.LABEL_LAST_OPENED), Solid.SORT_AMOUNT_DOWN.create());
+        Button sortDateBtn = new Button(loc.getValue(M_L.LABEL_LAST_OPENED), Solid.SORT_AMOUNT_DOWN.create());
         sortDateBtn.setThemeName("small primary");
 
         Button sortNameBtn = new Button(loc.getValue(L.LABEL_NAME), Solid.SORT_ALPHA_DOWN.create());
@@ -412,7 +413,7 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
         subRow.addClassName(CssStyles.LIST_ITEM_SUBROW);
 
         if (row.isFavorites() || row.isFolder()) {
-            Span booksSpan = new Span(loc.getValue(L.LABEL_BOOKS) + ": " + row.getBooks());
+            Span booksSpan = new Span(loc.getValue(M_L.LABEL_BOOKS) + ": " + row.getBooks());
             subRow.add(booksSpan);
         }
 
@@ -514,12 +515,12 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
                     @APILocals(name = "button", type = Button.class)})
     private void updateBreadcrumb() throws Exception {
         breadcrumb.removeAll();
-        Button top = new Button(loc.getValue(L.LABEL_BOOKS), VaadinIcon.HOME.create(), event -> openFolder(null));
+        Button top = new Button(loc.getValue(M_L.LABEL_BOOKS), VaadinIcon.HOME.create(), event -> openFolder(null));
         top.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
         breadcrumb.add(top);
         if (inFavorites) {
             breadcrumb.add(new Span("/"));
-            Span current = new Span(loc.getValue(L.LABEL_FAVORITES));
+            Span current = new Span(loc.getValue(M_L.LABEL_FAVORITES));
             current.addClassName(CssStyles.TEXT_BOLD);
             breadcrumb.add(current);
             return;
@@ -592,7 +593,7 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
                 boolean filtered = StringUtils.isNotEmpty(filterValues.getName())
                         || (filterValues.getTags() != null && !filterValues.getTags().isEmpty());
                 if (!favorites.isEmpty() && currentFolder == null && !includeSubfolders.getValue() && !filtered) {
-                    favoritesLabel = loc.getValue(L.LABEL_FAVORITES);
+                    favoritesLabel = loc.getValue(M_L.LABEL_FAVORITES);
                 }
             }
             grid.setItems(new FolderBookProvider(folders, ids, folderService.countBooksByFolder(), folderService.getPaths(),
@@ -630,7 +631,7 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
             notFoundLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
             notFoundLayout.setAlignItems(FlexComponent.Alignment.CENTER);
 
-            Span errorSpan = new Span(loc.getValue(L.MSG_MANUSCRIPT_NOT_FOUND));
+            Span errorSpan = new Span(loc.getValue(M_L.MSG_MANUSCRIPT_NOT_FOUND));
             Button backButton = new Button(Solid.ARROW_LEFT.create(), event -> UI.getCurrent().navigate(Viewer.class));
             backButton.setThemeName("primary");
 
@@ -674,7 +675,7 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
                     : Collections.emptyList();
 
             if (branch.isEmpty()) {
-                Span emptyLabel = new Span(loc.getValue(L.MSG_NO_ACTIVE_BRANCH));
+                Span emptyLabel = new Span(loc.getValue(M_L.MSG_NO_ACTIVE_BRANCH));
                 contentWrapper.add(UIUtils.centerComponent(emptyLabel));
             } else {
                 // the parts around where the reader stopped last time (the browser remembers it, never the server)

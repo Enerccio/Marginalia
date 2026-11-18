@@ -9,6 +9,7 @@ import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.LLMInteract;
@@ -309,7 +310,7 @@ public class ManuscriptDialog extends Dialog implements ManuscriptWindow {
             closeWindow();
             return;
         }
-        ConfirmDialog.show(loc.getValue(L.MSG_LEAVE_STOPS_GENERATION), () -> {
+        ConfirmDialog.show(loc.getValue(M_L.MSG_LEAVE_STOPS_GENERATION), () -> {
             if (generation != null) {
                 // the Stop the author knows: what arrived is kept
                 generation.stop();

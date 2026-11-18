@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.domain.service.command;
 
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
 
 import java.util.*;
 import java.util.function.Function;
@@ -23,7 +24,7 @@ public record CommandHelp(boolean typingName, String commandName, List<CommandDe
      * ones that contain it or have it in the human name or the description. All names when nothing is typed. The texts
      * are matched as the {@code localizer} gives them (the language of the user).
      */
-    public static List<String> matchingNames(List<CommandDefinition> all, String text, Function<L, String> localizer) {
+    public static List<String> matchingNames(List<CommandDefinition> all, String text, Function<LocalizationKey, String> localizer) {
         String typed = CommandLine.parse(text).name().toLowerCase(Locale.ROOT);
         Map<String, List<CommandDefinition>> byName = byName(all);
         List<String> starts = new ArrayList<>();
@@ -45,7 +46,7 @@ public record CommandHelp(boolean typingName, String commandName, List<CommandDe
         return starts;
     }
 
-    public static CommandHelp of(List<CommandDefinition> all, String text, Function<L, String> localizer) {
+    public static CommandHelp of(List<CommandDefinition> all, String text, Function<LocalizationKey, String> localizer) {
         CommandLine line = CommandLine.parse(text);
         if (!line.command()) {
             return new CommandHelp(false, null, List.of(), -1, false);

@@ -1,6 +1,8 @@
 package com.github.enerccio.marginalia.domain.service.impl.commands.lorebook.write;
 
 import com.github.enerccio.marginalia.domain.collections.ActivationContext;
+import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.domain.collections.FilteringMode;
 import com.github.enerccio.marginalia.domain.collections.InsertionMode;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
@@ -9,7 +11,6 @@ import com.github.enerccio.marginalia.domain.model.impl.Tag;
 import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.traits.*;
-import com.github.enerccio.marginalia.loc.L;
 import com.google.gson.JsonObject;
 import java.util.List;
 
@@ -528,10 +529,10 @@ public class LoreEntryWriteCommands extends LorebookWriteSupport {
             changed = true;
         }
         if (!changed) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_NOTHING_TO_CHANGE));
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_COMMAND_NOTHING_TO_CHANGE));
         }
         if (entry.getFromMessage() != null && entry.getToMessage() != null && entry.getFromMessage() > entry.getToMessage()) {
-            throw new IllegalArgumentException(String.format(loc.getValue(L.ERROR_COMMAND_LORE_RANGE_EMPTY),
+            throw new IllegalArgumentException(String.format(loc.getValue(M_L.ERROR_COMMAND_LORE_RANGE_EMPTY),
                     entry.getFromMessage(), entry.getToMessage()));
         }
         LorebookEntryService.EntrySaved saved = lorebookEntryService.update(entry);
@@ -548,7 +549,7 @@ public class LoreEntryWriteCommands extends LorebookWriteSupport {
         return switch (text.strip().toLowerCase()) {
             case "true" -> true;
             case "false" -> false;
-            default -> throw new IllegalArgumentException(String.format(loc.getValue(L.ERROR_COMMAND_UNKNOWN_MODE), text, List.of("true", "false")));
+            default -> throw new IllegalArgumentException(String.format(loc.getValue(M_L.ERROR_COMMAND_UNKNOWN_MODE), text, List.of("true", "false")));
         };
     }
 
@@ -560,7 +561,7 @@ public class LoreEntryWriteCommands extends LorebookWriteSupport {
         try {
             return Integer.parseInt(text.strip());
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException(String.format(loc.getValue(L.ERROR_COMMAND_UNKNOWN_MODE), text, "0, 1, 2, ..."));
+            throw new IllegalArgumentException(String.format(loc.getValue(M_L.ERROR_COMMAND_UNKNOWN_MODE), text, "0, 1, 2, ..."));
         }
     }
 
@@ -587,7 +588,7 @@ public class LoreEntryWriteCommands extends LorebookWriteSupport {
         LorebookEntry entry = entry(lore, handle).entry();
         if (name == null && payload == null && comment == null && enabled == null && order == null && keys == null
                 && filteringMode == null && insertionMode == null) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_NOTHING_TO_CHANGE));
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_COMMAND_NOTHING_TO_CHANGE));
         }
         if (name != null) {
             entry.setName(name);
@@ -602,7 +603,7 @@ public class LoreEntryWriteCommands extends LorebookWriteSupport {
     private void deleteLoreEntry(CommandContext context, String handle) throws Exception {
         Lore lore = new Lore(new Book(context));
         Lore.Found found = entry(lore, handle);
-        if (!confirmed(context, String.format(loc.getValue(L.MSG_COMMAND_DELETE_LORE_ENTRY_CONFIRM), found.entry().getName()))) {
+        if (!confirmed(context, String.format(loc.getValue(M_L.MSG_COMMAND_DELETE_LORE_ENTRY_CONFIRM), found.entry().getName()))) {
             return;
         }
         lorebookEntryService.deleteEntry(found.book(), found.entry());
@@ -625,7 +626,7 @@ public class LoreEntryWriteCommands extends LorebookWriteSupport {
         Lore lore = new Lore(new Book(context));
         LorebookEntry entry = entry(lore, handle).entry();
         if (add == null && remove == null && addNegative == null && removeNegative == null) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_NOTHING_TO_CHANGE));
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_COMMAND_NOTHING_TO_CHANGE));
         }
         applyTags(entry, add, remove, addNegative, removeNegative);
         JsonObject result = new JsonObject();
@@ -664,7 +665,7 @@ public class LoreEntryWriteCommands extends LorebookWriteSupport {
                 return value;
             }
         }
-        throw new IllegalArgumentException(String.format(loc.getValue(L.ERROR_COMMAND_UNKNOWN_MODE), text,
+        throw new IllegalArgumentException(String.format(loc.getValue(M_L.ERROR_COMMAND_UNKNOWN_MODE), text,
                 java.util.Arrays.stream(type.getEnumConstants()).map(Enum::name).toList()));
     }
 

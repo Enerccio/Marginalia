@@ -7,6 +7,8 @@ import com.github.enerccio.marginalia.domain.service.agent.jsonmerge.JsonMergeNo
 import com.github.enerccio.marginalia.domain.service.agent.jsonmerge.JsonText;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.widgets.WordDiffView;
@@ -120,7 +122,7 @@ public class JsonMergeDialog extends Dialog {
                     @APILocals(name = "cancel", type = Button.class),
                     @APILocals(name = "footer", type = HorizontalLayout.class)})
     public void create() {
-        setHeaderTitle(loc.getValue(L.LABEL_JSON_MERGE) + " - " + title);
+        setHeaderTitle(loc.getValue(M_L.LABEL_JSON_MERGE) + " - " + title);
         setWidth("1500px");
         setMaxWidth("96%");
         setHeight("92%");
@@ -130,7 +132,7 @@ public class JsonMergeDialog extends Dialog {
 
         statusLabel = new Span();
         statusLabel.addClassName(CssStyles.TEXT_SEMIBOLD);
-        Span hint = new Span(loc.getValue(L.HELP_JSON_MERGE));
+        Span hint = new Span(loc.getValue(M_L.HELP_JSON_MERGE));
         hint.addClassName(CssStyles.HINT_TEXT);
 
         breadcrumb = new HorizontalLayout();
@@ -139,11 +141,11 @@ public class JsonMergeDialog extends Dialog {
         breadcrumb.setWrap(true);
         breadcrumb.setAlignItems(FlexComponent.Alignment.CENTER);
 
-        onlyChanges = new Checkbox(loc.getValue(L.LABEL_JSON_ONLY_CHANGES), true);
+        onlyChanges = new Checkbox(loc.getValue(M_L.LABEL_JSON_ONLY_CHANGES), true);
         onlyChanges.addValueChangeListener(event -> refreshTree());
 
-        treeTab = new Tab(loc.getValue(L.LABEL_TREE));
-        textTab = new Tab(loc.getValue(L.LABEL_TEXT));
+        treeTab = new Tab(loc.getValue(M_L.LABEL_TREE));
+        textTab = new Tab(loc.getValue(M_L.LABEL_TEXT));
         tabs = new Tabs(treeTab, textTab);
         tabs.addSelectedChangeListener(event -> {
             if (adjusting) {
@@ -174,8 +176,8 @@ public class JsonMergeDialog extends Dialog {
         add(content);
 
         Button cancel = new Button(loc.getValue(L.LABEL_CANCEL), event -> close());
-        startOverButton = new Button(loc.getValue(L.LABEL_JSON_START_OVER), event -> startOver());
-        takeButton = new Button(loc.getValue(L.LABEL_JSON_TAKE_RESULT), event -> take());
+        startOverButton = new Button(loc.getValue(M_L.LABEL_JSON_START_OVER), event -> startOver());
+        takeButton = new Button(loc.getValue(M_L.LABEL_JSON_TAKE_RESULT), event -> take());
         takeButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         HorizontalLayout footer = new HorizontalLayout(startOverButton, cancel, takeButton);
         footer.setWidthFull();
@@ -193,14 +195,14 @@ public class JsonMergeDialog extends Dialog {
             locals = {@APILocals(name = "toolbar", type = HorizontalLayout.class),
                     @APILocals(name = "layout", type = VerticalLayout.class)})
     private VerticalLayout createTree() {
-        agentButton = small(L.LABEL_USE_AGENT_VERSION, event -> choose(Choice.AGENT));
-        bookButton = small(L.LABEL_USE_BOOK_VERSION, event -> choose(Choice.BOOK));
-        baseButton = small(L.LABEL_JSON_USE_BASE, event -> choose(Choice.BASE));
-        leaveOutButton = small(L.LABEL_JSON_LEAVE_OUT, event -> choose(Choice.NONE));
-        mergedButton = small(L.LABEL_JSON_PUT_TOGETHER, event -> choose(Choice.MERGED));
+        agentButton = small(M_L.LABEL_USE_AGENT_VERSION, event -> choose(Choice.AGENT));
+        bookButton = small(M_L.LABEL_USE_BOOK_VERSION, event -> choose(Choice.BOOK));
+        baseButton = small(M_L.LABEL_JSON_USE_BASE, event -> choose(Choice.BASE));
+        leaveOutButton = small(M_L.LABEL_JSON_LEAVE_OUT, event -> choose(Choice.NONE));
+        mergedButton = small(M_L.LABEL_JSON_PUT_TOGETHER, event -> choose(Choice.MERGED));
         openButton = small(L.LABEL_OPEN, event -> open(selected()));
-        matchButton = small(L.LABEL_JSON_MATCH_WITH, event -> match(selected()));
-        splitButton = small(L.LABEL_JSON_SPLIT, event -> split(selected()));
+        matchButton = small(M_L.LABEL_JSON_MATCH_WITH, event -> match(selected()));
+        splitButton = small(M_L.LABEL_JSON_SPLIT, event -> split(selected()));
         HorizontalLayout toolbar = new HorizontalLayout(agentButton, bookButton, baseButton, leaveOutButton, mergedButton, openButton,
                 matchButton, splitButton);
         toolbar.setWidthFull();
@@ -212,15 +214,15 @@ public class JsonMergeDialog extends Dialog {
         grid.setSizeFull();
         grid.addThemeVariants(GridVariant.LUMO_COMPACT, GridVariant.LUMO_ROW_STRIPES);
         grid.setDataProvider(provider);
-        grid.addHierarchyColumn(JsonMergeNode::title).setHeader(loc.getValue(L.LABEL_JSON_PLACE)).setFlexGrow(0).setWidth("260px")
+        grid.addHierarchyColumn(JsonMergeNode::title).setHeader(loc.getValue(M_L.LABEL_JSON_PLACE)).setFlexGrow(0).setWidth("260px")
                 .setResizable(true);
         grid.addComponentColumn(this::statusBadge).setHeader("").setFlexGrow(0).setWidth("140px");
         if (!UIUtils.isPhone()) {
-            addVersionColumn(Side.BASE, L.LABEL_MERGE_BEFORE_RUN);
+            addVersionColumn(Side.BASE, M_L.LABEL_MERGE_BEFORE_RUN);
         }
-        addVersionColumn(Side.BOOK, L.LABEL_MERGE_IN_BOOK_NOW);
-        addVersionColumn(Side.AGENT, L.ENUM_DOMAIN_AGENT);
-        grid.addComponentColumn(this::resultCell).setHeader(loc.getValue(L.LABEL_RESULT)).setFlexGrow(1).setResizable(true);
+        addVersionColumn(Side.BOOK, M_L.LABEL_MERGE_IN_BOOK_NOW);
+        addVersionColumn(Side.AGENT, M_L.ENUM_DOMAIN_AGENT);
+        grid.addComponentColumn(this::resultCell).setHeader(loc.getValue(M_L.LABEL_RESULT)).setFlexGrow(1).setResizable(true);
         grid.addComponentColumn(this::choiceCell).setHeader("").setFlexGrow(0).setWidth("130px");
         grid.asSingleSelect().addValueChangeListener(event -> updateButtons());
         grid.addItemDoubleClickListener(event -> open(event.getItem()));
@@ -234,11 +236,11 @@ public class JsonMergeDialog extends Dialog {
         return layout;
     }
 
-    @PublicAPI(from = "1.4.0",
+    @PublicAPI(from = "1.9.0",
             returns = @APIReturn(type = void.class),
             parameters = {@APIParameter(name = "side", type = JsonMergeNode.Side.class),
-                    @APIParameter(name = "header", type = L.class)})
-    private void addVersionColumn(Side side, L header) {
+                    @APIParameter(name = "header", type = LocalizationKey.class)})
+    private void addVersionColumn(Side side, LocalizationKey header) {
         grid.addComponentColumn(node -> versionCell(node, side)).setHeader(loc.getValue(header)).setFlexGrow(1).setResizable(true);
     }
 
@@ -365,33 +367,33 @@ public class JsonMergeDialog extends Dialog {
         return badge;
     }
 
-    private static L statusText(JsonMergeNode.Status status) {
+    private static LocalizationKey statusText(JsonMergeNode.Status status) {
         return switch (status) {
-            case UNCHANGED -> L.ENUM_JSON_STATUS_UNCHANGED;
-            case AGENT -> L.ENUM_JSON_STATUS_AGENT;
-            case BOOK -> L.ENUM_JSON_STATUS_BOOK;
-            case BOTH -> L.ENUM_JSON_STATUS_BOTH;
-            case SAME -> L.ENUM_JSON_STATUS_SAME;
-            case CONFLICT -> L.ENUM_MERGE_STATE_CONFLICT;
+            case UNCHANGED -> M_L.ENUM_JSON_STATUS_UNCHANGED;
+            case AGENT -> M_L.ENUM_JSON_STATUS_AGENT;
+            case BOOK -> M_L.ENUM_JSON_STATUS_BOOK;
+            case BOTH -> M_L.ENUM_JSON_STATUS_BOTH;
+            case SAME -> M_L.ENUM_JSON_STATUS_SAME;
+            case CONFLICT -> M_L.ENUM_MERGE_STATE_CONFLICT;
         };
     }
 
-    private static L choiceText(Choice choice) {
+    private static LocalizationKey choiceText(Choice choice) {
         return switch (choice) {
-            case MERGED -> L.ENUM_JSON_CHOICE_MERGED;
-            case AGENT -> L.ENUM_JSON_CHOICE_AGENT;
-            case BOOK -> L.ENUM_JSON_CHOICE_BOOK;
-            case BASE -> L.ENUM_JSON_CHOICE_BASE;
-            case NONE -> L.ENUM_JSON_CHOICE_NONE;
+            case MERGED -> M_L.ENUM_JSON_CHOICE_MERGED;
+            case AGENT -> M_L.ENUM_JSON_CHOICE_AGENT;
+            case BOOK -> M_L.ENUM_JSON_CHOICE_BOOK;
+            case BASE -> M_L.ENUM_JSON_CHOICE_BASE;
+            case NONE -> M_L.ENUM_JSON_CHOICE_NONE;
         };
     }
 
-    @PublicAPI(from = "1.4.0",
+    @PublicAPI(from = "1.9.0",
             returns = @APIReturn(type = Button.class),
-            parameters = {@APIParameter(name = "label", type = L.class),
+            parameters = {@APIParameter(name = "label", type = LocalizationKey.class),
                     @APIParameter(name = "listener", type = ComponentEventListener.class)},
             locals = {@APILocals(name = "button", type = Button.class)})
-    private Button small(L label, com.vaadin.flow.component.ComponentEventListener<com.vaadin.flow.component.ClickEvent<Button>> listener) {
+    private Button small(LocalizationKey label, com.vaadin.flow.component.ComponentEventListener<com.vaadin.flow.component.ClickEvent<Button>> listener) {
         Button button = new Button(loc.getValue(label), listener);
         button.addThemeVariants(ButtonVariant.LUMO_SMALL);
         return button;
@@ -434,19 +436,19 @@ public class JsonMergeDialog extends Dialog {
     private void match(JsonMergeNode node) {
         List<JsonMergeNode> candidates = node.matchCandidates();
         if (candidates.isEmpty()) {
-            Notification.warning(loc.getValue(L.MSG_JSON_NO_MATCH));
+            Notification.warning(loc.getValue(M_L.MSG_JSON_NO_MATCH));
             return;
         }
         Dialog pick = new Dialog();
-        pick.setHeaderTitle(loc.getValue(L.LABEL_JSON_MATCH_WITH));
+        pick.setHeaderTitle(loc.getValue(M_L.LABEL_JSON_MATCH_WITH));
         pick.setModality(ModalityMode.STRICT);
         Select<JsonMergeNode> select = new Select<>();
-        select.setLabel(String.format(loc.getValue(L.MSG_JSON_MATCH_PICK), node.title()));
+        select.setLabel(String.format(loc.getValue(M_L.MSG_JSON_MATCH_PICK), node.title()));
         select.setWidthFull();
         select.setItems(candidates);
         select.setItemLabelGenerator(candidate -> candidate.title() + " (" + sidesOf(candidate) + ") " + preview(firstOf(candidate)));
         select.setValue(candidates.getFirst());
-        Button ok = new Button(loc.getValue(L.LABEL_JSON_MATCH_WITH), event -> {
+        Button ok = new Button(loc.getValue(M_L.LABEL_JSON_MATCH_WITH), event -> {
             JsonMergeNode joined = node.match(select.getValue());
             pick.close();
             changed();
@@ -472,13 +474,13 @@ public class JsonMergeDialog extends Dialog {
     private String sidesOf(JsonMergeNode node) {
         List<String> sides = new ArrayList<>();
         if (node.get(Side.AGENT) != null) {
-            sides.add(loc.getValue(L.ENUM_JSON_CHOICE_AGENT));
+            sides.add(loc.getValue(M_L.ENUM_JSON_CHOICE_AGENT));
         }
         if (node.get(Side.BOOK) != null) {
-            sides.add(loc.getValue(L.ENUM_JSON_CHOICE_BOOK));
+            sides.add(loc.getValue(M_L.ENUM_JSON_CHOICE_BOOK));
         }
         if (node.get(Side.BASE) != null) {
-            sides.add(loc.getValue(L.ENUM_JSON_CHOICE_BASE));
+            sides.add(loc.getValue(M_L.ENUM_JSON_CHOICE_BASE));
         }
         return String.join(" + ", sides);
     }
@@ -582,7 +584,7 @@ public class JsonMergeDialog extends Dialog {
     @PublicAPI(from = "1.4.0",
             returns = @APIReturn(type = void.class))
     private void updateStatus() {
-        statusLabel.setText(String.format(loc.getValue(L.MSG_JSON_MERGE_STATUS), root.conflicts(), root.unresolved()));
+        statusLabel.setText(String.format(loc.getValue(M_L.MSG_JSON_MERGE_STATUS), root.conflicts(), root.unresolved()));
     }
 
     /**
@@ -621,7 +623,7 @@ public class JsonMergeDialog extends Dialog {
                     @APILocals(name = "layout", type = VerticalLayout.class)})
     private VerticalLayout createText() {
         viewSelect = new Select<>();
-        viewSelect.setLabel(loc.getValue(L.LABEL_JSON_SHOW));
+        viewSelect.setLabel(loc.getValue(M_L.LABEL_JSON_SHOW));
         viewSelect.setItems(View.values());
         viewSelect.setItemLabelGenerator(this::viewText);
         viewSelect.setValue(View.AGENT);
@@ -638,14 +640,14 @@ public class JsonMergeDialog extends Dialog {
         });
 
         diffSelect = new Select<>();
-        diffSelect.setLabel(loc.getValue(L.LABEL_JSON_COMPARE_WITH));
+        diffSelect.setLabel(loc.getValue(M_L.LABEL_JSON_COMPARE_WITH));
         diffSelect.setItems(View.RESULT, View.BOOK, View.BASE);
         // the empty choice is shown with no label
         diffSelect.setItemLabelGenerator(view -> view == null ? "" : viewText(view));
         diffSelect.setEmptySelectionAllowed(true);
         diffSelect.addValueChangeListener(event -> updateDiff());
 
-        Button applyText = new Button(loc.getValue(L.LABEL_JSON_APPLY_TEXT), event -> {
+        Button applyText = new Button(loc.getValue(M_L.LABEL_JSON_APPLY_TEXT), event -> {
             if (commitText()) {
                 refreshText();
             }
@@ -669,7 +671,7 @@ public class JsonMergeDialog extends Dialog {
         });
 
         textStatus = new Span();
-        diffView = new WordDiffView(loc.getValue(L.MSG_MERGE_NO_DIFFERENCE));
+        diffView = new WordDiffView(loc.getValue(M_L.MSG_MERGE_NO_DIFFERENCE));
 
         VerticalLayout layout = new VerticalLayout(selects, textArea, textStatus, diffView);
         layout.setPadding(false);
@@ -685,10 +687,10 @@ public class JsonMergeDialog extends Dialog {
             parameters = {@APIParameter(name = "view", type = JsonMergeDialog.View.class)})
     private String viewText(View view) {
         return loc.getValue(switch (view) {
-            case AGENT -> L.LABEL_JSON_AGENT_DATA;
-            case RESULT -> L.LABEL_RESULT;
-            case BOOK -> L.LABEL_MERGE_IN_BOOK_NOW;
-            case BASE -> L.LABEL_MERGE_BEFORE_RUN;
+            case AGENT -> M_L.LABEL_JSON_AGENT_DATA;
+            case RESULT -> M_L.LABEL_RESULT;
+            case BOOK -> M_L.LABEL_MERGE_IN_BOOK_NOW;
+            case BASE -> M_L.LABEL_MERGE_BEFORE_RUN;
         });
     }
 
@@ -732,12 +734,12 @@ public class JsonMergeDialog extends Dialog {
         }
         try {
             JsonText.parse(textArea.getValue());
-            textStatus.setText(loc.getValue(L.MSG_JSON_VALID));
+            textStatus.setText(loc.getValue(M_L.MSG_JSON_VALID));
             textStatus.addClassName(CssStyles.TEXT_SUCCESS);
         } catch (JsonText.InvalidJsonException e) {
             textArea.setInvalid(true);
             textArea.setErrorMessage(e.getMessage());
-            textStatus.setText(String.format(loc.getValue(L.MSG_JSON_INVALID), e.getMessage()));
+            textStatus.setText(String.format(loc.getValue(M_L.MSG_JSON_INVALID), e.getMessage()));
             textStatus.addClassName(CssStyles.TEXT_ERROR);
         }
     }
@@ -776,7 +778,7 @@ public class JsonMergeDialog extends Dialog {
             return true;
         } catch (JsonText.InvalidJsonException e) {
             checkText();
-            Notification.warning(String.format(loc.getValue(L.MSG_JSON_FIX_FIRST), e.getMessage()));
+            Notification.warning(String.format(loc.getValue(M_L.MSG_JSON_FIX_FIRST), e.getMessage()));
             return false;
         }
     }

@@ -1,8 +1,8 @@
 package com.github.enerccio.marginalia.ui.dialogs.story;
 
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
-import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.widgets.LazyLoadIndicator;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
@@ -51,8 +51,8 @@ public class StoryLazyLoader<C extends Component & StoryCard> {
         this.cards = cards;
         this.cardFactory = cardFactory;
         this.frozen = frozen;
-        this.earlierIndicator = new LazyLoadIndicator(loc.getValue(L.MSG_LOADING_EARLIER_PARTS));
-        this.laterIndicator = new LazyLoadIndicator(loc.getValue(L.MSG_LOADING_LATER_PARTS));
+        this.earlierIndicator = new LazyLoadIndicator(loc.getValue(M_L.MSG_LOADING_EARLIER_PARTS));
+        this.laterIndicator = new LazyLoadIndicator(loc.getValue(M_L.MSG_LOADING_LATER_PARTS));
         panel.setHeader(earlierIndicator);
         panel.setFooter(laterIndicator);
         panel.getElement().addEventListener("edge-top", event -> loadEarlier(far(event))).addEventData(FAR);

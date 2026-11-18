@@ -12,6 +12,7 @@ import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.service.command.CommandScope;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationOptions;
 import com.github.enerccio.marginalia.domain.traits.*;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.utils.QuoteFinder;
 import com.google.gson.JsonArray;
@@ -235,7 +236,7 @@ public class AnnotationWriteCommands extends ManuscriptWriteSupport {
     public void delete(CommandContext context) throws Exception {
         Book book = new Book(context);
         Annotation annotation = book.annotation(ref(context, "annotation"));
-        if (!confirmed(context, loc.getValue(L.MSG_COMMAND_DELETE_ANNOTATION_CONFIRM))) {
+        if (!confirmed(context, loc.getValue(M_L.MSG_COMMAND_DELETE_ANNOTATION_CONFIRM))) {
             return;
         }
         annotationService.remove(book.manuscript, annotation);
@@ -255,7 +256,7 @@ public class AnnotationWriteCommands extends ManuscriptWriteSupport {
                 : annotationService.createFromQuote(book.manuscript, message, quote, null, null, text, source, type, null);
         JsonObject result = describe(annotation, book);
         if (annotation.isNotLocated()) {
-            result.addProperty("hint", loc.getValue(L.MSG_COMMAND_ANNOTATION_NOT_LOCATED));
+            result.addProperty("hint", loc.getValue(M_L.MSG_COMMAND_ANNOTATION_NOT_LOCATED));
         }
         changed();
         answer(context, result);
@@ -265,7 +266,7 @@ public class AnnotationWriteCommands extends ManuscriptWriteSupport {
         Book book = new Book(context);
         ChatMessage message = part(book, handle);
         if (message.getResponse() == null || message.getResponse().isBlank()) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_ANNOTATE_NOT_POSSIBLE));
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_COMMAND_ANNOTATE_NOT_POSSIBLE));
         }
         GenerationOptions options = options(context, profile);
         if (options.ai() == null) {
@@ -292,12 +293,12 @@ public class AnnotationWriteCommands extends ManuscriptWriteSupport {
 
             @Override
             public void onUnreadable(String raw, String reason) {
-                done.completeExceptionally(new IllegalStateException(String.format(loc.getValue(L.ERROR_COMMAND_ANNOTATE_UNREADABLE), reason)));
+                done.completeExceptionally(new IllegalStateException(String.format(loc.getValue(M_L.ERROR_COMMAND_ANNOTATE_UNREADABLE), reason)));
             }
 
             @Override
             public void onTerminated(String raw) {
-                done.completeExceptionally(new CancellationException(loc.getValue(L.ERROR_COMMAND_GENERATION_CANCELLED)));
+                done.completeExceptionally(new CancellationException(loc.getValue(M_L.ERROR_COMMAND_GENERATION_CANCELLED)));
             }
 
             @Override
@@ -305,7 +306,7 @@ public class AnnotationWriteCommands extends ManuscriptWriteSupport {
                 done.completeExceptionally(throwable);
             }
         };
-        context.setStatus(loc.getValue(L.MSG_COMMAND_ANNOTATING));
+        context.setStatus(loc.getValue(M_L.MSG_COMMAND_ANNOTATING));
         List<AnnotateService.Proposal> proposals;
         {
             CancellationToken token;
@@ -313,10 +314,10 @@ public class AnnotationWriteCommands extends ManuscriptWriteSupport {
                 token = annotateService.annotate(book.manuscript, message,
                         new AnnotateService.Request(null, null, options, AnnotateService.Mode.AUTO, null, null), callback);
             } catch (AnnotateService.ContextInsufficient e) {
-                throw new IllegalArgumentException(String.format(loc.getValue(L.ERROR_COMMAND_ANNOTATE_CONTEXT), e.getRequired(), e.getMax()));
+                throw new IllegalArgumentException(String.format(loc.getValue(M_L.ERROR_COMMAND_ANNOTATE_CONTEXT), e.getRequired(), e.getMax()));
             }
             if (token == null) {
-                throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_ANNOTATE_NOT_POSSIBLE));
+                throw new IllegalArgumentException(loc.getValue(M_L.ERROR_COMMAND_ANNOTATE_NOT_POSSIBLE));
             }
             proposals = await(context, done, token);
         }
@@ -370,7 +371,7 @@ public class AnnotationWriteCommands extends ManuscriptWriteSupport {
             QuoteFinder.Match match = QuoteFinder.find(message.getResponse(), quote, annotation.getContextBefore(),
                     annotation.getContextAfter(), annotation.hasRange() ? annotation.getStart() : -1);
             if (match == null) {
-                throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_QUOTE_NOT_FOUND));
+                throw new IllegalArgumentException(loc.getValue(M_L.ERROR_COMMAND_QUOTE_NOT_FOUND));
             }
             updated = annotationService.reattach(book.manuscript, annotation, match.start(), match.end());
         }
@@ -387,7 +388,7 @@ public class AnnotationWriteCommands extends ManuscriptWriteSupport {
                 return value;
             }
         }
-        throw new IllegalArgumentException(String.format(loc.getValue(L.ERROR_COMMAND_ANNOTATION_STATUS), status,
+        throw new IllegalArgumentException(String.format(loc.getValue(M_L.ERROR_COMMAND_ANNOTATION_STATUS), status,
                 Arrays.stream(AnnotationStatus.values()).filter(value -> value != AnnotationStatus.ORPHANED)
                         .map(value -> value.name().toLowerCase(Locale.ROOT)).toList()));
     }

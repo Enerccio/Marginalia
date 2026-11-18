@@ -12,6 +12,7 @@ import com.github.enerccio.marginalia.instruct.fixture.verify.VerifyFixtures;
 import com.github.enerccio.marginalia.loc.Language;
 import com.github.enerccio.marginalia.loc.LocalizationBundleEN;
 import com.github.enerccio.marginalia.loc.LocalizationImpl;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.test.ExpectedLog;
 import com.github.enerccio.marginalia.ui.menu.StoryMenuRegistry;
 import com.vaadin.flow.component.html.Div;
@@ -272,10 +273,12 @@ class OsgiServiceImplTest {
         Language cs = Language.of("cs");
         assertThat(localization.getAvailableLanguages()).containsExactlyInAnyOrder(Language.EN, cs);
         assertThat(localization.getDisplayName(cs)).isEqualTo("Test cs");
+        assertThat(localization.getValue(cs, M_L.LABEL_ADD_BOOK)).isEqualTo("add book in cs");
 
         service.uninstallPackage(bundleNamed("test.lang"));
 
         assertThat(localization.getAvailableLanguages()).containsExactly(Language.EN);
+        assertThat(localization.getValue(cs, M_L.LABEL_ADD_BOOK)).isNotEqualTo("add book in cs");
     }
 
     @Test

@@ -8,6 +8,7 @@ import com.github.enerccio.marginalia.domain.service.AgentMessageService;
 import com.github.enerccio.marginalia.domain.service.AgentMessageService.SubThread;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.LLMInteract;
@@ -81,7 +82,7 @@ public class AgentSubAgentsView extends VerticalLayout implements LLMInteract {
         setSpacing(false);
         addClassNames(CssStyles.MIN_HEIGHT_0, CssStyles.GAP_S);
 
-        Span help = new Span(loc.getValue(L.HELP_AGENT_SUBAGENTS));
+        Span help = new Span(loc.getValue(M_L.HELP_AGENT_SUBAGENTS));
         help.addClassName(CssStyles.HINT_TEXT);
         Button refreshButton = new Button(loc.getValue(L.LABEL_REFRESH), Solid.ARROWS_ROTATE.create(), event -> refresh());
         refreshButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
@@ -91,10 +92,10 @@ public class AgentSubAgentsView extends VerticalLayout implements LLMInteract {
         header.setAlignItems(Alignment.CENTER);
         header.setJustifyContentMode(JustifyContentMode.BETWEEN);
 
-        emptyLabel = new Span(loc.getValue(L.MSG_AGENT_NO_SUBAGENTS));
+        emptyLabel = new Span(loc.getValue(M_L.MSG_AGENT_NO_SUBAGENTS));
         emptyLabel.addClassName(CssStyles.HINT_TEXT);
 
-        picker = new ComboBox<>(loc.getValue(L.LABEL_AGENT_SUBAGENT));
+        picker = new ComboBox<>(loc.getValue(M_L.LABEL_AGENT_SUBAGENT));
         picker.setWidthFull();
         picker.setAllowCustomValue(false);
         picker.setItemLabelGenerator(this::label);
@@ -243,7 +244,7 @@ public class AgentSubAgentsView extends VerticalLayout implements LLMInteract {
     private String label(SubThread thread) {
         return thread.handle() + (thread.profile() == null ? "" : " [" + thread.profile() + "]") + " - " + state(thread, runSupplier.get()) + " - "
                 + StringUtils.abbreviate(StringUtils.defaultString(thread.task()).replaceAll("\\s+", " "), TASK_LIMIT)
-                + (thread.rewound() ? " (" + loc.getValue(L.LABEL_AGENT_SUBAGENT_REWOUND) + ")" : "");
+                + (thread.rewound() ? " (" + loc.getValue(M_L.LABEL_AGENT_SUBAGENT_REWOUND) + ")" : "");
     }
 
     @PublicAPI(from = "1.4.0",
@@ -255,7 +256,7 @@ public class AgentSubAgentsView extends VerticalLayout implements LLMInteract {
             return endLabel(thread.end());
         }
         // not ended: it works with the run, or waits for the run to be resumed
-        return loc.getValue(run != null && run.getStatus().isActive() ? L.ENUM_AGENT_RUN_RUNNING : L.ENUM_AGENT_RUN_PAUSED);
+        return loc.getValue(run != null && run.getStatus().isActive() ? M_L.ENUM_AGENT_RUN_RUNNING : M_L.ENUM_AGENT_RUN_PAUSED);
     }
 
     /**
@@ -274,17 +275,17 @@ public class AgentSubAgentsView extends VerticalLayout implements LLMInteract {
             shownRows = 0;
         }
         info.setText(String.format("%s: %s   %s: %d   %s: %d\n%s: %s", loc.getValue(L.LABEL_STATE), state(thread, runSupplier.get()),
-                loc.getValue(L.LABEL_ROUNDS), thread.rounds(), loc.getValue(L.LABEL_TOKENS), thread.tokens(),
-                loc.getValue(L.LABEL_AGENT_TASK), StringUtils.defaultString(thread.task()).strip()));
+                loc.getValue(M_L.LABEL_ROUNDS), thread.rounds(), loc.getValue(M_L.LABEL_TOKENS), thread.tokens(),
+                loc.getValue(M_L.LABEL_AGENT_TASK), StringUtils.defaultString(thread.task()).strip()));
         List<AgentMessage> rows = thread.rows();
         if (rows.size() == shownRows) {
             return;
         }
-        renderer.setLabels(loc.getValue(L.ENUM_DOMAIN_AGENT), thread.handle());
+        renderer.setLabels(loc.getValue(M_L.ENUM_DOMAIN_AGENT), thread.handle());
         for (AgentMessage row : rows.subList(Math.min(shownRows, rows.size()), rows.size())) {
             int before = transcriptBox.getComponentCount();
             if (row.getThreadEnd() != null) {
-                transcriptBox.add(AgentTranscriptRenderer.stamped(renderer.bubble(loc.getValue(L.LABEL_RESULT) + " - " + endLabel(row.getThreadEnd()),
+                transcriptBox.add(AgentTranscriptRenderer.stamped(renderer.bubble(loc.getValue(M_L.LABEL_RESULT) + " - " + endLabel(row.getThreadEnd()),
                         row.toChatMessage().getContent(), false), row.getCreation()));
             } else {
                 renderer.render(row.toChatMessage(), row.getReasoning(), row.isSummary(), row.getCreation());
@@ -310,9 +311,9 @@ public class AgentSubAgentsView extends VerticalLayout implements LLMInteract {
             parameters = {@APIParameter(name = "end", type = String.class)})
     private String endLabel(String end) {
         return switch (end) {
-            case "DONE" -> loc.getValue(L.ENUM_AGENT_RUN_DONE);
-            case "FAILED" -> loc.getValue(L.ENUM_AGENT_RUN_FAILED);
-            case "CANCELLED" -> loc.getValue(L.LABEL_AGENT_SUBAGENT_CANCELLED);
+            case "DONE" -> loc.getValue(M_L.ENUM_AGENT_RUN_DONE);
+            case "FAILED" -> loc.getValue(M_L.ENUM_AGENT_RUN_FAILED);
+            case "CANCELLED" -> loc.getValue(M_L.LABEL_AGENT_SUBAGENT_CANCELLED);
             default -> end;
         };
     }

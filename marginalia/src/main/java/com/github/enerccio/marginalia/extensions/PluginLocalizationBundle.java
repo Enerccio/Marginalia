@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.extensions;
 
 import com.github.enerccio.marginalia.loc.Language;
+import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;

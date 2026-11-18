@@ -9,6 +9,8 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService.MergePreview;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
 import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
@@ -95,7 +97,7 @@ public class PartMergeDialog extends Dialog {
         try {
             found = chatMessageService.previewMergeIntoPrevious(manuscript, part);
         } catch (IllegalStateException e) {
-            Notification.show(loc.getValue(L.MSG_PART_MERGE_NOT_POSSIBLE));
+            Notification.show(loc.getValue(M_L.MSG_PART_MERGE_NOT_POSSIBLE));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
@@ -107,26 +109,26 @@ public class PartMergeDialog extends Dialog {
     }
 
     private void build() {
-        setHeaderTitle(loc.getValue(L.LABEL_MERGE_INTO_PREVIOUS));
+        setHeaderTitle(loc.getValue(M_L.LABEL_MERGE_INTO_PREVIOUS));
         setWidth("min(900px, 95vw)");
         setHeight("85vh");
 
-        Span info = new Span(loc.getValue(L.MSG_PART_MERGE_INFO));
+        Span info = new Span(loc.getValue(M_L.MSG_PART_MERGE_INFO));
         info.addClassName(CssStyles.HINT_TEXT);
 
-        join.setLabel(loc.getValue(L.LABEL_PART_JOIN));
+        join.setLabel(loc.getValue(M_L.LABEL_PART_JOIN));
         join.setItems(PartMerge.Join.values());
         join.setItemLabelGenerator(this::label);
         join.setValue(preview.join());
         join.setAllowCustomValue(false);
         join.setWidthFull();
 
-        Span promptInfo = new Span(loc.getValue(L.MSG_PART_MERGE_PROMPT_INFO));
+        Span promptInfo = new Span(loc.getValue(M_L.MSG_PART_MERGE_PROMPT_INFO));
         promptInfo.addClassName(CssStyles.HINT_TEXT);
-        field(sceneSetting, L.LABEL_SCENE_SETTING, preview.input().sceneSetting());
-        field(povCharacter, L.LABEL_POV_CHARACTER, preview.input().povCharacter());
-        field(presentCharacters, L.LABEL_PRESENT_CHARACTERS, preview.input().presentCharacters());
-        field(instructions, L.LABEL_INSTRUCTIONS, preview.input().instructions());
+        field(sceneSetting, M_L.LABEL_SCENE_SETTING, preview.input().sceneSetting());
+        field(povCharacter, M_L.LABEL_POV_CHARACTER, preview.input().povCharacter());
+        field(presentCharacters, M_L.LABEL_PRESENT_CHARACTERS, preview.input().presentCharacters());
+        field(instructions, M_L.LABEL_INSTRUCTIONS, preview.input().instructions());
 
         VerticalLayout content = new VerticalLayout(info, join, promptInfo, sceneSetting, povCharacter, presentCharacters, instructions);
         content.setPadding(false);
@@ -142,7 +144,7 @@ public class PartMergeDialog extends Dialog {
         DialogFocus.onOpen(this, instructions);
     }
 
-    private void field(TextArea area, L label, String value) {
+    private void field(TextArea area, LocalizationKey label, String value) {
         area.setLabel(loc.getValue(label));
         area.setValue(value == null ? "" : value);
         area.setWidthFull();
@@ -156,27 +158,27 @@ public class PartMergeDialog extends Dialog {
         box.setWidthFull();
         box.addClassName(CssStyles.GAP_S);
 
-        Span title = new Span(loc.getValue(L.LABEL_ATTRIBUTES));
+        Span title = new Span(loc.getValue(M_L.LABEL_ATTRIBUTES));
         title.addClassName(CssStyles.TEXT_SEMIBOLD);
         box.add(title);
         for (AttributeChange change : preview.attributes()) {
             rows.add(new Row(change, change.takesPreviousByDefault() ? Take.PREVIOUS : Take.LATER));
         }
         if (rows.isEmpty()) {
-            Span none = new Span(loc.getValue(L.MSG_PART_MERGE_NO_DATA));
+            Span none = new Span(loc.getValue(M_L.MSG_PART_MERGE_NO_DATA));
             none.addClassName(CssStyles.HINT_TEXT);
             box.add(none);
             return box;
         }
 
-        showUnchanged.setLabel(loc.getValue(L.LABEL_PART_SHOW_UNCHANGED));
+        showUnchanged.setLabel(loc.getValue(M_L.LABEL_PART_SHOW_UNCHANGED));
         showUnchanged.addValueChangeListener(e -> refreshRows());
         attributes.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_ROW_STRIPES, GridVariant.LUMO_WRAP_CELL_CONTENT);
         attributes.addColumn(row -> row.change.name()).setHeader(loc.getValue(L.LABEL_NAME)).setAutoWidth(true).setFlexGrow(0);
-        attributes.addColumn(row -> label(row.change.kind())).setHeader(loc.getValue(L.LABEL_PART_CHANGE)).setAutoWidth(true).setFlexGrow(0);
-        attributes.addComponentColumn(row -> value(row.change.previous())).setHeader(loc.getValue(L.LABEL_PART_PREVIOUS)).setFlexGrow(1);
-        attributes.addComponentColumn(row -> value(row.change.later())).setHeader(loc.getValue(L.LABEL_PART_MERGED)).setFlexGrow(1);
-        attributes.addComponentColumn(this::takeBox).setHeader(loc.getValue(L.LABEL_RESULT)).setAutoWidth(true).setFlexGrow(0);
+        attributes.addColumn(row -> label(row.change.kind())).setHeader(loc.getValue(M_L.LABEL_PART_CHANGE)).setAutoWidth(true).setFlexGrow(0);
+        attributes.addComponentColumn(row -> value(row.change.previous())).setHeader(loc.getValue(M_L.LABEL_PART_PREVIOUS)).setFlexGrow(1);
+        attributes.addComponentColumn(row -> value(row.change.later())).setHeader(loc.getValue(M_L.LABEL_PART_MERGED)).setFlexGrow(1);
+        attributes.addComponentColumn(this::takeBox).setHeader(loc.getValue(M_L.LABEL_RESULT)).setAutoWidth(true).setFlexGrow(0);
         attributes.setAllRowsVisible(true);
         attributes.setWidthFull();
         refreshRows();
@@ -221,27 +223,27 @@ public class PartMergeDialog extends Dialog {
 
     private String label(PartMerge.Join value) {
         return loc.getValue(switch (value) {
-            case PARAGRAPH -> L.ENUM_PART_JOIN_PARAGRAPH;
-            case LINE -> L.ENUM_PART_JOIN_LINE;
-            case SPACE -> L.ENUM_PART_JOIN_SPACE;
-            case NONE -> L.ENUM_PART_JOIN_NONE;
+            case PARAGRAPH -> M_L.ENUM_PART_JOIN_PARAGRAPH;
+            case LINE -> M_L.ENUM_PART_JOIN_LINE;
+            case SPACE -> M_L.ENUM_PART_JOIN_SPACE;
+            case NONE -> M_L.ENUM_PART_JOIN_NONE;
         });
     }
 
     private String label(PartMerge.Kind kind) {
         return loc.getValue(switch (kind) {
-            case SAME -> L.ENUM_PART_CHANGE_SAME;
-            case DIFFERENT -> L.ENUM_PART_CHANGE_DIFFERENT;
-            case ONLY_PREVIOUS -> L.ENUM_PART_CHANGE_ONLY_PREVIOUS;
-            case ONLY_LATER -> L.ENUM_PART_CHANGE_ONLY_MERGED;
+            case SAME -> M_L.ENUM_PART_CHANGE_SAME;
+            case DIFFERENT -> M_L.ENUM_PART_CHANGE_DIFFERENT;
+            case ONLY_PREVIOUS -> M_L.ENUM_PART_CHANGE_ONLY_PREVIOUS;
+            case ONLY_LATER -> M_L.ENUM_PART_CHANGE_ONLY_MERGED;
         });
     }
 
     private String label(Take take) {
         return loc.getValue(switch (take) {
-            case LATER -> L.LABEL_PART_TAKE_MERGED;
-            case PREVIOUS -> L.LABEL_PART_TAKE_PREVIOUS;
-            case LEFT_OUT -> L.LABEL_JSON_LEAVE_OUT;
+            case LATER -> M_L.LABEL_PART_TAKE_MERGED;
+            case PREVIOUS -> M_L.LABEL_PART_TAKE_PREVIOUS;
+            case LEFT_OUT -> M_L.LABEL_JSON_LEAVE_OUT;
         });
     }
 
@@ -262,10 +264,10 @@ public class PartMergeDialog extends Dialog {
         try {
             ChatMessage merged = chatMessageService.mergeIntoPrevious(manuscript, part, input, join.getValue(), fromPrevious, dropped);
             close();
-            Notification.show(loc.getValue(L.MSG_PART_MERGED));
+            Notification.show(loc.getValue(M_L.MSG_PART_MERGED));
             onMerged.accept(merged);
         } catch (IllegalStateException e) {
-            Notification.show(loc.getValue(L.MSG_PART_MERGE_NOT_POSSIBLE));
+            Notification.show(loc.getValue(M_L.MSG_PART_MERGE_NOT_POSSIBLE));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }

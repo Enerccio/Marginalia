@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.service.search.replace.TextSearch.InvalidSearchException;
 import com.github.enerccio.marginalia.domain.traits.*;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.utils.CommandUtils;
@@ -169,18 +170,18 @@ public class SearchReplaceChatMessageCommand {
                      boolean allBranches, boolean revalidateSummaries, Integer maxHits, boolean dryRun) throws Exception {
         Manuscript manuscript = CommandScope.of(context).getManuscript();
         if (manuscript == null) {
-            throw new IllegalStateException(loc.getValue(L.ERROR_COMMAND_NO_BOOK_OPEN));
+            throw new IllegalStateException(loc.getValue(M_L.ERROR_COMMAND_NO_BOOK_OPEN));
         }
         String search = context.get("search", String.class);
         String replacement = context.get("replace", String.class);
         if (search == null || search.isEmpty()) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_SEARCH_TEXT_EMPTY));
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_SEARCH_TEXT_EMPTY));
         }
         if (replacement == null) {
             replacement = "";
         }
 
-        context.setStatus(loc.getValue(L.MSG_COMMAND_SEARCHING));
+        context.setStatus(loc.getValue(M_L.MSG_COMMAND_SEARCHING));
         ManuscriptReplaceService.Plan plan;
         try {
             plan = replaceService.plan(manuscript, new ManuscriptReplaceService.Options(search, replacement, regex,
@@ -189,13 +190,13 @@ public class SearchReplaceChatMessageCommand {
             return;
         } catch (InvalidSearchException e) {
             throw new IllegalArgumentException(String.format(loc.getValue(e.getKind() == InvalidSearchException.Kind.SEARCH
-                    ? L.ERROR_INVALID_REGEX : L.ERROR_INVALID_REPLACEMENT), e.getMessage()), e);
+                    ? M_L.ERROR_INVALID_REGEX : M_L.ERROR_INVALID_REPLACEMENT), e.getMessage()), e);
         }
         if (context.isTerminated()) {
             return;
         }
         if (plan.items().isEmpty()) {
-            context.setReturn(loc.getValue(L.MSG_SEARCH_NOTHING_FOUND));
+            context.setReturn(loc.getValue(M_L.MSG_SEARCH_NOTHING_FOUND));
             return;
         }
 
@@ -203,38 +204,38 @@ public class SearchReplaceChatMessageCommand {
         context.setSubStatus(null);
         if (dryRun) {
             // only the numbers and a few matches, to decide whether the replace is wanted
-            String report = String.format(loc.getValue(L.MSG_COMMAND_REPLACE_DRY_RUN), plan.hitCount(), plan.items().size());
+            String report = String.format(loc.getValue(M_L.MSG_COMMAND_REPLACE_DRY_RUN), plan.hitCount(), plan.items().size());
             if (plan.outdatedSummaries() > 0) {
-                report += "\n" + String.format(loc.getValue(L.MSG_REPLACE_OUTDATED_SUMMARIES), plan.outdatedSummaries());
+                report += "\n" + String.format(loc.getValue(M_L.MSG_REPLACE_OUTDATED_SUMMARIES), plan.outdatedSummaries());
             }
             context.setReturn(report + SearchReplaceCommands.samples(plan.items().stream().flatMap(item -> item.hits().stream()).toList()));
             return;
         }
         if (maxHits != null && plan.hitCount() > maxHits) {
-            throw new IllegalArgumentException(String.format(loc.getValue(L.ERROR_COMMAND_TOO_MANY_HITS), plan.hitCount(), maxHits));
+            throw new IllegalArgumentException(String.format(loc.getValue(M_L.ERROR_COMMAND_TOO_MANY_HITS), plan.hitCount(), maxHits));
         }
         // there is no preview, so the user decides on the numbers
-        String question = String.format(loc.getValue(L.MSG_COMMAND_REPLACE_CONFIRM), plan.hitCount(),
+        String question = String.format(loc.getValue(M_L.MSG_COMMAND_REPLACE_CONFIRM), plan.hitCount(),
                 plan.items().size(), SearchReplaceCommands.shorten(search), SearchReplaceCommands.shorten(replacement));
         if (plan.outdatedSummaries() > 0) {
-            question += "\n\n" + String.format(loc.getValue(L.MSG_REPLACE_OUTDATED_SUMMARIES), plan.outdatedSummaries());
+            question += "\n\n" + String.format(loc.getValue(M_L.MSG_REPLACE_OUTDATED_SUMMARIES), plan.outdatedSummaries());
         }
         if (!confirm(context, question)) {
             if (!context.isTerminated()) {
-                context.setReturn(loc.getValue(L.MSG_COMMAND_REPLACE_CANCELLED));
+                context.setReturn(loc.getValue(M_L.MSG_COMMAND_REPLACE_CANCELLED));
             }
             return;
         }
 
         // one transaction that is finished or rolled back as a whole, the user can't stop it half way
         context.setUninterruptable(true);
-        context.setStatus(loc.getValue(L.MSG_COMMAND_REPLACING));
+        context.setStatus(loc.getValue(M_L.MSG_COMMAND_REPLACING));
         ManuscriptReplaceService.Result result = replaceService.apply(manuscript, plan, SearchReplaceCommands.NO_STOP);
         CommandUtils.reloadManuscriptWindow();
 
-        String message = String.format(loc.getValue(L.MSG_REPLACE_DONE), result.hits(), result.changed());
+        String message = String.format(loc.getValue(M_L.MSG_REPLACE_DONE), result.hits(), result.changed());
         context.setReturn(result.skipped() == 0 ? message
-                : message + "\n" + String.format(loc.getValue(L.MSG_REPLACE_SKIPPED), result.skipped()));
+                : message + "\n" + String.format(loc.getValue(M_L.MSG_REPLACE_SKIPPED), result.skipped()));
     }
 
     /**

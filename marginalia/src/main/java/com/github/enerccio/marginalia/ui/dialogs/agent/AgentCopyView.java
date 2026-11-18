@@ -10,6 +10,8 @@ import com.github.enerccio.marginalia.domain.service.AgentCopyService.CopyLorebo
 import com.github.enerccio.marginalia.domain.service.AgentCopyService.CopyPart;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.LLMInteract;
@@ -108,17 +110,17 @@ public class AgentCopyView extends VerticalLayout implements LLMInteract {
         setSpacing(false);
         addClassNames(CssStyles.MIN_HEIGHT_0, CssStyles.GAP_S);
 
-        Span help = new Span(loc.getValue(L.HELP_AGENT_COPY));
+        Span help = new Span(loc.getValue(M_L.HELP_AGENT_COPY));
         help.addClassName(CssStyles.HINT_TEXT);
         Button refreshButton = new Button(loc.getValue(L.LABEL_REFRESH), Solid.ARROWS_ROTATE.create(), event -> refresh());
         refreshButton.addThemeVariants(com.vaadin.flow.component.button.ButtonVariant.LUMO_SMALL);
-        noCopyLabel = new Span(loc.getValue(L.MSG_AGENT_COPY_NONE));
+        noCopyLabel = new Span(loc.getValue(M_L.MSG_AGENT_COPY_NONE));
         noCopyLabel.addClassName(CssStyles.HINT_TEXT);
 
-        branchBox = new ComboBox<>(loc.getValue(L.LABEL_BRANCH));
+        branchBox = new ComboBox<>(loc.getValue(M_L.LABEL_BRANCH));
         branchBox.setWidthFull();
         branchBox.setAllowCustomValue(false);
-        branchBox.setItemLabelGenerator(branch -> String.format(loc.getValue(L.MSG_AGENT_COPY_BRANCH), branch.number(),
+        branchBox.setItemLabelGenerator(branch -> String.format(loc.getValue(M_L.MSG_AGENT_COPY_BRANCH), branch.number(),
                 branch.preview(), branch.parts()));
         branchBox.addValueChangeListener(event -> {
             if (!adjusting && event.getValue() != null) {
@@ -146,7 +148,7 @@ public class AgentCopyView extends VerticalLayout implements LLMInteract {
             }
             return name;
         }).setHeader(loc.getValue(L.LABEL_NAME)).setFlexGrow(1);
-        loreGrid.addColumn(row -> loc.getValue(row.entry() == null ? L.ENUM_MERGE_KIND_LOREBOOK : L.ENUM_MERGE_KIND_ENTRY))
+        loreGrid.addColumn(row -> loc.getValue(row.entry() == null ? M_L.ENUM_MERGE_KIND_LOREBOOK : M_L.ENUM_MERGE_KIND_ENTRY))
                 .setHeader(loc.getValue(L.LABEL_TYPE)).setFlexGrow(0).setWidth("110px");
         loreGrid.addSelectionListener(event -> showRow(event.getFirstSelectedItem().orElse(null)));
         loreDetail = new VerticalLayout();
@@ -165,8 +167,8 @@ public class AgentCopyView extends VerticalLayout implements LLMInteract {
         tabs = new TabSheet();
         tabs.setSizeFull();
         tabs.addThemeVariants(TabSheetVariant.LUMO_NO_PADDING);
-        tabs.add(loc.getValue(L.LABEL_STORY_PART), story);
-        tabs.add(loc.getValue(L.LABEL_LOREBOOKS), lore);
+        tabs.add(loc.getValue(M_L.LABEL_STORY_PART), story);
+        tabs.add(loc.getValue(M_L.LABEL_LOREBOOKS), lore);
 
         content = new VerticalLayout(tabs);
         content.setSizeFull();
@@ -230,7 +232,7 @@ public class AgentCopyView extends VerticalLayout implements LLMInteract {
             // the copy is gone: the run ended while the view was open
             showContent(false);
         } catch (IllegalArgumentException e) {
-            Notification.warning(String.format(loc.getValue(L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
+            Notification.warning(String.format(loc.getValue(M_L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
             showContent(false);
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
@@ -305,21 +307,21 @@ public class AgentCopyView extends VerticalLayout implements LLMInteract {
         Div head = new Div(new Span("#" + part.position()));
         head.addClassName(CssStyles.AGENT_COPY_PART_HEAD);
         if (part.swipes() > 1) {
-            head.add(new Span(loc.getValue(L.LABEL_SWIPE) + " " + part.swipe() + "/" + part.swipes()));
+            head.add(new Span(loc.getValue(M_L.LABEL_SWIPE) + " " + part.swipe() + "/" + part.swipes()));
         }
-        head.add(new Span(loc.getValue(L.LABEL_WORDS) + ": " + part.words()));
+        head.add(new Span(loc.getValue(M_L.LABEL_WORDS) + ": " + part.words()));
         card.add(head, new Markdown(StringUtils.defaultString(part.text())));
         List<String> facts = new ArrayList<>();
-        fact(facts, L.LABEL_SCENE_SETTING, part.sceneSetting());
-        fact(facts, L.LABEL_POV_CHARACTER, part.povCharacter());
-        fact(facts, L.LABEL_PRESENT_CHARACTERS, part.presentCharacters());
+        fact(facts, M_L.LABEL_SCENE_SETTING, part.sceneSetting());
+        fact(facts, M_L.LABEL_POV_CHARACTER, part.povCharacter());
+        fact(facts, M_L.LABEL_PRESENT_CHARACTERS, part.presentCharacters());
         if (!facts.isEmpty()) {
             Span line = new Span(String.join(" · ", facts));
             line.addClassName(CssStyles.HINT_TEXT);
             card.add(line);
         }
         if (StringUtils.isNotBlank(part.instructions())) {
-            card.add(new Details(loc.getValue(L.LABEL_INSTRUCTIONS), new Markdown(part.instructions())));
+            card.add(new Details(loc.getValue(M_L.LABEL_INSTRUCTIONS), new Markdown(part.instructions())));
         }
         if (StringUtils.isNotBlank(part.summary())) {
             card.add(new Details(loc.getValue(L.LABEL_SUMMARY), new Markdown(part.summary())));
@@ -327,12 +329,12 @@ public class AgentCopyView extends VerticalLayout implements LLMInteract {
         return card;
     }
 
-    @PublicAPI(from = "1.4.0",
+    @PublicAPI(from = "1.9.0",
             returns = @APIReturn(type = void.class),
             parameters = {@APIParameter(name = "facts", type = List.class),
-                    @APIParameter(name = "label", type = L.class),
+                    @APIParameter(name = "label", type = LocalizationKey.class),
                     @APIParameter(name = "value", type = String.class)})
-    private void fact(List<String> facts, L label, String value) {
+    private void fact(List<String> facts, LocalizationKey label, String value) {
         if (StringUtils.isNotBlank(value)) {
             facts.add(loc.getValue(label) + ": " + value.strip());
         }
@@ -392,18 +394,18 @@ public class AgentCopyView extends VerticalLayout implements LLMInteract {
         }
         if (row.entry() == null) {
             CopyLorebook book = row.book();
-            loreDetail.add(title(book.name()), line(L.LABEL_ENABLED, yes(book.enabled())),
-                    line(L.LABEL_SUBBOOKS, String.join(", ", book.subbooks())), line(L.LABEL_ENTRIES, String.valueOf(book.entries().size())));
+            loreDetail.add(title(book.name()), line(M_L.LABEL_ENABLED, yes(book.enabled())),
+                    line(M_L.LABEL_SUBBOOKS, String.join(", ", book.subbooks())), line(M_L.LABEL_ENTRIES, String.valueOf(book.entries().size())));
             return;
         }
         CopyEntry entry = row.entry();
-        loreDetail.add(title(row.book().name() + " / " + entry.name()), line(L.LABEL_ENABLED, yes(entry.enabled())),
-                line(L.LABEL_ORDER, String.valueOf(entry.order())), line(L.LABEL_TAGS, String.join(", ", entry.tags())),
-                line(L.LABEL_NEGATIVE_TAGS, String.join(", ", entry.negativeTags())),
-                line(L.LABEL_FILTERING_MODE, StringUtils.defaultString(entry.filteringMode())),
-                line(L.LABEL_INSERTION_MODE, StringUtils.defaultString(entry.insertionMode())),
-                line(L.LABEL_FILTERING, StringUtils.defaultString(entry.filtering())),
-                area(L.LABEL_CONTENT, entry.payload()), area(L.LABEL_NOTE, entry.comment()));
+        loreDetail.add(title(row.book().name() + " / " + entry.name()), line(M_L.LABEL_ENABLED, yes(entry.enabled())),
+                line(M_L.LABEL_ORDER, String.valueOf(entry.order())), line(M_L.LABEL_TAGS, String.join(", ", entry.tags())),
+                line(M_L.LABEL_NEGATIVE_TAGS, String.join(", ", entry.negativeTags())),
+                line(M_L.LABEL_FILTERING_MODE, StringUtils.defaultString(entry.filteringMode())),
+                line(M_L.LABEL_INSERTION_MODE, StringUtils.defaultString(entry.insertionMode())),
+                line(M_L.LABEL_FILTERING, StringUtils.defaultString(entry.filtering())),
+                area(M_L.LABEL_CONTENT, entry.payload()), area(M_L.LABEL_NOTE, entry.comment()));
     }
 
     @PublicAPI(from = "1.4.0",
@@ -423,22 +425,22 @@ public class AgentCopyView extends VerticalLayout implements LLMInteract {
         return title;
     }
 
-    @PublicAPI(from = "1.4.0",
+    @PublicAPI(from = "1.9.0",
             returns = @APIReturn(type = Component.class),
-            parameters = {@APIParameter(name = "label", type = L.class),
+            parameters = {@APIParameter(name = "label", type = LocalizationKey.class),
                     @APIParameter(name = "value", type = String.class)},
             locals = {@APILocals(name = "line", type = Span.class)})
-    private Component line(L label, String value) {
+    private Component line(LocalizationKey label, String value) {
         Span line = new Span(loc.getValue(label) + ": " + value);
         return line;
     }
 
-    @PublicAPI(from = "1.4.0",
+    @PublicAPI(from = "1.9.0",
             returns = @APIReturn(type = TextArea.class),
-            parameters = {@APIParameter(name = "label", type = L.class),
+            parameters = {@APIParameter(name = "label", type = LocalizationKey.class),
                     @APIParameter(name = "value", type = String.class)},
             locals = {@APILocals(name = "area", type = TextArea.class)})
-    private TextArea area(L label, String value) {
+    private TextArea area(LocalizationKey label, String value) {
         TextArea area = new TextArea(loc.getValue(label));
         area.setReadOnly(true);
         area.setWidthFull();

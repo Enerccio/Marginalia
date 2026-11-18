@@ -15,6 +15,7 @@ import com.github.enerccio.marginalia.extensions.stconverter.model.TurnItem;
 import com.github.enerccio.marginalia.extensions.stconverter.service.ConverterService;
 import com.github.enerccio.marginalia.extensions.stconverter.service.ConverterService.ModelSelection;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
@@ -444,7 +445,7 @@ public class ConverterView extends VerticalLayout {
         // (merging is kept with the book)
         boolean own = !data.isBookSource();
         TurnRow.Builder row = TurnRow.builder(turnContent(turn))
-                .done(turn.isReviewed(), loc.getValue(turn.isReviewed() ? L.LABEL_MARK_NOT_DONE : L.LABEL_MARK_DONE), checked -> {
+                .done(turn.isReviewed(), loc.getValue(turn.isReviewed() ? M_L.LABEL_MARK_NOT_DONE : M_L.LABEL_MARK_DONE), checked -> {
                     turn.setReviewed(checked);
                     turnCursor = turns.indexOf(turn) + 1;
                     persist();

@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.service.search.FulltextQuery;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.utils.SearchHighlighter;
@@ -101,10 +102,10 @@ public class StoryBranchSearch extends VerticalLayout {
         });
 
         previous.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_SMALL);
-        previous.setTooltipText(loc.getValue(L.LABEL_SEARCH_PREVIOUS_MATCH));
+        previous.setTooltipText(loc.getValue(M_L.LABEL_SEARCH_PREVIOUS_MATCH));
         previous.addClickListener(event -> move(-1));
         next.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_SMALL);
-        next.setTooltipText(loc.getValue(L.LABEL_SEARCH_NEXT_MATCH));
+        next.setTooltipText(loc.getValue(M_L.LABEL_SEARCH_NEXT_MATCH));
         next.addClickListener(event -> move(1));
         status.addClassName(CssStyles.TEXT_SECONDARY);
 
@@ -252,9 +253,9 @@ public class StoryBranchSearch extends VerticalLayout {
         if (query == null) {
             status.setText("");
         } else if (!any) {
-            status.setText(loc.getValue(L.MSG_SEARCH_NO_RESULTS));
+            status.setText(loc.getValue(M_L.MSG_SEARCH_NO_RESULTS));
         } else {
-            status.setText(String.format(loc.getValue(L.MSG_BRANCH_SEARCH_RESULT), current + 1, matches.size(),
+            status.setText(String.format(loc.getValue(M_L.MSG_BRANCH_SEARCH_RESULT), current + 1, matches.size(),
                     matches.get(current).partNumber()));
             progress.setMin(0);
             progress.setMax(matches.size());

@@ -246,8 +246,8 @@ Registering a key again replaces the item. Instruction Exporter is the whole of 
 | `StoryMenuItem.card(key, label, action)` | menu of a part | `BiConsumer<StoryEditor, StoryCard>`: `(story, card) -> ...` |
 | `StoryMenuItem.text(key, label, action)` | right click menu of the text | `BiConsumer<StoryEditor, StoryCard>` |
 
-`label` is a `Function<Localization, String>` (`loc -> "My item"`, or `loc -> loc.getValue(L.X)` for text of the application; a plugin cannot add keys to `L`, use
-`Localization.getCurrentLanguage()` for your own table), and the overloads with an `L` key are for the application's own items. The label is also the
+`label` is a `Function<Localization, String>` (`loc -> "My item"`, or `loc -> loc.getValue(M_L.X)` for text of the application; a plugin cannot add keys to `L` or `M_L`, use
+`Localization.getCurrentLanguage()` for your own table), and the overloads with a `LocalizationKey` are for the application's own items. The label is also the
 name of the action in the key bindings table, so make it say what the action does.
 
 `StoryEditor` is the story tab (the desktop or the phone one): `getCurrentManuscript()` (the book it shows **now**, read it when the action runs, the tab loads other
@@ -396,7 +396,7 @@ What plugins can't do:
   you ([Styles of a plugin](#styles-of-a-plugin)), with its class names as constants in the plugin. Use `getStyle()` only for a value known at runtime.
   Charts are the exception: the application's `ChartJs` widget (`ui.widgets`) draws any Chart.js configuration given as
   JSON, so a plugin can show a chart without a frontend module of its own.
-- **Add localization keys.** `Localization` knows only the application's `L` keys. A plugin translates the texts of
+- **Add localization keys.** `Localization` knows only the keys of the platform (`L`) and the application (`M_L`). A plugin translates the texts of
   its own UI with a `PluginLocalizationBundle` ([Texts in several languages](#texts-in-several-languages)). A plugin
   can also add a *language* for the application's texts, see
   [Example plugin → Chinese localization](example.md#walkthrough-chinese-localization).
@@ -404,7 +404,7 @@ What plugins can't do:
 
 ### Texts in several languages
 
-A plugin can't add keys to the `L` enum, so the texts of its UI are the English sentences themselves, kept as
+A plugin can't add keys to the `L` or `M_L` enums, so the texts of its UI are the English sentences themselves, kept as
 `String` constants of the plugin's bundle class (never as literals in the UI code).
 `PluginLocalizationBundle` (package `extensions`) turns one into the text of the language of the current session
 (`Localization.getCurrentLanguage()`): `localized(message)` returns the translation, and the English `message` when the

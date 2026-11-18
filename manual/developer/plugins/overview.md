@@ -297,7 +297,8 @@ osgiService.getLoadedExtensions();                // the extensions that are loa
 
 **Optional interfaces.** Besides `MarginaliaExtension`, the extension class can implement `ExtensionHasCss` (styles
 put into every page, see [Styles of a plugin](ui-extensions.md#styles-of-a-plugin)) and `ExtensionHasLocalization`
-(languages for the UI: `OsgiServiceImpl` registers the returned `LocalizationBundle`s in `Localization` right after
+(languages for the UI: `OsgiServiceImpl` registers the returned `LocalizationBundle`s, then the `TextBundle`s of
+`getTextBundles()` (the application's `M_L` texts of those languages), in `Localization` right after
 `onExtensionLoad` returned and removes them when the extension is unloaded; see
 [Example plugin](example.md#walkthrough-chinese-localization)).
 

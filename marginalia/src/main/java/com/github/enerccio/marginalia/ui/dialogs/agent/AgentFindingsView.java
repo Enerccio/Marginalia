@@ -5,7 +5,8 @@ import com.github.enerccio.marginalia.domain.service.agent.AgentFindings;
 import com.github.enerccio.marginalia.domain.service.agent.RunTools;
 import com.github.enerccio.marginalia.domain.service.agent.RunTools.Finding;
 import com.github.enerccio.marginalia.domain.traits.*;
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
@@ -55,11 +56,11 @@ final class AgentFindingsView extends VerticalLayout {
         }
     }
 
-    private static L severityLabel(String severity) {
+    private static LocalizationKey severityLabel(String severity) {
         return switch (severity) {
-            case AgentFindings.WARNING -> L.ENUM_AGENT_FINDING_WARNING;
-            case AgentFindings.PROBLEM -> L.ENUM_AGENT_FINDING_PROBLEM;
-            default -> L.LABEL_NOTE;
+            case AgentFindings.WARNING -> M_L.ENUM_AGENT_FINDING_WARNING;
+            case AgentFindings.PROBLEM -> M_L.ENUM_AGENT_FINDING_PROBLEM;
+            default -> M_L.LABEL_NOTE;
         };
     }
 }

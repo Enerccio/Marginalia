@@ -13,7 +13,9 @@ import com.github.enerccio.marginalia.domain.service.agent.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
-import com.github.enerccio.marginalia.loc.StoryLocalization;
+import com.github.enerccio.marginalia.loc.M_L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
+import com.github.enerccio.marginalia.loc.MarginaliaLocalization;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.LLMInteract;
@@ -113,7 +115,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
             AgentRunStatus.PAUSING);
 
     @Autowired
-    private StoryLocalization loc;
+    private MarginaliaLocalization loc;
 
     @Autowired
     private AgentRunService agentRunService;
@@ -251,7 +253,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
                     @APILocals(name = "runTab", type = VerticalLayout.class),
                     @APILocals(name = "footer", type = HorizontalLayout.class)})
     public void create() {
-        setHeaderTitle(phone ? agent.getName() : loc.getValue(L.LABEL_AGENT_CONSOLE) + " - " + agent.getName());
+        setHeaderTitle(phone ? agent.getName() : loc.getValue(M_L.LABEL_AGENT_CONSOLE) + " - " + agent.getName());
         setWidth("1100px");
         setMaxWidth("96%");
         setHeight("90%");
@@ -271,23 +273,23 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         planBox.setPadding(false);
         planBox.setSpacing(false);
         planBox.addClassName(CssStyles.AGENT_PLAN);
-        planButton = new Button(loc.getValue(L.LABEL_AGENT_PLAN), Solid.LIST_CHECK.create());
+        planButton = new Button(loc.getValue(M_L.LABEL_AGENT_PLAN), Solid.LIST_CHECK.create());
         planButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
         planButton.setVisible(false);
         planPopover = new Popover(planBox);
         planPopover.setTarget(planButton);
         planPopover.setPosition(PopoverPosition.BOTTOM_START);
         planPopover.setOpenOnClick(true);
-        planPopover.setAriaLabel(loc.getValue(L.LABEL_AGENT_PLAN));
+        planPopover.setAriaLabel(loc.getValue(M_L.LABEL_AGENT_PLAN));
         findingsView = new AgentFindingsView(loc);
-        findingsButton = new Button(loc.getValue(L.LABEL_AGENT_FINDINGS), Solid.FLAG.create());
+        findingsButton = new Button(loc.getValue(M_L.LABEL_AGENT_FINDINGS), Solid.FLAG.create());
         findingsButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
         findingsButton.setVisible(false);
         findingsPopover = new Popover(findingsView);
         findingsPopover.setTarget(findingsButton);
         findingsPopover.setPosition(PopoverPosition.BOTTOM_START);
         findingsPopover.setOpenOnClick(true);
-        findingsPopover.setAriaLabel(loc.getValue(L.LABEL_AGENT_FINDINGS));
+        findingsPopover.setAriaLabel(loc.getValue(M_L.LABEL_AGENT_FINDINGS));
         HorizontalLayout statusRow = new HorizontalLayout(statusLabel, planButton, findingsButton, usageLabel);
         statusRow.setWidthFull();
         statusRow.setPadding(false);
@@ -303,12 +305,12 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         renderer.setOnSubAgent(this::openSubAgent);
 
         messageField = new TextArea();
-        messageField.setPlaceholder(loc.getValue(L.ENUM_DOMAIN_MESSAGE));
-        messageField.setAriaLabel(loc.getValue(L.ENUM_DOMAIN_MESSAGE));
+        messageField.setPlaceholder(loc.getValue(M_L.ENUM_DOMAIN_MESSAGE));
+        messageField.setAriaLabel(loc.getValue(M_L.ENUM_DOMAIN_MESSAGE));
         messageField.setWidthFull();
         messageField.setMinRows(phone ? 1 : 2);
         messageField.setMaxHeight("120px");
-        sendButton = new Button(loc.getValue(L.LABEL_SEND), Solid.PAPER_PLANE.create(), event -> send());
+        sendButton = new Button(loc.getValue(M_L.LABEL_SEND), Solid.PAPER_PLANE.create(), event -> send());
         sendButton.setThemeName("primary");
         // Ctrl+Enter (Cmd+Enter on a Mac) sends from the box; the value goes to the server with every key, so it is there
         // when the shortcut is
@@ -317,17 +319,17 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         sendButton.addClickShortcut(Key.ENTER, KeyModifier.META).listenOn(messageField);
         sendButton.setTooltipText("Ctrl+Enter");
         if (phone) {
-            iconOnly(sendButton, L.LABEL_SEND);
+            iconOnly(sendButton, M_L.LABEL_SEND);
             // the box takes what is left; the button keeps its size, else the icon is cut
             sendButton.addClassName(CssStyles.FLEX_SHRINK_0);
         }
         // pictures can go with a message when the model of the agent sees them
-        Button attachButton = new Button(loc.getValue(L.LABEL_ATTACH_IMAGE), Solid.IMAGE.create());
+        Button attachButton = new Button(loc.getValue(M_L.LABEL_ATTACH_IMAGE), Solid.IMAGE.create());
         imageUpload = new Upload(new InMemoryUploadHandler((metadata, data) -> attachImage(metadata.fileName(), data)));
         imageUpload.setAcceptedFileTypes("image/png", "image/jpeg", "image/gif", "image/webp");
         imageUpload.setMaxFileSize((int) Math.min(Integer.MAX_VALUE, imageLimit()));
         if (phone) {
-            iconOnly(attachButton, L.LABEL_ATTACH_IMAGE);
+            iconOnly(attachButton, M_L.LABEL_ATTACH_IMAGE);
         }
         imageUpload.setUploadButton(attachButton);
         imageUpload.setDropLabel(new Span());
@@ -345,7 +347,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         commandBar.addClassName(CssStyles.FULL_WIDTH);
         commandBar.setCommands(() -> AgentConsoleCommands.of(commandService, agentRunner.consoleCommands(agent)));
         commandBar.setLineRunner(this::runCommand);
-        Span commandHint = new Span(loc.getValue(L.HELP_AGENT_COMMAND));
+        Span commandHint = new Span(loc.getValue(M_L.HELP_AGENT_COMMAND));
         commandHint.addClassName(CssStyles.HINT_TEXT);
         commandRow = new VerticalLayout(commandBar, commandHint);
         commandRow.setPadding(false);
@@ -357,7 +359,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
             // the keyboard takes half of the screen: the command line is out of the way until its button opens it
             commandRow.setVisible(false);
             commandButton = new Button(Solid.TERMINAL.create(), event -> commandRow.setVisible(!commandRow.isVisible()));
-            iconOnly(commandButton, L.LABEL_COMMAND);
+            iconOnly(commandButton, M_L.LABEL_COMMAND);
             commandButton.addClassName(CssStyles.FLEX_SHRINK_0);
             inputRow = new HorizontalLayout(commandButton, imageUpload, messageField, sendButton);
             // the box is as wide as what the buttons leave (its own minimal width pushed the send button out of the screen)
@@ -407,28 +409,28 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         tabs.addThemeVariants(TabSheetVariant.LUMO_NO_PADDING);
         runTab.addClassName(CssStyles.PADDING_COMPACT);
         history.addClassName(CssStyles.PADDING_COMPACT);
-        addTab(L.LABEL_AGENT_RUN, Solid.COMMENT_ALT, runTab);
+        addTab(M_L.LABEL_AGENT_RUN, Solid.COMMENT_ALT, runTab);
         addTab(L.LABEL_AGENT_RUNS, Solid.LIST_UL, history);
-        addTab(L.LABEL_AGENT_WORKSPACE, Solid.FOLDER, workspaceBrowser);
+        addTab(M_L.LABEL_AGENT_WORKSPACE, Solid.FOLDER, workspaceBrowser);
         checkpointBrowser.addClassName(CssStyles.PADDING_COMPACT);
-        addTab(L.LABEL_AGENT_CHECKPOINTS, Solid.FLOPPY_DISK, checkpointBrowser);
+        addTab(M_L.LABEL_AGENT_CHECKPOINTS, Solid.FLOPPY_DISK, checkpointBrowser);
         contextView = new AgentContextView(() -> run);
         contextView.setPhone(phone);
         contextView.create();
         contextView.addClassName(CssStyles.PADDING_COMPACT);
-        addTab(L.LABEL_AGENT_CONTEXT, Solid.CHART_BAR, contextView);
+        addTab(M_L.LABEL_AGENT_CONTEXT, Solid.CHART_BAR, contextView);
         copyView = new AgentCopyView(() -> run);
         copyView.create();
         copyView.addClassName(CssStyles.PADDING_COMPACT);
-        addTab(L.LABEL_AGENT_BOOK_COPY, Solid.CLONE, copyView);
+        addTab(M_L.LABEL_AGENT_BOOK_COPY, Solid.CLONE, copyView);
         subAgentsView = new AgentSubAgentsView(() -> run);
         subAgentsView.create();
         subAgentsView.addClassName(CssStyles.PADDING_COMPACT);
-        addTab(L.LABEL_AGENT_SUBAGENTS, Solid.ROBOT, subAgentsView);
+        addTab(M_L.LABEL_AGENT_SUBAGENTS, Solid.ROBOT, subAgentsView);
         diagnosticsView = new AgentDiagnosticsView(() -> run);
         diagnosticsView.create();
         diagnosticsView.addClassName(CssStyles.PADDING_COMPACT);
-        addTab(L.LABEL_AGENT_DIAGNOSTICS, Solid.COGS, diagnosticsView);
+        addTab(M_L.LABEL_AGENT_DIAGNOSTICS, Solid.COGS, diagnosticsView);
         tabs.addSelectedChangeListener(event -> {
             if (phone && tabs.getSelectedIndex() >= 0 && tabs.getSelectedIndex() < tabNames.size()) {
                 setHeaderTitle(agent.getName() + " - " + tabNames.get(tabs.getSelectedIndex()));
@@ -452,12 +454,12 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
             setHeaderTitle(agent.getName() + " - " + tabNames.getFirst());
         }
 
-        pauseButton = new Button(loc.getValue(L.LABEL_PAUSE), Solid.PAUSE.create(),
+        pauseButton = new Button(loc.getValue(M_L.LABEL_PAUSE), Solid.PAUSE.create(),
                 event -> perform(() -> agentRunService.pause(run)));
-        pauseNowButton = new Button(loc.getValue(L.LABEL_PAUSE_NOW), Solid.BOLT.create(),
+        pauseNowButton = new Button(loc.getValue(M_L.LABEL_PAUSE_NOW), Solid.BOLT.create(),
                 event -> perform(() -> agentRunner.pauseNow(run)));
-        pauseNowButton.setTooltipText(loc.getValue(L.HELP_AGENT_PAUSE_NOW));
-        resumeButton = new Button(loc.getValue(L.LABEL_RESUME), Solid.PLAY.create(), event -> {
+        pauseNowButton.setTooltipText(loc.getValue(M_L.HELP_AGENT_PAUSE_NOW));
+        resumeButton = new Button(loc.getValue(M_L.LABEL_RESUME), Solid.PLAY.create(), event -> {
             AgentResumeDialog resumeDialog = new AgentResumeDialog(note -> perform(() -> {
                 agentRunner.run(agentRunService.resume(run, note));
                 return null;
@@ -466,9 +468,9 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
             resumeDialog.open();
             lastDialog = resumeDialog;
         });
-        finishButton = new Button(loc.getValue(L.LABEL_FINISH), Solid.CHECK.create(),
+        finishButton = new Button(loc.getValue(M_L.LABEL_FINISH), Solid.CHECK.create(),
                 event -> perform(() -> agentRunService.finish(run)));
-        reviewButton = new Button(loc.getValue(L.LABEL_REVIEW_CHANGES), Solid.CODE_COMPARE.create(), event -> {
+        reviewButton = new Button(loc.getValue(M_L.LABEL_REVIEW_CHANGES), Solid.CODE_COMPARE.create(), event -> {
             AgentMergeDialog dialog = new AgentMergeDialog(agent.getName(), run, () -> {
                 refreshRun();
                 if (onChange != null) {
@@ -493,10 +495,10 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         if (phone) {
             // the controls of the run are the footer, as icons that show only while they can be used; the review keeps its
             // words, it is what a finished run waits for. Refresh and close are in the header, where a thumb finds them
-            iconOnly(pauseButton, L.LABEL_PAUSE);
-            iconOnly(pauseNowButton, L.LABEL_PAUSE_NOW);
-            iconOnly(resumeButton, L.LABEL_RESUME);
-            iconOnly(finishButton, L.LABEL_FINISH);
+            iconOnly(pauseButton, M_L.LABEL_PAUSE);
+            iconOnly(pauseNowButton, M_L.LABEL_PAUSE_NOW);
+            iconOnly(resumeButton, M_L.LABEL_RESUME);
+            iconOnly(finishButton, M_L.LABEL_FINISH);
             iconOnly(stopButton, L.LABEL_STOP);
             iconOnly(refreshButton, L.LABEL_REFRESH);
             closeButton = new Button(Solid.XMARK.create(), event -> close());
@@ -572,14 +574,14 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
     /**
      * A tab of the console: its name, on a phone an icon with the name for the title and for a screen reader.
      */
-    @PublicAPI(from = "1.4.0",
+    @PublicAPI(from = "1.9.0",
             returns = @APIReturn(type = void.class),
-            parameters = {@APIParameter(name = "label", type = L.class),
+            parameters = {@APIParameter(name = "label", type = LocalizationKey.class),
                     @APIParameter(name = "icon", type = FontAwesome.Solid.class),
                     @APIParameter(name = "content", type = Component.class)},
             locals = {@APILocals(name = "name", type = String.class),
                     @APILocals(name = "tab", type = Tab.class)})
-    private void addTab(L label, Solid icon, Component content) {
+    private void addTab(LocalizationKey label, Solid icon, Component content) {
         String name = loc.getValue(label);
         tabNames.add(name);
         if (!phone) {
@@ -594,11 +596,11 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
     /**
      * A button of the phone without its words: the icon, the words are its tooltip and its label for a screen reader.
      */
-    @PublicAPI(from = "1.4.0",
+    @PublicAPI(from = "1.9.0",
             returns = @APIReturn(type = void.class),
             parameters = {@APIParameter(name = "button", type = Button.class),
-                    @APIParameter(name = "label", type = L.class)})
-    private void iconOnly(Button button, L label) {
+                    @APIParameter(name = "label", type = LocalizationKey.class)})
+    private void iconOnly(Button button, LocalizationKey label) {
         button.setText("");
         button.addThemeVariants(ButtonVariant.LUMO_ICON);
         button.setAriaLabel(loc.getValue(label));
@@ -649,7 +651,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         if (subAgentsView.showCall(callId)) {
             tabs.setSelectedIndex(SUBAGENTS_TAB);
         } else {
-            Notification.warning(loc.getValue(L.MSG_AGENT_SUBAGENT_NOT_FOUND));
+            Notification.warning(loc.getValue(M_L.MSG_AGENT_SUBAGENT_NOT_FOUND));
         }
     }
 
@@ -706,7 +708,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
             }
         }
         if (run == null) {
-            UIUtils.setTextIfChanged(statusLabel, loc.getValue(L.MSG_AGENT_NO_RUN_YET));
+            UIUtils.setTextIfChanged(statusLabel, loc.getValue(M_L.MSG_AGENT_NO_RUN_YET));
             UIUtils.setTextIfChanged(usageLabel, "");
         } else {
             AgentRunStatus status = run.getStatus();
@@ -722,9 +724,9 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
             // which run this is, there can be many in the history
             UIUtils.setTextIfChanged(usageLabel, (run.getStartedAt() == null ? "" : java.text.DateFormat.getDateTimeInstance(
                     java.text.DateFormat.SHORT, java.text.DateFormat.SHORT).format(run.getStartedAt()) + "   ")
-                    + loc.getValue(L.LABEL_ROUNDS) + ": " + run.getRounds() + "   "
-                    + loc.getValue(L.LABEL_TOKEN_CONTEXT) + ": " + context + (contextCap > 0 ? " / " + contextCap : "") + "   "
-                    + (replyCap > 0 ? loc.getValue(L.LABEL_AGENT_REPLY_LIMIT) + ": " + replyCap + "   " : "")
+                    + loc.getValue(M_L.LABEL_ROUNDS) + ": " + run.getRounds() + "   "
+                    + loc.getValue(M_L.LABEL_TOKEN_CONTEXT) + ": " + context + (contextCap > 0 ? " / " + contextCap : "") + "   "
+                    + (replyCap > 0 ? loc.getValue(M_L.LABEL_AGENT_REPLY_LIMIT) + ": " + replyCap + "   " : "")
                     + loc.getValue(L.LABEL_TOKENS_TOTAL) + ": " + run.getTotalTokens()
                     + (budget > 0 ? " / " + budget : ""));
         }
@@ -734,7 +736,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         boolean queueing = run != null && run.isInteractive() && QUEUEING.contains(status);
         boolean writable = status == AgentRunStatus.IDLE || queueing;
         messageField.setEnabled(writable);
-        messageField.setHelperText(queueing ? loc.getValue(L.HELP_AGENT_MESSAGE_QUEUED) : null);
+        messageField.setHelperText(queueing ? loc.getValue(M_L.HELP_AGENT_MESSAGE_QUEUED) : null);
         sendButton.setEnabled(writable);
         // a command is run for a run that waits or is paused as well; where it works it is queued like a message
         commandBar.setEnabled(writable || status == AgentRunStatus.PAUSED);
@@ -774,11 +776,11 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         planBox.removeAll();
         if (plan.isEmpty()) {
             planPopover.close();
-            planBox.add(new Span(loc.getValue(L.MSG_AGENT_NO_PLAN)));
+            planBox.add(new Span(loc.getValue(M_L.MSG_AGENT_NO_PLAN)));
             return;
         }
         long done = plan.stream().filter(item -> "done".equals(item.status())).count();
-        planButton.setText(loc.getValue(L.LABEL_AGENT_PLAN) + " " + done + "/" + plan.size());
+        planButton.setText(loc.getValue(M_L.LABEL_AGENT_PLAN) + " " + done + "/" + plan.size());
         for (RunTools.PlanItem item : plan) {
             planBox.add(planItem(item));
         }
@@ -811,7 +813,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
             findingsPopover.close();
             return;
         }
-        findingsButton.setText(loc.getValue(L.LABEL_AGENT_FINDINGS) + " " + findings.size());
+        findingsButton.setText(loc.getValue(M_L.LABEL_AGENT_FINDINGS) + " " + findings.size());
     }
 
     @PublicAPI(from = "1.4.0",
@@ -824,8 +826,8 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         boolean done = "done".equals(item.status());
         boolean active = "in_progress".equals(item.status());
         Icon icon = (done ? Solid.CHECK : active ? Solid.ARROW_RIGHT : Solid.MINUS).create();
-        icon.getElement().setAttribute("aria-label", loc.getValue(done ? L.ENUM_AGENT_PLAN_DONE
-                : active ? L.ENUM_AGENT_PLAN_IN_PROGRESS : L.ENUM_AGENT_PLAN_PENDING));
+        icon.getElement().setAttribute("aria-label", loc.getValue(done ? M_L.ENUM_AGENT_PLAN_DONE
+                : active ? M_L.ENUM_AGENT_PLAN_IN_PROGRESS : M_L.ENUM_AGENT_PLAN_PENDING));
         icon.getElement().setAttribute("title", icon.getElement().getAttribute("aria-label"));
         Span text = new Span(item.text());
         if (done) {
@@ -910,7 +912,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         boolean liveChanged = false;
         if (live != null) {
             if (liveBubble == null) {
-                liveBubble = new AgentLiveBubble(renderer, loc, loc.getValue(L.ENUM_DOMAIN_AGENT));
+                liveBubble = new AgentLiveBubble(renderer, loc, loc.getValue(M_L.ENUM_DOMAIN_AGENT));
                 transcriptBox.add(liveBubble);
             }
             liveChanged = liveBubble.show(live);
@@ -969,7 +971,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
             parameters = {@APIParameter(name = "row", type = AgentMessage.class)},
             locals = {@APILocals(name = "button", type = Button.class)})
     private Button rollbackButton(AgentMessage row) {
-        Button button = new Button(loc.getValue(L.LABEL_REWIND), Solid.BACKWARD_STEP.create(), event -> rollBack(row.getUuid()));
+        Button button = new Button(loc.getValue(M_L.LABEL_REWIND), Solid.BACKWARD_STEP.create(), event -> rollBack(row.getUuid()));
         button.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
         rollbackButtons.add(button);
         showRollbackButton(button, run == null ? null : run.getStatus());
@@ -983,8 +985,8 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
     private void showRollbackButton(Button button, AgentRunStatus status) {
         boolean possible = status != null && ROLLBACK.contains(status);
         button.setEnabled(possible);
-        button.setTooltipText(loc.getValue(possible ? L.HELP_AGENT_ROLLBACK_MESSAGE
-                : status != null && status.isActive() ? L.MSG_AGENT_CHECKPOINT_BUSY : L.MSG_AGENT_REWIND_PAUSE_FIRST));
+        button.setTooltipText(loc.getValue(possible ? M_L.HELP_AGENT_ROLLBACK_MESSAGE
+                : status != null && status.isActive() ? M_L.MSG_AGENT_CHECKPOINT_BUSY : M_L.MSG_AGENT_REWIND_PAUSE_FIRST));
     }
 
     /**
@@ -1005,10 +1007,10 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         }
         try {
             CheckpointService.RewindPlan plan = checkpointService.planRewindToMessage(current, messageUuid);
-            ConfirmDialog.open(String.format(loc.getValue(L.MSG_AGENT_CONFIRM_ROLLBACK_MESSAGE), plan.checkpoint().id(),
+            ConfirmDialog.open(String.format(loc.getValue(M_L.MSG_AGENT_CONFIRM_ROLLBACK_MESSAGE), plan.checkpoint().id(),
                     plan.checkpoint().round(), plan.forgotten()), () -> rollBackNow(messageUuid), () -> {});
         } catch (CheckpointService.CheckpointException e) {
-            Notification.warning(String.format(loc.getValue(L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
+            Notification.warning(String.format(loc.getValue(M_L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
@@ -1022,10 +1024,10 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
             try {
                 AgentRun target = run.getStatus() == AgentRunStatus.IDLE ? agentRunService.pause(run) : run;
                 CheckpointService.Rewound result = checkpointService.rewindToMessage(target, messageUuid);
-                Notification.success(String.format(loc.getValue(L.MSG_AGENT_CHECKPOINT_REWOUND), result.restored().checkpoint().id(),
+                Notification.success(String.format(loc.getValue(M_L.MSG_AGENT_CHECKPOINT_REWOUND), result.restored().checkpoint().id(),
                         result.forgotten(), result.restored().removedFiles().size()));
             } catch (CheckpointService.CheckpointException e) {
-                Notification.warning(String.format(loc.getValue(L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
+                Notification.warning(String.format(loc.getValue(M_L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
             }
             // the rows that were shown are marked now: the transcript is made again
             shownRunId = null;
@@ -1045,7 +1047,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         }
         // deletes the notes of the agent, as the button of the workspace does
         if (line.strip().equals("/" + AgentRunner.CLEAR_WORKSPACE) || line.strip().startsWith("/" + AgentRunner.CLEAR_WORKSPACE + " ")) {
-            ConfirmDialog.open(loc.getValue(L.MSG_AGENT_CONFIRM_CLEAR_WORKSPACE), () -> runCommandNow(line), () -> {});
+            ConfirmDialog.open(loc.getValue(M_L.MSG_AGENT_CONFIRM_CLEAR_WORKSPACE), () -> runCommandNow(line), () -> {});
             return;
         }
         runCommandNow(line);
@@ -1062,11 +1064,11 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
      * A message or a command of the author that waits for the agent: a bubble marked as queued, with the small button that
      * gives it to the agent now.
      */
-    @PublicAPI(from = "1.4.0",
+    @PublicAPI(from = "1.9.0",
             returns = @APIReturn(type = Div.class),
             parameters = {@APIParameter(name = "message", type = AgentRunner.QueuedMessage.class)},
             locals = {@APILocals(name = "force", type = Button.class),
-                    @APILocals(name = "now", type = L.class),
+                    @APILocals(name = "now", type = LocalizationKey.class),
                     @APILocals(name = "heading", type = Div.class),
                     @APILocals(name = "cancel", type = Button.class),
                     @APILocals(name = "header", type = HorizontalLayout.class),
@@ -1077,17 +1079,17 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
             return null;
         }));
         force.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
-        L now = message.command() ? L.LABEL_AGENT_RUN_NOW : L.LABEL_AGENT_SEND_NOW;
-        force.setTooltipText(loc.getValue(now) + ": " + loc.getValue(message.command() ? L.HELP_AGENT_RUN_NOW : L.HELP_AGENT_SEND_NOW));
+        LocalizationKey now = message.command() ? M_L.LABEL_AGENT_RUN_NOW : M_L.LABEL_AGENT_SEND_NOW;
+        force.setTooltipText(loc.getValue(now) + ": " + loc.getValue(message.command() ? M_L.HELP_AGENT_RUN_NOW : M_L.HELP_AGENT_SEND_NOW));
         force.setAriaLabel(loc.getValue(now));
-        Div heading = renderer.text(loc.getValue(message.command() ? L.LABEL_COMMAND : L.LABEL_YOU) + " ("
-                + loc.getValue(L.LABEL_AGENT_QUEUED) + ")", true);
+        Div heading = renderer.text(loc.getValue(message.command() ? M_L.LABEL_COMMAND : M_L.LABEL_YOU) + " ("
+                + loc.getValue(M_L.LABEL_AGENT_QUEUED) + ")", true);
         Button cancel = new Button(Solid.TRASH.create(), event -> perform(() -> {
             agentRunner.cancelQueued(run, message.id());
             return null;
         }));
         cancel.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
-        cancel.setTooltipText(loc.getValue(L.LABEL_CANCEL) + ": " + loc.getValue(L.HELP_AGENT_CANCEL_QUEUED));
+        cancel.setTooltipText(loc.getValue(L.LABEL_CANCEL) + ": " + loc.getValue(M_L.HELP_AGENT_CANCEL_QUEUED));
         cancel.setAriaLabel(loc.getValue(L.LABEL_CANCEL));
         HorizontalLayout header = new HorizontalLayout(heading, new HorizontalLayout(force, cancel));
         header.setWidthFull();
@@ -1150,7 +1152,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
             return;
         }
         if (!ImageFiles.isImage(content)) {
-            Notification.warning(String.format(loc.getValue(L.MSG_AGENT_UPLOAD_NOT_IMAGE), fileName));
+            Notification.warning(String.format(loc.getValue(M_L.MSG_AGENT_UPLOAD_NOT_IMAGE), fileName));
             return;
         }
         pendingImages.add(new PendingImage(fileName, content));
@@ -1240,7 +1242,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
             action.call();
         } catch (IllegalArgumentException | IllegalStateException | SecurityException e) {
             // the rules of the service, its text says what
-            Notification.warning(String.format(loc.getValue(L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
+            Notification.warning(String.format(loc.getValue(M_L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }

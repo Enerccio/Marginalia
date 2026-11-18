@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.dialogs.agent;
 
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
+import com.github.enerccio.marginalia.loc.M_L;
 
 import java.util.Set;
 
@@ -15,34 +16,34 @@ public enum AgentCommandPreset {
     /**
      * Every command there is.
      */
-    ALL(L.ENUM_COMMAND_PRESET_ALL),
+    ALL(M_L.ENUM_COMMAND_PRESET_ALL),
 
     /**
      * No command: the agent can only talk (and use its files).
      */
-    NONE(L.ENUM_COMMAND_PRESET_NONE),
+    NONE(M_L.ENUM_COMMAND_PRESET_NONE),
 
     /**
      * The commands that only read data or add new data, none that changes or removes what exists.
      */
-    NON_DESTRUCTIVE(L.ENUM_COMMAND_PRESET_NON_DESTRUCTIVE),
+    NON_DESTRUCTIVE(M_L.ENUM_COMMAND_PRESET_NON_DESTRUCTIVE),
 
     /**
      * Reads the book and the lorebooks and changes nothing: continuity checks, name and term audits, reports.
      */
-    AUDITOR(L.ENUM_COMMAND_PRESET_AUDITOR),
+    AUDITOR(M_L.ENUM_COMMAND_PRESET_AUDITOR),
 
     /**
      * Reads, and keeps the lorebooks: creates and updates entries and lorebooks, tags, links the sub-lorebooks.
      */
-    LORE_KEEPER(L.ENUM_COMMAND_PRESET_LORE_KEEPER,
+    LORE_KEEPER(M_L.ENUM_COMMAND_PRESET_LORE_KEEPER,
             "create-lore-entry", "update-lore-entry", "move-lore-entry", "set-lore-entry-tags", "set-lore-entry-activation", "create-lorebook",
             "set-lorebook", "add-subbook", "remove-subbook"),
 
     /**
      * Reads, and revises the written text: edits parts, fixes their fields, keeps the summaries and the book info.
      */
-    EDITOR(L.ENUM_COMMAND_PRESET_EDITOR,
+    EDITOR(M_L.ENUM_COMMAND_PRESET_EDITOR,
             "edit-part", "append-to-part", "insert-part", "set-part-fields", "set-summary", "revalidate-summaries",
             "regenerate-summary", "create-meta-summary", "set-book-info", "set-book-tags"),
 
@@ -50,19 +51,19 @@ public enum AgentCommandPreset {
      * Reads, and writes new text: adds parts and branches, lets the model write the next turn, keeps the summaries and
      * the lorebook entries of what it invents.
      */
-    DRAFTER(L.ENUM_COMMAND_PRESET_DRAFTER,
+    DRAFTER(M_L.ENUM_COMMAND_PRESET_DRAFTER,
             "create-part", "insert-part", "branch-part", "switch-branch", "append-to-part", "edit-part", "next", "swipe", "set-summary",
             "regenerate-summary", "create-meta-summary", "revalidate-summaries", "create-lore-entry", "update-lore-entry");
 
-    private final L label;
+    private final LocalizationKey label;
     private final Set<String> writes;
 
-    AgentCommandPreset(L label, String... writes) {
+    AgentCommandPreset(LocalizationKey label, String... writes) {
         this.label = label;
         this.writes = Set.of(writes);
     }
 
-    public L getLabel() {
+    public LocalizationKey getLabel() {
         return label;
     }
 

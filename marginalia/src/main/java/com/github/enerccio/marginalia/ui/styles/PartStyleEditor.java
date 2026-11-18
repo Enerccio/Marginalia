@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.styles.PartStyle;
 import com.github.enerccio.marginalia.domain.styles.PartStyleOption;
 import com.github.enerccio.marginalia.domain.styles.PartStyleTransfer;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
@@ -86,10 +87,10 @@ public class PartStyleEditor extends HorizontalLayout {
         setSizeFull();
         addClassName(CssStyles.MIN_HEIGHT_0);
 
-        duplicateButton = new Button(loc.getValue(L.LABEL_DUPLICATE), event -> duplicate());
+        duplicateButton = new Button(loc.getValue(M_L.LABEL_DUPLICATE), event -> duplicate());
         deleteButton = new Button(loc.getValue(L.LABEL_DELETE), event -> delete());
-        defaultButton = new Button(loc.getValue(L.LABEL_STYLE_SET_DEFAULT), event -> makeDefault());
-        exportButton = new Button(loc.getValue(L.LABEL_EXPORT_BACKUP));
+        defaultButton = new Button(loc.getValue(M_L.LABEL_STYLE_SET_DEFAULT), event -> makeDefault());
+        exportButton = new Button(loc.getValue(M_L.LABEL_EXPORT_BACKUP));
 
         add(createListColumn(), createEditColumn());
         setFlexGrow(1, getComponentAt(1));
@@ -180,10 +181,10 @@ public class PartStyleEditor extends HorizontalLayout {
         upload.setMaxFiles(1);
         upload.setMaxFileSize(PartStyleTransfer.MAX_BYTES);
         upload.setDropAllowed(false);
-        Button importButton = new Button(loc.getValue(L.LABEL_IMPORT));
+        Button importButton = new Button(loc.getValue(M_L.LABEL_IMPORT));
         upload.setUploadButton(importButton);
         upload.addSucceededListener(event -> upload.clearFileList());
-        upload.addFileRejectedListener(event -> Notification.show(loc.getValue(L.ERROR_STYLE_IMPORT_NOT_STYLES)));
+        upload.addFileRejectedListener(event -> Notification.show(loc.getValue(M_L.ERROR_STYLE_IMPORT_NOT_STYLES)));
 
         HorizontalLayout row = new HorizontalLayout(download, upload);
         row.setPadding(false);
@@ -214,9 +215,9 @@ public class PartStyleEditor extends HorizontalLayout {
             imported = PartStyleTransfer.fromJson(json);
         } catch (PartStyleTransfer.ImportException e) {
             Notification.show(switch (e.getReason()) {
-                case NEWER_VERSION -> loc.getValue(L.ERROR_STYLE_IMPORT_NEWER);
-                case UNBALANCED_CSS -> String.format(loc.getValue(L.ERROR_STYLE_IMPORT_CSS), e.getStyleName());
-                default -> loc.getValue(L.ERROR_STYLE_IMPORT_NOT_STYLES);
+                case NEWER_VERSION -> loc.getValue(M_L.ERROR_STYLE_IMPORT_NEWER);
+                case UNBALANCED_CSS -> String.format(loc.getValue(M_L.ERROR_STYLE_IMPORT_CSS), e.getStyleName());
+                default -> loc.getValue(M_L.ERROR_STYLE_IMPORT_NOT_STYLES);
             });
             return false;
         }
@@ -224,9 +225,9 @@ public class PartStyleEditor extends HorizontalLayout {
         refreshList();
         show(imported.styles().getFirst());
         onChange.run();
-        String message = String.format(loc.getValue(L.MSG_STYLES_IMPORTED), imported.styles().size());
+        String message = String.format(loc.getValue(M_L.MSG_STYLES_IMPORTED), imported.styles().size());
         if (imported.ignoredOptions() > 0) {
-            message += " " + String.format(loc.getValue(L.MSG_STYLE_IMPORT_IGNORED), imported.ignoredOptions());
+            message += " " + String.format(loc.getValue(M_L.MSG_STYLE_IMPORT_IGNORED), imported.ignoredOptions());
         }
         Notification.show(message);
         return true;
@@ -237,13 +238,13 @@ public class PartStyleEditor extends HorizontalLayout {
         Span marks = new Span();
         List<String> notes = new ArrayList<>();
         if (style.isBuiltin()) {
-            notes.add(loc.getValue(L.LABEL_STYLE_BUILTIN_MARK));
+            notes.add(loc.getValue(M_L.LABEL_STYLE_BUILTIN_MARK));
         }
         if (style.isForExport()) {
-            notes.add(loc.getValue(L.LABEL_STYLE_EXPORT_MARK));
+            notes.add(loc.getValue(M_L.LABEL_STYLE_EXPORT_MARK));
         }
         if (style.getId().equals(defaultId)) {
-            notes.add(loc.getValue(L.LABEL_STYLE_DEFAULT_MARK));
+            notes.add(loc.getValue(M_L.LABEL_STYLE_DEFAULT_MARK));
         }
         if (!notes.isEmpty()) {
             marks.setText("(" + String.join(", ", notes) + ")");
@@ -267,7 +268,7 @@ public class PartStyleEditor extends HorizontalLayout {
             }
         });
 
-        forExportBox.setLabel(loc.getValue(L.LABEL_STYLE_FOR_EXPORT));
+        forExportBox.setLabel(loc.getValue(M_L.LABEL_STYLE_FOR_EXPORT));
         forExportBox.addValueChangeListener(event -> {
             changed();
             if (!loading) {
@@ -282,14 +283,14 @@ public class PartStyleEditor extends HorizontalLayout {
         TabSheet tabs = new TabSheet();
         tabs.setSizeFull();
         tabs.addClassName(CssStyles.MIN_HEIGHT_0);
-        tabs.add(loc.getValue(L.LABEL_STYLE_OPTIONS), createOptionsTab());
-        tabs.add(loc.getValue(L.LABEL_STYLE_CUSTOM_CSS), createCssTab());
+        tabs.add(loc.getValue(M_L.LABEL_STYLE_OPTIONS), createOptionsTab());
+        tabs.add(loc.getValue(M_L.LABEL_STYLE_CUSTOM_CSS), createCssTab());
 
         preview.addClassName(CssStyles.STYLE_EDITOR_PREVIEW);
-        Markdown sample = new Markdown(loc.getValue(L.MSG_STYLE_PREVIEW_SAMPLE));
+        Markdown sample = new Markdown(loc.getValue(M_L.MSG_STYLE_PREVIEW_SAMPLE));
         sample.addClassName(CssStyles.CHAT_MESSAGE_MARKDOWN);
         preview.add(sample);
-        Span previewLabel = new Span(loc.getValue(L.LABEL_STYLE_PREVIEW));
+        Span previewLabel = new Span(loc.getValue(M_L.LABEL_STYLE_PREVIEW));
         previewLabel.addClassName(CssStyles.TEXT_SEMIBOLD);
 
         VerticalLayout column = new VerticalLayout(nameField, forExportBox, tabs, previewLabel, preview);
@@ -306,7 +307,7 @@ public class PartStyleEditor extends HorizontalLayout {
     private Component createOptionsTab() {
         VerticalLayout tab = new VerticalLayout();
         tab.setPadding(false);
-        Span help = new Span(loc.getValue(L.HELP_STYLE_VALUES));
+        Span help = new Span(loc.getValue(M_L.HELP_STYLE_VALUES));
         help.addClassNames(CssStyles.TEXT_SECONDARY, CssStyles.TEXT_S);
         tab.add(help);
 
@@ -367,17 +368,17 @@ public class PartStyleEditor extends HorizontalLayout {
     private Component createCssTab() {
         VerticalLayout tab = new VerticalLayout();
         tab.setPadding(false);
-        Span help = new Span(loc.getValue(L.HELP_STYLE_CUSTOM_CSS));
+        Span help = new Span(loc.getValue(M_L.HELP_STYLE_CUSTOM_CSS));
         help.addClassNames(CssStyles.TEXT_SECONDARY, CssStyles.TEXT_S);
 
-        customCssField.setLabel(loc.getValue(L.LABEL_STYLE_CUSTOM_CSS));
+        customCssField.setLabel(loc.getValue(M_L.LABEL_STYLE_CUSTOM_CSS));
         customCssField.setWidthFull();
         customCssField.setMinHeight("10rem");
         customCssField.addClassName(CssStyles.STYLE_EDITOR_CSS);
         customCssField.setValueChangeMode(ValueChangeMode.LAZY);
         customCssField.addValueChangeListener(event -> changed());
 
-        generatedCssField.setLabel(loc.getValue(L.LABEL_STYLE_GENERATED_CSS));
+        generatedCssField.setLabel(loc.getValue(M_L.LABEL_STYLE_GENERATED_CSS));
         generatedCssField.setWidthFull();
         generatedCssField.setMinHeight("10rem");
         generatedCssField.setReadOnly(true);
@@ -423,12 +424,12 @@ public class PartStyleEditor extends HorizontalLayout {
             if (StringUtils.isBlank(style.getName())) {
                 show(style);
                 nameField.setInvalid(true);
-                Notification.show(loc.getValue(L.ERROR_STYLE_NAME_REQUIRED));
+                Notification.show(loc.getValue(M_L.ERROR_STYLE_NAME_REQUIRED));
                 return false;
             }
             if (style.getCustomCss() != null && !PartStyle.isBalanced(style.getCustomCss())) {
                 show(style);
-                Notification.show(loc.getValue(L.ERROR_STYLE_CSS_UNBALANCED));
+                Notification.show(loc.getValue(M_L.ERROR_STYLE_CSS_UNBALANCED));
                 return false;
             }
         }
@@ -567,7 +568,7 @@ public class PartStyleEditor extends HorizontalLayout {
         }
         // what is on the screen, saved or not
         PartStyle copy = selected.copy(UUID.randomUUID().toString(),
-                String.format(loc.getValue(L.LABEL_STYLE_COPY_NAME), selected.getDisplayName(loc)));
+                String.format(loc.getValue(M_L.LABEL_STYLE_COPY_NAME), selected.getDisplayName(loc)));
         styles.add(copy);
         refreshList();
         show(copy);

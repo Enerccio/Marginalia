@@ -5,8 +5,8 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.FolderService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.OsgiService;
-import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.test.ComponentTree;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
 import com.github.enerccio.marginalia.ui.widgets.FolderBookRow;
@@ -182,7 +182,7 @@ class ViewerFoldersTest extends MarginaliaTestBase {
     void aFolderIsOpenedByTappingItAndLeftFromTheBreadcrumb() {
         tap(row("Sci-fi"));
         assertThat(names()).containsExactly("[Expanse]", "Leviathan");
-        assertThat(ComponentTree.all(viewer, Button.class).map(Button::getText)).contains(loc.getValue(L.LABEL_BOOKS));
+        assertThat(ComponentTree.all(viewer, Button.class).map(Button::getText)).contains(loc.getValue(M_L.LABEL_BOOKS));
 
         tap(row("Expanse"));
         assertThat(names()).containsExactly("Caliban");
@@ -190,7 +190,7 @@ class ViewerFoldersTest extends MarginaliaTestBase {
         click("Sci-fi");
         assertThat(names()).containsExactly("[Expanse]", "Leviathan");
 
-        click(loc.getValue(L.LABEL_BOOKS));
+        click(loc.getValue(M_L.LABEL_BOOKS));
         assertThat(names()).containsExactly("[Sci-fi]", "Loose");
 
         // every step is put into the cookie, the top level as empty text
@@ -246,8 +246,8 @@ class ViewerFoldersTest extends MarginaliaTestBase {
 
         assertThat(ui.cookieValues).containsExactly("favorites");
 
-        click(loc.getValue(L.LABEL_BOOKS));
-        assertThat(names()).containsExactly(loc.getValue(L.LABEL_FAVORITES), "[Sci-fi]", "Loose");
+        click(loc.getValue(M_L.LABEL_BOOKS));
+        assertThat(names()).containsExactly(loc.getValue(M_L.LABEL_FAVORITES), "[Sci-fi]", "Loose");
 
         // what the cookie holds for the favorites
         restore("favorites");

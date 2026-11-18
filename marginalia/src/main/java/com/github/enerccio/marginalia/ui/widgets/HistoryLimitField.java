@@ -1,7 +1,7 @@
 package com.github.enerccio.marginalia.ui.widgets;
 
 import com.github.enerccio.marginalia.domain.service.EffectiveHistoryLimit;
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.vaadin.flow.component.textfield.IntegerField;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,9 +48,9 @@ public class HistoryLimitField extends IntegerField {
         if (limitedAbove) {
             setHelperText(origin(loc, inherited));
         } else if (inherited != null && inherited.isUnlimited() && own == null) {
-            setHelperText(loc.getValue(L.MSG_HISTORY_LIMIT_NONE));
+            setHelperText(loc.getValue(M_L.MSG_HISTORY_LIMIT_NONE));
         } else {
-            setHelperText(loc.getValue(L.HELP_HISTORY_MAX_VERSIONS));
+            setHelperText(loc.getValue(M_L.HELP_HISTORY_MAX_VERSIONS));
         }
     }
 
@@ -59,10 +59,10 @@ public class HistoryLimitField extends IntegerField {
      */
     public static String origin(Localization loc, EffectiveHistoryLimit limit) {
         return switch (limit.origin()) {
-            case FOLDER -> String.format(loc.getValue(L.MSG_HISTORY_LIMIT_FOLDER), limit.value(), limit.folder().getName());
-            case USER -> String.format(loc.getValue(L.MSG_HISTORY_LIMIT_USER), limit.value());
-            case PERMISSION -> String.format(loc.getValue(L.MSG_HISTORY_LIMIT_PERMISSION), limit.value());
-            default -> loc.getValue(L.MSG_HISTORY_LIMIT_NONE);
+            case FOLDER -> String.format(loc.getValue(M_L.MSG_HISTORY_LIMIT_FOLDER), limit.value(), limit.folder().getName());
+            case USER -> String.format(loc.getValue(M_L.MSG_HISTORY_LIMIT_USER), limit.value());
+            case PERMISSION -> String.format(loc.getValue(M_L.MSG_HISTORY_LIMIT_PERMISSION), limit.value());
+            default -> loc.getValue(M_L.MSG_HISTORY_LIMIT_NONE);
         };
     }
 }

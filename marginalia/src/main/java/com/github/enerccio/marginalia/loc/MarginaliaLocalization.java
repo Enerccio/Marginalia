@@ -10,23 +10,24 @@ import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookMat
 import java.util.List;
 
 /**
- * The {@link Localization} of the application: the labels of the enums of books, lorebooks, revisions and agents, and the
+ * The {@link Localization} of the application: its texts ({@link M_L}, in the {@code MarginaliaLocalizationBundle*}
+ * classes), the labels of the enums of books, lorebooks, revisions and agents, and the
  * built-in prompts ({@link Defaults}) in the prompt languages. The bean {@code localization} is one, so code of the
  * application injects this type where it needs these.
  */
-public interface StoryLocalization extends Localization {
+public interface MarginaliaLocalization extends Localization {
 
-    L getBackupStrategy(BackupStrategy t);
-    L getFilteringMode(FilteringMode t);
-    L getInsertionMode(InsertionMode t);
-    L getActivationContext(ActivationContext t);
-    L getActivationReason(LorebookActivationService.Reason t);
-    L getLorebookMatch(LorebookMatch t);
-    L getLorebookDecision(LorebookDecision t);
-    L getRevisionSource(RevisionSource t);
-    L getRevisionDetail(RevisionDetail t);
-    L getAgentRunStatus(AgentRunStatus t);
-    L getDestructiveCommandMode(DestructiveCommandMode t);
+    LocalizationKey getBackupStrategy(BackupStrategy t);
+    LocalizationKey getFilteringMode(FilteringMode t);
+    LocalizationKey getInsertionMode(InsertionMode t);
+    LocalizationKey getActivationContext(ActivationContext t);
+    LocalizationKey getActivationReason(LorebookActivationService.Reason t);
+    LocalizationKey getLorebookMatch(LorebookMatch t);
+    LocalizationKey getLorebookDecision(LorebookDecision t);
+    LocalizationKey getRevisionSource(RevisionSource t);
+    LocalizationKey getRevisionDetail(RevisionDetail t);
+    LocalizationKey getAgentRunStatus(AgentRunStatus t);
+    LocalizationKey getDestructiveCommandMode(DestructiveCommandMode t);
 
     /**
      * The built-in prompts and the texts sent to the model in the prompt language of the current session

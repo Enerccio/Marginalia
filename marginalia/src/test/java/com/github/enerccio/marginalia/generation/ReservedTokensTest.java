@@ -4,8 +4,8 @@ import com.github.enerccio.marginalia.domain.components.TokenLimits;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.impl.generation.Events;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationProperties;
-import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.test.GenerationRun;
 import com.github.enerccio.marginalia.test.GenerationTestBase;
 import com.github.enerccio.marginalia.test.llm.MockLLMResponse;
@@ -79,7 +79,7 @@ class ReservedTokensTest extends GenerationTestBase {
 
         GenerationRun run = generate(manuscript, "write");
 
-        assertThat(run.getSimpleErrors()).containsExactly(loc.getValue(L.ERROR_CONTEXT_INSUFFICIENT));
+        assertThat(run.getSimpleErrors()).containsExactly(loc.getValue(M_L.ERROR_CONTEXT_INSUFFICIENT));
         assertThat(llm.getCompletionRequests()).isEmpty();
     }
 
@@ -92,6 +92,6 @@ class ReservedTokensTest extends GenerationTestBase {
 
         GenerationRun run = generate(manuscript, "write");
 
-        assertThat(run.getSimpleErrors()).containsExactly(loc.getValue(L.ERROR_CONTEXT_INSUFFICIENT));
+        assertThat(run.getSimpleErrors()).containsExactly(loc.getValue(M_L.ERROR_CONTEXT_INSUFFICIENT));
     }
 }

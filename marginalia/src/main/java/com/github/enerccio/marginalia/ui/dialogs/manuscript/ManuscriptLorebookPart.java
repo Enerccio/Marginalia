@@ -4,8 +4,8 @@ import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.LorebookService;
 import com.github.enerccio.marginalia.domain.traits.*;
-import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.ui.RestorableState;
 import com.github.enerccio.marginalia.ui.components.LorebookView;
 import com.github.enerccio.marginalia.ui.dialogs.ManuscriptDialog;
@@ -65,7 +65,7 @@ public class ManuscriptLorebookPart implements ManuscriptDialogPart {
         headerLayout.setWidthFull();
         headerLayout.setAlignItems(FlexComponent.Alignment.BASELINE);
 
-        activeLorebookCombo = new ComboBox<>(loc.getValue(L.LABEL_LOREBOOK));
+        activeLorebookCombo = new ComboBox<>(loc.getValue(M_L.LABEL_LOREBOOK));
         activeLorebookCombo.setItemLabelGenerator(Lorebook::getName);
         activeLorebookCombo.setClearButtonVisible(true);
         activeLorebookCombo.setWidthFull();
@@ -75,7 +75,7 @@ public class ManuscriptLorebookPart implements ManuscriptDialogPart {
             }
         });
 
-        shownLorebookCombo = new ComboBox<>(loc.getValue(L.LABEL_SHOWN_LOREBOOK));
+        shownLorebookCombo = new ComboBox<>(loc.getValue(M_L.LABEL_SHOWN_LOREBOOK));
         shownLorebookCombo.setItemLabelGenerator(Lorebook::getName);
         shownLorebookCombo.setWidthFull();
         shownLorebookCombo.setVisible(false);
@@ -97,7 +97,7 @@ public class ManuscriptLorebookPart implements ManuscriptDialogPart {
         mainLayout.add(headerLayout, lorebookViewComponent);
         mainLayout.setFlexGrow(1, lorebookViewComponent);
 
-        container.add(loc.getValue(L.LABEL_LOREBOOK), mainLayout);
+        container.add(loc.getValue(M_L.LABEL_LOREBOOK), mainLayout);
         return mainLayout;
     }
 

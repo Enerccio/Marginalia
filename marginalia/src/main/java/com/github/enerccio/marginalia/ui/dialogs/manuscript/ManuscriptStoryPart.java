@@ -14,6 +14,7 @@ import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.domain.styles.PartStyle;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.RestorableState;
@@ -245,14 +246,14 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
         activity.track(currentManuscript);
 
         // the story is a tab like the others, the user puts it where they want it
-        leftBar.add(STORY_TAB, loc.getValue(L.LABEL_STORY_PART), centerLayout);
+        leftBar.add(STORY_TAB, loc.getValue(M_L.LABEL_STORY_PART), centerLayout);
         // the one tab that stays on the screen when all the others are minimized
         leftBar.setMinimizable(STORY_TAB, false);
         // a tab sheet drops the content of the tabs it does not show from the page: the browser builds the story again
         // when its tab is shown, without the scripts that watch the edges
         centerLayout.addAttachListener(event -> lazyLoader.reattached());
 
-        container.add(loc.getValue(L.LABEL_STORY_PART), leftBar);
+        container.add(loc.getValue(M_L.LABEL_STORY_PART), leftBar);
         installShortcuts();
         return leftBar;
     }
@@ -535,7 +536,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             locals = {@APILocals(name = "item", type = MenuItem.class)})
     private MenuItem createSummariesMenuItem(MenuBar bar) {
         MenuItem item = bar.addItem(Solid.LIST_UL.create(), event -> openSummariesDialog());
-        UIUtils.addTooltip(item, loc.getValue(L.LABEL_SUMMARIES));
+        UIUtils.addTooltip(item, loc.getValue(M_L.LABEL_SUMMARIES));
         return item;
     }
 
@@ -649,7 +650,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             returns = @APIReturn(type = void.class))
     @Override
     public void confirmRestoreDefaultLayout() {
-        ConfirmDialog.show(loc.getValue(L.MSG_CONFIRM_RESTORE_DEFAULT_LAYOUT), this::restoreDefaultLayout);
+        ConfirmDialog.show(loc.getValue(M_L.MSG_CONFIRM_RESTORE_DEFAULT_LAYOUT), this::restoreDefaultLayout);
     }
 
     /**
@@ -959,8 +960,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
         }
         try {
             long tokens = summaryService.collectTree(currentManuscript).stream().filter(SummaryNode::isValid).mapToLong(SummaryNode::getTokens).sum();
-            UIUtils.addTooltip(summariesMenuItem, loc.getValue(L.LABEL_SUMMARIES) + "\n"
-                    + String.format(loc.getValue(L.MSG_ACTIVE_SUMMARIES_TOKENS), tokens));
+            UIUtils.addTooltip(summariesMenuItem, loc.getValue(M_L.LABEL_SUMMARIES) + "\n"
+                    + String.format(loc.getValue(M_L.MSG_ACTIVE_SUMMARIES_TOKENS), tokens));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
@@ -1084,13 +1085,13 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
         if (currentManuscript == null || currentManuscript.getActiveLeaf() == null) {
             branchSearch.refresh(List.of());
             annotationsPanel.refresh(Map.of());
-            Span emptyLabel = new Span(loc.getValue(L.MSG_NO_ACTIVE_BRANCH));
+            Span emptyLabel = new Span(loc.getValue(M_L.MSG_NO_ACTIVE_BRANCH));
             centerContentPanel.add(UIUtils.centerComponent(emptyLabel));
         } else {
             try {
                 List<ChatMessage> branch = chatMessageService.getBranchFromLeaf(currentManuscript.getActiveLeaf());
                 int total = branch.size();
-                sidebarHeader.setText(String.format(loc.getValue(L.LABEL_CHAPTER_OUTLINE_HEADER), total));
+                sidebarHeader.setText(String.format(loc.getValue(M_L.LABEL_CHAPTER_OUTLINE_HEADER), total));
 
                 for (int i = 0; i < total; i++) {
                     ChatMessage msg = branch.get(i);
@@ -1143,7 +1144,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
                     @APIParameter(name = "dbId", type = Long.class)},
             locals = {@APILocals(name = "sidebarBtn", type = Button.class)})
     private void createSidebarButton(ChatMessage msg, int orderId, Long dbId) {
-        Button sidebarBtn = new Button(String.format(loc.getValue(L.LABEL_CHAPTER_OUTLINE_NODE), orderId, dbId));
+        Button sidebarBtn = new Button(String.format(loc.getValue(M_L.LABEL_CHAPTER_OUTLINE_NODE), orderId, dbId));
         sidebarBtn.setThemeName("tertiary small");
         sidebarBtn.setWidthFull();
         sidebarBtn.addClassName(CssStyles.SIDEBAR_BUTTON);
@@ -1164,7 +1165,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
     private void createStoryOutlineTab() {
         VerticalLayout leftMarginLayout = new VerticalLayout();
         leftMarginLayout.setSizeFull();
-        leftBar.add(CHAPTERS_TAB, loc.getValue(L.LABEL_CHAPTERS), TabDockIcon.CHAPTERS, leftMarginLayout);
+        leftBar.add(CHAPTERS_TAB, loc.getValue(M_L.LABEL_CHAPTERS), TabDockIcon.CHAPTERS, leftMarginLayout);
 
         sidebarHeader = new Span();
         sidebarHeader.addClassName(CssStyles.SIDEBAR_HEADER);
@@ -1195,7 +1196,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
         // the phone's story part has no full-screen editor
         lorebookPreview.setFullScreenEditor(true);
         lorebookPreview.setBook(parent::refreshManuscript);
-        leftBar.add(LOREBOOK_TAB, loc.getValue(L.LABEL_LOREBOOK), TabDockIcon.LOREBOOK, lorebookPreview);
+        leftBar.add(LOREBOOK_TAB, loc.getValue(M_L.LABEL_LOREBOOK), TabDockIcon.LOREBOOK, lorebookPreview);
     }
 
     /**
@@ -1235,7 +1236,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
                 }
             }
         });
-        leftBar.add(ANNOTATIONS_TAB, loc.getValue(L.LABEL_ANNOTATIONS), TabDockIcon.ANNOTATIONS, annotationsPanel);
+        leftBar.add(ANNOTATIONS_TAB, loc.getValue(M_L.LABEL_ANNOTATIONS), TabDockIcon.ANNOTATIONS, annotationsPanel);
     }
 
     /**
@@ -1252,7 +1253,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             newTurnPopover.setOpened(true);
             return true;
         });
-        leftBar.add(PLANNER_TAB, loc.getValue(L.LABEL_PLANNER), TabDockIcon.PLANNER, plannerPanel);
+        leftBar.add(PLANNER_TAB, loc.getValue(M_L.LABEL_PLANNER), TabDockIcon.PLANNER, plannerPanel);
     }
 
     /**
@@ -1535,7 +1536,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             UserSetting setting = settingService.getOrCreate(UserSetting.class);
             setting.setDefaultStoryLayout(leftBar.getLayout());
             settingService.save(setting);
-            Notification.success(loc.getValue(L.MSG_LAYOUT_SAVED_AS_DEFAULT));
+            Notification.success(loc.getValue(M_L.MSG_LAYOUT_SAVED_AS_DEFAULT));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
@@ -1788,7 +1789,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
                 reasoningMarkdown.setContent(message.getResponseReasoning());
             }
 
-            reasoningDetails = new Details(loc.getValue(L.LABEL_VIEW_REASONING), reasoningMarkdown);
+            reasoningDetails = new Details(loc.getValue(M_L.LABEL_VIEW_REASONING), reasoningMarkdown);
             reasoningDetails.setWidthFull();
             reasoningDetails.addClassNames(CssStyles.MAX_WIDTH_FULL, CssStyles.MIN_WIDTH_0, CssStyles.BORDER_BOX);
 
@@ -1815,7 +1816,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
 
             metrics = new MessageMetrics(loc, message, this.orderId, false);
 
-            turnDetailsBtn = new Button(loc.getValue(L.LABEL_TURN_DETAILS), Solid.INFO_CIRCLE.create());
+            turnDetailsBtn = new Button(loc.getValue(M_L.LABEL_TURN_DETAILS), Solid.INFO_CIRCLE.create());
             turnDetailsBtn.setThemeName("tertiary small");
             turnDetailsBtn.setWidthFull();
 
@@ -2315,7 +2316,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             if (StringUtils.defaultString(responseTextArea.getValue()).equals(StringUtils.defaultString(message.getResponse()))) {
                 closeEditor();
             } else {
-                ConfirmDialog.show(loc.getValue(L.MSG_CONFIRM_DISCARD_EDIT), this::closeEditor);
+                ConfirmDialog.show(loc.getValue(M_L.MSG_CONFIRM_DISCARD_EDIT), this::closeEditor);
             }
         }
 

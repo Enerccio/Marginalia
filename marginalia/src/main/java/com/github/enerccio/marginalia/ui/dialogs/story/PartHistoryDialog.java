@@ -11,7 +11,9 @@ import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService.PartEdit;
 import com.github.enerccio.marginalia.domain.service.MessageRevisionService;
 import com.github.enerccio.marginalia.loc.L;
-import com.github.enerccio.marginalia.loc.StoryLocalization;
+import com.github.enerccio.marginalia.loc.M_L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
+import com.github.enerccio.marginalia.loc.MarginaliaLocalization;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
@@ -58,7 +60,7 @@ public class PartHistoryDialog extends Dialog {
     }
 
     @Autowired
-    private StoryLocalization loc;
+    private MarginaliaLocalization loc;
 
     @Autowired
     private MessageRevisionService messageRevisionService;
@@ -127,26 +129,26 @@ public class PartHistoryDialog extends Dialog {
         this.manuscript = manuscript;
         this.part = part;
         this.onChanged = onChanged;
-        diff = new WordDiffView(loc.getValue(L.MSG_MERGE_NO_DIFFERENCE));
+        diff = new WordDiffView(loc.getValue(M_L.MSG_MERGE_NO_DIFFERENCE));
         build();
         reload();
     }
 
     private void build() {
-        setHeaderTitle(loc.getValue(L.LABEL_VERSION_HISTORY_OF_PART));
+        setHeaderTitle(loc.getValue(M_L.LABEL_VERSION_HISTORY_OF_PART));
         setWidth("min(1150px, 95vw)");
         setHeight("85vh");
         setResizable(true);
         setDraggable(true);
         UIUtils.fitPhone(this, true);
 
-        saveVersion.setText(loc.getValue(L.LABEL_SAVE_VERSION));
+        saveVersion.setText(loc.getValue(M_L.LABEL_SAVE_VERSION));
         saveVersion.addClickListener(_ -> askSaveVersion());
-        showDeleted.setLabel(loc.getValue(L.LABEL_SHOW_DELETED_VERSIONS));
+        showDeleted.setLabel(loc.getValue(M_L.LABEL_SHOW_DELETED_VERSIONS));
         showDeleted.addValueChangeListener(_ -> reload());
-        emptyTrash.setText(loc.getValue(L.LABEL_EMPTY_VERSION_TRASH));
+        emptyTrash.setText(loc.getValue(M_L.LABEL_EMPTY_VERSION_TRASH));
         emptyTrash.addClickListener(_ -> askEmptyTrash());
-        clearHistory.setText(loc.getValue(L.LABEL_CLEAR_HISTORY));
+        clearHistory.setText(loc.getValue(M_L.LABEL_CLEAR_HISTORY));
         clearHistory.addClickListener(_ -> clear());
         HorizontalLayout toolbar = new HorizontalLayout(saveVersion, showDeleted, emptyTrash, clearHistory);
         toolbar.setWidthFull();
@@ -159,14 +161,14 @@ public class PartHistoryDialog extends Dialog {
         if (phone) {
             grid.addComponentColumn(this::card);
         } else {
-            grid.addColumn(row -> loc.getDateHourFormat().format(row.creation())).setHeader(loc.getValue(L.LABEL_DATE)).setAutoWidth(true).setFlexGrow(0);
+            grid.addColumn(row -> loc.getDateHourFormat().format(row.creation())).setHeader(loc.getValue(M_L.LABEL_DATE)).setAutoWidth(true).setFlexGrow(0);
             grid.addComponentColumn(this::sourceCell).setHeader(loc.getValue(L.LABEL_SOURCE)).setAutoWidth(true).setFlexGrow(1);
-            grid.addColumn(row -> row.wordCount()).setHeader(loc.getValue(L.LABEL_WORDS)).setAutoWidth(true).setFlexGrow(0);
+            grid.addColumn(row -> row.wordCount()).setHeader(loc.getValue(M_L.LABEL_WORDS)).setAutoWidth(true).setFlexGrow(0);
             grid.addColumn(row -> StringUtils.defaultString(row.label())).setHeader(loc.getValue(L.LABEL_VERSION_LABEL)).setAutoWidth(true).setFlexGrow(0);
         }
         grid.addSelectionListener(event -> show(event.getFirstSelectedItem().orElse(null)));
 
-        empty.setText(loc.getValue(L.MSG_HISTORY_EMPTY));
+        empty.setText(loc.getValue(M_L.MSG_HISTORY_EMPTY));
         empty.addClassName(CssStyles.HINT_TEXT);
 
         buildDetail();
@@ -222,11 +224,11 @@ public class PartHistoryDialog extends Dialog {
 
         compare.setItems(Compare.values());
         compare.setItemLabelGenerator(c -> loc.getValue(switch (c) {
-            case PREVIOUS -> L.LABEL_HISTORY_COMPARE_PREVIOUS;
-            case CURRENT -> L.LABEL_HISTORY_COMPARE_CURRENT;
-            case NONE -> L.LABEL_HISTORY_COMPARE_NONE;
+            case PREVIOUS -> M_L.LABEL_HISTORY_COMPARE_PREVIOUS;
+            case CURRENT -> M_L.LABEL_HISTORY_COMPARE_CURRENT;
+            case NONE -> M_L.LABEL_HISTORY_COMPARE_NONE;
         }));
-        compare.setLabel(loc.getValue(L.LABEL_COMPARE_WITH));
+        compare.setLabel(loc.getValue(M_L.LABEL_COMPARE_WITH));
         compare.addThemeName("horizontal");
         compare.setValue(Compare.PREVIOUS);
         compare.addValueChangeListener(_ -> showText());
@@ -241,22 +243,22 @@ public class PartHistoryDialog extends Dialog {
         }
 
         reasoning.addClassNames(CssStyles.PRE_WRAP, CssStyles.OVERFLOW_AUTO, CssStyles.WRAP_ANYWHERE);
-        reasoningDetails.setSummaryText(loc.getValue(L.LABEL_REASONING));
+        reasoningDetails.setSummaryText(loc.getValue(M_L.LABEL_REASONING));
         reasoningDetails.add(reasoning);
         reasoningDetails.setWidthFull();
 
-        restore.setText(loc.getValue(L.LABEL_RESTORE_ON_TOP));
+        restore.setText(loc.getValue(M_L.LABEL_RESTORE_ON_TOP));
         restore.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         restore.addClickListener(_ -> restore());
-        rollBack.setText(loc.getValue(L.LABEL_ROLL_BACK_TO_HERE));
+        rollBack.setText(loc.getValue(M_L.LABEL_ROLL_BACK_TO_HERE));
         rollBack.addClickListener(_ -> askRollBack());
-        label.setText(loc.getValue(L.LABEL_EDIT_VERSION_LABEL));
+        label.setText(loc.getValue(M_L.LABEL_EDIT_VERSION_LABEL));
         label.addClickListener(_ -> askLabel());
         delete.addClickListener(_ -> deleteOrUndelete());
         purge.setText(loc.getValue(L.LABEL_DELETE_PERMANENTLY));
         purge.addThemeVariants(ButtonVariant.LUMO_ERROR);
         purge.addClickListener(_ -> askPurge());
-        copy.setText(loc.getValue(L.LABEL_COPY_TEXT));
+        copy.setText(loc.getValue(M_L.LABEL_COPY_TEXT));
         copy.addClickListener(_ -> copyText());
         HorizontalLayout actions = new HorizontalLayout(restore, rollBack, label, delete, purge, copy);
         actions.setWidthFull();
@@ -294,7 +296,7 @@ public class PartHistoryDialog extends Dialog {
         first.setAlignItems(FlexComponent.Alignment.CENTER);
         first.setWrap(true);
         addBadges(first, row);
-        String info = loc.getDateHourFormat().format(row.creation()) + " · " + row.wordCount() + " " + loc.getValue(L.LABEL_WORDS);
+        String info = loc.getDateHourFormat().format(row.creation()) + " · " + row.wordCount() + " " + loc.getValue(M_L.LABEL_WORDS);
         Span second = new Span(info);
         second.addClassName(CssStyles.HINT_TEXT);
         VerticalLayout card = new VerticalLayout(first, second);
@@ -311,7 +313,7 @@ public class PartHistoryDialog extends Dialog {
 
     private void addBadges(HorizontalLayout cell, RevisionRow row) {
         if (row.id().equals(currentId)) {
-            cell.add(badge(loc.getValue(L.LABEL_HISTORY_CURRENT_VERSION), "success"));
+            cell.add(badge(loc.getValue(M_L.LABEL_HISTORY_CURRENT_VERSION), "success"));
         }
         if (row.label() != null) {
             cell.add(badge(row.label(), "contrast"));
@@ -329,7 +331,7 @@ public class PartHistoryDialog extends Dialog {
 
     private String sourceText(RevisionRow row) {
         String text = loc.getValue(loc.getRevisionSource(row.source()));
-        return row.agent() ? text + " (" + loc.getValue(L.ENUM_DOMAIN_AGENT) + ")" : text;
+        return row.agent() ? text + " (" + loc.getValue(M_L.ENUM_DOMAIN_AGENT) + ")" : text;
     }
 
     /**
@@ -396,7 +398,7 @@ public class PartHistoryDialog extends Dialog {
         reasoningDetails.setVisible(any && StringUtils.isNotEmpty(selected.getResponseReasoning()));
         reasoning.setText(any ? StringUtils.defaultString(selected.getResponseReasoning()) : "");
         if (!any) {
-            meta.setText(loc.getValue(L.MSG_HISTORY_NO_VERSION_SELECTED));
+            meta.setText(loc.getValue(M_L.MSG_HISTORY_NO_VERSION_SELECTED));
             origin.setText("");
             plain.setText("");
             diff.removeAll();
@@ -419,8 +421,8 @@ public class PartHistoryDialog extends Dialog {
             text.append(" · ").append(detailText);
         }
         text.append(" · ").append(loc.getDateHourFormat().format(row.creation()));
-        text.append(" · ").append(row.wordCount()).append(' ').append(loc.getValue(L.LABEL_WORDS));
-        text.append(" · ").append(row.tokenCount()).append(' ').append(loc.getValue(L.LABEL_TOKENS));
+        text.append(" · ").append(row.wordCount()).append(' ').append(loc.getValue(M_L.LABEL_WORDS));
+        text.append(" · ").append(row.tokenCount()).append(' ').append(loc.getValue(M_L.LABEL_TOKENS));
         return text.toString();
     }
 
@@ -433,7 +435,7 @@ public class PartHistoryDialog extends Dialog {
         }
         try {
             MessageRevision from = messageRevisionService.findForUser(selected.getRestoredFrom());
-            return from == null ? "" : String.format(loc.getValue(L.MSG_HISTORY_COPY_OF), loc.getDateHourFormat().format(from.getCreation()));
+            return from == null ? "" : String.format(loc.getValue(M_L.MSG_HISTORY_COPY_OF), loc.getDateHourFormat().format(from.getCreation()));
         } catch (Exception e) {
             return "";
         }
@@ -510,7 +512,7 @@ public class PartHistoryDialog extends Dialog {
         restore.setEnabled(any && !sameText);
         rollBack.setEnabled(any && !current);
         label.setEnabled(any);
-        delete.setText(loc.getValue(trashed ? L.LABEL_UNDELETE_VERSION : L.LABEL_DELETE));
+        delete.setText(loc.getValue(trashed ? M_L.LABEL_UNDELETE_VERSION : L.LABEL_DELETE));
         delete.setEnabled(any && !current);
         purge.setVisible(trashed);
         copy.setEnabled(any);
@@ -523,11 +525,11 @@ public class PartHistoryDialog extends Dialog {
             return;
         }
         if (StringUtils.defaultString(part.getResponse()).equals(selected.getResponse())) {
-            Notification.warning(loc.getValue(L.MSG_HISTORY_ALREADY_THE_TEXT));
+            Notification.warning(loc.getValue(M_L.MSG_HISTORY_ALREADY_THE_TEXT));
             return;
         }
         try {
-            changed(messageRevisionService.restoreOnTop(manuscript, part, selected), L.MSG_HISTORY_RESTORED);
+            changed(messageRevisionService.restoreOnTop(manuscript, part, selected), M_L.MSG_HISTORY_RESTORED);
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
@@ -542,7 +544,7 @@ public class PartHistoryDialog extends Dialog {
             if (newer == 0) {
                 rollBack();
             } else {
-                ConfirmDialog.show(String.format(loc.getValue(L.MSG_HISTORY_CONFIRM_ROLL_BACK), newer), this::rollBack);
+                ConfirmDialog.show(String.format(loc.getValue(M_L.MSG_HISTORY_CONFIRM_ROLL_BACK), newer), this::rollBack);
             }
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
@@ -551,7 +553,7 @@ public class PartHistoryDialog extends Dialog {
 
     void rollBack() {
         try {
-            changed(messageRevisionService.rollBackTo(manuscript, part, selected), L.MSG_HISTORY_ROLLED_BACK);
+            changed(messageRevisionService.rollBackTo(manuscript, part, selected), M_L.MSG_HISTORY_ROLLED_BACK);
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
@@ -560,12 +562,12 @@ public class PartHistoryDialog extends Dialog {
     /**
      * The part has another text: tell, hand it on, show the list again.
      */
-    private void changed(PartEdit edit, L message) {
+    private void changed(PartEdit edit, LocalizationKey message) {
         part = edit.message();
         if (edit.outdated().isEmpty()) {
             Notification.success(loc.getValue(message));
         } else {
-            Notification.warning(loc.getValue(message) + " " + String.format(loc.getValue(L.MSG_REDRAFT_OUTDATED_SUMMARIES), edit.outdated().size()));
+            Notification.warning(loc.getValue(message) + " " + String.format(loc.getValue(M_L.MSG_REDRAFT_OUTDATED_SUMMARIES), edit.outdated().size()));
         }
         onChanged.accept(part);
         // the newest version is the text of the part now: that is the one to look at
@@ -574,7 +576,7 @@ public class PartHistoryDialog extends Dialog {
     }
 
     private void askSaveVersion() {
-        new TextInputDialog.Builder(loc.getValue(L.LABEL_SAVE_VERSION), this::saveVersion)
+        new TextInputDialog.Builder(loc.getValue(M_L.LABEL_SAVE_VERSION), this::saveVersion)
                 .showCancel(true)
                 .messageRequired()
                 .inputMessageLabel(loc.getValue(L.LABEL_VERSION_LABEL))
@@ -585,12 +587,12 @@ public class PartHistoryDialog extends Dialog {
         try {
             // the card may have an unsaved edit, the version is the saved text
             messageRevisionService.snapshot(manuscript, part, name);
-            Notification.success(loc.getValue(L.MSG_HISTORY_SAVED_VERSION));
+            Notification.success(loc.getValue(M_L.MSG_HISTORY_SAVED_VERSION));
             reload();
         } catch (IllegalStateException e) {
-            Notification.warning(loc.getValue(L.MSG_HISTORY_OFF));
+            Notification.warning(loc.getValue(M_L.MSG_HISTORY_OFF));
         } catch (IllegalArgumentException e) {
-            Notification.warning(loc.getValue(L.MSG_HISTORY_EMPTY));
+            Notification.warning(loc.getValue(M_L.MSG_HISTORY_EMPTY));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
@@ -628,7 +630,7 @@ public class PartHistoryDialog extends Dialog {
             }
             reload();
         } catch (IllegalStateException e) {
-            Notification.warning(loc.getValue(L.MSG_HISTORY_CURRENT_CANT_BE_DELETED));
+            Notification.warning(loc.getValue(M_L.MSG_HISTORY_CURRENT_CANT_BE_DELETED));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
@@ -636,7 +638,7 @@ public class PartHistoryDialog extends Dialog {
 
     private void askPurge() {
         if (selected != null) {
-            ConfirmDialog.show(loc.getValue(L.MSG_HISTORY_CONFIRM_DELETE_FOR_GOOD), this::purge);
+            ConfirmDialog.show(loc.getValue(M_L.MSG_HISTORY_CONFIRM_DELETE_FOR_GOOD), this::purge);
         }
     }
 
@@ -651,13 +653,13 @@ public class PartHistoryDialog extends Dialog {
     }
 
     private void askEmptyTrash() {
-        ConfirmDialog.show(loc.getValue(L.MSG_HISTORY_CONFIRM_EMPTY_TRASH), this::emptyTrash);
+        ConfirmDialog.show(loc.getValue(M_L.MSG_HISTORY_CONFIRM_EMPTY_TRASH), this::emptyTrash);
     }
 
     void emptyTrash() {
         try {
             int removed = messageRevisionService.emptyTrash(part);
-            Notification.success(String.format(loc.getValue(L.MSG_HISTORY_TRASH_EMPTIED), removed));
+            Notification.success(String.format(loc.getValue(M_L.MSG_HISTORY_TRASH_EMPTIED), removed));
             selected = null;
             reload();
         } catch (Exception e) {
@@ -666,7 +668,7 @@ public class PartHistoryDialog extends Dialog {
     }
 
     private void clear() {
-        new ClearHistoryDialog(loc.getValue(L.LABEL_CLEAR_HISTORY), new ClearHistoryDialog.Clearing() {
+        new ClearHistoryDialog(loc.getValue(M_L.LABEL_CLEAR_HISTORY), new ClearHistoryDialog.Clearing() {
             @Override
             public RevisionClearing preview(boolean keepSnapshots) throws Exception {
                 return messageRevisionService.previewClear(part, keepSnapshots);
@@ -685,7 +687,7 @@ public class PartHistoryDialog extends Dialog {
     private void copyText() {
         if (selected != null) {
             JavascriptLibrary.copyToClipboard(UI.getCurrent().getPage(), StringUtils.defaultString(selected.getResponse()));
-            Notification.success(loc.getValue(L.MSG_COPIED_TO_CLIPBOARD));
+            Notification.success(loc.getValue(M_L.MSG_COPIED_TO_CLIPBOARD));
         }
     }
 }

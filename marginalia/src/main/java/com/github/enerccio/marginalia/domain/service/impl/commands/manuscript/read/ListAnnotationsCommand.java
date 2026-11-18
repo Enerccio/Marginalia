@@ -1,10 +1,11 @@
 package com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.read;
 
 import com.github.enerccio.marginalia.domain.collections.AnnotationStatus;
+import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.domain.model.impl.Annotation;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.traits.*;
-import com.github.enerccio.marginalia.loc.L;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
@@ -130,7 +131,7 @@ public class ListAnnotationsCommand extends ManuscriptReadSupport {
                 return value;
             }
         }
-        throw new IllegalArgumentException(String.format(loc.getValue(L.ERROR_COMMAND_ANNOTATION_STATUS), status,
+        throw new IllegalArgumentException(String.format(loc.getValue(M_L.ERROR_COMMAND_ANNOTATION_STATUS), status,
                 Arrays.stream(AnnotationStatus.values()).map(value -> value.name().toLowerCase(Locale.ROOT)).toList()));
     }
 }

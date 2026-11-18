@@ -14,7 +14,8 @@ import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
-import com.github.enerccio.marginalia.loc.StoryLocalization;
+import com.github.enerccio.marginalia.loc.M_L;
+import com.github.enerccio.marginalia.loc.MarginaliaLocalization;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.LLMInteract;
@@ -70,7 +71,7 @@ import java.util.stream.Collectors;
 public class LorebookView extends VerticalLayout implements Restorable, LLMInteract {
 
     @Autowired
-    private StoryLocalization loc;
+    private MarginaliaLocalization loc;
 
     @Autowired
     private LorebookService lorebookService;
@@ -183,7 +184,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         controlsLayout.setWidthFull();
         controlsLayout.setAlignItems(FlexComponent.Alignment.CENTER);
 
-        lorebookCombo = new ComboBox<>(loc.getValue(L.LABEL_LOREBOOK));
+        lorebookCombo = new ComboBox<>(loc.getValue(M_L.LABEL_LOREBOOK));
         lorebookCombo.setItemLabelGenerator(Lorebook::getName);
         lorebookCombo.setWidth("280px");
         lorebookCombo.setVisible(!pinnedLorebook);
@@ -196,7 +197,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
             }
         });
 
-        rootOnlyCheckbox = new Checkbox(loc.getValue(L.LABEL_ONLY_ROOT_LOREBOOKS));
+        rootOnlyCheckbox = new Checkbox(loc.getValue(M_L.LABEL_ONLY_ROOT_LOREBOOKS));
         rootOnlyCheckbox.setVisible(!pinnedLorebook);
         rootOnlyCheckbox.addValueChangeListener(event -> {
             if (event.isFromClient()) {
@@ -205,15 +206,15 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
             }
         });
 
-        addLorebookButton = new Button(loc.getValue(L.LABEL_ADD_LOREBOOK), Solid.PLUS_CIRCLE.create(),event -> createNewLorebook());
+        addLorebookButton = new Button(loc.getValue(M_L.LABEL_ADD_LOREBOOK), Solid.PLUS_CIRCLE.create(),event -> createNewLorebook());
         addLorebookButton.setThemeName("primary");
         addLorebookButton.setVisible(!pinnedLorebook);
 
         cloneLorebookButton = new Button(Solid.CLONE.create(), event -> cloneCurrentLorebook());
-        cloneLorebookButton.setTooltipText(loc.getValue(L.LABEL_CLONE_LOREBOOK));
+        cloneLorebookButton.setTooltipText(loc.getValue(M_L.LABEL_CLONE_LOREBOOK));
         cloneLorebookButton.setVisible(!pinnedLorebook);
 
-        deleteLorebookButton = new Button(loc.getValue(L.LABEL_DELETE_LOREBOOK), Solid.TRASH.create(), event -> deleteCurrentLorebook());
+        deleteLorebookButton = new Button(loc.getValue(M_L.LABEL_DELETE_LOREBOOK), Solid.TRASH.create(), event -> deleteCurrentLorebook());
         deleteLorebookButton.setThemeName("error");
         deleteLorebookButton.setVisible(!pinnedLorebook);
 
@@ -223,49 +224,49 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         ContextMenu importMenu = new ContextMenu();
         importMenu.setTarget(importLorebookButton);
         importMenu.setOpenOnClick(true);
-        importMenu.addItem(loc.getValue(L.LABEL_IMPORT_LOREBOOK), event ->
-                openImportDialog(loc.getValue(L.LABEL_IMPORT_LOREBOOK), lorebookService::importLorebook));
-        importMenu.addItem(loc.getValue(L.LABEL_IMPORT_FROM_SILLYTAVERN), event ->
-                openImportDialog(loc.getValue(L.LABEL_IMPORT_FROM_SILLYTAVERN), lorebookService::importFromSillytavern));
-        importMenu.addItem(loc.getValue(L.LABEL_IMPORT_FROM_ARCHIVE), event -> openArchiveImportDialog());
-        importMenu.addItem(loc.getValue(L.LABEL_IMPORT_FROM_OTHER_USER), event -> openImportFromOtherUser());
+        importMenu.addItem(loc.getValue(M_L.LABEL_IMPORT_LOREBOOK), event ->
+                openImportDialog(loc.getValue(M_L.LABEL_IMPORT_LOREBOOK), lorebookService::importLorebook));
+        importMenu.addItem(loc.getValue(M_L.LABEL_IMPORT_FROM_SILLYTAVERN), event ->
+                openImportDialog(loc.getValue(M_L.LABEL_IMPORT_FROM_SILLYTAVERN), lorebookService::importFromSillytavern));
+        importMenu.addItem(loc.getValue(M_L.LABEL_IMPORT_FROM_ARCHIVE), event -> openArchiveImportDialog());
+        importMenu.addItem(loc.getValue(M_L.LABEL_IMPORT_FROM_OTHER_USER), event -> openImportFromOtherUser());
 
         exportLorebookButton = new Button(Solid.FILE_EXPORT.create());
-        exportLorebookButton.setTooltipText(loc.getValue(L.LABEL_EXPORT_LOREBOOK));
+        exportLorebookButton.setTooltipText(loc.getValue(M_L.LABEL_EXPORT_LOREBOOK));
 
         ContextMenu exportMenu = new ContextMenu();
         exportMenu.setTarget(exportLorebookButton);
         exportMenu.setOpenOnClick(true);
-        exportMenu.addItem(createExportLink(loc.getValue(L.LABEL_EXPORT_LOREBOOK), lorebookService::exportLorebook));
-        exportMenu.addItem(createExportLink(loc.getValue(L.LABEL_EXPORT_TO_SILLYTAVERN), lorebookService::exportToSillytavern));
+        exportMenu.addItem(createExportLink(loc.getValue(M_L.LABEL_EXPORT_LOREBOOK), lorebookService::exportLorebook));
+        exportMenu.addItem(createExportLink(loc.getValue(M_L.LABEL_EXPORT_TO_SILLYTAVERN), lorebookService::exportToSillytavern));
 
         tagLorebooksButton = new Button(Solid.TAGS.create(), event -> openTagDialog(false));
-        tagLorebooksButton.setTooltipText(loc.getValue(L.LABEL_TAG_LOREBOOKS));
+        tagLorebooksButton.setTooltipText(loc.getValue(M_L.LABEL_TAG_LOREBOOKS));
         tagLorebooksButton.setVisible(!pinnedLorebook);
 
         descriptionButton = new Button(Solid.ALIGN_LEFT.create(), event -> editDescription());
-        descriptionButton.setTooltipText(loc.getValue(L.LABEL_EDIT_DESCRIPTION));
+        descriptionButton.setTooltipText(loc.getValue(M_L.LABEL_EDIT_DESCRIPTION));
 
         tagEntriesButton = new Button(Solid.TAGS.create(), event -> openTagDialog(true));
-        tagEntriesButton.setTooltipText(loc.getValue(L.LABEL_TAG_ENTRIES));
+        tagEntriesButton.setTooltipText(loc.getValue(M_L.LABEL_TAG_ENTRIES));
 
-        addEntryButton = new Button(loc.getValue(L.LABEL_ADD_ENTRY), Solid.PLUS_CIRCLE.create(), event -> createNewEntry());
+        addEntryButton = new Button(loc.getValue(M_L.LABEL_ADD_ENTRY), Solid.PLUS_CIRCLE.create(), event -> createNewEntry());
         addEntryButton.setThemeName("primary");
 
-        editorButton = new Button(loc.getValue(L.LABEL_FULL_SCREEN_EDITOR), Solid.EXPAND_ALT.create(), event -> openEditor());
+        editorButton = new Button(loc.getValue(M_L.LABEL_FULL_SCREEN_EDITOR), Solid.EXPAND_ALT.create(), event -> openEditor());
 
-        searchReplaceButton = new Button(loc.getValue(L.LABEL_SEARCH_AND_REPLACE), Solid.EXCHANGE_ALT.create(), event -> openSearchReplaceDialog());
+        searchReplaceButton = new Button(loc.getValue(M_L.LABEL_SEARCH_AND_REPLACE), Solid.EXCHANGE_ALT.create(), event -> openSearchReplaceDialog());
 
-        massEditButton = new Button(loc.getValue(L.LABEL_MASS_EDIT), Solid.TABLE.create(), event -> openMassEditDialog());
+        massEditButton = new Button(loc.getValue(M_L.LABEL_MASS_EDIT), Solid.TABLE.create(), event -> openMassEditDialog());
 
-        previewActivationButton = new Button(loc.getValue(L.LABEL_PREVIEW_ACTIVATION), Solid.EYE.create(), event -> openActivationPreview());
+        previewActivationButton = new Button(loc.getValue(M_L.LABEL_PREVIEW_ACTIVATION), Solid.EYE.create(), event -> openActivationPreview());
 
         deleteSelectedButton = new Button(loc.getValue(L.LABEL_DELETE_SELECTED), Solid.TRASH.create(), event -> deleteSelectedEntries());
         deleteSelectedButton.setThemeName("error");
         deleteSelectedButton.setVisible(false);
 
         entrySearchField = new TextField();
-        entrySearchField.setPlaceholder(loc.getValue(L.LABEL_SEARCH));
+        entrySearchField.setPlaceholder(loc.getValue(M_L.LABEL_SEARCH));
         entrySearchField.setPrefixComponent(Solid.SEARCH.create());
         entrySearchField.setClearButtonVisible(true);
         entrySearchField.setValueChangeMode(ValueChangeMode.LAZY);
@@ -309,7 +310,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
                 try {
                     if (StringUtils.isBlank(e.getValue())) {
                         lorebookNameField.setInvalid(true);
-                        lorebookNameField.setErrorMessage(loc.getValue(L.ERROR_NAME_CANT_BE_EMPTY));
+                        lorebookNameField.setErrorMessage(loc.getValue(M_L.ERROR_NAME_CANT_BE_EMPTY));
                     } else {
                         lorebookNameField.setInvalid(false);
                         lorebookNameField.setErrorMessage("");
@@ -326,7 +327,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
             }
         });
 
-        subLorebooksCombo = new MultiSelectComboBox<>(loc.getValue(L.LABEL_SUB_LOREBOOKS));
+        subLorebooksCombo = new MultiSelectComboBox<>(loc.getValue(M_L.LABEL_SUB_LOREBOOKS));
         subLorebooksCombo.setItemLabelGenerator(Lorebook::getName);
         subLorebooksCombo.setWidthFull();
         subLorebooksCombo.addValueChangeListener(e -> {
@@ -335,7 +336,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
                 try {
                     currentLorebook = lorebookService.setSubbooks(currentLorebook, newSelection);
                 } catch (LorebookCycleException ex) {
-                    Notification.warning(loc.getValue(L.MSG_CYCLE_DETECTED));
+                    Notification.warning(loc.getValue(M_L.MSG_CYCLE_DETECTED));
                     subLorebooksCombo.setValue(e.getOldValue() != null ? e.getOldValue() : Collections.emptySet());
                 } catch (Exception ex) {
                     UIUtils.internalServerError(loc, ex);
@@ -354,10 +355,10 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         subLorebooksCombo.addClassName(CssStyles.CLICKABLE_CHIPS);
         JavascriptLibrary.fireChipClickEvent(subLorebooksCombo.getElement());
 
-        tagMultiComboBox = new TagMultiComboBox(loc.getValue(L.LABEL_TAGS));
+        tagMultiComboBox = new TagMultiComboBox(loc.getValue(M_L.LABEL_TAGS));
         tagMultiComboBox.setWidthFull();
 
-        lorebookEnabledCheckbox = new Checkbox(loc.getValue(L.LABEL_ENABLED));
+        lorebookEnabledCheckbox = new Checkbox(loc.getValue(M_L.LABEL_ENABLED));
         lorebookEnabledCheckbox.addValueChangeListener(e -> {
             if (currentLorebook != null && e.isFromClient()) {
                 try {
@@ -370,19 +371,19 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         });
 
         lorebookSharedCheckbox = new Checkbox(loc.getValue(L.LABEL_SHARE_WITH_OTHER_USERS));
-        UIUtils.addTooltip(lorebookSharedCheckbox, loc.getValue(L.HELP_LOREBOOK_SHARED));
+        UIUtils.addTooltip(lorebookSharedCheckbox, loc.getValue(M_L.HELP_LOREBOOK_SHARED));
         lorebookSharedCheckbox.addValueChangeListener(e -> {
             if (currentLorebook != null && e.isFromClient()) {
                 changeShared(Boolean.TRUE.equals(e.getValue()));
             }
         });
 
-        scanDepthField = new IntegerField(loc.getValue(L.LABEL_SCAN_DEPTH));
+        scanDepthField = new IntegerField(loc.getValue(M_L.LABEL_SCAN_DEPTH));
         scanDepthField.setMin(0);
         scanDepthField.setMax(LorebookActivationService.MAX_SCAN_DEPTH);
         scanDepthField.setStepButtonsVisible(true);
         scanDepthField.setWidth("120px");
-        UIUtils.addTooltip(scanDepthField, loc.getValue(L.HELP_SCAN_DEPTH));
+        UIUtils.addTooltip(scanDepthField, loc.getValue(M_L.HELP_SCAN_DEPTH));
         scanDepthField.addValueChangeListener(e -> {
             if (currentLorebook != null && e.isFromClient() && e.getValue() != null) {
                 try {
@@ -395,13 +396,13 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         });
 
         // empty = the scan depth of the lorebook the book uses; only counts while this lorebook is a sub lorebook of another
-        ownScanDepthField = new IntegerField(loc.getValue(L.LABEL_OWN_SCAN_DEPTH));
+        ownScanDepthField = new IntegerField(loc.getValue(M_L.LABEL_OWN_SCAN_DEPTH));
         ownScanDepthField.setMin(0);
         ownScanDepthField.setMax(LorebookActivationService.MAX_SCAN_DEPTH);
         ownScanDepthField.setStepButtonsVisible(true);
         ownScanDepthField.setClearButtonVisible(true);
         ownScanDepthField.setWidth("150px");
-        UIUtils.addTooltip(ownScanDepthField, loc.getValue(L.HELP_OWN_SCAN_DEPTH));
+        UIUtils.addTooltip(ownScanDepthField, loc.getValue(M_L.HELP_OWN_SCAN_DEPTH));
         ownScanDepthField.addValueChangeListener(e -> {
             if (currentLorebook != null && e.isFromClient()) {
                 try {
@@ -425,7 +426,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
 
         lorebookTokensSpan = createTokensSpan();
         allTokensSpan = createTokensSpan();
-        countAllTokensButton = new Button(loc.getValue(L.LABEL_COUNT_TOKENS_WITH_SUBBOOKS), event -> countTokensWithSubbooks());
+        countAllTokensButton = new Button(loc.getValue(M_L.LABEL_COUNT_TOKENS_WITH_SUBBOOKS), event -> countTokensWithSubbooks());
         countAllTokensButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE, ButtonVariant.LUMO_SMALL);
         tokensRow = new HorizontalLayout(lorebookTokensSpan, countAllTokensButton, allTokensSpan);
         tokensRow.setAlignItems(Alignment.BASELINE);
@@ -505,7 +506,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
                 dialog.close();
                 showImported(importedLorebook);
             } catch (IllegalArgumentException | JsonParseException e) {
-                Notification.warning(loc.getValue(L.MSG_INVALID_LOREBOOK_FILE));
+                Notification.warning(loc.getValue(M_L.MSG_INVALID_LOREBOOK_FILE));
             } catch (Exception e) {
                 UIUtils.internalServerError(loc, e);
             }
@@ -529,7 +530,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
     @PublicAPI(from = "1.4.0",
             returns = @APIReturn(type = void.class))
     private void openArchiveImportDialog() {
-        ArchiveUploadDialog.show(loc.getValue(L.LABEL_IMPORT_FROM_ARCHIVE), loc.getValue(L.MSG_IMPORT_FROM_ARCHIVE),
+        ArchiveUploadDialog.show(loc.getValue(M_L.LABEL_IMPORT_FROM_ARCHIVE), loc.getValue(M_L.MSG_IMPORT_FROM_ARCHIVE),
                 (archive, fileName) -> {
                     MarkdownArchive.Content content = MarkdownArchive.read(archive);
                     ArchiveEntryNamesDialog.show(content, names ->
@@ -575,7 +576,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
                 return;
             }
             lorebookSharedCheckbox.setValue(false);
-            ConfirmDialog.show(String.format(loc.getValue(L.MSG_SHARE_SUB_LOREBOOKS), unshared.size()),
+            ConfirmDialog.show(String.format(loc.getValue(M_L.MSG_SHARE_SUB_LOREBOOKS), unshared.size()),
                     () -> shareLorebook(true), () -> shareLorebook(false), true);
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
@@ -607,7 +608,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         if (currentLorebook == null) {
             return;
         }
-        DescriptionDialog.show(loc, loc.getValue(L.LABEL_EDIT_DESCRIPTION), currentLorebook.getDescription(), text -> {
+        DescriptionDialog.show(loc, loc.getValue(M_L.LABEL_EDIT_DESCRIPTION), currentLorebook.getDescription(), text -> {
             try {
                 currentLorebook.setDescription(StringUtils.trimToNull(text));
                 currentLorebook = lorebookService.save(currentLorebook);
@@ -676,7 +677,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
                 }
             });
             return tf;
-        }).setHeader(loc.getValue(L.LABEL_ENTRY_NAME)).setFlexGrow(2);
+        }).setHeader(loc.getValue(M_L.LABEL_ENTRY_NAME)).setFlexGrow(2);
 
         grid.addComponentColumn(entry -> {
             IntegerField orderField = new IntegerField();
@@ -689,14 +690,14 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
                 }
             });
             return orderField;
-        }).setHeader(loc.getValue(L.LABEL_ORDER)).setFlexGrow(0).setWidth(UIConstants.TOOL_COLUMN_SIZE_LARGE);
+        }).setHeader(loc.getValue(M_L.LABEL_ORDER)).setFlexGrow(0).setWidth(UIConstants.TOOL_COLUMN_SIZE_LARGE);
 
         grid.addComponentColumn(entry -> {
             TagMultiComboBox tagCombo = new TagMultiComboBox();
             tagCombo.setWidthFull();
             tagCombo.setForEntity(entry);
             return tagCombo;
-        }).setHeader(loc.getValue(L.LABEL_TAGS)).setFlexGrow(2);
+        }).setHeader(loc.getValue(M_L.LABEL_TAGS)).setFlexGrow(2);
 
         grid.addComponentColumn(entry -> {
             HorizontalLayout actions = new HorizontalLayout();
@@ -729,8 +730,8 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
 
             Button fullScreen = new Button(Solid.EXPAND_ALT.create(), event -> openEditorOn(entry));
             fullScreen.setThemeName("tertiary");
-            fullScreen.setTooltipText(loc.getValue(L.LABEL_OPEN_IN_FULL_SCREEN_EDITOR));
-            fullScreen.setAriaLabel(loc.getValue(L.LABEL_OPEN_IN_FULL_SCREEN_EDITOR));
+            fullScreen.setTooltipText(loc.getValue(M_L.LABEL_OPEN_IN_FULL_SCREEN_EDITOR));
+            fullScreen.setAriaLabel(loc.getValue(M_L.LABEL_OPEN_IN_FULL_SCREEN_EDITOR));
 
             actions.add(toggleDetails, fullScreen, deleteBtn);
             return actions;
@@ -767,7 +768,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         detailsLayout.getThemeList().add("spacing-xs");
         detailsLayout.addClassName(CssStyles.SUBTLE_BOX);
 
-        TextAreaPopoverComponent payloadField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_CONTENT));
+        TextAreaPopoverComponent payloadField = new TextAreaPopoverComponent(loc.getValue(M_L.LABEL_CONTENT));
         payloadField.setWidthFull();
         ResizableTextArea.install(loc, payloadField, "160px");
         payloadField.setValue(StringUtils.defaultString(entry.getPayload()));
@@ -792,7 +793,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         settingsForm.setResponsiveSteps(new ResponsiveStep("400px", 2), new ResponsiveStep("800px", 4));
         settingsForm.setWidthFull();
 
-        ComboBox<FilteringMode> filteringModeCombo = new ComboBox<>(loc.getValue(L.LABEL_FILTERING_MODE));
+        ComboBox<FilteringMode> filteringModeCombo = new ComboBox<>(loc.getValue(M_L.LABEL_FILTERING_MODE));
         filteringModeCombo.setItems(FilteringMode.values());
         filteringModeCombo.setItemLabelGenerator(mode -> loc.getValue(loc.getFilteringMode(mode)));
         filteringModeCombo.setValue(entry.getFilteringMode());
@@ -804,7 +805,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
             }
         });
 
-        TextField filteringField = new TextField(loc.getValue(L.LABEL_FILTERING));
+        TextField filteringField = new TextField(loc.getValue(M_L.LABEL_FILTERING));
         filteringField.setWidthFull();
         filteringField.setValue(StringUtils.defaultString(entry.getFiltering()));
         filteringField.addValueChangeListener(e -> {
@@ -814,7 +815,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
             }
         });
 
-        ComboBox<InsertionMode> insertionModeCombo = new ComboBox<>(loc.getValue(L.LABEL_INSERTION_MODE));
+        ComboBox<InsertionMode> insertionModeCombo = new ComboBox<>(loc.getValue(M_L.LABEL_INSERTION_MODE));
         insertionModeCombo.setItems(InsertionMode.values());
         insertionModeCombo.setItemLabelGenerator(mode -> loc.getValue(loc.getInsertionMode(mode)));
         insertionModeCombo.setValue(entry.getInsertionMode());
@@ -826,17 +827,17 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
             }
         });
 
-        TagMultiComboBox negativeTagCombo = new TagMultiComboBox(loc.getValue(L.LABEL_NEGATIVE_TAGS), true);
+        TagMultiComboBox negativeTagCombo = new TagMultiComboBox(loc.getValue(M_L.LABEL_NEGATIVE_TAGS), true);
         negativeTagCombo.setWidthFull();
         negativeTagCombo.setForEntity(entry, true);
 
-        IntegerField activationPartsField = new IntegerField(loc.getValue(L.LABEL_PARTS));
+        IntegerField activationPartsField = new IntegerField(loc.getValue(M_L.LABEL_PARTS));
         activationPartsField.setWidthFull();
         activationPartsField.setMin(1);
         activationPartsField.setStepButtonsVisible(true);
         activationPartsField.setValue(entry.getActivationParts());
         activationPartsField.setVisible(entry.getActivationContext() == ActivationContext.INCLUDE_PARTS);
-        UIUtils.addTooltip(activationPartsField, loc.getValue(L.HELP_ACTIVATION_PARTS));
+        UIUtils.addTooltip(activationPartsField, loc.getValue(M_L.HELP_ACTIVATION_PARTS));
         activationPartsField.addValueChangeListener(e -> {
             if (e.isFromClient() && e.getValue() != null) {
                 entry.setActivationParts(e.getValue());
@@ -844,13 +845,13 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
             }
         });
 
-        ComboBox<ActivationContext> activationContextCombo = new ComboBox<>(loc.getValue(L.LABEL_ACTIVATION_CONTEXT));
+        ComboBox<ActivationContext> activationContextCombo = new ComboBox<>(loc.getValue(M_L.LABEL_ACTIVATION_CONTEXT));
         activationContextCombo.setItems(ActivationContext.values());
         activationContextCombo.setItemLabelGenerator(context -> loc.getValue(loc.getActivationContext(context)));
         activationContextCombo.setAllowCustomValue(false);
         activationContextCombo.setValue(entry.getActivationContext());
         activationContextCombo.setWidthFull();
-        UIUtils.addTooltip(activationContextCombo, loc.getValue(L.HELP_ACTIVATION_CONTEXT));
+        UIUtils.addTooltip(activationContextCombo, loc.getValue(M_L.HELP_ACTIVATION_CONTEXT));
         activationContextCombo.addValueChangeListener(e -> {
             if (e.isFromClient() && e.getValue() != null) {
                 entry.setActivationContext(e.getValue());
@@ -859,12 +860,12 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
             }
         });
 
-        IntegerField fromMessageField = new IntegerField(loc.getValue(L.LABEL_FROM_MESSAGE));
+        IntegerField fromMessageField = new IntegerField(loc.getValue(M_L.LABEL_FROM_MESSAGE));
         fromMessageField.setWidthFull();
         fromMessageField.setMin(1);
         fromMessageField.setStepButtonsVisible(true);
         fromMessageField.setValue(entry.getFromMessage());
-        UIUtils.addTooltip(fromMessageField, loc.getValue(L.HELP_ACTIVATION_RANGE));
+        UIUtils.addTooltip(fromMessageField, loc.getValue(M_L.HELP_ACTIVATION_RANGE));
         fromMessageField.addValueChangeListener(e -> {
             if (e.isFromClient()) {
                 entry.setFromMessage(e.getValue());
@@ -872,12 +873,12 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
             }
         });
 
-        IntegerField toMessageField = new IntegerField(loc.getValue(L.LABEL_TO_MESSAGE));
+        IntegerField toMessageField = new IntegerField(loc.getValue(M_L.LABEL_TO_MESSAGE));
         toMessageField.setWidthFull();
         toMessageField.setMin(1);
         toMessageField.setStepButtonsVisible(true);
         toMessageField.setValue(entry.getToMessage());
-        UIUtils.addTooltip(toMessageField, loc.getValue(L.HELP_ACTIVATION_RANGE));
+        UIUtils.addTooltip(toMessageField, loc.getValue(M_L.HELP_ACTIVATION_RANGE));
         toMessageField.addValueChangeListener(e -> {
             if (e.isFromClient()) {
                 entry.setToMessage(e.getValue());
@@ -887,8 +888,8 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
 
         TextArea conditionField = LoreConditionField.create(loc, templateService, entry, () -> saveEntry(entry));
 
-        Checkbox preventRecursionCheckbox = new Checkbox(loc.getValue(L.LABEL_PREVENT_RECURSION), entry.isPreventRecursion());
-        UIUtils.addTooltip(preventRecursionCheckbox, loc.getValue(L.HELP_PREVENT_RECURSION));
+        Checkbox preventRecursionCheckbox = new Checkbox(loc.getValue(M_L.LABEL_PREVENT_RECURSION), entry.isPreventRecursion());
+        UIUtils.addTooltip(preventRecursionCheckbox, loc.getValue(M_L.HELP_PREVENT_RECURSION));
         preventRecursionCheckbox.addValueChangeListener(e -> {
             if (e.isFromClient()) {
                 entry.setPreventRecursion(Boolean.TRUE.equals(e.getValue()));
@@ -896,8 +897,8 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
             }
         });
 
-        Checkbox recursionOnlyCheckbox = new Checkbox(loc.getValue(L.LABEL_RECURSION_ONLY), entry.isRecursionOnly());
-        UIUtils.addTooltip(recursionOnlyCheckbox, loc.getValue(L.HELP_RECURSION_ONLY));
+        Checkbox recursionOnlyCheckbox = new Checkbox(loc.getValue(M_L.LABEL_RECURSION_ONLY), entry.isRecursionOnly());
+        UIUtils.addTooltip(recursionOnlyCheckbox, loc.getValue(M_L.HELP_RECURSION_ONLY));
         recursionOnlyCheckbox.addValueChangeListener(e -> {
             if (e.isFromClient()) {
                 entry.setRecursionOnly(Boolean.TRUE.equals(e.getValue()));
@@ -905,8 +906,8 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
             }
         });
 
-        Checkbox activationSummariesCheckbox = new Checkbox(loc.getValue(L.LABEL_ACTIVATION_SUMMARIES), entry.isActivationSummaries());
-        UIUtils.addTooltip(activationSummariesCheckbox, loc.getValue(L.HELP_ACTIVATION_SUMMARIES));
+        Checkbox activationSummariesCheckbox = new Checkbox(loc.getValue(M_L.LABEL_ACTIVATION_SUMMARIES), entry.isActivationSummaries());
+        UIUtils.addTooltip(activationSummariesCheckbox, loc.getValue(M_L.HELP_ACTIVATION_SUMMARIES));
         activationSummariesCheckbox.addValueChangeListener(e -> {
             if (e.isFromClient()) {
                 entry.setActivationSummaries(Boolean.TRUE.equals(e.getValue()));
@@ -914,7 +915,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
             }
         });
 
-        TextArea commentField = new TextArea(loc.getValue(L.LABEL_NOTE));
+        TextArea commentField = new TextArea(loc.getValue(M_L.LABEL_NOTE));
         commentField.setWidthFull();
         ResizableTextArea.install(loc, commentField, "100px");
         commentField.setValue(StringUtils.defaultString(entry.getComment()));
@@ -1027,11 +1028,11 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         }
         try {
             TemplateService.ValidationResult result = templateService.isValidTemplate(payload, "lorebookEntry", LorebookTemplateData.class);
-            payloadField.setErrorMessage(result.isValid() ? null : loc.getValue(L.MSG_INVALID_TEMPLATE) + result.errorMessage());
+            payloadField.setErrorMessage(result.isValid() ? null : loc.getValue(M_L.MSG_INVALID_TEMPLATE) + result.errorMessage());
             payloadField.setInvalid(!result.isValid());
             TemplateHints.showWarnings(loc, payloadField, result);
         } catch (Exception e) {
-            payloadField.setErrorMessage(loc.getValue(L.MSG_INVALID_TEMPLATE) + e.getMessage());
+            payloadField.setErrorMessage(loc.getValue(M_L.MSG_INVALID_TEMPLATE) + e.getMessage());
             payloadField.setInvalid(true);
         }
     }
@@ -1302,7 +1303,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
     private void createNewLorebook() {
         try {
             Lorebook newLorebook = new Lorebook();
-            newLorebook.setName(loc.getValue(L.LABEL_NEW_LOREBOOK));
+            newLorebook.setName(loc.getValue(M_L.LABEL_NEW_LOREBOOK));
             newLorebook.setEnabled(true);
             newLorebook = lorebookService.save(newLorebook);
             currentLorebook = newLorebook;
@@ -1322,7 +1323,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
             return;
         }
         Lorebook source = currentLorebook;
-        CloneNameDialog.show(loc, loc.getValue(L.LABEL_CLONE_LOREBOOK), source.getName(), name -> {
+        CloneNameDialog.show(loc, loc.getValue(M_L.LABEL_CLONE_LOREBOOK), source.getName(), name -> {
             try {
                 currentLorebook = lorebookService.cloneLorebook(source, name);
                 openEntries.clear();
@@ -1368,7 +1369,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         try {
             LorebookEntry entry = new LorebookEntry();
             entry.setLorebook(currentLorebook);
-            entry.setName(loc.getValue(L.LABEL_NEW_LOREBOOK_ENTRY));
+            entry.setName(loc.getValue(M_L.LABEL_NEW_LOREBOOK_ENTRY));
             entry.setEnabled(true);
             entry.setOrder(100);
             lorebookEntryService.save(entry);
@@ -1422,7 +1423,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         if (selected.isEmpty()) {
             return;
         }
-        ConfirmDialog.show(String.format(loc.getValue(L.MSG_CONFIRM_DELETE_ENTRIES), selected.size()), () -> {
+        ConfirmDialog.show(String.format(loc.getValue(M_L.MSG_CONFIRM_DELETE_ENTRIES), selected.size()), () -> {
             try {
                 for (LorebookEntry entry : selected) {
                     lorebookEntryService.delete(entry, false);

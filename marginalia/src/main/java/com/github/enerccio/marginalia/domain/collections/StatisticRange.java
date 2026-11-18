@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.domain.collections;
 
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
+import com.github.enerccio.marginalia.loc.M_L;
 
 import java.time.DateTimeException;
 import java.time.LocalDate;
@@ -12,15 +13,15 @@ import java.util.Locale;
  */
 public enum StatisticRange {
 
-    TODAY("today", L.ENUM_STATISTIC_RANGE_TODAY),
-    YESTERDAY("yesterday", L.ENUM_STATISTIC_RANGE_YESTERDAY),
+    TODAY("today", M_L.ENUM_STATISTIC_RANGE_TODAY),
+    YESTERDAY("yesterday", M_L.ENUM_STATISTIC_RANGE_YESTERDAY),
     /** Rolling: today is the last of the days. */
-    LAST_7_DAYS("last-7-days", L.ENUM_STATISTIC_RANGE_LAST_7_DAYS),
-    LAST_30_DAYS("last-30-days", L.ENUM_STATISTIC_RANGE_LAST_30_DAYS),
-    THIS_MONTH("this-month", L.ENUM_STATISTIC_RANGE_THIS_MONTH),
+    LAST_7_DAYS("last-7-days", M_L.ENUM_STATISTIC_RANGE_LAST_7_DAYS),
+    LAST_30_DAYS("last-30-days", M_L.ENUM_STATISTIC_RANGE_LAST_30_DAYS),
+    THIS_MONTH("this-month", M_L.ENUM_STATISTIC_RANGE_THIS_MONTH),
     /** From {@link #BEGINNING}; the reader of the rows narrows it to the first day that has one. */
-    ALL_TIME("all-time", L.ENUM_STATISTIC_RANGE_ALL_TIME),
-    CUSTOM("custom", L.ENUM_STATISTIC_RANGE_CUSTOM);
+    ALL_TIME("all-time", M_L.ENUM_STATISTIC_RANGE_ALL_TIME),
+    CUSTOM("custom", M_L.ENUM_STATISTIC_RANGE_CUSTOM);
 
     /**
      * The first day of {@link #ALL_TIME}: older than the statistics can be.
@@ -48,9 +49,9 @@ public enum StatisticRange {
     }
 
     private final String id;
-    private final L label;
+    private final LocalizationKey label;
 
-    StatisticRange(String id, L label) {
+    StatisticRange(String id, LocalizationKey label) {
         this.id = id;
         this.label = label;
     }
@@ -62,7 +63,7 @@ public enum StatisticRange {
         return id;
     }
 
-    public L getLabel() {
+    public LocalizationKey getLabel() {
         return label;
     }
 

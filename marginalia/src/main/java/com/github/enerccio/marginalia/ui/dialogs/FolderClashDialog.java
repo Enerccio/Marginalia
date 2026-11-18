@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.ui.dialogs;
 import com.github.enerccio.marginalia.domain.service.FolderService.Choice;
 import com.github.enerccio.marginalia.domain.service.FolderService.Resolution;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
 import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
@@ -59,21 +60,21 @@ public class FolderClashDialog extends Dialog {
     }
 
     public void create() {
-        setHeaderTitle(loc.getValue(L.LABEL_FOLDER));
+        setHeaderTitle(loc.getValue(M_L.LABEL_FOLDER));
         setWidth("460px");
         setCloseOnOutsideClick(false);
         UIUtils.fitPhone(this, false);
 
-        TextField newName = new TextField(loc.getValue(L.LABEL_FOLDER_NAME));
+        TextField newName = new TextField(loc.getValue(M_L.LABEL_FOLDER_NAME));
         newName.setValue(suggestedName);
         newName.setWidthFull();
-        Checkbox forAll = new Checkbox(loc.getValue(L.LABEL_APPLY_TO_ALL));
+        Checkbox forAll = new Checkbox(loc.getValue(M_L.LABEL_APPLY_TO_ALL));
 
-        VerticalLayout layout = new VerticalLayout(new Span(String.format(loc.getValue(L.MSG_FOLDER_CLASH), name, targetPath)), newName, forAll);
+        VerticalLayout layout = new VerticalLayout(new Span(String.format(loc.getValue(M_L.MSG_FOLDER_CLASH), name, targetPath)), newName, forAll);
         layout.setPadding(false);
         add(layout);
 
-        Button skip = new Button(loc.getValue(L.LABEL_SKIP), _ -> answer(new Decision(new Choice(Resolution.SKIP, null), forAll.getValue())));
+        Button skip = new Button(loc.getValue(M_L.LABEL_SKIP), _ -> answer(new Decision(new Choice(Resolution.SKIP, null), forAll.getValue())));
         Button merge = new Button(loc.getValue(L.LABEL_MERGE), _ -> answer(new Decision(new Choice(Resolution.MERGE, null), forAll.getValue())));
         Button rename = new Button(loc.getValue(L.LABEL_RENAME), _ -> {
             if (!newName.getValue().isBlank()) {

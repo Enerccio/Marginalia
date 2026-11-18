@@ -1,6 +1,6 @@
 package com.github.enerccio.marginalia.ui.menu;
 
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.vaadin.flow.component.icon.Icon;
 
@@ -29,7 +29,7 @@ public final class MenuGroup {
         this.label = label;
     }
 
-    static MenuGroup of(MenuKind kind, String path, L label) {
+    static MenuGroup of(MenuKind kind, String path, LocalizationKey label) {
         return new MenuGroup(kind, path, loc -> loc.getValue(label));
     }
 

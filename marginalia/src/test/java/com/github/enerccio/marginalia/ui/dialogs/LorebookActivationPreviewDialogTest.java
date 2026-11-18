@@ -9,7 +9,8 @@ import com.github.enerccio.marginalia.domain.service.LorebookService;
 import com.github.enerccio.marginalia.domain.service.TagRelationService;
 import com.github.enerccio.marginalia.domain.service.TagService;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LorebookEntryVerdict;
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.test.AgentTestBase;
 import com.vaadin.flow.component.Component;
@@ -159,10 +160,10 @@ class LorebookActivationPreviewDialogTest extends AgentTestBase {
 
         assertThat(verdicts(dialog)).filteredOn(v -> v.entry().getName().equals("Winter"))
                 .extracting(v -> v.verdict().reason()).containsExactly(Reason.CONSTANT);
-        assertThat(loc.getValue(L.LABEL_TAKE_TAGS_OF_BOOK)).isNotBlank();
+        assertThat(loc.getValue(M_L.LABEL_TAKE_TAGS_OF_BOOK)).isNotBlank();
     }
 
-    private String prefix(L key) {
+    private String prefix(LocalizationKey key) {
         return String.format(loc.getValue(key), "Varro", "\u0000").split("\u0000")[0];
     }
 
@@ -174,13 +175,13 @@ class LorebookActivationPreviewDialogTest extends AgentTestBase {
         LorebookActivationPreviewDialog dialog = new LorebookActivationPreviewDialog(lorebook).focus(varro);
         dialog.create();
         Span line = all(dialog).filter(Span.class::isInstance).map(Span.class::cast)
-                .filter(span -> span.getText() != null && span.getText().startsWith(prefix(L.MSG_ACTIVATION_PREVIEW_ENTRY_NOT_USED)))
+                .filter(span -> span.getText() != null && span.getText().startsWith(prefix(M_L.MSG_ACTIVATION_PREVIEW_ENTRY_NOT_USED)))
                 .findFirst().orElseThrow();
         assertThat(grid(dialog).getSelectedItems()).extracting(v -> v.entry().getName()).containsExactly("Varro");
 
         text(dialog).setValue("Varro walks in.");
 
-        assertThat(line.getText()).startsWith(prefix(L.MSG_ACTIVATION_PREVIEW_ENTRY_USED));
+        assertThat(line.getText()).startsWith(prefix(M_L.MSG_ACTIVATION_PREVIEW_ENTRY_USED));
         assertThat(grid(dialog).getSelectedItems()).extracting(v -> v.entry().getName()).containsExactly("Varro");
     }
 }

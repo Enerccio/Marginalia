@@ -96,8 +96,8 @@ against.
   registration point in place of the hard reference.
 - [ ] **Story registries in `extensions`:** `AnnotationFactsRegistry`, `ExportTextRegistry`, `PartTextRegistry` move
   to layer 3.
-- [ ] **Registries that are one file:** `persistence.xml`, `services-config.xml`, the Flyway migrations, the `L` enum
-  with its bundles, `Defaults*`, `CssStyles`. Each needs a form per module.
+- [ ] **Registries that are one file:** `persistence.xml`, `services-config.xml`, the Flyway migrations, the key
+  enums with their bundles (split per layer already: `L` and `M_L`, the VN adds its own enum and `TextBundle`s), `Defaults*`, `CssStyles`. Each needs a form per module.
 - [ ] **Tests:** `MarginaliaTestBase` and `MockLLMServer` become a test support module.
 
 ## Order of work

@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.service.AIService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.ProtocolService;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
 import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
@@ -74,13 +75,13 @@ public class AutoAnnotateDialog extends Dialog {
         this.manuscript = manuscript;
         this.onSaved = onSaved;
 
-        setHeaderTitle(loc.getValue(L.LABEL_AUTO_ANNOTATE));
+        setHeaderTitle(loc.getValue(M_L.LABEL_AUTO_ANNOTATE));
         setWidth("min(700px, 95vw)");
         setCloseOnEsc(false);
         setCloseOnOutsideClick(false);
         setModality(ModalityMode.STRICT);
 
-        Span info = new Span(loc.getValue(L.MSG_AUTO_ANNOTATE_INFO));
+        Span info = new Span(loc.getValue(M_L.MSG_AUTO_ANNOTATE_INFO));
         info.addClassName(CssStyles.HINT_TEXT);
 
         try {
@@ -89,23 +90,23 @@ public class AutoAnnotateDialog extends Dialog {
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
-        Span modelHint = new Span(loc.getValue(L.MSG_AUTO_ANNOTATE_MODEL_HINT));
+        Span modelHint = new Span(loc.getValue(M_L.MSG_AUTO_ANNOTATE_MODEL_HINT));
         modelHint.addClassName(CssStyles.HINT_TEXT);
 
-        instructions.setLabel(loc.getValue(L.LABEL_ANNOTATE_INSTRUCTIONS));
+        instructions.setLabel(loc.getValue(M_L.LABEL_ANNOTATE_INSTRUCTIONS));
         AnnotateDialog.showInherited(instructions, manuscript, manuscriptService, loc);
         instructions.setValue(StringUtils.defaultString(manuscript.getAutoAnnotateInstructions()));
         instructions.setWidthFull();
         instructions.setMinRows(2);
         instructions.setMaxRows(6);
 
-        enabled.setLabel(loc.getValue(L.LABEL_AUTO_ANNOTATE_ENABLE));
+        enabled.setLabel(loc.getValue(M_L.LABEL_AUTO_ANNOTATE_ENABLE));
         enabled.setValue(manuscript.getAutoAnnotate());
-        accept.setLabel(loc.getValue(L.LABEL_AUTO_ANNOTATE_ACCEPT));
+        accept.setLabel(loc.getValue(M_L.LABEL_AUTO_ANNOTATE_ACCEPT));
         accept.setValue(manuscript.getAutoAnnotateAccept());
-        redraft.setLabel(loc.getValue(L.LABEL_AUTO_ANNOTATE_REDRAFT));
+        redraft.setLabel(loc.getValue(M_L.LABEL_AUTO_ANNOTATE_REDRAFT));
         redraft.setValue(manuscript.getAutoAnnotateAccept() && manuscript.getAutoAnnotateRedraft());
-        acceptRedraft.setLabel(loc.getValue(L.LABEL_AUTO_ANNOTATE_ACCEPT_REDRAFT));
+        acceptRedraft.setLabel(loc.getValue(M_L.LABEL_AUTO_ANNOTATE_ACCEPT_REDRAFT));
         acceptRedraft.setValue(redraft.getValue() && manuscript.getAutoAnnotateAcceptRedraft());
         accept.addValueChangeListener(_ -> refreshDependent());
         redraft.addValueChangeListener(_ -> refreshDependent());
@@ -152,7 +153,7 @@ public class AutoAnnotateDialog extends Dialog {
                 book.setAutoAnnotateRedraft(redrafts);
                 book.setAutoAnnotateAcceptRedraft(redrafts && acceptRedraft.getValue());
             });
-            Notification.success(loc.getValue(L.MSG_AUTO_ANNOTATE_SAVED));
+            Notification.success(loc.getValue(M_L.MSG_AUTO_ANNOTATE_SAVED));
             close();
             onSaved.run();
         } catch (Exception e) {

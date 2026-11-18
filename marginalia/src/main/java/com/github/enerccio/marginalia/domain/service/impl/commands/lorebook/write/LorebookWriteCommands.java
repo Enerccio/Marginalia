@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.domain.service.impl.commands.lorebook.wri
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.traits.*;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.L;
 import com.google.gson.JsonObject;
 
@@ -108,7 +109,7 @@ public class LorebookWriteCommands extends LorebookWriteSupport {
     private void createLorebook(CommandContext context, String name, String parent) throws Exception {
         Lore lore = loreToAddTo(new Book(context));
         if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_NOTHING_TO_CHANGE));
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_COMMAND_NOTHING_TO_CHANGE));
         }
         Lorebook created = lorebookService.createSubbook(parent == null ? lore.book(null) : book(lore, parent), name.strip());
         answerBook(context, created);
@@ -118,7 +119,7 @@ public class LorebookWriteCommands extends LorebookWriteSupport {
         Lore lore = new Lore(new Book(context));
         Lorebook book = book(lore, handle);
         if (name == null && enabled == null) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_NOTHING_TO_CHANGE));
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_COMMAND_NOTHING_TO_CHANGE));
         }
         if (name != null && !name.isBlank()) {
             book.setName(name.strip());
@@ -149,10 +150,10 @@ public class LorebookWriteCommands extends LorebookWriteSupport {
         Lore lore = new Lore(new Book(context));
         Lorebook book = book(lore, handle);
         if (book.getId().equals(lore.book(null).getId())) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_CANNOT_DELETE_ROOT_LOREBOOK));
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_COMMAND_CANNOT_DELETE_ROOT_LOREBOOK));
         }
         int entries = lore.entries(book).size();
-        if (!confirmed(context, String.format(loc.getValue(L.MSG_COMMAND_DELETE_LOREBOOK_CONFIRM), book.getName(), entries))) {
+        if (!confirmed(context, String.format(loc.getValue(M_L.MSG_COMMAND_DELETE_LOREBOOK_CONFIRM), book.getName(), entries))) {
             return;
         }
         for (Lorebook parent : lore.books) {

@@ -16,11 +16,13 @@ import java.util.Locale;
 
 /**
  * Texts and formats of the UI in the language of the current session ({@code SessionPoint}), the default language
- * when there is no session (startup, scheduled tasks). The texts come from {@link LocalizationBundle}s, one per
- * {@link Language}.
+ * when there is no session (startup, scheduled tasks). The formats and the platform's texts ({@link L}) come from
+ * {@link LocalizationBundle}s, one per {@link Language}; every layer above the platform has its own enum of keys
+ * ({@link LocalizationKey}) and registers its {@link TextBundle}s with {@link #registerTexts}, so
+ * {@link #getValue(LocalizationKey)} gives the texts of all of them.
  * <p>
  * The labels of the application's own enums and the built-in prompts are in the application's subtype,
- * {@code StoryLocalization}, which the bean of the application is.
+ * {@code MarginaliaLocalization}, which the bean of the application is.
  */
 public interface Localization {
 
@@ -28,14 +30,18 @@ public interface Localization {
      * The text in the language of the current session; a text its bundle doesn't have is taken from the default
      * language.
      */
-    String getValue(L l);
+    String getValue(LocalizationKey key);
 
     /**
      * The text in the language, for what is said outside of a session (a message to a webhook): the default language when the
      * language has no bundle or the bundle lacks the text.
      */
-    String getValue(Language language, L l);
-    L parseValue(String text);
+    String getValue(Language language, LocalizationKey key);
+
+    /**
+     * The key whose text in the language of the session is the text, of any enum; null when there is none.
+     */
+    LocalizationKey parseValue(String text);
     Locale getLocale();
     DateFormat getDateFormat();
     DateFormat getHourFormat();
@@ -86,7 +92,7 @@ public interface Localization {
     /**
      * The language of the built-in prompts for the current session: the user's setting {@code promptLanguage} (in an
      * agent run the language of the agent), English when it is not set, has no prompts or there is no session. Which
-     * languages have prompts is the application's (see {@code StoryLocalization}); the platform alone has only English. Independent
+     * languages have prompts is the application's (see {@code MarginaliaLocalization}); the platform alone has only English. Independent
      * of the language of the interface.
      */
     Language getPromptLanguage();
@@ -112,4 +118,19 @@ public interface Localization {
      * Removes the bundle if it is the registered one of its language. The default language can't be removed.
      */
     void unregisterBundle(LocalizationBundle bundle);
+
+    /**
+     * Adds the texts of an enum of keys other than {@link L} in one language. They are used while the language has a
+     * {@link LocalizationBundle}.
+     *
+     * @throws IllegalArgumentException when the language already has texts of the enum, or the keys are {@link L}
+     *                                  (those are a {@link LocalizationBundle}, see {@link #registerBundle})
+     */
+    void registerTexts(TextBundle<?> texts);
+
+    /**
+     * Removes the texts if they are the registered ones of their enum and language. The ones of the default language
+     * can't be removed.
+     */
+    void unregisterTexts(TextBundle<?> texts);
 }

@@ -7,8 +7,8 @@ import com.github.enerccio.marginalia.domain.model.impl.Annotation;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.service.AnnotationService;
 import com.github.enerccio.marginalia.domain.service.RedraftService;
-import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.widgets.LazyContextMenu;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
@@ -154,7 +154,7 @@ public class CardAnnotations {
         int count = generating ? 0 : annotations.openCount(message.get().getId());
         badge.setVisible(count > 0);
         badge.setText(String.valueOf(count));
-        badge.setTooltipText(String.format(loc.getValue(L.MSG_ANNOTATIONS_OPEN_COUNT), count));
+        badge.setTooltipText(String.format(loc.getValue(M_L.MSG_ANNOTATIONS_OPEN_COUNT), count));
         fillMargin(generating);
     }
 
@@ -270,7 +270,7 @@ public class CardAnnotations {
                 int start = range.length == 2 ? Integer.parseInt(range[0]) : 0;
                 int end = range.length == 2 ? Integer.parseInt(range[1]) : 0;
                 if (end <= start) {
-                    Notification.warning(loc.getValue(L.MSG_ANNOTATION_SELECT_TEXT));
+                    Notification.warning(loc.getValue(M_L.MSG_ANNOTATION_SELECT_TEXT));
                     return;
                 }
                 saveEdit.run();
@@ -280,14 +280,14 @@ public class CardAnnotations {
         }
         JavascriptLibrary.getSelectionContext(response.getElement(), AnnotationService.CONTEXT_LENGTH / 2).then(String.class, json -> {
             if (StringUtils.isBlank(json)) {
-                Notification.warning(loc.getValue(L.MSG_ANNOTATION_SELECT_TEXT));
+                Notification.warning(loc.getValue(M_L.MSG_ANNOTATION_SELECT_TEXT));
                 return;
             }
             JsonObject selection = JsonParser.parseString(json).getAsJsonObject();
             int[] range = StoryAnnotations.locate(StringUtils.defaultString(message.get().getResponse()),
                     selection.get("text").getAsString(), selection.get("before").getAsString(), selection.get("after").getAsString());
             if (range == null) {
-                Notification.warning(loc.getValue(L.MSG_ANNOTATION_NOT_IN_SOURCE));
+                Notification.warning(loc.getValue(M_L.MSG_ANNOTATION_NOT_IN_SOURCE));
                 return;
             }
             action.accept(range);

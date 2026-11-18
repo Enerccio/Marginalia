@@ -22,8 +22,16 @@ app api.BookApiTargets
 platform concurrent
 platform instruct
 platform loc
-app loc.StoryLocalization
-app loc.StoryLocalizationImpl
+app loc.M_L
+app loc.MarginaliaLocalization
+app loc.MarginaliaLocalizationBundleDE
+app loc.MarginaliaLocalizationBundleEN
+app loc.MarginaliaLocalizationBundleES
+app loc.MarginaliaLocalizationBundleFR
+app loc.MarginaliaLocalizationBundleIT
+app loc.MarginaliaLocalizationBundleJP
+app loc.MarginaliaLocalizationBundleKO
+app loc.MarginaliaLocalizationImpl
 
 # --- bound ---
 platform bound

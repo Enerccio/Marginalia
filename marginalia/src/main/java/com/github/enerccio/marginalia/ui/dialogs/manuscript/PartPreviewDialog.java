@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.ImageAttachment;
 import com.github.enerccio.marginalia.domain.styles.PartStyle;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.components.PartView;
 import com.github.enerccio.marginalia.ui.styles.PartStyleApplier;
@@ -30,7 +31,7 @@ public class PartPreviewDialog extends Dialog {
      * @param style the text style of the book, null for none
      */
     public PartPreviewDialog(String markdown, List<ImageAttachment> images, PartStyle style) {
-        setHeaderTitle(loc.getValue(L.LABEL_STYLE_PREVIEW));
+        setHeaderTitle(loc.getValue(M_L.LABEL_STYLE_PREVIEW));
         setWidth("min(900px, 95vw)");
         setMaxHeight("90vh");
 
@@ -42,7 +43,7 @@ public class PartPreviewDialog extends Dialog {
 
         RadioButtonGroup<Boolean> width = new RadioButtonGroup<>();
         width.setItems(false, true);
-        width.setItemLabelGenerator(phone -> loc.getValue(phone ? L.LABEL_PREVIEW_NARROW : L.LABEL_PREVIEW_WIDE));
+        width.setItemLabelGenerator(phone -> loc.getValue(phone ? M_L.LABEL_PREVIEW_NARROW : M_L.LABEL_PREVIEW_WIDE));
         width.setValue(false);
         width.addValueChangeListener(e -> {
             if (e.getValue()) {

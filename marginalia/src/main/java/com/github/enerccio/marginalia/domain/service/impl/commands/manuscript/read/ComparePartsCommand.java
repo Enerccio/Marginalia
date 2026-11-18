@@ -1,9 +1,10 @@
 package com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.read;
 
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
+import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.traits.*;
-import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.utils.TextDiff;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -66,14 +67,14 @@ public class ComparePartsCommand extends ManuscriptReadSupport {
         Book.Located locatedSecond = original ? null : book.locate(b, branchB == null ? branchA : branchB);
         ChatMessage second = original ? null : locatedSecond.message();
         if (original && first.getOriginalResponse() == null) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_NO_ORIGINAL_RESPONSE));
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_COMMAND_NO_ORIGINAL_RESPONSE));
         }
         String oldText = original ? first.getOriginalResponse() : first.getResponse();
         String newText = original ? first.getResponse() : second.getResponse();
 
         TextDiff.Result diff = TextDiff.diff(oldText, newText);
         if (diff == null) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_TOO_LARGE_TO_COMPARE));
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_COMMAND_TOO_LARGE_TO_COMPARE));
         }
         JsonObject result = new JsonObject();
         result.addProperty("a", locatedFirst.position());

@@ -7,6 +7,8 @@ import com.github.enerccio.marginalia.domain.service.ArchiveImportService.Import
 import com.github.enerccio.marginalia.domain.service.ArchiveImportService.Insertion;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.MarkdownArchive;
@@ -64,7 +66,7 @@ public class ArchiveImportRunner {
                     @APIParameter(name = "afterwards", type = ArchiveImportRunner.Continuation.class)})
     public void insertParts(Manuscript manuscript, Insertion place, MarkdownArchive.Content content, Continuation<Manuscript> afterwards) {
         run(content, (dialog) -> archiveImportService.insertParts(manuscript, place, content, dialog::isCancelled, dialog::updateProgress),
-                L.MSG_ARCHIVE_PARTS_ADDED, afterwards);
+                M_L.MSG_ARCHIVE_PARTS_ADDED, afterwards);
     }
 
     /**
@@ -78,7 +80,7 @@ public class ArchiveImportRunner {
                     @APIParameter(name = "afterwards", type = ArchiveImportRunner.Continuation.class)})
     public void importLorebook(MarkdownArchive.Content content, String name, List<String> names, Continuation<Lorebook> afterwards) {
         run(content, (dialog) -> archiveImportService.importLorebook(content, name, names, dialog::isCancelled, dialog::updateProgress),
-                L.MSG_ARCHIVE_ENTRIES_ADDED, afterwards);
+                M_L.MSG_ARCHIVE_ENTRIES_ADDED, afterwards);
     }
 
     @FunctionalInterface
@@ -86,21 +88,21 @@ public class ArchiveImportRunner {
         ImportResult<T> run(ProgressBarDialog dialog) throws Exception;
     }
 
-    @PublicAPI(from = "1.4.0",
+    @PublicAPI(from = "1.9.0",
             returns = @APIReturn(type = void.class),
             parameters = {@APIParameter(name = "content", type = MarkdownArchive.Content.class),
                     @APIParameter(name = "action", type = ArchiveImportRunner.Import.class),
-                    @APIParameter(name = "doneMessage", type = L.class),
+                    @APIParameter(name = "doneMessage", type = LocalizationKey.class),
                     @APIParameter(name = "afterwards", type = ArchiveImportRunner.Continuation.class)},
             locals = {@APILocals(name = "result", type = AtomicReference.class),
                     @APILocals(name = "failure", type = AtomicReference.class),
                     @APILocals(name = "progress", type = ProgressBarDialog.class)})
-    private <T> void run(MarkdownArchive.Content content, Import<T> action, L doneMessage, Continuation<T> afterwards) {
+    private <T> void run(MarkdownArchive.Content content, Import<T> action, LocalizationKey doneMessage, Continuation<T> afterwards) {
         AtomicReference<ImportResult<T>> result = new AtomicReference<>();
         AtomicReference<Exception> failure = new AtomicReference<>();
 
         ProgressBarDialog progress = new ProgressBarDialog(true, true);
-        progress.setTitle(loc.getValue(L.MSG_IMPORTING_ARCHIVE));
+        progress.setTitle(loc.getValue(M_L.MSG_IMPORTING_ARCHIVE));
         progress.setTotal((long) content.items().size());
         progress.setCancelLabel(L.LABEL_STOP);
         progress.create();
@@ -118,7 +120,7 @@ public class ArchiveImportRunner {
             } else if (done.isComplete()) {
                 Notification.success(String.format(loc.getValue(doneMessage), done.imported()));
             } else {
-                Notification.warning(String.format(loc.getValue(L.MSG_ARCHIVE_IMPORT_STOPPED), done.imported(), done.total()));
+                Notification.warning(String.format(loc.getValue(M_L.MSG_ARCHIVE_IMPORT_STOPPED), done.imported(), done.total()));
             }
             try {
                 afterwards.accept(done == null ? null : done.target());

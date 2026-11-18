@@ -52,7 +52,7 @@ Platform (no story concept):
   owned/extendable services, AI/protocol/limits/usage, settings, resources, tags, jobs, cleanup, trash, the database
   backup, updates, notifications, OSGi and extension services, tokenizers, `CancellationToken`
 - `extensions` minus the story registries
-- `loc` (the mechanism and, for now, all keys; see Phase 2)
+- `loc` (the mechanism, `L` and its bundles; `M_L` and the `MarginaliaLocalizationBundle*` are the app's)
 - `ui`: `widgets`, `menu`, `jobs`, `shortcuts`, `styles` (mechanism), the generic part of `ui.components`
   (`ThreadCopyRequestAttributes`, `UIPushGuard`, `RunCorner`, `RunsOnPage`, `PageRuns`, `TagsView`, `CommandBar`),
   the generic dialogs (`ConfirmDialog`, `ErrorDialog`, `TextInputDialog`, `ProgressBarDialog`, `UserDialog`, `AIDialog`,
@@ -131,11 +131,11 @@ classes; each item is a registration point or an interface in place of a hard re
         themselves); the hook is `ExtensionRegistrations` of item 9.
 11. [x] **Localization.** `Localization` / `LocalizationImpl` name `AgentRunStatus`, `Lorebook*` and entity classes
         (labels of story enums and entity kinds): the app registers those label providers.
-        Done as a subtype: `StoryLocalization extends Localization` and `StoryLocalizationImpl extends LocalizationImpl`
+        Done as a subtype: `MarginaliaLocalization extends Localization` and `MarginaliaLocalizationImpl extends LocalizationImpl`
         (the bean) hold the story enum labels, the story entity kinds and the prompts (`Defaults`); the platform keeps
         the bundles, its own enums, `localizeDomainObject` (filled by the subclass) and the prompt languages (English
-        alone, the subclass gives the ones of `Defaults`). Callers that need story labels inject `StoryLocalization`.
-        `L` and the bundles still hold every key (Phase 2).
+        alone, the subclass gives the ones of `Defaults`). Callers that need story labels inject `MarginaliaLocalization`.
+        The keys were split later (Phase 2, Localization): `M_L` holds the app's.
 12. [x] **Widgets and the rest.** `AuthorshipField`, `FloatingWindow`, `ExtensionSettingsForm`, `ReaderStyleChooser`,
         `PartView`: move to `app` in the map, or (`FloatingWindow`, `ExtensionSettingsForm`) cut out the story part.
         Done: `PermissionUIFactoryImpl` is an app bean, `ApplicationEntryPoint` is platform. `FloatingWindow` and
@@ -189,9 +189,15 @@ Found on the way, to decide:
       ships its part of `shared-styles.css` as a JAR resource (`META-INF/resources/frontend/...`) and the app keeps
       the rest, or the stylesheet stays in the app for now and Joi copies it. Check how Vaadin picks up frontend files
       from a dependency JAR in production mode (`optimizeBundle=false` is set already).
-- [ ] **Localization.** First version: `L` and all bundles go to the platform unchanged (texts, no code
-      dependency). Splitting the keys (a platform enum and an app enum, a lookup that chains bundles) is a separate
-      later step; it touches every bundle and the `BundleCompletenessTest`.
+- [x] **Localization.** The keys are split: one enum per layer (`LocalizationKey`), the platform's `L` with the
+      `LocalizationBundle*` (the language and its formats), the app's `M_L` with the `MarginaliaLocalizationBundle*`
+      (`TextBundle`s registered with `Localization.registerTexts`, by an extension with
+      `ExtensionHasLocalization.getTextBundles`); `getValue(LocalizationKey)` looks up the enum of the key. `L` keeps
+      the platform's texts and every key a command annotation names (`@Command`, `@CommandParameter`,
+      `@CommandReturn`, `@LocalizedTemplateDescription` are platform and an annotation element holds one enum), so
+      445 app texts stay in `L`. The layer-2 core enum (and `TODO.VN.MD`) is one more enum with its bundles.
+- [ ] **Command texts of the app in `L`.** Either the command annotations take key names (checked by a test) or each
+      layer gets its own annotation attributes; until then a command's texts are `L` keys.
 - [ ] **Tests.** The platform base from Phase 1 as a `test-jar` of the platform module; the platform's own tests
       move with it (inference, templates, function/tool, gpu, jobs, security, instruct, CRUD of platform entities).
 - [ ] **Packaging.** The WAR has the platform JAR in `WEB-INF/lib`; the desktop app and Docker image unchanged in

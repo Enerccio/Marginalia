@@ -85,8 +85,10 @@ Every text a command shows is given in two ways, as a pair of attributes:
 | `@CommandReturn.description`               | `@CommandReturn.descriptionText`               | What the returned value is, in the help                      |
 
 The localized one takes an `L` key and is resolved in the language of the user every time it is shown (`CommandText.get(loc)`),
-so the application's own commands use it (`humanName = L.LABEL_COMMAND_TAKE_BACKUP`; the key goes to `L` and to the English,
-Japanese and Chinese bundles as usual). The plain one is for an extension that brings no translations and is shown as it is.
+so the application's own commands use it (`humanName = L.LABEL_COMMAND_TAKE_BACKUP`; the key goes to `L` and to the
+`LocalizationBundle*` classes as usual). An annotation element holds a single enum and the annotations are the
+platform's, so these keys are always `L` keys, also for a command of the application, whose other texts are `M_L`
+keys; `CommandText` itself holds any `LocalizationKey`. The plain one is for an extension that brings no translations and is shown as it is.
 The identifiers (`commandName`, a parameter's `name`, the return `name`) are not texts and stay strings.
 
 The attributes are arrays only so that "not given" can be told from "given" (the default is the empty array); write the value

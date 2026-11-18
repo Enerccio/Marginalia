@@ -19,8 +19,8 @@ import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.PhraseWatchService;
 import com.github.enerccio.marginalia.domain.service.SettingService;
 import com.github.enerccio.marginalia.domain.traits.NoTx;
-import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.loc.M_L;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -256,7 +256,7 @@ public class PhraseWatchServiceImpl implements PhraseWatchService {
                 known.add(annotation.getLabel() + "|" + annotation.getStart() + "|" + annotation.getEnd());
             }
         }
-        String fallbackNote = loc.getValue(L.MSG_PHRASE_WATCH_NOTE);
+        String fallbackNote = loc.getValue(M_L.MSG_PHRASE_WATCH_NOTE);
         List<Annotation> made = new ArrayList<>();
         for (PhraseMatcher.Hit hit : hits) {
             int start = hit.start();

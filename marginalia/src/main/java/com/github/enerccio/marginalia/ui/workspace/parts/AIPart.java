@@ -11,6 +11,7 @@ import com.github.enerccio.marginalia.domain.service.InferenceServices;
 import com.github.enerccio.marginalia.domain.service.UsageService;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.LLMInteraction;
@@ -70,7 +71,7 @@ public class AIPart implements WorkspaceComponent {
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = String.class))
     public String getName() {
-        return loc.getValue(L.LABEL_MODELS);
+        return loc.getValue(M_L.LABEL_MODELS);
     }
 
     @PublicAPI(from = "1.1.0",
@@ -90,10 +91,10 @@ public class AIPart implements WorkspaceComponent {
         headerLayout.setWidthFull();
         headerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
 
-        Span titleSpan = new Span(loc.getValue(L.LABEL_MODELS));
+        Span titleSpan = new Span(loc.getValue(M_L.LABEL_MODELS));
         titleSpan.addClassName(CssStyles.SECTION_TITLE);
 
-        Button addModelButton = new Button(loc.getValue(L.LABEL_ADD_MODEL), event -> {
+        Button addModelButton = new Button(loc.getValue(M_L.LABEL_ADD_MODEL), event -> {
             AIDialog dialog = new AIDialog();
             dialog.setOnSave(this::refreshGrid);
             dialog.create();
@@ -123,7 +124,7 @@ public class AIPart implements WorkspaceComponent {
                 .setFlexGrow(1);
 
         grid.addColumn(ai -> loc.getValue(ai.isShared() ? L.LABEL_YES : L.LABEL_NO))
-                .setHeader(loc.getValue(L.LABEL_SHARED))
+                .setHeader(loc.getValue(M_L.LABEL_SHARED))
                 .setFlexGrow(0)
                 .setWidth(UIConstants.TOOL_COLUMN_SIZE_LARGE);
 
@@ -149,7 +150,7 @@ public class AIPart implements WorkspaceComponent {
             });
 
             Button cloneButton = new Button(Solid.CLONE.create(), event -> cloneModel(ai));
-            cloneButton.setTooltipText(loc.getValue(L.LABEL_CLONE_PROVIDER));
+            cloneButton.setTooltipText(loc.getValue(M_L.LABEL_CLONE_PROVIDER));
 
             Button deleteButton = new Button(Solid.TRASH.create(), event ->
                     ConfirmDialog.show(loc.getValue(L.MSG_CONFIRM_DELETE), () -> {
@@ -223,7 +224,7 @@ public class AIPart implements WorkspaceComponent {
             returns = @APIReturn(type = void.class),
             parameters = {@APIParameter(name = "ai", type = AI.class)})
     private void cloneModel(AI ai) {
-        CloneNameDialog.show(loc, loc.getValue(L.LABEL_CLONE_PROVIDER), ai.getName(), name -> {
+        CloneNameDialog.show(loc, loc.getValue(M_L.LABEL_CLONE_PROVIDER), ai.getName(), name -> {
             try {
                 aiService.cloneAI(ai, name);
                 refreshGrid();

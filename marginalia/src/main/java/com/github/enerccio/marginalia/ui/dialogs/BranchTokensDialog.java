@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.components.TokenLimits;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.ChartJs;
 import com.google.gson.Gson;
@@ -56,7 +57,7 @@ public class BranchTokensDialog extends Dialog {
     }
 
     public void create() throws Exception {
-        setHeaderTitle(loc.getValue(L.LABEL_BRANCH_TOKENS));
+        setHeaderTitle(loc.getValue(M_L.LABEL_BRANCH_TOKENS));
         setWidth("750px");
         setResizable(true);
         setDraggable(true);
@@ -68,18 +69,18 @@ public class BranchTokensDialog extends Dialog {
         BranchTokens tokens = chatMessageService.getBranchTokens(manuscript.getActiveLeaf());
         long budget = TokenLimits.promptTokens(manuscript.getAi(), manuscript.getProtocol());
         if (tokens.parts() == 0) {
-            content.add(new Div(loc.getValue(L.MSG_BRANCH_TOKENS_EMPTY)));
+            content.add(new Div(loc.getValue(M_L.MSG_BRANCH_TOKENS_EMPTY)));
         } else {
             content.add(chart(tokens), table(tokens, budget));
             content.add(note(budget > 0
-                    ? String.format(loc.getValue(L.MSG_BRANCH_TOKENS_BUDGET), format(budget),
+                    ? String.format(loc.getValue(M_L.MSG_BRANCH_TOKENS_BUDGET), format(budget),
                     format(TokenLimits.contextTokens(manuscript.getAi(), manuscript.getProtocol())),
                     format(TokenLimits.responseTokens(manuscript.getAi(), manuscript.getProtocol())))
-                    : loc.getValue(L.MSG_BRANCH_TOKENS_NO_BUDGET)));
+                    : loc.getValue(M_L.MSG_BRANCH_TOKENS_NO_BUDGET)));
             if (tokens.staleSummaries() > 0) {
-                content.add(note(String.format(loc.getValue(L.MSG_BRANCH_TOKENS_STALE), tokens.staleSummaries())));
+                content.add(note(String.format(loc.getValue(M_L.MSG_BRANCH_TOKENS_STALE), tokens.staleSummaries())));
             }
-            content.add(note(loc.getValue(L.MSG_BRANCH_TOKENS_HELP)));
+            content.add(note(loc.getValue(M_L.MSG_BRANCH_TOKENS_HELP)));
         }
         add(content);
 
@@ -89,11 +90,11 @@ public class BranchTokensDialog extends Dialog {
     }
 
     private ChartJs chart(BranchTokens tokens) {
-        List<String> labels = List.of(loc.getValue(L.LABEL_TOKENS_WITHOUT_SUMMARIES), loc.getValue(L.LABEL_TOKENS_WITH_SUMMARIES));
+        List<String> labels = List.of(loc.getValue(M_L.LABEL_TOKENS_WITHOUT_SUMMARIES), loc.getValue(M_L.LABEL_TOKENS_WITH_SUMMARIES));
         List<Object> datasets = List.of(
-                dataset(loc.getValue(L.LABEL_TOKENS_COVERED_PARTS), COLOR_COVERED, tokens.summarizedTokens(), 0),
-                dataset(loc.getValue(L.LABEL_SUMMARIES), COLOR_SUMMARIES, 0, tokens.summaryTokens()),
-                dataset(loc.getValue(L.LABEL_TOKENS_RECENT_PARTS), COLOR_RECENT, tokens.unsummarizedTokens(), tokens.unsummarizedTokens()));
+                dataset(loc.getValue(M_L.LABEL_TOKENS_COVERED_PARTS), COLOR_COVERED, tokens.summarizedTokens(), 0),
+                dataset(loc.getValue(M_L.LABEL_SUMMARIES), COLOR_SUMMARIES, 0, tokens.summaryTokens()),
+                dataset(loc.getValue(M_L.LABEL_TOKENS_RECENT_PARTS), COLOR_RECENT, tokens.unsummarizedTokens(), tokens.unsummarizedTokens()));
 
         Map<String, Object> axis = Map.of("stacked", true);
         Map<String, Object> config = new LinkedHashMap<>();
@@ -121,18 +122,18 @@ public class BranchTokensDialog extends Dialog {
         grid.addThemeVariants(GridVariant.LUMO_COMPACT, GridVariant.LUMO_NO_BORDER);
         grid.setAllRowsVisible(true);
         grid.addColumn(Row::label).setHeader("").setFlexGrow(3);
-        grid.addColumn(row -> row.parts() < 0 ? "" : String.valueOf(row.parts())).setHeader(loc.getValue(L.LABEL_PARTS))
+        grid.addColumn(row -> row.parts() < 0 ? "" : String.valueOf(row.parts())).setHeader(loc.getValue(M_L.LABEL_PARTS))
                 .setTextAlign(ColumnTextAlign.END);
-        grid.addColumn(row -> format(row.tokens())).setHeader(loc.getValue(L.LABEL_TOKENS))
+        grid.addColumn(row -> format(row.tokens())).setHeader(loc.getValue(M_L.LABEL_TOKENS))
                 .setTextAlign(ColumnTextAlign.END);
         grid.addColumn(row -> budget > 0 ? Math.round(100.0 * row.tokens() / budget) + " %" : "")
-                .setHeader(loc.getValue(L.LABEL_TOKEN_BUDGET_SHARE))
+                .setHeader(loc.getValue(M_L.LABEL_TOKEN_BUDGET_SHARE))
                 .setTextAlign(ColumnTextAlign.END);
         grid.setItems(
-                new Row(loc.getValue(L.LABEL_TOKENS_WITHOUT_SUMMARIES), tokens.parts(), tokens.partTokens()),
-                new Row(loc.getValue(L.LABEL_SUMMARIES), tokens.summaries(), tokens.summaryTokens()),
-                new Row(loc.getValue(L.LABEL_TOKENS_RECENT_PARTS), tokens.unsummarizedParts(), tokens.unsummarizedTokens()),
-                new Row(loc.getValue(L.LABEL_TOKENS_WITH_SUMMARIES), -1, tokens.withSummariesTokens()));
+                new Row(loc.getValue(M_L.LABEL_TOKENS_WITHOUT_SUMMARIES), tokens.parts(), tokens.partTokens()),
+                new Row(loc.getValue(M_L.LABEL_SUMMARIES), tokens.summaries(), tokens.summaryTokens()),
+                new Row(loc.getValue(M_L.LABEL_TOKENS_RECENT_PARTS), tokens.unsummarizedParts(), tokens.unsummarizedTokens()),
+                new Row(loc.getValue(M_L.LABEL_TOKENS_WITH_SUMMARIES), -1, tokens.withSummariesTokens()));
         return grid;
     }
 

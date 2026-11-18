@@ -9,6 +9,7 @@ import com.github.enerccio.marginalia.domain.service.command.CommandLinks;
 import com.github.enerccio.marginalia.domain.service.function.FunctionDefinition;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
@@ -73,22 +74,22 @@ public class AgentCommandsEditor extends VerticalLayout {
      *              batch policy and size, its description) in place of a row of six columns
      */
     public AgentCommandsEditor(boolean phone) {
-        presetCombo = new ComboBox<>(loc.getValue(L.LABEL_COMMAND_SELECTION));
+        presetCombo = new ComboBox<>(loc.getValue(M_L.LABEL_COMMAND_SELECTION));
         presetCombo.setItems(AgentCommandPreset.values());
         presetCombo.setItemLabelGenerator(preset -> loc.getValue(preset.getLabel()));
-        presetCombo.setPlaceholder(loc.getValue(L.LABEL_COMMAND_SELECTION_CUSTOM));
+        presetCombo.setPlaceholder(loc.getValue(M_L.LABEL_COMMAND_SELECTION_CUSTOM));
         presetCombo.setClearButtonVisible(false);
-        presetCombo.setHelperText(loc.getValue(L.HELP_COMMAND_PRESETS));
+        presetCombo.setHelperText(loc.getValue(M_L.HELP_COMMAND_PRESETS));
         presetCombo.addValueChangeListener(event -> {
             if (!loading && event.isFromClient() && event.getValue() != null) {
                 select(event.getValue());
             }
         });
 
-        searchField = new TextField(loc.getValue(L.LABEL_SEARCH_COMMANDS));
+        searchField = new TextField(loc.getValue(M_L.LABEL_SEARCH_COMMANDS));
         searchField.setClearButtonVisible(true);
         searchField.setPrefixComponent(com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid.MAGNIFYING_GLASS.create());
-        searchField.setHelperText(loc.getValue(L.HELP_COMMAND_SEARCH));
+        searchField.setHelperText(loc.getValue(M_L.HELP_COMMAND_SEARCH));
         searchField.setValueChangeMode(ValueChangeMode.LAZY);
         searchField.addValueChangeListener(event -> dataProvider.setFilter(row -> matches(row, event.getValue())));
 
@@ -98,17 +99,17 @@ public class AgentCommandsEditor extends VerticalLayout {
         if (phone) {
             grid.setHeight("420px");
             grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
-            grid.addComponentColumn(this::card).setHeader(loc.getValue(L.LABEL_COMMAND));
+            grid.addComponentColumn(this::card).setHeader(loc.getValue(M_L.LABEL_COMMAND));
         } else {
             grid.setHeight("280px");
-            grid.addComponentColumn(row -> checkbox(row, null)).setHeader(loc.getValue(L.LABEL_ENABLED)).setFlexGrow(0)
+            grid.addComponentColumn(row -> checkbox(row, null)).setHeader(loc.getValue(M_L.LABEL_ENABLED)).setFlexGrow(0)
                     .setWidth("100px").setResizable(true);
-            grid.addColumn(Row::humanName).setHeader(loc.getValue(L.LABEL_COMMAND)).setFlexGrow(2).setResizable(true);
-            grid.addColumn(Row::effect).setHeader(loc.getValue(L.LABEL_COMMAND_EFFECT)).setFlexGrow(1).setResizable(true);
-            grid.addColumn(Row::batch).setHeader(loc.getValue(L.LABEL_COMMAND_BATCH_POLICY)).setFlexGrow(0).setWidth("110px")
-                    .setResizable(true).setTooltipGenerator(row -> loc.getValue(L.HELP_COMMAND_BATCH_POLICY));
-            grid.addColumn(Row::tokens).setHeader(loc.getValue(L.LABEL_TOKENS)).setTextAlign(ColumnTextAlign.END).setFlexGrow(0)
-                    .setWidth("100px").setResizable(true).setTooltipGenerator(row -> loc.getValue(L.HELP_AGENT_COMMAND_TOKENS));
+            grid.addColumn(Row::humanName).setHeader(loc.getValue(M_L.LABEL_COMMAND)).setFlexGrow(2).setResizable(true);
+            grid.addColumn(Row::effect).setHeader(loc.getValue(M_L.LABEL_COMMAND_EFFECT)).setFlexGrow(1).setResizable(true);
+            grid.addColumn(Row::batch).setHeader(loc.getValue(M_L.LABEL_COMMAND_BATCH_POLICY)).setFlexGrow(0).setWidth("110px")
+                    .setResizable(true).setTooltipGenerator(row -> loc.getValue(M_L.HELP_COMMAND_BATCH_POLICY));
+            grid.addColumn(Row::tokens).setHeader(loc.getValue(M_L.LABEL_TOKENS)).setTextAlign(ColumnTextAlign.END).setFlexGrow(0)
+                    .setWidth("100px").setResizable(true).setTooltipGenerator(row -> loc.getValue(M_L.HELP_AGENT_COMMAND_TOKENS));
             grid.addColumn(Row::description).setHeader(loc.getValue(L.LABEL_DESCRIPTION)).setFlexGrow(4).setResizable(true);
         }
 
@@ -172,8 +173,8 @@ public class AgentCommandsEditor extends VerticalLayout {
                     @APILocals(name = "line", type = HorizontalLayout.class)})
     Component card(Row row) {
         VerticalLayout card = AgentCard.of(row.humanName(), "", List.of(
-                row.effect() + "   " + loc.getValue(L.LABEL_COMMAND_BATCH_POLICY) + ": " + row.batch() + "   "
-                        + loc.getValue(L.LABEL_TOKENS) + ": " + row.tokens(), row.description()), null);
+                row.effect() + "   " + loc.getValue(M_L.LABEL_COMMAND_BATCH_POLICY) + ": " + row.batch() + "   "
+                        + loc.getValue(M_L.LABEL_TOKENS) + ": " + row.tokens(), row.description()), null);
         HorizontalLayout line = new HorizontalLayout(checkbox(row, null), card);
         line.setWidthFull();
         line.setPadding(false);

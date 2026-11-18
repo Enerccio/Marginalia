@@ -32,6 +32,10 @@ public class LocalizationImpl implements Localization, InitializingBean {
 
     private final static Logger log = LoggerFactory.getLogger(LocalizationImpl.class);
     private final Map<Language, LocalizationBundle> bundles = new ConcurrentHashMap<>();
+    /**
+     * The texts of every enum of keys by language, the {@link LocalizationBundle}s under {@link L}.
+     */
+    private final Map<Class<?>, Map<Language, TextBundle<?>>> texts = new ConcurrentHashMap<>();
     private Language defaultLanguage = Language.EN;
 
     @Autowired
@@ -45,7 +49,7 @@ public class LocalizationImpl implements Localization, InitializingBean {
     private final Map<ResetStrategy, L> resetStrategies = new HashMap<>();
     private final Map<CleanupReference.Policy, L> cleanupPolicies = new HashMap<>();
     private final Map<PermissionType, L> permissionTypes = new HashMap<>();
-    private final Map<Class<?>, L> domainObjects = new HashMap<>();
+    private final Map<Class<?>, LocalizationKey> domainObjects = new HashMap<>();
 
     public LocalizationImpl() {
         loadMaps();
@@ -54,6 +58,15 @@ public class LocalizationImpl implements Localization, InitializingBean {
     public void setBundles(List<LocalizationBundle> bundles) {
         for (LocalizationBundle bundle : bundles) {
             registerBundle(bundle);
+        }
+    }
+
+    /**
+     * The texts of the enums of keys above the platform, see {@link #registerTexts}.
+     */
+    public void setTexts(List<TextBundle<?>> texts) {
+        for (TextBundle<?> bundle : texts) {
+            registerTexts(bundle);
         }
     }
 
@@ -80,13 +93,25 @@ public class LocalizationImpl implements Localization, InitializingBean {
                     + ", the application has " + bundles.keySet() + " (the default language can't be one of an extension)");
         }
         // the other bundles fall back to this one, so it has to be complete
-        String missing = missingKeys(bundle);
-        if (!missing.isEmpty()) {
-            log.error("\n*********** LOCALIZATION IS MISSING! ***********\n"
-                    + missing
-                    + "\n************************************************\n");
-            throw new IllegalStateException("The bundle of the default language " + defaultLanguage + " is incomplete");
+        for (Class<? extends LocalizationKey> keys : keyEnums()) {
+            TextBundle<?> defaults = texts.getOrDefault(keys, Map.of()).get(defaultLanguage);
+            String missing = defaults == null ? "all of " + keys.getSimpleName() : missingKeys(defaults);
+            if (!missing.isEmpty()) {
+                log.error("\n*********** LOCALIZATION IS MISSING! ***********\n"
+                        + missing
+                        + "\n************************************************\n");
+                throw new IllegalStateException("The " + keys.getSimpleName() + " texts of the default language "
+                        + defaultLanguage + " are incomplete");
+            }
         }
+    }
+
+    /**
+     * The enums of keys whose texts the default language must have, every one of them. The platform's is {@link L};
+     * a subclass adds the enum of its layer.
+     */
+    protected List<Class<? extends LocalizationKey>> keyEnums() {
+        return List.of(L.class);
     }
 
     private void loadMaps() {
@@ -132,9 +157,9 @@ public class LocalizationImpl implements Localization, InitializingBean {
         domainObjects.put(User.class, L.LABEL_USER);
     }
 
-    private static String missingKeys(LocalizationBundle bundle) {
+    private static <K extends Enum<K> & LocalizationKey> String missingKeys(TextBundle<K> bundle) {
         StringBuilder missing = new StringBuilder();
-        for (L key : L.values()) {
+        for (K key : bundle.getKeys().getEnumConstants()) {
             if (bundle.getValue(key) == null) {
                 missing.append(key.name()).append('\n');
             }
@@ -142,39 +167,54 @@ public class LocalizationImpl implements Localization, InitializingBean {
         return missing.toString();
     }
 
-    @Override
-    public String getValue(Language language, L l) {
-        LocalizationBundle bundle = language == null ? null : bundles.get(language);
-        String text = bundle == null ? null : bundle.getValue(l);
-        if (text == null) {
-            LocalizationBundle fallback = bundles.get(defaultLanguage);
-            text = fallback == null ? null : fallback.getValue(l);
+    /**
+     * The text of the key in the language, from the default language when the language lacks it; null when neither
+     * has it.
+     */
+    private String text(Language language, LocalizationKey key) {
+        Map<Language, TextBundle<?>> byLanguage = texts.get(key.getDeclaringClass());
+        if (byLanguage == null) {
+            return null;
         }
+        String text = language == null ? null : lookup(byLanguage.get(language), key);
+        return text != null ? text : lookup(byLanguage.get(defaultLanguage), key);
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static String lookup(TextBundle bundle, LocalizationKey key) {
+        return bundle == null ? null : bundle.getValue((Enum) key);
+    }
+
+    @Override
+    public String getValue(Language language, LocalizationKey key) {
+        String text = text(language, key);
         return text == null ? "NOT LOCALIZED!" : text;
     }
 
     @Override
-    public String getValue(L l) {
-        String text = currentBundle().getValue(l);
+    public String getValue(LocalizationKey key) {
+        String text = text(getCurrentLanguage(), key);
         if (text == null) {
-            LocalizationBundle fallback = bundles.get(defaultLanguage);
-            text = fallback == null ? null : fallback.getValue(l);
-        }
-        if (text == null) {
-            log.error("Key {} is not localized!", l.name());
+            log.error("Key {}.{} is not localized!", key.getDeclaringClass().getSimpleName(), key.name());
             return "NOT LOCALIZED!";
         }
         return text;
     }
 
     @Override
-    public L parseValue(String text) {
-        for(Map.Entry<L, String> entry : currentBundle().getMessages().entrySet()) {
-            if(entry.getValue().equals(text)) {
-                return entry.getKey();
+    public LocalizationKey parseValue(String text) {
+        Language language = getCurrentLanguage();
+        for (Map<Language, TextBundle<?>> byLanguage : texts.values()) {
+            TextBundle<?> bundle = byLanguage.get(language);
+            if (bundle == null) {
+                continue;
+            }
+            for (Map.Entry<? extends LocalizationKey, String> entry : bundle.getMessages().entrySet()) {
+                if (entry.getValue().equals(text)) {
+                    return entry.getKey();
+                }
             }
         }
-
         return null;
     }
 
@@ -238,20 +278,52 @@ public class LocalizationImpl implements Localization, InitializingBean {
         if (bundles.putIfAbsent(language, bundle) != null) {
             throw new IllegalArgumentException("Language " + language + " already has a localization bundle");
         }
-        if (!language.equals(defaultLanguage)) {
-            String missing = missingKeys(bundle);
-            if (!missing.isEmpty()) {
-                log.warn("Localization bundle {} lacks texts, the {} ones are used instead:\n{}", language,
-                        defaultLanguage, missing);
-            }
-        }
+        putTexts(bundle);
     }
 
     @Override
     public void unregisterBundle(LocalizationBundle bundle) {
         Language language = bundle.getLanguage();
+        if (!language.equals(defaultLanguage) && bundles.remove(language, bundle)) {
+            removeTexts(bundle);
+        }
+    }
+
+    @Override
+    public void registerTexts(TextBundle<?> bundle) {
+        if (bundle.getKeys() == L.class) {
+            throw new IllegalArgumentException("The texts of L are a LocalizationBundle, register them with registerBundle");
+        }
+        putTexts(bundle);
+    }
+
+    @Override
+    public void unregisterTexts(TextBundle<?> bundle) {
+        if (bundle.getKeys() != L.class && !bundle.getLanguage().equals(defaultLanguage)) {
+            removeTexts(bundle);
+        }
+    }
+
+    private void putTexts(TextBundle<?> bundle) {
+        Language language = bundle.getLanguage();
+        Map<Language, TextBundle<?>> byLanguage = texts.computeIfAbsent(bundle.getKeys(), _ -> new ConcurrentHashMap<>());
+        if (byLanguage.putIfAbsent(language, bundle) != null) {
+            throw new IllegalArgumentException("Language " + language + " already has the texts of "
+                    + bundle.getKeys().getSimpleName());
+        }
         if (!language.equals(defaultLanguage)) {
-            bundles.remove(language, bundle);
+            String missing = missingKeys(bundle);
+            if (!missing.isEmpty()) {
+                log.warn("The {} texts of {} lack some, the {} ones are used instead:\n{}",
+                        bundle.getKeys().getSimpleName(), language, defaultLanguage, missing);
+            }
+        }
+    }
+
+    private void removeTexts(TextBundle<?> bundle) {
+        Map<Language, TextBundle<?>> byLanguage = texts.get(bundle.getKeys());
+        if (byLanguage != null) {
+            byLanguage.remove(bundle.getLanguage(), bundle);
         }
     }
 
@@ -374,14 +446,14 @@ public class LocalizationImpl implements Localization, InitializingBean {
     /**
      * Names the kind of object of an entity class for {@link #localizeDomainObject}, for the classes of the application.
      */
-    protected void putDomainObject(Class<?> type, L label) {
+    protected void putDomainObject(Class<?> type, LocalizationKey label) {
         domainObjects.put(type, label);
     }
 
     @Override
     public String localizeDomainObject(Class<?> clazz) {
         for (Class<?> c = clazz; c != null && c != Object.class; c = c.getSuperclass()) {
-            L key = domainObjects.get(c);
+            LocalizationKey key = domainObjects.get(c);
             if (key != null) {
                 return getValue(key);
             }

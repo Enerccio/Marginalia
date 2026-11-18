@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.extensions.arcoutline;
 import com.github.enerccio.marginalia.extensions.PluginLocalizationBundle;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.*;
 import com.github.enerccio.marginalia.loc.Language;
+import com.github.enerccio.marginalia.loc.L;
 
 import java.util.Map;
 

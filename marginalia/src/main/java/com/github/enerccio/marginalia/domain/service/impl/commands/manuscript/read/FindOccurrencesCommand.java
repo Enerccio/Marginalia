@@ -1,11 +1,12 @@
 package com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.read;
 
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
+import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService.MessageFulltext;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService.SummaryFulltext;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.traits.*;
-import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.utils.RegexTimeoutException;
 import com.github.enerccio.marginalia.utils.TimeSafeText;
 import com.google.gson.JsonArray;
@@ -109,7 +110,7 @@ public class FindOccurrencesCommand extends ManuscriptReadSupport {
         try {
             find(context, terms, regex, caseSensitive, summaries, allBranches, limit, deadline);
         } catch (RegexTimeoutException e) {
-            throw new IllegalStateException(String.format(loc.getValue(L.ERROR_REGEX_TIMEOUT), TimeSafeText.timeoutMillis() / 1000), e);
+            throw new IllegalStateException(String.format(loc.getValue(M_L.ERROR_REGEX_TIMEOUT), TimeSafeText.timeoutMillis() / 1000), e);
         }
     }
 
@@ -123,7 +124,7 @@ public class FindOccurrencesCommand extends ManuscriptReadSupport {
         }
         words.removeIf(String::isEmpty);
         if (words.isEmpty()) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_SEARCH_TEXT_EMPTY));
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_SEARCH_TEXT_EMPTY));
         }
         boolean isRegex = Boolean.TRUE.equals(regex);
         int flags = Boolean.TRUE.equals(caseSensitive) ? 0 : Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE;
@@ -132,7 +133,7 @@ public class FindOccurrencesCommand extends ManuscriptReadSupport {
             try {
                 patterns.add(Pattern.compile(isRegex ? word : Pattern.quote(word), isRegex ? flags | Pattern.MULTILINE : flags));
             } catch (PatternSyntaxException e) {
-                throw new IllegalArgumentException(String.format(loc.getValue(L.ERROR_INVALID_REGEX), e.getDescription()), e);
+                throw new IllegalArgumentException(String.format(loc.getValue(M_L.ERROR_INVALID_REGEX), e.getDescription()), e);
             }
         }
 

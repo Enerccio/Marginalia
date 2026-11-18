@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.domain.service.AgentRunner;
 import com.github.enerccio.marginalia.domain.service.agent.AgentDiagnostics;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.LLMInteract;
@@ -74,13 +75,13 @@ public class AgentDiagnosticsView extends VerticalLayout implements LLMInteract 
         setSpacing(false);
         addClassNames(CssStyles.OVERFLOW_AUTO, CssStyles.GAP_S);
 
-        Span help = new Span(loc.getValue(L.HELP_AGENT_DIAGNOSTICS));
+        Span help = new Span(loc.getValue(M_L.HELP_AGENT_DIAGNOSTICS));
         help.addClassName(CssStyles.HINT_TEXT);
 
         Button refreshButton = new Button(loc.getValue(L.LABEL_REFRESH), Solid.ARROWS_ROTATE.create(), event -> refresh());
         copyButton = new Button(loc.getValue(L.LABEL_COPY), Solid.COPY.create(), event -> copy());
         downloadButton = new Button(loc.getValue(L.LABEL_DOWNLOAD), Solid.DOWNLOAD.create());
-        downloadJsonButton = new Button(loc.getValue(L.LABEL_DOWNLOAD_JSON), Solid.DOWNLOAD.create());
+        downloadJsonButton = new Button(loc.getValue(M_L.LABEL_DOWNLOAD_JSON), Solid.DOWNLOAD.create());
         HorizontalLayout header = new HorizontalLayout(refreshButton, copyButton,
                 downloadAnchor(downloadButton, AgentDiagnostics.Report::toMarkdown, "agent-diagnostics.md", "text/markdown"),
                 downloadAnchor(downloadJsonButton, AgentDiagnostics.Report::toJson, "agent-diagnostics.json", "application/json"));
@@ -89,7 +90,7 @@ public class AgentDiagnosticsView extends VerticalLayout implements LLMInteract 
         header.setWrap(true);
         header.setAlignItems(FlexComponent.Alignment.CENTER);
 
-        emptyLabel = new Span(loc.getValue(L.MSG_AGENT_NO_RUN_YET));
+        emptyLabel = new Span(loc.getValue(M_L.MSG_AGENT_NO_RUN_YET));
         emptyLabel.addClassName(CssStyles.HINT_TEXT);
 
         report = new Markdown();
@@ -123,7 +124,7 @@ public class AgentDiagnosticsView extends VerticalLayout implements LLMInteract 
         } catch (IllegalArgumentException | IllegalStateException e) {
             diagnostics = null;
             showEmpty();
-            Notification.warning(String.format(loc.getValue(L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
+            Notification.warning(String.format(loc.getValue(M_L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
             return;
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
@@ -153,7 +154,7 @@ public class AgentDiagnosticsView extends VerticalLayout implements LLMInteract 
             return;
         }
         JavascriptLibrary.copyToClipboard(UI.getCurrent().getPage(), diagnostics.toMarkdown());
-        Notification.success(loc.getValue(L.MSG_COPIED_TO_CLIPBOARD));
+        Notification.success(loc.getValue(M_L.MSG_COPIED_TO_CLIPBOARD));
     }
 
     @PublicAPI(from = "1.4.0",

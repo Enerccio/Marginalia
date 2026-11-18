@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.PhraseWatchService;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
@@ -74,23 +75,23 @@ public class PhraseWatchDialog extends Dialog {
         this.onSaved = onSaved;
         this.phrases = new WatchedPhrasesEditor(loc);
 
-        setHeaderTitle(loc.getValue(L.LABEL_PHRASE_WATCH));
+        setHeaderTitle(loc.getValue(M_L.LABEL_PHRASE_WATCH));
         setWidth("min(900px, 95vw)");
         setCloseOnEsc(false);
         setCloseOnOutsideClick(false);
         setModality(ModalityMode.STRICT);
 
-        Span info = new Span(loc.getValue(L.MSG_PHRASE_WATCH_INFO));
+        Span info = new Span(loc.getValue(M_L.MSG_PHRASE_WATCH_INFO));
         info.addClassName(CssStyles.HINT_TEXT);
-        enabled.setLabel(loc.getValue(L.LABEL_PHRASE_WATCH_ENABLE));
+        enabled.setLabel(loc.getValue(M_L.LABEL_PHRASE_WATCH_ENABLE));
 
         for (IntegerField number : List.of(fromPart, toPart)) {
             number.setMin(1);
             number.setStepButtonsVisible(true);
         }
-        fromPart.setLabel(loc.getValue(L.LABEL_ANNOTATE_FROM_PART));
-        toPart.setLabel(loc.getValue(L.LABEL_ANNOTATE_TO_PART));
-        Span rangeHint = new Span(loc.getValue(L.MSG_PHRASE_WATCH_RANGE_HINT));
+        fromPart.setLabel(loc.getValue(M_L.LABEL_ANNOTATE_FROM_PART));
+        toPart.setLabel(loc.getValue(M_L.LABEL_ANNOTATE_TO_PART));
+        Span rangeHint = new Span(loc.getValue(M_L.MSG_PHRASE_WATCH_RANGE_HINT));
         rangeHint.addClassName(CssStyles.HINT_TEXT);
         HorizontalLayout range = new HorizontalLayout(fromPart, toPart, rangeHint);
         range.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.END);
@@ -102,10 +103,10 @@ public class PhraseWatchDialog extends Dialog {
         content.addClassName(CssStyles.GAP_S);
         add(content);
 
-        Button scan = new Button(loc.getValue(L.LABEL_PHRASE_WATCH_SCAN), _ -> scan());
+        Button scan = new Button(loc.getValue(M_L.LABEL_PHRASE_WATCH_SCAN), _ -> scan());
         Button save = new Button(loc.getValue(L.LABEL_SAVE), _ -> {
             if (save()) {
-                Notification.success(loc.getValue(L.MSG_PHRASE_WATCH_SAVED));
+                Notification.success(loc.getValue(M_L.MSG_PHRASE_WATCH_SAVED));
                 close();
             }
         });
@@ -120,7 +121,7 @@ public class PhraseWatchDialog extends Dialog {
         try {
             Manuscript stored = manuscriptService.find(manuscript);
             if (stored == null || stored.isDeleted()) {
-                Notification.warning(loc.getValue(L.MSG_MANUSCRIPT_NOT_FOUND));
+                Notification.warning(loc.getValue(M_L.MSG_MANUSCRIPT_NOT_FOUND));
                 return false;
             }
             enabled.setValue(stored.getPhraseWatch());
@@ -146,7 +147,7 @@ public class PhraseWatchDialog extends Dialog {
             onSaved.run();
             return true;
         } catch (IllegalArgumentException e) {
-            Notification.warning(String.format(loc.getValue(L.ERROR_PHRASE_INVALID), e.getMessage()));
+            Notification.warning(String.format(loc.getValue(M_L.ERROR_PHRASE_INVALID), e.getMessage()));
             return false;
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
@@ -163,7 +164,7 @@ public class PhraseWatchDialog extends Dialog {
         }
         try {
             int made = phraseWatchService.scanRange(manuscript, fromPart.getValue(), toPart.getValue());
-            Notification.success(String.format(loc.getValue(L.MSG_PHRASE_WATCH_SCANNED), made));
+            Notification.success(String.format(loc.getValue(M_L.MSG_PHRASE_WATCH_SCANNED), made));
             close();
             onSaved.run();
         } catch (IllegalArgumentException e) {

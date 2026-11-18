@@ -10,7 +10,8 @@ import com.github.enerccio.marginalia.domain.service.PromptField;
 import com.github.enerccio.marginalia.extensions.InheritedSetting;
 import com.github.enerccio.marginalia.extensions.InheritedSettingRegistry;
 import com.github.enerccio.marginalia.extensions.InheritedSettingValues;
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.test.ComponentTree;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
@@ -122,7 +123,7 @@ class BookPromptSettingsTest extends MarginaliaTestBase {
         anExtensionSettingIsInheritedAndSavedOnTheBook(dialog);
     }
 
-    private TextArea area(Component dialog, L label) {
+    private TextArea area(Component dialog, LocalizationKey label) {
         return contents(dialog).flatMap(c -> ComponentTree.all(c, TextArea.class))
                 .filter(a -> loc.getValue(label).equals(a.getLabel())).findFirst().orElseThrow();
     }
@@ -159,11 +160,11 @@ class BookPromptSettingsTest extends MarginaliaTestBase {
     }
 
     private void showsTheInheritedValue(Component dialog) {
-        TextArea style = area(dialog, L.LABEL_STYLE);
+        TextArea style = area(dialog, M_L.LABEL_STYLE);
         assertThat(style.getValue()).isEmpty();
         assertThat(style.getPlaceholder()).isEqualTo("Terse");
         assertThat(style.getHelperText()).isEqualTo("Inherited from the folder \"Sci-fi\"");
-        assertThat(area(dialog, L.LABEL_USER_PROMPT).getHelperText()).isEqualTo("Built-in default");
+        assertThat(area(dialog, M_L.LABEL_USER_PROMPT).getHelperText()).isEqualTo("Built-in default");
     }
 
     @Test
@@ -186,20 +187,20 @@ class BookPromptSettingsTest extends MarginaliaTestBase {
     void aFieldTheUserSetsIsSavedOnTheBookAndAClearedOneIsInheritedAgain() throws Exception {
         ManuscriptDialog dialog = desktopDialog();
 
-        type(area(dialog, L.LABEL_STYLE), "Lyrical");
+        type(area(dialog, M_L.LABEL_STYLE), "Lyrical");
 
         Manuscript stored = manuscriptService.find(book.getId());
         assertThat(stored.getStyle()).isEqualTo("Lyrical");
         assertThat(manuscriptService.getStyle(stored)).isEqualTo("Lyrical");
         assertThat(folderService.find(scifi.getId()).getStyle()).as("the folder is not touched").isEqualTo("Terse");
-        assertThat(area(dialog, L.LABEL_STYLE).getHelperText()).as("a field that is set says nothing").isNull();
+        assertThat(area(dialog, M_L.LABEL_STYLE).getHelperText()).as("a field that is set says nothing").isNull();
 
-        type(area(dialog, L.LABEL_STYLE), "");
+        type(area(dialog, M_L.LABEL_STYLE), "");
 
         stored = manuscriptService.find(book.getId());
         assertThat(stored.getStyle()).isNull();
         assertThat(manuscriptService.getStyle(stored)).isEqualTo("Terse");
-        assertThat(area(dialog, L.LABEL_STYLE).getHelperText()).isEqualTo("Inherited from the folder \"Sci-fi\"");
+        assertThat(area(dialog, M_L.LABEL_STYLE).getHelperText()).isEqualTo("Inherited from the folder \"Sci-fi\"");
     }
 
     private InheritedLanguageCombo languageBox(Component dialog) {
@@ -250,7 +251,7 @@ class BookPromptSettingsTest extends MarginaliaTestBase {
         dialog.create();
         dialog.open();
 
-        type(area(dialog, L.LABEL_USER_PROMPT), "Continue the scene");
+        type(area(dialog, M_L.LABEL_USER_PROMPT), "Continue the scene");
 
         assertThat(manuscriptService.find(book.getId()).getUserPrompt()).isEqualTo("Continue the scene");
     }

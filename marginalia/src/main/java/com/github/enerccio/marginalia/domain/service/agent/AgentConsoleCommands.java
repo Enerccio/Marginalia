@@ -7,7 +7,7 @@ import com.github.enerccio.marginalia.domain.service.command.CommandReturnDefini
 import com.github.enerccio.marginalia.domain.service.command.CommandText;
 import com.github.enerccio.marginalia.domain.traits.BatchPolicy;
 import com.github.enerccio.marginalia.domain.traits.CommandDataSeverity;
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +24,7 @@ public final class AgentConsoleCommands {
      * {@code /compact [what to stress]}: takes the rest of the line as its text.
      */
     public static final CommandDefinition COMPACT = new CommandDefinition(AgentRunner.COMPACT,
-            CommandText.of(L.LABEL_COMMAND_COMPACT), CommandText.of(L.DESC_AGENT_COMMAND_COMPACT), CommandText.NONE, false,
+            CommandText.of(M_L.LABEL_COMMAND_COMPACT), CommandText.of(M_L.DESC_AGENT_COMMAND_COMPACT), CommandText.NONE, false,
             CommandDataSeverity.NON_DESTRUCTIVE, true, false, false, BatchPolicy.SINGLE, List.of(), null, true, List.of(),
             new CommandReturnDefinition("", void.class, CommandText.NONE));
 
@@ -32,7 +32,7 @@ public final class AgentConsoleCommands {
      * {@code /clear-workspace [paths and patterns to keep]}: deletes the rest of the workspace.
      */
     public static final CommandDefinition CLEAR_WORKSPACE = new CommandDefinition(AgentRunner.CLEAR_WORKSPACE,
-            CommandText.of(L.LABEL_COMMAND_CLEAR_WORKSPACE), CommandText.of(L.DESC_AGENT_COMMAND_CLEAR_WORKSPACE), CommandText.NONE,
+            CommandText.of(M_L.LABEL_COMMAND_CLEAR_WORKSPACE), CommandText.of(M_L.DESC_AGENT_COMMAND_CLEAR_WORKSPACE), CommandText.NONE,
             false, CommandDataSeverity.DESTRUCTIVE, true, false, false, BatchPolicy.BATCHABLE, List.of(), null, true, List.of(),
             new CommandReturnDefinition("", void.class, CommandText.NONE));
 

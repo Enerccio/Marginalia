@@ -11,8 +11,8 @@ import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.SillyTavernImportService;
 import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.domain.traits.NoTx;
-import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.utils.SillyTavernChats;
 import com.github.enerccio.marginalia.utils.SillyTavernChats.Node;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +39,7 @@ public class SillyTavernImportServiceImpl implements SillyTavernImportService {
                                                BooleanSupplier stopped, Runnable onStored) throws Exception {
         // the import writes the book part by part: nobody may delete it, restore into it or generate in it meanwhile
         Runs.check(manuscript, Runs.Operation.REPLACE);
-        Runs.Run run = Runs.run("import", () -> loc.getValue(L.LABEL_IMPORT)).book(manuscript).hold(manuscript, Runs.Mode.WRITE)
+        Runs.Run run = Runs.run("import", () -> loc.getValue(M_L.LABEL_IMPORT)).book(manuscript).hold(manuscript, Runs.Mode.WRITE)
                 .quiet().currentPage().onStop(() -> {
                     // the loop below asks isStopping before each part
                 }).start();

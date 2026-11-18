@@ -1,6 +1,6 @@
 package com.github.enerccio.marginalia.domain.service;
 
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 
 /**
@@ -16,6 +16,6 @@ public class LorebookLockedException extends ManuscriptLockedException {
 
     @Override
     public String describe(Localization loc) {
-        return String.format(loc.getValue(L.ERROR_LOREBOOK_LOCKED), getAgentName());
+        return String.format(loc.getValue(M_L.ERROR_LOREBOOK_LOCKED), getAgentName());
     }
 }

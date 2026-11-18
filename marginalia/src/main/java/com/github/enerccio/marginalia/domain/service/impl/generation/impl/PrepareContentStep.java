@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service.impl.generation.impl;
 
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.domain.collections.AnnotationStatus;
 import com.github.enerccio.marginalia.domain.components.AnnotationTexts;
 import com.github.enerccio.marginalia.domain.components.PromptTokenBreakdown;
@@ -13,7 +14,6 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationC
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.PrePromptData;
 import com.github.enerccio.marginalia.domain.templates.MasterTemplateData;
 import com.github.enerccio.marginalia.domain.templates.TemplateContext;
-import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.tools.Pointer;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -79,7 +79,7 @@ public class PrepareContentStep extends GenerationStepBase {
                     long reservedTokens = Math.max(0, data.getReservedTokens());
 
                     if (baseTokens + reservedTokens >= limit) {
-                        controller.getUIListener().onSimpleError(loc.getValue(L.ERROR_CONTEXT_INSUFFICIENT));
+                        controller.getUIListener().onSimpleError(loc.getValue(M_L.ERROR_CONTEXT_INSUFFICIENT));
                         controller.jumpTo(GenerationStepType.CLEANUP);
                         return;
                     }
@@ -194,7 +194,7 @@ public class PrepareContentStep extends GenerationStepBase {
 
             if (!outdatedSummaries.isEmpty()) {
                 // No leaves the summaries as they are: they can be revalidated in the summaries overview
-                controller.getUIListener().askQuestion(String.format(loc.getValue(L.MSG_SUMMARY_FAILURE), outdatedSummaries.stream().map(ChatMessage::getId).map(x -> "#" + x.toString()).collect(Collectors.joining(", "))),
+                controller.getUIListener().askQuestion(String.format(loc.getValue(M_L.MSG_SUMMARY_FAILURE), outdatedSummaries.stream().map(ChatMessage::getId).map(x -> "#" + x.toString()).collect(Collectors.joining(", "))),
                         controller.wrapCallback(callback), controller.wrapCallback(() -> controller.jumpTo(GenerationStepType.CLEANUP)));
             } else {
                 callback.returnFromEvent();

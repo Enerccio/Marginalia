@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.service.TemplateService;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.templates.ImpersonateTemplateData;
 import com.github.enerccio.marginalia.domain.traits.*;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.L;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,7 +95,7 @@ public class ImpersonateCommands extends ManuscriptWriteSupport {
 
             @Override
             public void onTerminated(String reasoning, String text) {
-                done.completeExceptionally(new CancellationException(loc.getValue(L.ERROR_COMMAND_GENERATION_CANCELLED)));
+                done.completeExceptionally(new CancellationException(loc.getValue(M_L.ERROR_COMMAND_GENERATION_CANCELLED)));
             }
 
             @Override
@@ -102,23 +103,23 @@ public class ImpersonateCommands extends ManuscriptWriteSupport {
                 done.completeExceptionally(throwable);
             }
         };
-        context.setStatus(loc.getValue(L.MSG_COMMAND_IMPERSONATING));
+        context.setStatus(loc.getValue(M_L.MSG_COMMAND_IMPERSONATING));
         ImpersonateService.Request request = ImpersonateService.Request.of(instructions).withOutline(outline).withPrompt(prompt);
         CancellationToken token;
         try {
             token = impersonateService.impersonate(book.manuscript, request, callback);
         } catch (ImpersonateService.ContextInsufficient e) {
-            throw new IllegalArgumentException(String.format(loc.getValue(L.ERROR_COMMAND_IMPERSONATE_CONTEXT), e.getRequired(), e.getMax()));
+            throw new IllegalArgumentException(String.format(loc.getValue(M_L.ERROR_COMMAND_IMPERSONATE_CONTEXT), e.getRequired(), e.getMax()));
         }
         if (token == null) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_IMPERSONATE_NOT_POSSIBLE));
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_COMMAND_IMPERSONATE_NOT_POSSIBLE));
         }
         String text = await(context, done, token);
         if (text == null) {
             return;
         }
         if (StringUtils.isBlank(text)) {
-            throw new IllegalStateException(loc.getValue(L.ERROR_COMMAND_IMPERSONATE_NOT_POSSIBLE));
+            throw new IllegalStateException(loc.getValue(M_L.ERROR_COMMAND_IMPERSONATE_NOT_POSSIBLE));
         }
         context.setReturn(text);
     }

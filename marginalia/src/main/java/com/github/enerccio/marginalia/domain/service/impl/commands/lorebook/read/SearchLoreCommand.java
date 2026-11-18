@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.traits.*;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.utils.RegexTimeoutException;
 import com.github.enerccio.marginalia.utils.TimeSafeText;
@@ -61,7 +62,7 @@ public class SearchLoreCommand extends LorebookReadSupport {
 
     private void searchLore(CommandContext context, String query, Boolean regex, Integer limit) throws Exception {
         if (query == null || query.isBlank()) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_SEARCH_TEXT_EMPTY));
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_SEARCH_TEXT_EMPTY));
         }
         boolean isRegex = Boolean.TRUE.equals(regex);
         Pattern pattern;
@@ -69,7 +70,7 @@ public class SearchLoreCommand extends LorebookReadSupport {
             int flags = Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE;
             pattern = Pattern.compile(isRegex ? query : Pattern.quote(query), isRegex ? flags | Pattern.MULTILINE : flags);
         } catch (PatternSyntaxException e) {
-            throw new IllegalArgumentException(String.format(loc.getValue(L.ERROR_INVALID_REGEX), e.getDescription()), e);
+            throw new IllegalArgumentException(String.format(loc.getValue(M_L.ERROR_INVALID_REGEX), e.getDescription()), e);
         }
 
         Lore lore = new Lore(new Book(context));
@@ -78,7 +79,7 @@ public class SearchLoreCommand extends LorebookReadSupport {
         try {
             answer(context, search(lore, pattern, limit(limit), deadline));
         } catch (RegexTimeoutException e) {
-            throw new IllegalStateException(String.format(loc.getValue(L.ERROR_REGEX_TIMEOUT), TimeSafeText.timeoutMillis() / 1000), e);
+            throw new IllegalStateException(String.format(loc.getValue(M_L.ERROR_REGEX_TIMEOUT), TimeSafeText.timeoutMillis() / 1000), e);
         }
     }
 

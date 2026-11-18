@@ -10,6 +10,8 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
@@ -201,31 +203,31 @@ public class RedraftDialog extends Dialog {
                 .size("min(680px, 95vw)", "80vh").blocksGeneration();
         floating.setParts(manuscript, List.of(part));
 
-        Span info = new Span(loc.getValue(passage == null ? L.MSG_REDRAFT_INFO : L.MSG_REDRAFT_SELECTION_INFO));
+        Span info = new Span(loc.getValue(passage == null ? M_L.MSG_REDRAFT_INFO : M_L.MSG_REDRAFT_SELECTION_INFO));
         info.addClassName(CssStyles.HINT_TEXT);
 
-        TextArea selection = new TextArea(loc.getValue(L.LABEL_REDRAFT_SELECTED_TEXT));
+        TextArea selection = new TextArea(loc.getValue(M_L.LABEL_REDRAFT_SELECTED_TEXT));
         selection.setValue(selected);
         selection.setReadOnly(true);
         selection.setWidthFull();
         selection.setMaxRows(6);
 
-        instructions.setLabel(loc.getValue(L.LABEL_REDRAFT_INSTRUCTIONS));
-        instructions.setPlaceholder(loc.getValue(L.MSG_REDRAFT_PLACEHOLDER));
+        instructions.setLabel(loc.getValue(M_L.LABEL_REDRAFT_INSTRUCTIONS));
+        instructions.setPlaceholder(loc.getValue(M_L.MSG_REDRAFT_PLACEHOLDER));
         instructions.setWidthFull();
         instructions.setMinRows(3);
         instructions.setMaxRows(8);
 
-        length.setLabel(loc.getValue(L.LABEL_REDRAFT_LENGTH));
+        length.setLabel(loc.getValue(M_L.LABEL_REDRAFT_LENGTH));
         length.setItems(RedraftService.Length.values());
         length.setItemLabelGenerator(l -> loc.getValue(switch (l) {
-            case SAME -> L.LABEL_REDRAFT_SAME_LENGTH;
-            case SHORTER -> L.LABEL_SHORTER;
-            case LONGER -> L.LABEL_LONGER;
+            case SAME -> M_L.LABEL_REDRAFT_SAME_LENGTH;
+            case SHORTER -> M_L.LABEL_SHORTER;
+            case LONGER -> M_L.LABEL_LONGER;
         }));
         length.setValue(RedraftService.Length.SAME);
 
-        withAnnotations.setLabel(loc.getValue(passage == null ? L.LABEL_REDRAFT_WITH_ANNOTATIONS : L.LABEL_REDRAFT_WITH_ANNOTATIONS_SELECTION));
+        withAnnotations.setLabel(loc.getValue(passage == null ? M_L.LABEL_REDRAFT_WITH_ANNOTATIONS : M_L.LABEL_REDRAFT_WITH_ANNOTATIONS_SELECTION));
         withAnnotations.setVisible(false);
         try {
             boolean any = !openAnnotations().isEmpty();
@@ -235,7 +237,7 @@ public class RedraftDialog extends Dialog {
             UIUtils.internalServerError(loc, e);
         }
 
-        revalidateSummaries.setLabel(loc.getValue(L.LABEL_REDRAFT_REVALIDATE_SUMMARIES));
+        revalidateSummaries.setLabel(loc.getValue(M_L.LABEL_REDRAFT_REVALIDATE_SUMMARIES));
         revalidateSummaries.setVisible(false);
         if (!automatic) {
             try {
@@ -249,11 +251,11 @@ public class RedraftDialog extends Dialog {
         showGenerating(false);
 
         reasoningMarkdown.addClassName(CssStyles.CHAT_MESSAGE_MARKDOWN);
-        reasoningDetails = new Details(loc.getValue(L.LABEL_VIEW_REASONING), reasoningMarkdown);
+        reasoningDetails = new Details(loc.getValue(M_L.LABEL_VIEW_REASONING), reasoningMarkdown);
         reasoningDetails.setWidthFull();
         reasoningDetails.setVisible(false);
 
-        result.setLabel(loc.getValue(L.LABEL_REDRAFTED_TEXT));
+        result.setLabel(loc.getValue(M_L.LABEL_REDRAFTED_TEXT));
         result.setWidthFull();
         ResizableTextArea.install(loc, result, "300px");
         result.setValueChangeMode(ValueChangeMode.LAZY);
@@ -268,8 +270,8 @@ public class RedraftDialog extends Dialog {
             showChanges(text ? result.getValue() : null);
         });
 
-        changes = new WordDiffView(loc.getValue(L.MSG_MERGE_NO_DIFFERENCE));
-        changesDetails = new Details(loc.getValue(L.LABEL_MERGE_DIFFERENCES), changes);
+        changes = new WordDiffView(loc.getValue(M_L.MSG_MERGE_NO_DIFFERENCE));
+        changesDetails = new Details(loc.getValue(M_L.LABEL_MERGE_DIFFERENCES), changes);
         changesDetails.setWidthFull();
         changesDetails.setVisible(false);
 
@@ -280,8 +282,8 @@ public class RedraftDialog extends Dialog {
             VerticalLayout redrafted = new VerticalLayout(reasoningDetails, result, changesDetails);
             redrafted.setPadding(false);
             redrafted.addClassName(CssStyles.GAP_S);
-            tabs.add(loc.getValue(L.LABEL_REDRAFTED_TEXT), redrafted);
-            tabs.add(loc.getValue(L.LABEL_REDRAFT_ORIGINAL_TEXT), originalWithAnnotations());
+            tabs.add(loc.getValue(M_L.LABEL_REDRAFTED_TEXT), redrafted);
+            tabs.add(loc.getValue(M_L.LABEL_REDRAFT_ORIGINAL_TEXT), originalWithAnnotations());
             content = new VerticalLayout(info, instructions, length, withAnnotations, revalidateSummaries, start, tabs);
         } else {
             content = new VerticalLayout(info, instructions, length, withAnnotations, revalidateSummaries, start, reasoningDetails, result, changesDetails);
@@ -294,7 +296,7 @@ public class RedraftDialog extends Dialog {
         content.addClassName(CssStyles.GAP_S);
         add(content);
 
-        apply.setText(loc.getValue(L.LABEL_APPLY));
+        apply.setText(loc.getValue(M_L.LABEL_APPLY));
         apply.setThemeName("primary");
         apply.setEnabled(false);
         apply.addClickListener(_ -> apply(false, false));
@@ -370,7 +372,7 @@ public class RedraftDialog extends Dialog {
                 }
                 Div anchor = new Div();
                 anchor.addClassName(CssStyles.ANNOTATION_ANCHOR);
-                original.add(new Span(loc.getValue(L.LABEL_ANNOTATIONS)), notes, anchor);
+                original.add(new Span(loc.getValue(M_L.LABEL_ANNOTATIONS)), notes, anchor);
                 JavascriptLibrary.linkMarginNotes(text.getElement(), notes.getElement());
                 JavascriptLibrary.fireAnnotationClickEvent(text.getElement(), anchor.getElement());
                 text.getElement().addEventListener("annotation-click",
@@ -416,8 +418,8 @@ public class RedraftDialog extends Dialog {
         return floating;
     }
 
-    private L title() {
-        return passage == null ? L.LABEL_REDRAFT : L.LABEL_REDRAFT_SELECTION;
+    private LocalizationKey title() {
+        return passage == null ? L.LABEL_REDRAFT : M_L.LABEL_REDRAFT_SELECTION;
     }
 
     /**
@@ -437,12 +439,12 @@ public class RedraftDialog extends Dialog {
         if (floating != null) {
             floating.setRunning(running);
         }
-        setHeaderTitle(loc.getValue(running ? L.LABEL_REDRAFTING : title()));
+        setHeaderTitle(loc.getValue(running ? M_L.LABEL_REDRAFTING : title()));
         if (running) {
             start.setText(loc.getValue(L.LABEL_STOP));
             start.setThemeName("error primary");
         } else {
-            start.setText(loc.getValue(hasRedraft ? L.LABEL_REDRAFT_AGAIN : title()));
+            start.setText(loc.getValue(hasRedraft ? M_L.LABEL_REDRAFT_AGAIN : title()));
             start.setThemeName("primary");
         }
         instructions.setReadOnly(running);
@@ -519,11 +521,11 @@ public class RedraftDialog extends Dialog {
             }
             if (cancellationToken == null) {
                 showGenerating(false);
-                Notification.error(loc.getValue(L.ERROR_REDRAFT_FAILED));
+                Notification.error(loc.getValue(M_L.ERROR_REDRAFT_FAILED));
             }
         } catch (RedraftService.ContextInsufficient e) {
             showGenerating(false);
-            Notification.error(loc.getValue(L.ERROR_CONTEXT_INSUFFICIENT));
+            Notification.error(loc.getValue(M_L.ERROR_CONTEXT_INSUFFICIENT));
         } catch (Exception e) {
             showGenerating(false);
             UIUtils.internalServerError(loc, e);
@@ -596,7 +598,7 @@ public class RedraftDialog extends Dialog {
             // the window does not hold the page: the part may have been deleted or edited meanwhile
             ChatMessage current = chatMessageService.find(part);
             if (current == null || current.isDeleted()) {
-                Notification.warning(loc.getValue(L.MSG_RUN_PART_GONE));
+                Notification.warning(loc.getValue(M_L.MSG_RUN_PART_GONE));
                 close();
                 return;
             }
@@ -604,7 +606,7 @@ public class RedraftDialog extends Dialog {
             if (passage != null) {
                 // the text of the part is the one the passage was selected in
                 if (!stored.equals(partText)) {
-                    Notification.error(loc.getValue(L.MSG_REDRAFT_SELECTION_CHANGED));
+                    Notification.error(loc.getValue(M_L.MSG_REDRAFT_SELECTION_CHANGED));
                     return;
                 }
                 text = replacePassage(partText, passage, text);
@@ -621,12 +623,12 @@ public class RedraftDialog extends Dialog {
             if (revalidateSummaries.isVisible() && revalidateSummaries.getValue() && !edit.outdated().isEmpty()) {
                 // the author says the summaries still describe the story
                 summaryService.revalidate(manuscript, edit.outdated());
-                Notification.success(loc.getValue(L.MSG_REDRAFT_APPLIED));
+                Notification.success(loc.getValue(M_L.MSG_REDRAFT_APPLIED));
             } else if (edit.outdated().isEmpty()) {
-                Notification.success(loc.getValue(L.MSG_REDRAFT_APPLIED));
+                Notification.success(loc.getValue(M_L.MSG_REDRAFT_APPLIED));
             } else {
-                Notification.warning(loc.getValue(L.MSG_REDRAFT_APPLIED) + " "
-                        + String.format(loc.getValue(L.MSG_REDRAFT_OUTDATED_SUMMARIES), edit.outdated().size()));
+                Notification.warning(loc.getValue(M_L.MSG_REDRAFT_APPLIED) + " "
+                        + String.format(loc.getValue(M_L.MSG_REDRAFT_OUTDATED_SUMMARIES), edit.outdated().size()));
             }
             applied = true;
             close();
@@ -646,10 +648,10 @@ public class RedraftDialog extends Dialog {
         changesDetails.setVisible(true);
         changesDetails.setOpened(true);
         if (byItself) {
-            Notification.warning(loc.getValue(L.MSG_REDRAFT_PART_CHANGED_WAITS));
+            Notification.warning(loc.getValue(M_L.MSG_REDRAFT_PART_CHANGED_WAITS));
             return;
         }
-        ConfirmDialog.show(loc.getValue(L.MSG_REDRAFT_PART_CHANGED), loc.getValue(L.LABEL_APPLY_ANYWAY), loc.getValue(L.LABEL_CANCEL),
+        ConfirmDialog.show(loc.getValue(M_L.MSG_REDRAFT_PART_CHANGED), loc.getValue(M_L.LABEL_APPLY_ANYWAY), loc.getValue(L.LABEL_CANCEL),
                 () -> apply(true, false), () -> {
                 }, false);
     }

@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.domain.styles;
 
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
+import com.github.enerccio.marginalia.loc.M_L;
 
 import java.util.List;
 
@@ -11,51 +12,51 @@ import java.util.List;
  */
 public enum PartStyleOption {
 
-    FONT_FAMILY(L.LABEL_STYLE_FONT_FAMILY, Group.TEXT, Kind.FONT),
-    FONT_SIZE(L.LABEL_STYLE_FONT_SIZE, Group.TEXT, Kind.TEXT),
-    LINE_HEIGHT(L.LABEL_STYLE_LINE_HEIGHT, Group.TEXT, Kind.TEXT),
-    LETTER_SPACING(L.LABEL_STYLE_LETTER_SPACING, Group.TEXT, Kind.TEXT),
-    WORD_SPACING(L.LABEL_STYLE_WORD_SPACING, Group.TEXT, Kind.TEXT),
-    TEXT_COLOR(L.LABEL_STYLE_TEXT_COLOR, Group.TEXT, Kind.COLOR),
-    TEXT_ALIGN(L.LABEL_STYLE_TEXT_ALIGN, Group.TEXT, Kind.CHOICE, "left", "right", "center", "justify"),
-    HYPHENATION(L.LABEL_STYLE_HYPHENATION, Group.TEXT, Kind.BOOLEAN),
-    PARAGRAPH_SPACING(L.LABEL_STYLE_PARAGRAPH_SPACING, Group.TEXT, Kind.TEXT),
-    FIRST_LINE_INDENT(L.LABEL_STYLE_FIRST_LINE_INDENT, Group.TEXT, Kind.TEXT),
-    DROP_CAP(L.LABEL_STYLE_DROP_CAP, Group.TEXT, Kind.BOOLEAN),
-    TEXT_WIDTH(L.LABEL_STYLE_TEXT_WIDTH, Group.PAGE, Kind.TEXT),
-    BACKGROUND_COLOR(L.LABEL_STYLE_BACKGROUND_COLOR, Group.PAGE, Kind.COLOR),
-    EMPHASIS_COLOR(L.LABEL_STYLE_EMPHASIS_COLOR, Group.INLINE, Kind.COLOR),
-    STRONG_COLOR(L.LABEL_STYLE_STRONG_COLOR, Group.INLINE, Kind.COLOR),
-    LINK_COLOR(L.LABEL_STYLE_LINK_COLOR, Group.INLINE, Kind.COLOR),
-    CODE_FONT_FAMILY(L.LABEL_STYLE_CODE_FONT_FAMILY, Group.INLINE, Kind.FONT),
-    QUOTE_COLOR(L.LABEL_STYLE_QUOTE_COLOR, Group.QUOTE, Kind.COLOR),
-    QUOTE_BORDER_COLOR(L.LABEL_STYLE_QUOTE_BORDER_COLOR, Group.QUOTE, Kind.COLOR),
-    HEADING_FONT_FAMILY(L.LABEL_STYLE_HEADING_FONT_FAMILY, Group.HEADINGS, Kind.FONT),
-    HEADING_SIZE(L.LABEL_STYLE_HEADING_SIZE, Group.HEADINGS, Kind.TEXT),
-    HEADING_COLOR(L.LABEL_STYLE_HEADING_COLOR, Group.HEADINGS, Kind.COLOR),
-    HEADING_ALIGN(L.LABEL_STYLE_HEADING_ALIGN, Group.HEADINGS, Kind.CHOICE, "left", "center", "right"),
-    HEADING_SMALL_CAPS(L.LABEL_STYLE_HEADING_SMALL_CAPS, Group.HEADINGS, Kind.BOOLEAN),
-    SCENE_BREAK_TEXT(L.LABEL_STYLE_SCENE_BREAK_TEXT, Group.SCENE_BREAK, Kind.TEXT),
-    SCENE_BREAK_COLOR(L.LABEL_STYLE_SCENE_BREAK_COLOR, Group.SCENE_BREAK, Kind.COLOR);
+    FONT_FAMILY(M_L.LABEL_STYLE_FONT_FAMILY, Group.TEXT, Kind.FONT),
+    FONT_SIZE(M_L.LABEL_STYLE_FONT_SIZE, Group.TEXT, Kind.TEXT),
+    LINE_HEIGHT(M_L.LABEL_STYLE_LINE_HEIGHT, Group.TEXT, Kind.TEXT),
+    LETTER_SPACING(M_L.LABEL_STYLE_LETTER_SPACING, Group.TEXT, Kind.TEXT),
+    WORD_SPACING(M_L.LABEL_STYLE_WORD_SPACING, Group.TEXT, Kind.TEXT),
+    TEXT_COLOR(M_L.LABEL_STYLE_TEXT_COLOR, Group.TEXT, Kind.COLOR),
+    TEXT_ALIGN(M_L.LABEL_STYLE_TEXT_ALIGN, Group.TEXT, Kind.CHOICE, "left", "right", "center", "justify"),
+    HYPHENATION(M_L.LABEL_STYLE_HYPHENATION, Group.TEXT, Kind.BOOLEAN),
+    PARAGRAPH_SPACING(M_L.LABEL_STYLE_PARAGRAPH_SPACING, Group.TEXT, Kind.TEXT),
+    FIRST_LINE_INDENT(M_L.LABEL_STYLE_FIRST_LINE_INDENT, Group.TEXT, Kind.TEXT),
+    DROP_CAP(M_L.LABEL_STYLE_DROP_CAP, Group.TEXT, Kind.BOOLEAN),
+    TEXT_WIDTH(M_L.LABEL_STYLE_TEXT_WIDTH, Group.PAGE, Kind.TEXT),
+    BACKGROUND_COLOR(M_L.LABEL_STYLE_BACKGROUND_COLOR, Group.PAGE, Kind.COLOR),
+    EMPHASIS_COLOR(M_L.LABEL_STYLE_EMPHASIS_COLOR, Group.INLINE, Kind.COLOR),
+    STRONG_COLOR(M_L.LABEL_STYLE_STRONG_COLOR, Group.INLINE, Kind.COLOR),
+    LINK_COLOR(M_L.LABEL_STYLE_LINK_COLOR, Group.INLINE, Kind.COLOR),
+    CODE_FONT_FAMILY(M_L.LABEL_STYLE_CODE_FONT_FAMILY, Group.INLINE, Kind.FONT),
+    QUOTE_COLOR(M_L.LABEL_STYLE_QUOTE_COLOR, Group.QUOTE, Kind.COLOR),
+    QUOTE_BORDER_COLOR(M_L.LABEL_STYLE_QUOTE_BORDER_COLOR, Group.QUOTE, Kind.COLOR),
+    HEADING_FONT_FAMILY(M_L.LABEL_STYLE_HEADING_FONT_FAMILY, Group.HEADINGS, Kind.FONT),
+    HEADING_SIZE(M_L.LABEL_STYLE_HEADING_SIZE, Group.HEADINGS, Kind.TEXT),
+    HEADING_COLOR(M_L.LABEL_STYLE_HEADING_COLOR, Group.HEADINGS, Kind.COLOR),
+    HEADING_ALIGN(M_L.LABEL_STYLE_HEADING_ALIGN, Group.HEADINGS, Kind.CHOICE, "left", "center", "right"),
+    HEADING_SMALL_CAPS(M_L.LABEL_STYLE_HEADING_SMALL_CAPS, Group.HEADINGS, Kind.BOOLEAN),
+    SCENE_BREAK_TEXT(M_L.LABEL_STYLE_SCENE_BREAK_TEXT, Group.SCENE_BREAK, Kind.TEXT),
+    SCENE_BREAK_COLOR(M_L.LABEL_STYLE_SCENE_BREAK_COLOR, Group.SCENE_BREAK, Kind.COLOR);
 
     /**
      * The section of the editor an option is in.
      */
     public enum Group {
-        TEXT(L.LABEL_TEXT),
-        PAGE(L.LABEL_STYLE_GROUP_PAGE),
-        INLINE(L.LABEL_STYLE_GROUP_INLINE),
-        QUOTE(L.LABEL_STYLE_GROUP_QUOTE),
-        HEADINGS(L.LABEL_STYLE_GROUP_HEADINGS),
-        SCENE_BREAK(L.LABEL_STYLE_GROUP_SCENE_BREAK);
+        TEXT(M_L.LABEL_TEXT),
+        PAGE(M_L.LABEL_STYLE_GROUP_PAGE),
+        INLINE(M_L.LABEL_STYLE_GROUP_INLINE),
+        QUOTE(M_L.LABEL_STYLE_GROUP_QUOTE),
+        HEADINGS(M_L.LABEL_STYLE_GROUP_HEADINGS),
+        SCENE_BREAK(M_L.LABEL_STYLE_GROUP_SCENE_BREAK);
 
-        private final L label;
+        private final LocalizationKey label;
 
-        Group(L label) {
+        Group(LocalizationKey label) {
             this.label = label;
         }
 
-        public L getLabel() {
+        public LocalizationKey getLabel() {
             return label;
         }
     }
@@ -88,19 +89,19 @@ public enum PartStyleOption {
             "\"Helvetica Neue\", Helvetica, Arial, sans-serif",
             "\"Courier New\", Courier, monospace");
 
-    private final L label;
+    private final LocalizationKey label;
     private final Group group;
     private final Kind kind;
     private final List<String> choices;
 
-    PartStyleOption(L label, Group group, Kind kind, String... choices) {
+    PartStyleOption(LocalizationKey label, Group group, Kind kind, String... choices) {
         this.label = label;
         this.group = group;
         this.kind = kind;
         this.choices = List.of(choices);
     }
 
-    public L getLabel() {
+    public LocalizationKey getLabel() {
         return label;
     }
 

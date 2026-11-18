@@ -11,6 +11,7 @@ import com.github.enerccio.marginalia.domain.service.AnnotateService.Proposal;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationOptions;
 import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
@@ -216,7 +217,7 @@ public class AnnotateDialog extends Dialog {
         this.onAdded = onAdded;
         this.auto = auto;
 
-        setHeaderTitle(loc.getValue(isRange() ? L.LABEL_ANNOTATE_BATCH : L.LABEL_ANNOTATE_WITH_AI));
+        setHeaderTitle(loc.getValue(isRange() ? M_L.LABEL_ANNOTATE_BATCH : L.LABEL_ANNOTATE_WITH_AI));
         setWidth("min(900px, 95vw)");
         setHeight("85vh");
         setCloseOnEsc(false);
@@ -226,12 +227,12 @@ public class AnnotateDialog extends Dialog {
             floating.setParts(manuscript, List.of(part));
         }
 
-        Span info = new Span(loc.getValue(L.MSG_ANNOTATE_INFO));
+        Span info = new Span(loc.getValue(M_L.MSG_ANNOTATE_INFO));
         info.addClassName(CssStyles.HINT_TEXT);
 
         loadBranch();
-        fromPart.setLabel(loc.getValue(L.LABEL_ANNOTATE_FROM_PART));
-        toPart.setLabel(loc.getValue(L.LABEL_ANNOTATE_TO_PART));
+        fromPart.setLabel(loc.getValue(M_L.LABEL_ANNOTATE_FROM_PART));
+        toPart.setLabel(loc.getValue(M_L.LABEL_ANNOTATE_TO_PART));
         for (ComboBox<Integer> range : List.of(fromPart, toPart)) {
             range.setItems(indices());
             range.setItemLabelGenerator(this::partLabel);
@@ -240,7 +241,7 @@ public class AnnotateDialog extends Dialog {
         }
         fromPart.addValueChangeListener(_ -> refreshRunEnabled());
         toPart.addValueChangeListener(_ -> refreshRunEnabled());
-        Span batchHint = new Span(loc.getValue(L.MSG_ANNOTATE_BATCH_HINT));
+        Span batchHint = new Span(loc.getValue(M_L.MSG_ANNOTATE_BATCH_HINT));
         batchHint.addClassName(CssStyles.HINT_TEXT);
         batchRange = new VerticalLayout(fromPart, toPart, batchHint);
         batchRange.setPadding(false);
@@ -249,13 +250,13 @@ public class AnnotateDialog extends Dialog {
         batchProgress.addClassName(CssStyles.HINT_TEXT);
         batchProgress.setVisible(false);
 
-        instructions.setLabel(loc.getValue(L.LABEL_ANNOTATE_INSTRUCTIONS));
+        instructions.setLabel(loc.getValue(M_L.LABEL_ANNOTATE_INSTRUCTIONS));
         showInherited(instructions, manuscript, manuscriptService, loc);
         instructions.setWidthFull();
         instructions.setMinRows(2);
         instructions.setMaxRows(6);
 
-        mode.setLabel(loc.getValue(L.LABEL_ANNOTATE_MODE));
+        mode.setLabel(loc.getValue(M_L.LABEL_ANNOTATE_MODE));
         mode.setItems(Mode.values());
         mode.setItemLabelGenerator(this::label);
         mode.setAllowCustomValue(false);
@@ -273,10 +274,10 @@ public class AnnotateDialog extends Dialog {
             model.setSelection(auto.ai(), auto.protocol());
             instructions.setValue(StringUtils.defaultString(auto.instructions()));
         }
-        Span modelHint = new Span(loc.getValue(L.MSG_ANNOTATE_MODEL_HINT));
+        Span modelHint = new Span(loc.getValue(M_L.MSG_ANNOTATE_MODEL_HINT));
         modelHint.addClassName(CssStyles.HINT_TEXT);
 
-        Span extractLabel = new Span(loc.getValue(L.LABEL_ANNOTATE_EXTRACT_MODEL));
+        Span extractLabel = new Span(loc.getValue(M_L.LABEL_ANNOTATE_EXTRACT_MODEL));
         VerticalLayout extract = new VerticalLayout(extractLabel, extractModel);
         extract.setPadding(false);
         extract.setSpacing(false);
@@ -292,7 +293,7 @@ public class AnnotateDialog extends Dialog {
         reasoningArea.setMinRows(4);
         reasoningArea.setMaxRows(16);
         reasoningArea.setReadOnly(true);
-        reasoningDetails = new Details(loc.getValue(L.LABEL_REASONING), reasoningArea);
+        reasoningDetails = new Details(loc.getValue(M_L.LABEL_REASONING), reasoningArea);
         reasoningDetails.setWidthFull();
         reasoningDetails.setVisible(false);
 
@@ -300,7 +301,7 @@ public class AnnotateDialog extends Dialog {
         answer.setMinRows(6);
         answer.setMaxRows(20);
         answer.setReadOnly(true);
-        answerDetails = new Details(loc.getValue(L.LABEL_ANNOTATE_RAW), answer);
+        answerDetails = new Details(loc.getValue(M_L.LABEL_ANNOTATE_RAW), answer);
         answerDetails.setWidthFull();
         answerDetails.setVisible(false);
 
@@ -319,7 +320,7 @@ public class AnnotateDialog extends Dialog {
         content.addClassName(CssStyles.GAP_S);
         add(content);
 
-        add.setText(loc.getValue(L.LABEL_ANNOTATE_ACCEPT));
+        add.setText(loc.getValue(M_L.LABEL_ANNOTATE_ACCEPT));
         add.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         add.setEnabled(false);
         add.addClickListener(_ -> accept());
@@ -367,7 +368,7 @@ public class AnnotateDialog extends Dialog {
      * Without any the placeholder is an example and the prompt does its default task.
      */
     static void showInherited(TextAreaPopoverComponent field, Manuscript manuscript, ManuscriptService manuscriptService, Localization loc) {
-        String placeholder = loc.getValue(L.MSG_ANNOTATE_PLACEHOLDER);
+        String placeholder = loc.getValue(M_L.MSG_ANNOTATE_PLACEHOLDER);
         String helper = null;
         String inheritedText = null;
         try {
@@ -375,7 +376,7 @@ public class AnnotateDialog extends Dialog {
             if (StringUtils.isNotBlank(inherited.value())) {
                 placeholder = inherited.value();
                 inheritedText = inherited.value();
-                helper = inherited.origin() == EffectiveSetting.Origin.BOOK ? loc.getValue(L.LABEL_SET_FOR_THE_BOOK)
+                helper = inherited.origin() == EffectiveSetting.Origin.BOOK ? loc.getValue(M_L.LABEL_SET_FOR_THE_BOOK)
                         : PromptSettingsForm.origin(loc, inherited);
             }
         } catch (Exception e) {
@@ -388,10 +389,10 @@ public class AnnotateDialog extends Dialog {
 
     private String label(Mode value) {
         return loc.getValue(switch (value) {
-            case STRUCTURED -> L.ENUM_ANNOTATE_MODE_STRUCTURED;
-            case DELIMITED -> L.ENUM_ANNOTATE_MODE_DELIMITED;
-            case TWO_STAGE -> L.ENUM_ANNOTATE_MODE_TWO_STAGE;
-            default -> L.ENUM_ANNOTATE_MODE_AUTO;
+            case STRUCTURED -> M_L.ENUM_ANNOTATE_MODE_STRUCTURED;
+            case DELIMITED -> M_L.ENUM_ANNOTATE_MODE_DELIMITED;
+            case TWO_STAGE -> M_L.ENUM_ANNOTATE_MODE_TWO_STAGE;
+            default -> M_L.ENUM_ANNOTATE_MODE_AUTO;
         });
     }
 
@@ -400,8 +401,8 @@ public class AnnotateDialog extends Dialog {
         if (floating != null) {
             floating.setRunning(value);
         }
-        setHeaderTitle(loc.getValue(value ? L.LABEL_ANNOTATING : isRange() ? L.LABEL_ANNOTATE_BATCH : L.LABEL_ANNOTATE_WITH_AI));
-        run.setText(loc.getValue(value ? L.LABEL_STOP : L.LABEL_ANNOTATE_RUN));
+        setHeaderTitle(loc.getValue(value ? M_L.LABEL_ANNOTATING : isRange() ? M_L.LABEL_ANNOTATE_BATCH : L.LABEL_ANNOTATE_WITH_AI));
+        run.setText(loc.getValue(value ? L.LABEL_STOP : M_L.LABEL_ANNOTATE_RUN));
         run.setThemeName(value ? "error primary" : "primary");
         instructions.setReadOnly(value);
         mode.setReadOnly(value);
@@ -479,7 +480,7 @@ public class AnnotateDialog extends Dialog {
         boolean aborted = false;
         while ((next = pending.poll()) != null) {
             if (batchRun) {
-                batchProgress.setText(String.format(loc.getValue(L.MSG_ANNOTATE_BATCH_PROGRESS), positionOf(next), finished + 1, total));
+                batchProgress.setText(String.format(loc.getValue(M_L.MSG_ANNOTATE_BATCH_PROGRESS), positionOf(next), finished + 1, total));
             }
             try (InRequestScope _ = new InRequestScope(attributes); Runs.Binding _ = floating == null ? null : floating.bind()) {
                 GenerationOptions options = GenerationOptions.defaults().withModel(model.getAi(), model.getProtocol());
@@ -492,13 +493,13 @@ public class AnnotateDialog extends Dialog {
                 }
                 pending.clear();
                 aborted = true;
-                Notification.error(loc.getValue(L.ERROR_ANNOTATE_FAILED));
+                Notification.error(loc.getValue(M_L.ERROR_ANNOTATE_FAILED));
             } catch (AnnotateService.ContextInsufficient e) {
                 if (!batchRun) {
                     aborted = true;
-                    Notification.error(loc.getValue(L.ERROR_CONTEXT_INSUFFICIENT));
+                    Notification.error(loc.getValue(M_L.ERROR_CONTEXT_INSUFFICIENT));
                 } else {
-                    skipped(next, loc.getValue(L.ERROR_CONTEXT_INSUFFICIENT));
+                    skipped(next, loc.getValue(M_L.ERROR_CONTEXT_INSUFFICIENT));
                     finished++;
                     continue;
                 }
@@ -525,7 +526,7 @@ public class AnnotateDialog extends Dialog {
         }
         if (proposals.isEmpty() && notes.isEmpty()) {
             if (complete) {
-                showMessage(loc.getValue(L.MSG_ANNOTATE_NO_FINDINGS));
+                showMessage(loc.getValue(M_L.MSG_ANNOTATE_NO_FINDINGS));
             }
         } else if (!notes.isEmpty()) {
             showMessage(String.join(" ", notes));
@@ -544,13 +545,13 @@ public class AnnotateDialog extends Dialog {
         if (!proposals.isEmpty()) {
             accept();
         } else if (notes.isEmpty()) {
-            Notification.success(loc.getValue(L.MSG_ANNOTATE_NO_FINDINGS));
+            Notification.success(loc.getValue(M_L.MSG_ANNOTATE_NO_FINDINGS));
             close();
         }
     }
 
     private void skipped(ChatMessage part, String reason) {
-        notes.add(batchRun ? String.format(loc.getValue(L.MSG_ANNOTATE_BATCH_SKIPPED), positionOf(part), reason) : reason);
+        notes.add(batchRun ? String.format(loc.getValue(M_L.MSG_ANNOTATE_BATCH_SKIPPED), positionOf(part), reason) : reason);
     }
 
     /**
@@ -583,7 +584,7 @@ public class AnnotateDialog extends Dialog {
             @Override
             public void onUnreadable(String raw, String reason) {
                 ui.access(() -> {
-                    skipped(current, String.format(loc.getValue(L.MSG_ANNOTATE_UNREADABLE), reason));
+                    skipped(current, String.format(loc.getValue(M_L.MSG_ANNOTATE_UNREADABLE), reason));
                     showAnswer(raw);
                     answerDetails.setOpened(true);
                     finished++;
@@ -697,7 +698,7 @@ public class AnnotateDialog extends Dialog {
 
     private String partLabel(Integer index) {
         ChatMessage message = branch.get(index);
-        return String.format(loc.getValue(L.LABEL_ANNOTATION_PART_NUMBER), positionOf(message)) + ": "
+        return String.format(loc.getValue(M_L.LABEL_ANNOTATION_PART_NUMBER), positionOf(message)) + ": "
                 + StringUtils.abbreviate(StringUtils.normalizeSpace(message.getResponse()), 60);
     }
 
@@ -726,10 +727,10 @@ public class AnnotateDialog extends Dialog {
             return;
         }
         if (proposals.isEmpty()) {
-            proposalsLayout.add(new Span(loc.getValue(L.LABEL_ANNOTATE_PROPOSALS)));
+            proposalsLayout.add(new Span(loc.getValue(M_L.LABEL_ANNOTATE_PROPOSALS)));
         }
         if (batchRun) {
-            Span header = new Span(String.format(loc.getValue(L.LABEL_ANNOTATION_PART_NUMBER), positionOf(about)));
+            Span header = new Span(String.format(loc.getValue(M_L.LABEL_ANNOTATION_PART_NUMBER), positionOf(about)));
             header.addClassName(CssStyles.ANNOTATION_PART);
             proposalsLayout.add(header);
         }
@@ -746,7 +747,7 @@ public class AnnotateDialog extends Dialog {
                 quote.addClassName(CssStyles.ANNOTATION_QUOTE);
                 row.add(quote);
             } else {
-                Span lost = new Span(loc.getValue(L.MSG_ANNOTATE_NOT_LOCATED)
+                Span lost = new Span(loc.getValue(M_L.MSG_ANNOTATE_NOT_LOCATED)
                         + (StringUtils.isBlank(proposal.quote()) ? "" : ": " + StringUtils.abbreviate(proposal.quote(), 160)));
                 lost.addClassName(CssStyles.HINT_TEXT);
                 row.add(lost);
@@ -781,13 +782,13 @@ public class AnnotateDialog extends Dialog {
                 made += annotateService.accept(manuscript, stored, about.getValue(), modelName).size();
             }
             if (gone > 0) {
-                Notification.warning(loc.getValue(L.MSG_RUN_PART_GONE));
+                Notification.warning(loc.getValue(M_L.MSG_RUN_PART_GONE));
             }
             if (gone == chosen.size()) {
                 close();
                 return;
             }
-            Notification.success(String.format(loc.getValue(L.MSG_ANNOTATE_ADDED), made));
+            Notification.success(String.format(loc.getValue(M_L.MSG_ANNOTATE_ADDED), made));
             added = true;
             close();
             onAdded.run();
@@ -825,7 +826,7 @@ public class AnnotateDialog extends Dialog {
     void showProposalsForTest(List<Proposal> found) {
         addProposals(part, found);
         if (proposals.isEmpty()) {
-            showMessage(loc.getValue(L.MSG_ANNOTATE_NO_FINDINGS));
+            showMessage(loc.getValue(M_L.MSG_ANNOTATE_NO_FINDINGS));
         }
         add.setEnabled(!proposals.isEmpty());
     }

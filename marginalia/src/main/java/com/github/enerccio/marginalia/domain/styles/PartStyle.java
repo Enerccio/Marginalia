@@ -1,7 +1,7 @@
 package com.github.enerccio.marginalia.domain.styles;
 
 import com.github.enerccio.marginalia.CssStyles;
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
 import com.github.enerccio.marginalia.loc.Localization;
 import org.apache.commons.lang3.StringUtils;
 
@@ -32,7 +32,7 @@ public class PartStyle {
     private boolean forExport;
 
     private transient boolean builtin;
-    private transient L nameKey;
+    private transient LocalizationKey nameKey;
     // set while toCss works: the values are worked out for paper
     private transient boolean printing;
 
@@ -47,7 +47,7 @@ public class PartStyle {
     /**
      * A built in style, called by the text of {@code nameKey} in the language of the user.
      */
-    public static PartStyle builtin(String id, String name, L nameKey) {
+    public static PartStyle builtin(String id, String name, LocalizationKey nameKey) {
         PartStyle style = new PartStyle(id, name);
         style.nameKey = nameKey;
         style.builtin = true;

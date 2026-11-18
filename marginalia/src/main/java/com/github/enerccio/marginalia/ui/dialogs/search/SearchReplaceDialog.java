@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.domain.service.search.replace.TextHit;
 import com.github.enerccio.marginalia.domain.service.search.replace.TextSearch;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.dialogs.ThreadAccessDialog;
@@ -242,12 +243,12 @@ public abstract class SearchReplaceDialog extends ThreadAccessDialog {
         setCloseOnOutsideClick(false);
         setModality(ModalityMode.STRICT);
 
-        searchField = new TextField(loc.getValue(L.LABEL_SEARCH_FOR));
+        searchField = new TextField(loc.getValue(M_L.LABEL_SEARCH_FOR));
         searchField.setWidthFull();
         searchField.setClearButtonVisible(true);
         searchField.addValueChangeListener(_ -> searchField.setInvalid(false));
         DialogFocus.onOpen(this, searchField);
-        replaceField = new TextField(loc.getValue(L.LABEL_REPLACE_WITH));
+        replaceField = new TextField(loc.getValue(M_L.LABEL_REPLACE_WITH));
         replaceField.setWidthFull();
         replaceField.setClearButtonVisible(true);
         // Enter in a field searches; the value has to be current when the key arrives, so the fields send it as it is typed
@@ -259,7 +260,7 @@ public abstract class SearchReplaceDialog extends ThreadAccessDialog {
                 }
             });
         }
-        regexBox = new Checkbox(loc.getValue(L.LABEL_SEARCH_BY_REGEX), false);
+        regexBox = new Checkbox(loc.getValue(M_L.LABEL_SEARCH_BY_REGEX), false);
         caseSensitiveBox = new Checkbox(loc.getValue(L.LABEL_CASE_SENSITIVE), true);
         // a regular expression says itself whether the case matters, with (?i)
         regexBox.addValueChangeListener(e -> caseSensitiveBox.setEnabled(!e.getValue()));
@@ -271,9 +272,9 @@ public abstract class SearchReplaceDialog extends ThreadAccessDialog {
 
         Component options = createOptionsLayout();
 
-        searchButton = new Button(loc.getValue(L.LABEL_SEARCH), Solid.SEARCH.create(), _ -> onSearchButton());
+        searchButton = new Button(loc.getValue(M_L.LABEL_SEARCH), Solid.SEARCH.create(), _ -> onSearchButton());
         searchButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        replaceButton = new Button(loc.getValue(L.LABEL_REPLACE), Solid.EXCHANGE_ALT.create(), _ -> onReplaceButton());
+        replaceButton = new Button(loc.getValue(M_L.LABEL_REPLACE), Solid.EXCHANGE_ALT.create(), _ -> onReplaceButton());
         replaceButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_ERROR);
 
         Component inputArea;
@@ -393,9 +394,9 @@ public abstract class SearchReplaceDialog extends ThreadAccessDialog {
             treeGrid.addColumn(row -> row.item.id())
                     .setHeader(getIdColumnHeader()).setAutoWidth(false).setFlexGrow(0).setWidth("10em");
             treeGrid.addComponentColumn(row -> row.hit == null ? null : context(row.hit, false))
-                    .setHeader(loc.getValue(L.LABEL_SEARCH_CONTEXT)).setFlexGrow(1);
+                    .setHeader(loc.getValue(M_L.LABEL_SEARCH_CONTEXT)).setFlexGrow(1);
             treeGrid.addComponentColumn(row -> row.hit == null ? null : context(row.hit, true))
-                    .setHeader(loc.getValue(L.LABEL_REPLACE_CONTEXT)).setFlexGrow(1);
+                    .setHeader(loc.getValue(M_L.LABEL_REPLACE_CONTEXT)).setFlexGrow(1);
         }
         return treeGrid;
     }
@@ -412,8 +413,8 @@ public abstract class SearchReplaceDialog extends ThreadAccessDialog {
         cell.setPadding(false);
         cell.setSpacing(false);
         if (row.hit != null) {
-            cell.add(labeled(loc.getValue(L.LABEL_SEARCH), context(row.hit, false)));
-            cell.add(labeled(loc.getValue(L.LABEL_REPLACE), context(row.hit, true)));
+            cell.add(labeled(loc.getValue(M_L.LABEL_SEARCH), context(row.hit, false)));
+            cell.add(labeled(loc.getValue(M_L.LABEL_REPLACE), context(row.hit, true)));
         }
         return cell;
     }
@@ -440,7 +441,7 @@ public abstract class SearchReplaceDialog extends ThreadAccessDialog {
     private Component context(TextHit hit, boolean replacement) {
         String text = oneLine(replacement ? hit.replacement() : hit.match());
         boolean tooLong = text.length() > MAX_SHOWN_TEXT;
-        Span middle = new Span(tooLong ? loc.getValue(replacement ? L.LABEL_REPLACE_TEXT_PLACEHOLDER : L.LABEL_SEARCHED_TEXT_PLACEHOLDER) : text);
+        Span middle = new Span(tooLong ? loc.getValue(replacement ? M_L.LABEL_REPLACE_TEXT_PLACEHOLDER : M_L.LABEL_SEARCHED_TEXT_PLACEHOLDER) : text);
         middle.addClassName(replacement ? CssStyles.SEARCH_HIT_REPLACEMENT : CssStyles.SEARCH_HIT_MATCH);
         if (tooLong) {
             middle.addClassName(CssStyles.SEARCH_HIT_PLACEHOLDER);
@@ -467,7 +468,7 @@ public abstract class SearchReplaceDialog extends ThreadAccessDialog {
         });
         // the case of the search does not matter for a regular expression, so the box stays locked
         caseSensitiveBox.setEnabled(input && !regexBox.getValue());
-        searchButton.setText(loc.getValue(newState == State.PREPARED ? L.LABEL_SEARCH_AGAIN : L.LABEL_SEARCH));
+        searchButton.setText(loc.getValue(newState == State.PREPARED ? M_L.LABEL_SEARCH_AGAIN : M_L.LABEL_SEARCH));
         searchButton.setEnabled(input || newState == State.PREPARED);
         replaceButton.setEnabled(newState == State.PREPARED);
         stopButton.setEnabled(newState == State.SEARCHING);
@@ -506,7 +507,7 @@ public abstract class SearchReplaceDialog extends ThreadAccessDialog {
             searcher = createSearcher(new SearchRequest(searchField.getValue(), replaceField.getValue(), regexBox.getValue(), caseSensitiveBox.getValue()));
         } catch (TextSearch.InvalidSearchException e) {
             Notification.error(String.format(loc.getValue(e.getKind() == TextSearch.InvalidSearchException.Kind.SEARCH
-                    ? L.ERROR_INVALID_REGEX : L.ERROR_INVALID_REPLACEMENT), e.getMessage()));
+                    ? M_L.ERROR_INVALID_REGEX : M_L.ERROR_INVALID_REPLACEMENT), e.getMessage()));
             return;
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
@@ -522,13 +523,13 @@ public abstract class SearchReplaceDialog extends ThreadAccessDialog {
                 vaadinLocked(() -> searchDone(result));
             } catch (CancellationException e) {
                 vaadinLocked(() -> {
-                    Notification.success(loc.getValue(L.MSG_SEARCH_STOPPED));
+                    Notification.success(loc.getValue(M_L.MSG_SEARCH_STOPPED));
                     setState(State.INPUT);
                 });
             } catch (TextSearch.InvalidSearchException e) {
                 vaadinLocked(() -> {
                     Notification.error(String.format(loc.getValue(e.getKind() == TextSearch.InvalidSearchException.Kind.SEARCH
-                            ? L.ERROR_INVALID_REGEX : L.ERROR_INVALID_REPLACEMENT), e.getMessage()));
+                            ? M_L.ERROR_INVALID_REGEX : M_L.ERROR_INVALID_REPLACEMENT), e.getMessage()));
                     setState(State.INPUT);
                 });
             } catch (Exception e) {
@@ -551,7 +552,7 @@ public abstract class SearchReplaceDialog extends ThreadAccessDialog {
                     @APILocals(name = "hit", type = TextHit.class)})
     private void searchDone(SearchResult result) {
         if (result.items().isEmpty()) {
-            Notification.success(loc.getValue(L.MSG_SEARCH_NOTHING_FOUND));
+            Notification.success(loc.getValue(M_L.MSG_SEARCH_NOTHING_FOUND));
             setState(State.INPUT);
             return;
         }
@@ -565,7 +566,7 @@ public abstract class SearchReplaceDialog extends ThreadAccessDialog {
             roots.add(new Row(item, null, children));
         }
         grid.setItems(roots, row -> row.children);
-        statusLabel.setText(String.format(loc.getValue(L.MSG_SEARCH_FOUND), result.hitCount(), result.items().size()));
+        statusLabel.setText(String.format(loc.getValue(M_L.MSG_SEARCH_FOUND), result.hitCount(), result.items().size()));
         progressBar.setIndeterminate(false);
         progressBar.setValue(1);
         setState(State.PREPARED);

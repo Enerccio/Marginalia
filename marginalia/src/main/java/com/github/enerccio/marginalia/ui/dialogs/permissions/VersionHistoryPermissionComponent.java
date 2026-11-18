@@ -2,8 +2,8 @@ package com.github.enerccio.marginalia.ui.dialogs.permissions;
 
 import com.github.enerccio.marginalia.domain.security.model.Permission;
 import com.github.enerccio.marginalia.domain.service.EffectiveHistoryLimit;
-import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
@@ -34,11 +34,11 @@ public class VersionHistoryPermissionComponent implements PermissionUIComponent 
         if (layout != null) {
             return;
         }
-        maxVersions = new IntegerField(loc.getValue(L.LABEL_HISTORY_MAX_VERSIONS));
+        maxVersions = new IntegerField(loc.getValue(M_L.LABEL_HISTORY_MAX_VERSIONS));
         maxVersions.setMin(0);
         maxVersions.setStepButtonsVisible(true);
         maxVersions.setClearButtonVisible(true);
-        maxVersions.setHelperText(loc.getValue(L.HELP_VERSION_HISTORY_PERMISSION));
+        maxVersions.setHelperText(loc.getValue(M_L.HELP_VERSION_HISTORY_PERMISSION));
         maxVersions.setWidth("320px");
         maxVersions.addValueChangeListener(e -> changed());
         layout = new VerticalLayout(maxVersions);

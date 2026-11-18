@@ -1,7 +1,8 @@
 package com.github.enerccio.marginalia.ui.dialogs.bookimport;
 
 import com.github.enerccio.marginalia.domain.collections.RevisionDetail;
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.utils.docimport.DocumentFormat;
 import com.github.enerccio.marginalia.utils.docimport.PartSplitter;
@@ -30,7 +31,7 @@ final class DocumentSource extends BookImportSource {
      *
      * @param baseName the name of the book from the name of the file
      */
-    private record Kind(L label, L description, L invalid, String[] fileTypes, Reader reader, UnaryOperator<String> baseName) {
+    private record Kind(LocalizationKey label, LocalizationKey description, LocalizationKey invalid, String[] fileTypes, Reader reader, UnaryOperator<String> baseName) {
     }
 
     @FunctionalInterface
@@ -51,7 +52,7 @@ final class DocumentSource extends BookImportSource {
      * A file of a {@link DocumentFormat}.
      */
     DocumentSource(Localization loc) {
-        this(loc, new Kind(L.LABEL_IMPORT_FROM_DOCUMENT, L.MSG_IMPORT_DOCUMENT, L.MSG_INVALID_DOCUMENT, DocumentFormat.fileTypes(), (data, fileName) -> {
+        this(loc, new Kind(M_L.LABEL_IMPORT_FROM_DOCUMENT, M_L.MSG_IMPORT_DOCUMENT, M_L.MSG_INVALID_DOCUMENT, DocumentFormat.fileTypes(), (data, fileName) -> {
             DocumentFormat format = DocumentFormat.of(fileName);
             if (format == null) {
                 throw new IllegalArgumentException("Unknown document type: " + fileName);
@@ -67,7 +68,7 @@ final class DocumentSource extends BookImportSource {
      * @return the source for the zip of an Obsidian vault
      */
     static DocumentSource obsidian(Localization loc) {
-        return new DocumentSource(loc, new Kind(L.LABEL_IMPORT_FROM_OBSIDIAN, L.MSG_IMPORT_OBSIDIAN, L.MSG_INVALID_OBSIDIAN, ZIP_TYPES,
+        return new DocumentSource(loc, new Kind(M_L.LABEL_IMPORT_FROM_OBSIDIAN, M_L.MSG_IMPORT_OBSIDIAN, M_L.MSG_INVALID_OBSIDIAN, ZIP_TYPES,
                 (data, fileName) -> DocumentFormat.vault(data), DocumentSource::withoutZip));
     }
 
@@ -75,7 +76,7 @@ final class DocumentSource extends BookImportSource {
      * @return the source for the zip of a Scrivener project
      */
     static DocumentSource scrivener(Localization loc) {
-        return new DocumentSource(loc, new Kind(L.LABEL_IMPORT_FROM_SCRIVENER, L.MSG_IMPORT_SCRIVENER, L.MSG_INVALID_SCRIVENER, ZIP_TYPES,
+        return new DocumentSource(loc, new Kind(M_L.LABEL_IMPORT_FROM_SCRIVENER, M_L.MSG_IMPORT_SCRIVENER, M_L.MSG_INVALID_SCRIVENER, ZIP_TYPES,
                 (data, fileName) -> DocumentFormat.scrivener(data), fileName -> {
             String name = withoutZip(fileName);
             return name.toLowerCase(Locale.ROOT).endsWith(".scriv") ? name.substring(0, name.length() - ".scriv".length()) : name;
@@ -89,21 +90,21 @@ final class DocumentSource extends BookImportSource {
     private DocumentSource(Localization loc, Kind kind) {
         super(loc);
         this.kind = kind;
-        wordsPerPart = new IntegerField(loc.getValue(L.LABEL_WORDS_PER_PART));
+        wordsPerPart = new IntegerField(loc.getValue(M_L.LABEL_WORDS_PER_PART));
         wordsPerPart.setMin(PartSplitter.MIN_WORDS_PER_PART);
         wordsPerPart.setMax(PartSplitter.MAX_WORDS_PER_PART);
         wordsPerPart.setStep(100);
         wordsPerPart.setStepButtonsVisible(true);
         wordsPerPart.setValue(PartSplitter.DEFAULT_WORDS_PER_PART);
         wordsPerPart.setWidthFull();
-        wordsPerPart.setHelperText(loc.getValue(L.HELP_WORDS_PER_PART));
+        wordsPerPart.setHelperText(loc.getValue(M_L.HELP_WORDS_PER_PART));
         wordsPerPart.addValueChangeListener(_ -> changed());
 
-        chapterLevel = new ComboBox<>(loc.getValue(L.LABEL_CHAPTER_HEADING_LEVEL));
+        chapterLevel = new ComboBox<>(loc.getValue(M_L.LABEL_CHAPTER_HEADING_LEVEL));
         chapterLevel.setAllowCustomValue(false);
         chapterLevel.setWidthFull();
         chapterLevel.addValueChangeListener(_ -> changed());
-        chapterLevel.setHelperText(loc.getValue(L.HELP_CHAPTER_HEADING_LEVEL));
+        chapterLevel.setHelperText(loc.getValue(M_L.HELP_CHAPTER_HEADING_LEVEL));
         showChapterLevel(List.of());
 
         options = new VerticalLayout(wordsPerPart, chapterLevel);
@@ -111,12 +112,12 @@ final class DocumentSource extends BookImportSource {
     }
 
     @Override
-    L label() {
+    LocalizationKey label() {
         return kind.label;
     }
 
     @Override
-    L description() {
+    LocalizationKey description() {
         return kind.description;
     }
 
@@ -170,7 +171,7 @@ final class DocumentSource extends BookImportSource {
     @Override
     String status() {
         PartSplitter.Result result = split();
-        return result == null ? "" : String.format(loc.getValue(L.MSG_DOCUMENT_READY), result.chapters(), result.words(), result.parts().size());
+        return result == null ? "" : String.format(loc.getValue(M_L.MSG_DOCUMENT_READY), result.chapters(), result.words(), result.parts().size());
     }
 
     @Override
@@ -187,7 +188,7 @@ final class DocumentSource extends BookImportSource {
     BookImportDialog.Run prepare() {
         PartSplitter.Result result = split();
         if (result == null) {
-            throw new IllegalArgumentException(loc.getValue(L.LABEL_WORDS_PER_PART));
+            throw new IllegalArgumentException(loc.getValue(M_L.LABEL_WORDS_PER_PART));
         }
         List<String> parts = result.parts();
         return (manuscript, place, afterwards) -> new DocumentImportRunner().run(manuscript, place, parts, RevisionDetail.DOCUMENT_IMPORT, afterwards);

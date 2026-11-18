@@ -9,6 +9,7 @@ import com.github.enerccio.marginalia.domain.service.InferenceServices;
 import com.github.enerccio.marginalia.domain.service.UsageService;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.LLMInteraction;
@@ -69,7 +70,7 @@ public class PhoneAIPart implements WorkspaceComponent {
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = String.class))
     public String getName() {
-        return loc.getValue(L.LABEL_MODELS);
+        return loc.getValue(M_L.LABEL_MODELS);
     }
 
     @PublicAPI(from = "1.1.0",
@@ -83,7 +84,7 @@ public class PhoneAIPart implements WorkspaceComponent {
         mainLayout.setPadding(true);
         mainLayout.setSpacing(true);
 
-        Button addModelButton = new Button(loc.getValue(L.LABEL_ADD_MODEL), Solid.PLUS.create(), event -> {
+        Button addModelButton = new Button(loc.getValue(M_L.LABEL_ADD_MODEL), Solid.PLUS.create(), event -> {
             AIDialog dialog = new AIDialog();
             dialog.setOnSave(this::refreshGrid);
             dialog.create();
@@ -133,7 +134,7 @@ public class PhoneAIPart implements WorkspaceComponent {
         textLayout.add(createLine(loc.getValue(L.LABEL_TYPE), AITypes.label(loc, inferenceServices, ai)));
         textLayout.add(createLine(loc.getValue(L.LABEL_NAME), ai.getName()));
         if (ai.isShared()) {
-            textLayout.add(createLine(loc.getValue(L.LABEL_SHARED), loc.getValue(L.LABEL_YES)));
+            textLayout.add(createLine(loc.getValue(M_L.LABEL_SHARED), loc.getValue(L.LABEL_YES)));
         }
         textLayout.add(createLine(loc.getValue(L.LABEL_TOKENS_SENT), formatTokens(usages.get(ai.getId()) == null ? 0 : usages.get(ai.getId()).getPrefillTokens())));
         textLayout.add(createLine(loc.getValue(L.LABEL_TOKENS_GENERATED), formatTokens(usages.get(ai.getId()) == null ? 0 : usages.get(ai.getId()).getGeneratedTokens())));
@@ -169,7 +170,7 @@ public class PhoneAIPart implements WorkspaceComponent {
         });
 
         Button cloneButton = new Button(Solid.CLONE.create(), event -> cloneModel(ai));
-        cloneButton.setTooltipText(loc.getValue(L.LABEL_CLONE_PROVIDER));
+        cloneButton.setTooltipText(loc.getValue(M_L.LABEL_CLONE_PROVIDER));
 
         Button deleteButton = new Button(Solid.TRASH.create(), event ->
                 ConfirmDialog.show(loc.getValue(L.MSG_CONFIRM_DELETE), () -> {
@@ -238,7 +239,7 @@ public class PhoneAIPart implements WorkspaceComponent {
             returns = @APIReturn(type = void.class),
             parameters = {@APIParameter(name = "ai", type = AI.class)})
     private void cloneModel(AI ai) {
-        CloneNameDialog.show(loc, loc.getValue(L.LABEL_CLONE_PROVIDER), ai.getName(), name -> {
+        CloneNameDialog.show(loc, loc.getValue(M_L.LABEL_CLONE_PROVIDER), ai.getName(), name -> {
             try {
                 aiService.cloneAI(ai, name);
                 refreshGrid();

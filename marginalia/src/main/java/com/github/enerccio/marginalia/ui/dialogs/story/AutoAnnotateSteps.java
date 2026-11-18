@@ -22,6 +22,7 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.AfterPart;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationControllerEvent.Registration;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationOptions;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
 import com.github.enerccio.marginalia.ui.widgets.DesktopNotifier;
@@ -93,7 +94,7 @@ public class AutoAnnotateSteps implements InitializingBean, DisposableBean {
     @Override
     public void afterPropertiesSet() {
         registrations.add(storyGenerationService.addAfterPartBinding(new AfterPart.Binding(ANNOTATE,
-                () -> loc.getValue(L.LABEL_ANNOTATE_RUN), AfterPart.Stage.REVIEW, AfterPart.Mode.SEQUENTIAL, new AfterPart.Handler() {
+                () -> loc.getValue(M_L.LABEL_ANNOTATE_RUN), AfterPart.Stage.REVIEW, AfterPart.Mode.SEQUENTIAL, new AfterPart.Handler() {
             @Override
             public boolean appliesTo(Manuscript book) {
                 return AutoAnnotate.isEnabled(book);
@@ -106,7 +107,7 @@ public class AutoAnnotateSteps implements InitializingBean, DisposableBean {
         })));
         // after the model's notes, before the redraft: the redraft addresses the hits too
         registrations.add(storyGenerationService.addAfterPartBinding(new AfterPart.Binding(PHRASES,
-                () -> loc.getValue(L.LABEL_PHRASE_WATCH_RUN), AfterPart.Stage.REVIEW, AfterPart.Mode.SEQUENTIAL, new AfterPart.Handler() {
+                () -> loc.getValue(M_L.LABEL_PHRASE_WATCH_RUN), AfterPart.Stage.REVIEW, AfterPart.Mode.SEQUENTIAL, new AfterPart.Handler() {
             @Override
             public boolean appliesTo(Manuscript book) {
                 return book.getPhraseWatch();
@@ -176,7 +177,7 @@ public class AutoAnnotateSteps implements InitializingBean, DisposableBean {
 
                 @Override
                 public void onUnreadable(String raw, String reason) {
-                    done.completeExceptionally(new IllegalStateException(String.format(loc.getValue(L.MSG_ANNOTATE_UNREADABLE), reason)));
+                    done.completeExceptionally(new IllegalStateException(String.format(loc.getValue(M_L.MSG_ANNOTATE_UNREADABLE), reason)));
                 }
 
                 @Override
@@ -190,10 +191,10 @@ public class AutoAnnotateSteps implements InitializingBean, DisposableBean {
                 }
             });
         } catch (AnnotateService.ContextInsufficient e) {
-            throw new IllegalStateException(loc.getValue(L.ERROR_CONTEXT_INSUFFICIENT), e);
+            throw new IllegalStateException(loc.getValue(M_L.ERROR_CONTEXT_INSUFFICIENT), e);
         }
         if (token == null) {
-            throw new IllegalStateException(loc.getValue(L.ERROR_ANNOTATE_FAILED));
+            throw new IllegalStateException(loc.getValue(M_L.ERROR_ANNOTATE_FAILED));
         }
         context.onStop(token::cancel);
         Found found = context.await(done);
@@ -205,7 +206,7 @@ public class AutoAnnotateSteps implements InitializingBean, DisposableBean {
         if (book.getAutoAnnotateAccept()) {
             ChatMessage stored = chatMessageService.find(part);
             if (stored == null || stored.isDeleted()) {
-                throw new IllegalStateException(loc.getValue(L.MSG_RUN_PART_GONE));
+                throw new IllegalStateException(loc.getValue(M_L.MSG_RUN_PART_GONE));
             }
             int made = annotateService.accept(book, stored, found.proposals(), modelName).size();
             context.getProperties().put(NOTES_ADDED, made);
@@ -288,21 +289,21 @@ public class AutoAnnotateSteps implements InitializingBean, DisposableBean {
                         }
                     });
         } catch (RedraftService.ContextInsufficient e) {
-            throw new IllegalStateException(loc.getValue(L.ERROR_CONTEXT_INSUFFICIENT), e);
+            throw new IllegalStateException(loc.getValue(M_L.ERROR_CONTEXT_INSUFFICIENT), e);
         }
         if (token == null) {
-            throw new IllegalStateException(loc.getValue(L.ERROR_REDRAFT_FAILED));
+            throw new IllegalStateException(loc.getValue(M_L.ERROR_REDRAFT_FAILED));
         }
         context.onStop(token::cancel);
         Redrafted redrafted = context.await(done);
         if (StringUtils.isBlank(redrafted.text())) {
-            throw new IllegalStateException(loc.getValue(L.ERROR_REDRAFT_FAILED));
+            throw new IllegalStateException(loc.getValue(M_L.ERROR_REDRAFT_FAILED));
         }
         notify(context, NotificationService.REDRAFT, book);
         if (book.getAutoAnnotateAcceptRedraft()) {
             ChatMessage current = chatMessageService.find(part);
             if (current == null || current.isDeleted()) {
-                throw new IllegalStateException(loc.getValue(L.MSG_RUN_PART_GONE));
+                throw new IllegalStateException(loc.getValue(M_L.MSG_RUN_PART_GONE));
             }
             if (StringUtils.defaultString(current.getResponse()).equals(base)) {
                 chatMessageService.updateResponse(book, current, redrafted.text(),

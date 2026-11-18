@@ -9,8 +9,8 @@ import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.*;
-import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
@@ -119,13 +119,13 @@ class LoreUsageDialogsTest extends MarginaliaTestBase {
     @SuppressWarnings("unchecked")
     private Select<Scope> scopeSelect(Component dialog) {
         return (Select<Scope>) all(dialog).filter(Select.class::isInstance).map(Select.class::cast)
-                .filter(select -> loc.getValue(L.LABEL_PARTS).equals(select.getLabel())).findFirst().orElseThrow();
+                .filter(select -> loc.getValue(M_L.LABEL_PARTS).equals(select.getLabel())).findFirst().orElseThrow();
     }
 
     @SuppressWarnings("unchecked")
     private Select<Object> showSelect(Component dialog) {
         return (Select<Object>) all(dialog).filter(Select.class::isInstance).map(Select.class::cast)
-                .filter(select -> loc.getValue(L.LABEL_JSON_SHOW).equals(select.getLabel())).findFirst().orElseThrow();
+                .filter(select -> loc.getValue(M_L.LABEL_JSON_SHOW).equals(select.getLabel())).findFirst().orElseThrow();
     }
 
     private List<LoreUsageReport.Row> rows(Component dialog) {
@@ -146,7 +146,7 @@ class LoreUsageDialogsTest extends MarginaliaTestBase {
 
         Grid<PartLoreUsage.Used> grid = grid(dialog);
         assertThat(grid.getGenericDataView().getItems().toList()).extracting(PartLoreUsage.Used::name).containsExactly("used");
-        assertThat(texts(dialog)).contains(String.format(loc.getValue(L.MSG_LORE_USAGE_PART_SUMMARY), 1, "12"));
+        assertThat(texts(dialog)).contains(String.format(loc.getValue(M_L.MSG_LORE_USAGE_PART_SUMMARY), 1, "12"));
     }
 
     @Test
@@ -154,7 +154,7 @@ class LoreUsageDialogsTest extends MarginaliaTestBase {
         LoreUsageDialog dialog = new LoreUsageDialog(b);
         dialog.create();
 
-        assertThat(texts(dialog)).contains(loc.getValue(L.MSG_LORE_USAGE_PART_NOT_RECORDED));
+        assertThat(texts(dialog)).contains(loc.getValue(M_L.MSG_LORE_USAGE_PART_NOT_RECORDED));
         assertThat(all(dialog).anyMatch(Grid.class::isInstance)).isFalse();
     }
 
@@ -164,7 +164,7 @@ class LoreUsageDialogsTest extends MarginaliaTestBase {
         LoreUsageDialog dialog = new LoreUsageDialog(b);
         dialog.create();
 
-        assertThat(texts(dialog)).contains(loc.getValue(L.MSG_LORE_USAGE_PART_NOTHING));
+        assertThat(texts(dialog)).contains(loc.getValue(M_L.MSG_LORE_USAGE_PART_NOTHING));
     }
 
     @Test
@@ -172,8 +172,8 @@ class LoreUsageDialogsTest extends MarginaliaTestBase {
         BookLoreUsageDialog dialog = openBook();
 
         // A (recorded) and B (not) are the branch
-        assertThat(texts(dialog)).anyMatch(text -> text.startsWith(String.format(loc.getValue(L.MSG_LORE_USAGE_SUMMARY), 2, 1))
-                && text.contains(String.format(loc.getValue(L.MSG_LORE_USAGE_UNRECORDED), 1)));
+        assertThat(texts(dialog)).anyMatch(text -> text.startsWith(String.format(loc.getValue(M_L.MSG_LORE_USAGE_SUMMARY), 2, 1))
+                && text.contains(String.format(loc.getValue(M_L.MSG_LORE_USAGE_UNRECORDED), 1)));
         assertThat(rows(dialog)).extracting(LoreUsageReport.Row::name).containsExactly("used", "unused");
         assertThat(rows(dialog).getFirst().used()).isEqualTo(1);
     }
@@ -186,7 +186,7 @@ class LoreUsageDialogsTest extends MarginaliaTestBase {
         assertThat(rows(dialog).getFirst().used()).isEqualTo(2);
 
         IntegerField from = all(dialog).filter(IntegerField.class::isInstance).map(IntegerField.class::cast)
-                .filter(field -> loc.getValue(L.LABEL_ANNOTATE_FROM_PART).equals(field.getLabel())).findFirst().orElseThrow();
+                .filter(field -> loc.getValue(M_L.LABEL_ANNOTATE_FROM_PART).equals(field.getLabel())).findFirst().orElseThrow();
         from.setValue(2);
         // C is the only recorded part from number 2, A is not in the range
         assertThat(rows(dialog).getFirst().used()).isEqualTo(1);
@@ -211,7 +211,7 @@ class LoreUsageDialogsTest extends MarginaliaTestBase {
 
         BookLoreUsageDialog dialog = openBook();
 
-        assertThat(texts(dialog)).contains(loc.getValue(L.MSG_LORE_USAGE_NO_RECORDS));
+        assertThat(texts(dialog)).contains(loc.getValue(M_L.MSG_LORE_USAGE_NO_RECORDS));
         assertThat(rows(dialog)).isEmpty();
     }
 }

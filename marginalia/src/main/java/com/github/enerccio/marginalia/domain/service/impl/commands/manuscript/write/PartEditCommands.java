@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.traits.*;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.L;
 import com.google.gson.JsonObject;
 
@@ -148,19 +149,19 @@ public class PartEditCommands extends ManuscriptWriteSupport {
         ChatMessage message = part(book, handle);
         String name = fieldName(field);
         if (old == null || old.isEmpty()) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_EDIT_OLD_EMPTY));
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_COMMAND_EDIT_OLD_EMPTY));
         }
         String current = read(message, name);
         int first = current.indexOf(old);
         if (first < 0) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_EDIT_NOT_FOUND));
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_COMMAND_EDIT_NOT_FOUND));
         }
         int found = 0;
         for (int at = first; at >= 0; at = current.indexOf(old, at + old.length())) {
             found++;
         }
         if (found > 1) {
-            throw new IllegalArgumentException(String.format(loc.getValue(L.ERROR_COMMAND_EDIT_AMBIGUOUS), found));
+            throw new IllegalArgumentException(String.format(loc.getValue(M_L.ERROR_COMMAND_EDIT_AMBIGUOUS), found));
         }
         store(context, book, message, name,
                 current.substring(0, first) + (replacement == null ? "" : replacement) + current.substring(first + old.length()));
@@ -170,7 +171,7 @@ public class PartEditCommands extends ManuscriptWriteSupport {
         Book book = new Book(context);
         ChatMessage message = part(book, handle);
         String name = fieldName(field);
-        if (!confirmed(context, String.format(loc.getValue(L.MSG_COMMAND_REPLACE_PART_CONFIRM), book.locate(handle, null).position()))) {
+        if (!confirmed(context, String.format(loc.getValue(M_L.MSG_COMMAND_REPLACE_PART_CONFIRM), book.locate(handle, null).position()))) {
             return;
         }
         store(context, book, message, name, text == null ? "" : text);
@@ -189,7 +190,7 @@ public class PartEditCommands extends ManuscriptWriteSupport {
         Book book = new Book(context);
         ChatMessage message = part(book, handle);
         if (instructions == null && scene == null && pov == null && present == null) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_NOTHING_TO_CHANGE));
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_COMMAND_NOTHING_TO_CHANGE));
         }
         if (instructions != null) {
             message.setInstructions(instructions);

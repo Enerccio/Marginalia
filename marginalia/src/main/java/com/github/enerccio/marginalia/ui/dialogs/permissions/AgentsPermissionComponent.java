@@ -3,6 +3,8 @@ package com.github.enerccio.marginalia.ui.dialogs.permissions;
 import com.github.enerccio.marginalia.domain.security.model.Permission;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -46,26 +48,26 @@ public class AgentsPermissionComponent implements PermissionUIComponent {
         if (layout != null) {
             return;
         }
-        maxAgents = field(L.LABEL_MAX_AGENTS, L.HELP_AGENTS_MAX_AGENTS);
-        maxConcurrentRuns = field(L.LABEL_MAX_CONCURRENT_RUNS, L.HELP_AGENTS_MAX_CONCURRENT_RUNS);
-        runTokenBudget = field(L.LABEL_RUN_TOKEN_BUDGET, L.HELP_AGENTS_RUN_TOKEN_BUDGET);
-        maxCopies = field(L.LABEL_AGENTS_MAX_COPIES, L.HELP_AGENTS_MAX_COPIES);
-        maxFileKb = field(L.LABEL_AGENTS_MAX_FILE_KB, L.HELP_AGENTS_MAX_FILE_KB);
-        maxWorkspaceMb = field(L.LABEL_AGENTS_MAX_WORKSPACE_MB, L.HELP_AGENTS_MAX_WORKSPACE_MB);
-        maxWorkspaceFiles = field(L.LABEL_AGENTS_MAX_WORKSPACE_FILES, L.HELP_AGENTS_MAX_WORKSPACE_FILES);
-        maxCheckpointMb = field(L.LABEL_AGENTS_MAX_CHECKPOINT_MB, L.HELP_AGENTS_MAX_CHECKPOINT_MB);
-        maxConcurrency = field(L.LABEL_AGENTS_MAX_CONCURRENCY, L.HELP_AGENTS_MAX_CONCURRENCY);
+        maxAgents = field(M_L.LABEL_MAX_AGENTS, M_L.HELP_AGENTS_MAX_AGENTS);
+        maxConcurrentRuns = field(M_L.LABEL_MAX_CONCURRENT_RUNS, M_L.HELP_AGENTS_MAX_CONCURRENT_RUNS);
+        runTokenBudget = field(M_L.LABEL_RUN_TOKEN_BUDGET, M_L.HELP_AGENTS_RUN_TOKEN_BUDGET);
+        maxCopies = field(M_L.LABEL_AGENTS_MAX_COPIES, M_L.HELP_AGENTS_MAX_COPIES);
+        maxFileKb = field(M_L.LABEL_AGENTS_MAX_FILE_KB, M_L.HELP_AGENTS_MAX_FILE_KB);
+        maxWorkspaceMb = field(M_L.LABEL_AGENTS_MAX_WORKSPACE_MB, M_L.HELP_AGENTS_MAX_WORKSPACE_MB);
+        maxWorkspaceFiles = field(M_L.LABEL_AGENTS_MAX_WORKSPACE_FILES, M_L.HELP_AGENTS_MAX_WORKSPACE_FILES);
+        maxCheckpointMb = field(M_L.LABEL_AGENTS_MAX_CHECKPOINT_MB, M_L.HELP_AGENTS_MAX_CHECKPOINT_MB);
+        maxConcurrency = field(M_L.LABEL_AGENTS_MAX_CONCURRENCY, M_L.HELP_AGENTS_MAX_CONCURRENCY);
         layout = new VerticalLayout(maxAgents, maxConcurrentRuns, maxConcurrency, runTokenBudget, maxCopies, maxFileKb, maxWorkspaceMb,
                 maxWorkspaceFiles, maxCheckpointMb);
         layout.setPadding(false);
     }
 
-    @PublicAPI(from = "1.4.0",
+    @PublicAPI(from = "1.9.0",
             returns = @APIReturn(type = IntegerField.class),
-            parameters = {@APIParameter(name = "label", type = L.class),
-                    @APIParameter(name = "help", type = L.class)},
+            parameters = {@APIParameter(name = "label", type = LocalizationKey.class),
+                    @APIParameter(name = "help", type = LocalizationKey.class)},
             locals = {@APILocals(name = "field", type = IntegerField.class)})
-    private IntegerField field(L label, L help) {
+    private IntegerField field(LocalizationKey label, LocalizationKey help) {
         IntegerField field = new IntegerField(loc.getValue(label));
         field.setMin(0);
         field.setStepButtonsVisible(true);

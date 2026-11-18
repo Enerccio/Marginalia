@@ -89,7 +89,7 @@ flowchart LR
 | `AIGate` | `domain.service` | The connections of an AI, the queue of every request to it (agents included), see [One AI, several runs](#one-ai-several-runs). |
 | `AgentRequestAttributes`, `AgenticSessionPoint`, `AgentSession` | `bound` | The request context of a run (no browser) and where it finds its book. |
 | `AgentPart`, `AgentConsoleDialog`, `AgentDialog`, ... | `ui.workspace.parts`, `ui.dialogs.agent` | The screens, see [The screens](#the-screens). |
-| `Defaults.agentPrompt()`, `agent*()` | `Defaults` (an object per language, `StoryLocalization.getDefaults()`) | The texts the model is told, see [What the model is told](#what-the-model-is-told). |
+| `Defaults.agentPrompt()`, `agent*()` | `Defaults` (an object per language, `MarginaliaLocalization.getDefaults()`) | The texts the model is told, see [What the model is told](#what-the-model-is-told). |
 
 The permission is `PermissionType.AGENTS`; the limits of it (concurrent runs, token budget, number of agents) are read by
 `AgentService.getGrant`.

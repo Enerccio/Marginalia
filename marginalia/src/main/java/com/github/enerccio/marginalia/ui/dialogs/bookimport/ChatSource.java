@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.dialogs.bookimport;
 
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ChatImportFormat;
 import com.github.enerccio.marginalia.ui.dialogs.SillyTavernImportRunner;
@@ -29,18 +30,18 @@ final class ChatSource extends BookImportSource {
     ChatSource(Localization loc, ChatImportFormat format) {
         super(loc);
         this.format = format;
-        mergeTurns = new Checkbox(loc.getValue(L.LABEL_ST_MERGE_TURNS));
-        options = new VerticalLayout(mergeTurns, new Span(loc.getValue(L.HELP_ST_MERGE_TURNS)));
+        mergeTurns = new Checkbox(loc.getValue(M_L.LABEL_ST_MERGE_TURNS));
+        options = new VerticalLayout(mergeTurns, new Span(loc.getValue(M_L.HELP_ST_MERGE_TURNS)));
         options.setPadding(false);
     }
 
     @Override
-    L label() {
+    LocalizationKey label() {
         return format.title();
     }
 
     @Override
-    L description() {
+    LocalizationKey description() {
         return format.description();
     }
 
@@ -85,7 +86,7 @@ final class ChatSource extends BookImportSource {
 
     @Override
     String status() {
-        return chats.isEmpty() ? "" : String.format(loc.getValue(L.MSG_ST_CHATS_READY), chats.size());
+        return chats.isEmpty() ? "" : String.format(loc.getValue(M_L.MSG_ST_CHATS_READY), chats.size());
     }
 
     @Override
@@ -106,7 +107,7 @@ final class ChatSource extends BookImportSource {
     BookImportDialog.Run prepare() {
         SillyTavernChats.Tree tree = SillyTavernChats.merge(chats, mergeTurns.getValue());
         if (tree.size() == 0) {
-            throw new IllegalArgumentException(loc.getValue(L.MSG_ST_NO_MESSAGES));
+            throw new IllegalArgumentException(loc.getValue(M_L.MSG_ST_NO_MESSAGES));
         }
         return (manuscript, _, afterwards) -> new SillyTavernImportRunner().run(format, manuscript, tree, afterwards::accept);
     }

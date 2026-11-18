@@ -5,8 +5,8 @@ import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
 import com.github.enerccio.marginalia.domain.service.LorebookService;
 import com.github.enerccio.marginalia.domain.service.TokenizerService;
-import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.test.AgentTestBase;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
@@ -100,9 +100,9 @@ class LorebookSubbookTokensTest extends AgentTestBase {
         LorebookView view = new LorebookView(root, true);
         view.create();
         Button link = all(view).filter(Button.class::isInstance).map(Button.class::cast)
-                .filter(b -> loc.getValue(L.LABEL_COUNT_TOKENS_WITH_SUBBOOKS).equals(b.getText())).findFirst().orElseThrow();
+                .filter(b -> loc.getValue(M_L.LABEL_COUNT_TOKENS_WITH_SUBBOOKS).equals(b.getText())).findFirst().orElseThrow();
         assertThat(link.isVisible()).isTrue();
-        String text = String.format(loc.getValue(L.LABEL_TOKENS_WITH_SUBBOOKS), expected);
+        String text = String.format(loc.getValue(M_L.LABEL_TOKENS_WITH_SUBBOOKS), expected);
         assertThat(all(view).filter(Span.class::isInstance).map(Span.class::cast).map(Span::getText)).doesNotContain(text);
 
         link.click();

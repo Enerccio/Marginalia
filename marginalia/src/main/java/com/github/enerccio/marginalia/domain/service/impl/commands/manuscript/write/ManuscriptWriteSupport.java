@@ -13,7 +13,7 @@ import com.github.enerccio.marginalia.domain.service.TagService;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.read.ManuscriptReadSupport;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationOptions;
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.utils.CommandUtils;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -50,7 +50,7 @@ public abstract class ManuscriptWriteSupport extends ManuscriptReadSupport {
      */
     protected ChatMessage part(Book book, String handle) throws Exception {
         if (!isHandle(handle)) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_HANDLE_REQUIRED));
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_COMMAND_HANDLE_REQUIRED));
         }
         return book.known(handle);
     }
@@ -58,7 +58,7 @@ public abstract class ManuscriptWriteSupport extends ManuscriptReadSupport {
     protected String fieldName(String field) {
         String name = field == null || field.isBlank() ? "response" : field.strip().toLowerCase();
         if (!FIELDS.contains(name)) {
-            throw new IllegalArgumentException(String.format(loc.getValue(L.ERROR_COMMAND_UNKNOWN_FIELD), field,
+            throw new IllegalArgumentException(String.format(loc.getValue(M_L.ERROR_COMMAND_UNKNOWN_FIELD), field,
                     String.join(", ", FIELDS)));
         }
         return name;
@@ -136,7 +136,7 @@ public abstract class ManuscriptWriteSupport extends ManuscriptReadSupport {
             rows.add(row);
         }
         result.add("outdatedSummaries", rows);
-        result.addProperty("hint", String.format(loc.getValue(L.MSG_COMMAND_OUTDATED_SUMMARIES_HINT), outdated.size()));
+        result.addProperty("hint", String.format(loc.getValue(M_L.MSG_COMMAND_OUTDATED_SUMMARIES_HINT), outdated.size()));
     }
 
     /**
@@ -208,7 +208,7 @@ public abstract class ManuscriptWriteSupport extends ManuscriptReadSupport {
             return true;
         }
         if (!context.isTerminated()) {
-            context.setReturn(loc.getValue(L.MSG_COMMAND_NOTHING_CHANGED));
+            context.setReturn(loc.getValue(M_L.MSG_COMMAND_NOTHING_CHANGED));
         }
         return false;
     }
@@ -222,15 +222,15 @@ public abstract class ManuscriptWriteSupport extends ManuscriptReadSupport {
         }
         AgentRun run = CommandScope.of(context).getRun();
         if (run == null) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_PROFILE_AGENT_ONLY));
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_COMMAND_PROFILE_AGENT_ONLY));
         }
         Agent agent = agentService.findForUser(run.getAgent().getUuid());
         AgentModelProfile found = agent.getModelProfiles().stream().filter(p -> p.getRole().equalsIgnoreCase(profile.strip()))
-                .findFirst().orElseThrow(() -> new IllegalArgumentException(String.format(loc.getValue(L.ERROR_COMMAND_UNKNOWN_PROFILE),
+                .findFirst().orElseThrow(() -> new IllegalArgumentException(String.format(loc.getValue(M_L.ERROR_COMMAND_UNKNOWN_PROFILE),
                         profile, agent.getModelProfiles().stream().map(AgentModelProfile::getRole).toList())));
         AgentService.ResolvedProfile resolved = agentService.resolveProfile(found);
         if (resolved == null) {
-            throw new IllegalArgumentException(String.format(loc.getValue(L.ERROR_COMMAND_PROFILE_UNUSABLE), found.getRole()));
+            throw new IllegalArgumentException(String.format(loc.getValue(M_L.ERROR_COMMAND_PROFILE_UNUSABLE), found.getRole()));
         }
         return GenerationOptions.defaults().withModel(resolved.ai(), resolved.protocol());
     }

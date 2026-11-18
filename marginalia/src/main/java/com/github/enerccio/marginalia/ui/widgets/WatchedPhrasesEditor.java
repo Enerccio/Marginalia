@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.domain.model.WatchedPhrase;
 import com.github.enerccio.marginalia.domain.service.EffectiveSetting;
 import com.github.enerccio.marginalia.domain.service.PhraseWatchService;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -49,7 +50,7 @@ public class WatchedPhrasesEditor extends VerticalLayout {
         setWidthFull();
         addClassName(CssStyles.GAP_S);
 
-        Span help = new Span(loc.getValue(L.HELP_PHRASE_WATCH_LIST));
+        Span help = new Span(loc.getValue(M_L.HELP_PHRASE_WATCH_LIST));
         help.addClassName(CssStyles.HINT_TEXT);
 
         rows.setPadding(false);
@@ -57,7 +58,7 @@ public class WatchedPhrasesEditor extends VerticalLayout {
         rows.setWidthFull();
         rows.addClassName(CssStyles.GAP_S);
 
-        Button add = new Button(loc.getValue(L.LABEL_ADD_PHRASE), VaadinIcon.PLUS.create(), _ -> {
+        Button add = new Button(loc.getValue(M_L.LABEL_ADD_PHRASE), VaadinIcon.PLUS.create(), _ -> {
             Row row = addRow(new WatchedPhrase());
             row.phrase.focus();
             changed();
@@ -131,10 +132,10 @@ public class WatchedPhrasesEditor extends VerticalLayout {
             WatchedPhrase phrase = row.toPhrase();
             String problem = StringUtils.isBlank(phrase.getPhrase()) ? null : PhraseMatcher.validate(phrase);
             row.phrase.setInvalid(problem != null);
-            row.phrase.setErrorMessage(problem == null ? null : String.format(loc.getValue(L.ERROR_PHRASE_INVALID), problem));
+            row.phrase.setErrorMessage(problem == null ? null : String.format(loc.getValue(M_L.ERROR_PHRASE_INVALID), problem));
             if (problem != null && valid) {
                 valid = false;
-                Notification.warning(String.format(loc.getValue(L.ERROR_PHRASE_INVALID), phrase.getPhrase() + ": " + problem));
+                Notification.warning(String.format(loc.getValue(M_L.ERROR_PHRASE_INVALID), phrase.getPhrase() + ": " + problem));
             }
         }
         return valid;
@@ -149,16 +150,16 @@ public class WatchedPhrasesEditor extends VerticalLayout {
         if (phrases == null || phrases.isEmpty()) {
             return;
         }
-        Span title = new Span(loc.getValue(L.LABEL_INHERITED_PHRASES));
+        Span title = new Span(loc.getValue(M_L.LABEL_INHERITED_PHRASES));
         title.addClassName(CssStyles.TEXT_SECONDARY);
         inherited.add(title);
         for (PhraseWatchService.Effective entry : phrases) {
             WatchedPhrase phrase = entry.phrase();
-            Span text = new Span(phrase.getPhrase() + (phrase.isRegex() ? " (" + loc.getValue(L.LABEL_REGULAR_EXPRESSION) + ")" : "")
+            Span text = new Span(phrase.getPhrase() + (phrase.isRegex() ? " (" + loc.getValue(M_L.LABEL_REGULAR_EXPRESSION) + ")" : "")
                     + " · " + templateName(phrase.getTemplate()) + " · "
                     + PromptSettingsForm.origin(loc, new EffectiveSetting<>(phrase.getPhrase(), entry.origin(), entry.folder())));
             text.addClassNames(CssStyles.HINT_TEXT, CssStyles.WRAP_ANYWHERE);
-            Button off = new Button(loc.getValue(L.LABEL_SWITCH_OFF_HERE), _ -> {
+            Button off = new Button(loc.getValue(M_L.LABEL_SWITCH_OFF_HERE), _ -> {
                 WatchedPhrase copy = phrase.copy();
                 copy.setDisabled(true);
                 addRow(copy);
@@ -175,10 +176,10 @@ public class WatchedPhrasesEditor extends VerticalLayout {
 
     private String templateName(String uuid) {
         if (uuid == null) {
-            return loc.getValue(L.MSG_PHRASE_BUILTIN_NOTE);
+            return loc.getValue(M_L.MSG_PHRASE_BUILTIN_NOTE);
         }
         return templates.stream().filter(template -> uuid.equals(template.getUuid())).map(AnnotationTemplate::getName)
-                .filter(StringUtils::isNotBlank).findFirst().orElse(loc.getValue(L.MSG_PHRASE_BUILTIN_NOTE));
+                .filter(StringUtils::isNotBlank).findFirst().orElse(loc.getValue(M_L.MSG_PHRASE_BUILTIN_NOTE));
     }
 
     private Row addRow(WatchedPhrase phrase) {
@@ -204,8 +205,8 @@ public class WatchedPhrasesEditor extends VerticalLayout {
         private String missingTemplate;
 
         private Row(WatchedPhrase value) {
-            phrase.setPlaceholder(loc.getValue(L.LABEL_WATCHED_PHRASE));
-            phrase.setAriaLabel(loc.getValue(L.LABEL_WATCHED_PHRASE));
+            phrase.setPlaceholder(loc.getValue(M_L.LABEL_WATCHED_PHRASE));
+            phrase.setAriaLabel(loc.getValue(M_L.LABEL_WATCHED_PHRASE));
             phrase.setValue(StringUtils.defaultString(value.getPhrase()));
             phrase.setMinWidth("12em");
             phrase.addValueChangeListener(_ -> {
@@ -213,14 +214,14 @@ public class WatchedPhrasesEditor extends VerticalLayout {
                 changed();
             });
 
-            regex.setLabel(loc.getValue(L.LABEL_REGULAR_EXPRESSION));
+            regex.setLabel(loc.getValue(M_L.LABEL_REGULAR_EXPRESSION));
             regex.setValue(value.isRegex());
             regex.addValueChangeListener(_ -> changed());
 
             template.setItems(templates);
             template.setItemLabelGenerator(item -> StringUtils.defaultIfBlank(item.getName(), "?"));
-            template.setPlaceholder(loc.getValue(L.MSG_PHRASE_BUILTIN_NOTE));
-            template.setAriaLabel(loc.getValue(L.LABEL_ANNOTATION_TEMPLATE));
+            template.setPlaceholder(loc.getValue(M_L.MSG_PHRASE_BUILTIN_NOTE));
+            template.setAriaLabel(loc.getValue(M_L.LABEL_ANNOTATION_TEMPLATE));
             template.setClearButtonVisible(true);
             select(value.getTemplate());
             template.addValueChangeListener(event -> {
@@ -230,7 +231,7 @@ public class WatchedPhrasesEditor extends VerticalLayout {
                 changed();
             });
 
-            off.setLabel(loc.getValue(L.LABEL_PHRASE_OFF));
+            off.setLabel(loc.getValue(M_L.LABEL_PHRASE_OFF));
             off.setValue(value.isDisabled());
             off.addValueChangeListener(_ -> changed());
 

@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.ui.widgets;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.AnnotationTemplate;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -39,7 +40,7 @@ public class AnnotationTemplatesEditor extends VerticalLayout {
         setWidthFull();
         addClassName(CssStyles.GAP_S);
 
-        Span help = new Span(loc.getValue(L.HELP_ANNOTATION_TEMPLATES));
+        Span help = new Span(loc.getValue(M_L.HELP_ANNOTATION_TEMPLATES));
         help.addClassName(CssStyles.HINT_TEXT);
 
         blocks.setPadding(false);
@@ -47,7 +48,7 @@ public class AnnotationTemplatesEditor extends VerticalLayout {
         blocks.setWidthFull();
         blocks.addClassName(CssStyles.GAP_S);
 
-        Button add = new Button(loc.getValue(L.LABEL_ADD_ANNOTATION_TEMPLATE), VaadinIcon.PLUS.create(), _ -> {
+        Button add = new Button(loc.getValue(M_L.LABEL_ADD_ANNOTATION_TEMPLATE), VaadinIcon.PLUS.create(), _ -> {
             Block block = addBlock(new AnnotationTemplate("", AnnotationTemplate.MATCH, null, false));
             block.name.focus();
             changed();
@@ -99,7 +100,7 @@ public class AnnotationTemplatesEditor extends VerticalLayout {
             block.text.setInvalid(!text);
             if ((!name || !text) && valid) {
                 valid = false;
-                Notification.warning(loc.getValue(L.ERROR_ANNOTATION_TEMPLATE_INCOMPLETE));
+                Notification.warning(loc.getValue(M_L.ERROR_ANNOTATION_TEMPLATE_INCOMPLETE));
             }
         }
         return valid;
@@ -122,8 +123,8 @@ public class AnnotationTemplatesEditor extends VerticalLayout {
         private final String uuid;
         private final TextField name = new TextField(loc.getValue(L.LABEL_NAME));
         private final TextField type = new TextField(loc.getValue(L.LABEL_TYPE));
-        private final TextArea text = new TextArea(loc.getValue(L.LABEL_NOTE));
-        private final Checkbox sendToPrompt = new Checkbox(loc.getValue(L.LABEL_ANNOTATION_SEND_TO_PROMPT));
+        private final TextArea text = new TextArea(loc.getValue(M_L.LABEL_NOTE));
+        private final Checkbox sendToPrompt = new Checkbox(loc.getValue(M_L.LABEL_ANNOTATION_SEND_TO_PROMPT));
         private final VerticalLayout layout = new VerticalLayout();
 
         private Block(AnnotationTemplate template) {
@@ -134,7 +135,7 @@ public class AnnotationTemplatesEditor extends VerticalLayout {
                 changed();
             });
             type.setValue(StringUtils.defaultString(template.getType()));
-            type.setPlaceholder(loc.getValue(L.MSG_ANNOTATION_TYPE_PLACEHOLDER));
+            type.setPlaceholder(loc.getValue(M_L.MSG_ANNOTATION_TYPE_PLACEHOLDER));
             type.addValueChangeListener(_ -> changed());
             text.setValue(StringUtils.defaultString(template.getText()));
             text.setWidthFull();

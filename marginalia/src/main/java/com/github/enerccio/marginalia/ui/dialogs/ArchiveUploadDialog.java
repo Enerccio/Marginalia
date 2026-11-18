@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.domain.traits.APIReturn;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.domain.traits.PublicAPI;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -77,7 +78,7 @@ public class ArchiveUploadDialog extends Dialog {
                 handler.accept(data, metadata.fileName());
                 close();
             } catch (IllegalArgumentException e) {
-                Notification.warning(loc.getValue(L.MSG_INVALID_ARCHIVE));
+                Notification.warning(loc.getValue(M_L.MSG_INVALID_ARCHIVE));
             } catch (Exception e) {
                 UIUtils.internalServerError(loc, e);
             }

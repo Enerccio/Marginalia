@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.traits.*;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.L;
 import com.google.gson.JsonObject;
 import java.util.Set;
@@ -157,7 +158,7 @@ public class PartStructureCommands extends ManuscriptWriteSupport {
                             String pov, String present) throws Exception {
         Book book = new Book(context);
         if (text == null || text.isBlank()) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_PART_TEXT_EMPTY));
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_COMMAND_PART_TEXT_EMPTY));
         }
         ChatMessage parent = parentHandle != null ? part(book, parentHandle) : book.manuscript.getActiveLeaf();
         TurnInput input = instructions == null && scene == null && pov == null && present == null ? null
@@ -173,7 +174,7 @@ public class PartStructureCommands extends ManuscriptWriteSupport {
     private void insertPart(CommandContext context, String text, String handle, boolean before) throws Exception {
         Book book = new Book(context);
         if (text == null || text.isBlank()) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_PART_TEXT_EMPTY));
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_COMMAND_PART_TEXT_EMPTY));
         }
         ChatMessage anchor = part(book, handle);
         Book.Located at = book.locate(handle, null);
@@ -204,7 +205,7 @@ public class PartStructureCommands extends ManuscriptWriteSupport {
         ChatMessage message = part(book, handle);
         Book.Located at = book.locate(handle, null);
         int followers = book.childrenOf(message).size();
-        if (!confirmed(context, String.format(loc.getValue(L.MSG_COMMAND_DELETE_PART_CONFIRM), at.position(), followers))) {
+        if (!confirmed(context, String.format(loc.getValue(M_L.MSG_COMMAND_DELETE_PART_CONFIRM), at.position(), followers))) {
             return;
         }
         Set<Long> before = outdatedHeads(at.path());

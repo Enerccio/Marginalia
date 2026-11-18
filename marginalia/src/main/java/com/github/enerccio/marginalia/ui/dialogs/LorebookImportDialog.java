@@ -6,7 +6,8 @@ import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookImp
 import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookMatch;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
-import com.github.enerccio.marginalia.loc.StoryLocalization;
+import com.github.enerccio.marginalia.loc.M_L;
+import com.github.enerccio.marginalia.loc.MarginaliaLocalization;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ModalityMode;
@@ -39,7 +40,7 @@ public class LorebookImportDialog extends Dialog implements LLMInteract {
     }
 
     @Autowired
-    private StoryLocalization loc;
+    private MarginaliaLocalization loc;
 
     private final Mode mode;
     private final List<LorebookImportCandidate> candidates;
@@ -99,9 +100,9 @@ public class LorebookImportDialog extends Dialog implements LLMInteract {
         setCloseOnOutsideClick(false);
         setModality(ModalityMode.STRICT);
         setWidth("900px");
-        setHeaderTitle(loc.getValue(mode == Mode.SAME_NAME ? L.LABEL_LOREBOOKS_SAME_NAME : L.LABEL_IMPORT_LOREBOOKS));
+        setHeaderTitle(loc.getValue(mode == Mode.SAME_NAME ? M_L.LABEL_LOREBOOKS_SAME_NAME : M_L.LABEL_IMPORT_LOREBOOKS));
 
-        Span message = new Span(loc.getValue(mode == Mode.SAME_NAME ? L.MSG_LOREBOOKS_SAME_NAME : L.MSG_IMPORT_LOREBOOKS));
+        Span message = new Span(loc.getValue(mode == Mode.SAME_NAME ? M_L.MSG_LOREBOOKS_SAME_NAME : M_L.MSG_IMPORT_LOREBOOKS));
 
         Grid<LorebookImportCandidate> grid = new Grid<>();
         grid.setAllRowsVisible(true);
@@ -109,11 +110,11 @@ public class LorebookImportDialog extends Dialog implements LLMInteract {
                 .setHeader(loc.getValue(L.LABEL_NAME))
                 .setFlexGrow(2);
         grid.addColumn(candidate -> loc.getValue(candidate.isRoot() ? L.LABEL_YES : L.LABEL_NO))
-                .setHeader(loc.getValue(L.LABEL_USED_BY_BOOK))
+                .setHeader(loc.getValue(M_L.LABEL_USED_BY_BOOK))
                 .setFlexGrow(0)
                 .setWidth("130px");
         grid.addColumn(LorebookImportCandidate::getEntryCount)
-                .setHeader(loc.getValue(L.LABEL_ENTRIES))
+                .setHeader(loc.getValue(M_L.LABEL_ENTRIES))
                 .setFlexGrow(0)
                 .setWidth("100px");
         grid.addColumn(this::formatStatus)
@@ -131,21 +132,21 @@ public class LorebookImportDialog extends Dialog implements LLMInteract {
         Button cancelButton = new Button(loc.getValue(L.LABEL_CANCEL), e -> close());
 
         if (mode == Mode.SAME_NAME) {
-            Button continueButton = new Button(loc.getValue(L.LABEL_CONTINUE), e -> {
+            Button continueButton = new Button(loc.getValue(M_L.LABEL_CONTINUE), e -> {
                 close();
                 onConfirm.run();
             });
             continueButton.setThemeName("primary");
             getFooter().add(cancelButton, continueButton);
         } else {
-            Button skipButton = new Button(loc.getValue(L.LABEL_DONT_IMPORT), e -> {
+            Button skipButton = new Button(loc.getValue(M_L.LABEL_DONT_IMPORT), e -> {
                 candidates.stream()
                         .filter(c -> c.getMatch() == LorebookMatch.NOT_FOUND)
                         .forEach(c -> c.setDecision(LorebookDecision.SKIP));
                 close();
                 onConfirm.run();
             });
-            Button importButton = new Button(loc.getValue(L.LABEL_IMPORT), e -> {
+            Button importButton = new Button(loc.getValue(M_L.LABEL_IMPORT), e -> {
                 close();
                 onConfirm.run();
             });
@@ -181,7 +182,7 @@ public class LorebookImportDialog extends Dialog implements LLMInteract {
             return select;
         }
         if (mode == Mode.IMPORT && candidate.getMatch() == LorebookMatch.NOT_FOUND) {
-            Checkbox checkbox = new Checkbox(loc.getValue(L.LABEL_IMPORT), candidate.getDecision() == LorebookDecision.CREATE);
+            Checkbox checkbox = new Checkbox(loc.getValue(M_L.LABEL_IMPORT), candidate.getDecision() == LorebookDecision.CREATE);
             checkbox.addValueChangeListener(e -> candidate.setDecision(Boolean.TRUE.equals(e.getValue())
                     ? LorebookDecision.CREATE : LorebookDecision.SKIP));
             return checkbox;

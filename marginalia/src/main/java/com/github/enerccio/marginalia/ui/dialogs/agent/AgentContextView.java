@@ -8,6 +8,7 @@ import com.github.enerccio.marginalia.domain.service.agent.AgentContext;
 import com.github.enerccio.marginalia.domain.service.agent.AgentContext.Kind;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.LLMInteract;
@@ -96,7 +97,7 @@ public class AgentContextView extends VerticalLayout implements LLMInteract {
         setSpacing(false);
         addClassNames(CssStyles.OVERFLOW_AUTO, CssStyles.GAP_S);
 
-        Span help = new Span(loc.getValue(L.HELP_AGENT_CONTEXT));
+        Span help = new Span(loc.getValue(M_L.HELP_AGENT_CONTEXT));
         help.addClassName(CssStyles.HINT_TEXT);
 
         sizeLabel = new Span();
@@ -111,7 +112,7 @@ public class AgentContextView extends VerticalLayout implements LLMInteract {
         header.setWrap(true);
         header.setAlignItems(FlexComponent.Alignment.CENTER);
 
-        emptyLabel = new Span(loc.getValue(L.MSG_AGENT_NO_RUN_YET));
+        emptyLabel = new Span(loc.getValue(M_L.MSG_AGENT_NO_RUN_YET));
         emptyLabel.addClassName(CssStyles.HINT_TEXT);
 
         charts = new VerticalLayout();
@@ -128,9 +129,9 @@ public class AgentContextView extends VerticalLayout implements LLMInteract {
             grid.addColumn(part -> kindName(part.kind())).setHeader(loc.getValue(L.LABEL_TYPE)).setFlexGrow(1);
         }
         grid.addColumn(AgentContext.Part::title).setHeader(loc.getValue(L.LABEL_NAME)).setFlexGrow(3);
-        grid.addColumn(AgentContext.Part::tokens).setHeader(loc.getValue(L.LABEL_TOKENS)).setFlexGrow(1);
+        grid.addColumn(AgentContext.Part::tokens).setHeader(loc.getValue(M_L.LABEL_TOKENS)).setFlexGrow(1);
         if (!phone) {
-            grid.addColumn(this::share).setHeader(loc.getValue(L.LABEL_AGENT_CONTEXT_SHARE)).setFlexGrow(1);
+            grid.addColumn(this::share).setHeader(loc.getValue(M_L.LABEL_AGENT_CONTEXT_SHARE)).setFlexGrow(1);
         }
         grid.addSelectionListener(event -> show(event.getFirstSelectedItem().orElse(null)));
 
@@ -140,9 +141,9 @@ public class AgentContextView extends VerticalLayout implements LLMInteract {
         viewer.setMinHeight("320px");
         viewer.setMaxHeight("600px");
         viewer.addClassName(CssStyles.TEXT_MONOSPACE_LUMO);
-        viewer.setPlaceholder(loc.getValue(L.MSG_AGENT_CONTEXT_PICK));
+        viewer.setPlaceholder(loc.getValue(M_L.MSG_AGENT_CONTEXT_PICK));
 
-        add(help, header, emptyLabel, charts, new H4(loc.getValue(L.LABEL_AGENT_CONTEXT_PARTS)), grid, viewer);
+        add(help, header, emptyLabel, charts, new H4(loc.getValue(M_L.LABEL_AGENT_CONTEXT_PARTS)), grid, viewer);
         showEmpty();
     }
 
@@ -169,7 +170,7 @@ public class AgentContextView extends VerticalLayout implements LLMInteract {
         } catch (IllegalArgumentException | IllegalStateException e) {
             context = null;
             showEmpty();
-            Notification.warning(String.format(loc.getValue(L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
+            Notification.warning(String.format(loc.getValue(M_L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
             return;
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
@@ -197,10 +198,10 @@ public class AgentContextView extends VerticalLayout implements LLMInteract {
         emptyLabel.setVisible(false);
         long estimated = context.estimatedTokens();
         StringBuilder size = new StringBuilder(context.contextCap() > 0
-                ? String.format(loc.getValue(L.MSG_AGENT_CONTEXT_SIZE), estimated, context.contextCap())
-                : String.format(loc.getValue(L.MSG_AGENT_CONTEXT_SIZE_NO_CAP), estimated));
+                ? String.format(loc.getValue(M_L.MSG_AGENT_CONTEXT_SIZE), estimated, context.contextCap())
+                : String.format(loc.getValue(M_L.MSG_AGENT_CONTEXT_SIZE_NO_CAP), estimated));
         if (context.reportedTokens() > 0) {
-            size.append(". ").append(String.format(loc.getValue(L.MSG_AGENT_CONTEXT_REPORTED), context.reportedTokens()));
+            size.append(". ").append(String.format(loc.getValue(M_L.MSG_AGENT_CONTEXT_REPORTED), context.reportedTokens()));
         }
         sizeLabel.setText(size.toString());
         copyButton.setEnabled(true);
@@ -209,7 +210,7 @@ public class AgentContextView extends VerticalLayout implements LLMInteract {
         charts.removeAll();
         charts.add(kindsChart(), partsChart());
         if (!context.history().isEmpty()) {
-            charts.add(new H4(loc.getValue(L.LABEL_AGENT_CONTEXT_HISTORY)), historyChart());
+            charts.add(new H4(loc.getValue(M_L.LABEL_AGENT_CONTEXT_HISTORY)), historyChart());
         }
         numbers.clear();
         context.parts().forEach(part -> numbers.put(part, numbers.size() + 1));
@@ -249,14 +250,14 @@ public class AgentContextView extends VerticalLayout implements LLMInteract {
             parameters = {@APIParameter(name = "kind", type = AgentContext.Kind.class)})
     private String kindName(Kind kind) {
         return switch (kind) {
-            case SYSTEM_PROMPT -> loc.getValue(L.LABEL_AGENT_CONTEXT_PROMPT);
-            case INSTRUCTIONS -> loc.getValue(L.LABEL_INSTRUCTIONS);
-            case NOTE -> loc.getValue(L.LABEL_AGENT_CONTEXT_NOTES);
-            case TOOL -> loc.getValue(L.LABEL_AGENT_CONTEXT_TOOLS);
+            case SYSTEM_PROMPT -> loc.getValue(M_L.LABEL_AGENT_CONTEXT_PROMPT);
+            case INSTRUCTIONS -> loc.getValue(M_L.LABEL_INSTRUCTIONS);
+            case NOTE -> loc.getValue(M_L.LABEL_AGENT_CONTEXT_NOTES);
+            case TOOL -> loc.getValue(M_L.LABEL_AGENT_CONTEXT_TOOLS);
             case SUMMARY -> loc.getValue(L.LABEL_SUMMARY);
             case USER -> loc.getValue(L.LABEL_USER);
-            case ASSISTANT -> loc.getValue(L.LABEL_ASSISTANT);
-            case RESULT -> loc.getValue(L.LABEL_AGENT_CONTEXT_RESULTS);
+            case ASSISTANT -> loc.getValue(M_L.LABEL_ASSISTANT);
+            case RESULT -> loc.getValue(M_L.LABEL_AGENT_CONTEXT_RESULTS);
         };
     }
 
@@ -285,7 +286,7 @@ public class AgentContextView extends VerticalLayout implements LLMInteract {
         }
         long free = context.contextCap() - context.estimatedTokens();
         if (context.contextCap() > 0 && free > 0) {
-            labels.add(loc.getValue(L.LABEL_TOKEN_FREE));
+            labels.add(loc.getValue(M_L.LABEL_TOKEN_FREE));
             values.add(free);
             colors.add(COLOR_FREE);
         }
@@ -321,7 +322,7 @@ public class AgentContextView extends VerticalLayout implements LLMInteract {
             colors.add(COLORS.get(part.kind()));
         }
         Map<String, Object> dataset = new LinkedHashMap<>();
-        dataset.put("label", loc.getValue(L.LABEL_TOKENS));
+        dataset.put("label", loc.getValue(M_L.LABEL_TOKENS));
         dataset.put("data", values);
         dataset.put("backgroundColor", colors);
         Map<String, Object> config = new LinkedHashMap<>();
@@ -370,7 +371,7 @@ public class AgentContextView extends VerticalLayout implements LLMInteract {
         }
         Map<String, Object> reported = new LinkedHashMap<>();
         reported.put("type", "line");
-        reported.put("label", loc.getValue(L.LABEL_AGENT_CONTEXT_REPORTED));
+        reported.put("label", loc.getValue(M_L.LABEL_AGENT_CONTEXT_REPORTED));
         reported.put("data", values);
         reported.put("borderColor", COLORS.get(Kind.ASSISTANT));
         reported.put("tension", 0.2);
@@ -380,7 +381,7 @@ public class AgentContextView extends VerticalLayout implements LLMInteract {
         if (context.contextCap() > 0) {
             Map<String, Object> cap = new LinkedHashMap<>();
             cap.put("type", "line");
-            cap.put("label", loc.getValue(L.LABEL_TOKEN_CONTEXT));
+            cap.put("label", loc.getValue(M_L.LABEL_TOKEN_CONTEXT));
             cap.put("data", labels.stream().map(label -> context.contextCap()).toList());
             cap.put("borderColor", COLORS.get(Kind.RESULT));
             cap.put("borderDash", List.of(6, 4));
@@ -412,7 +413,7 @@ public class AgentContextView extends VerticalLayout implements LLMInteract {
             return;
         }
         JavascriptLibrary.copyToClipboard(UI.getCurrent().getPage(), context.toMarkdown());
-        Notification.success(loc.getValue(L.MSG_COPIED_TO_CLIPBOARD));
+        Notification.success(loc.getValue(M_L.MSG_COPIED_TO_CLIPBOARD));
     }
 
     @PublicAPI(from = "1.4.0",

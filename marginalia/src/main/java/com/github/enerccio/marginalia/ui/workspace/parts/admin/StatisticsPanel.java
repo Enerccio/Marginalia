@@ -9,6 +9,7 @@ import com.github.enerccio.marginalia.domain.traits.APIReturn;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.domain.traits.PublicAPI;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
@@ -64,26 +65,26 @@ public class StatisticsPanel implements LLMInteract {
         VerticalLayout layout = new VerticalLayout();
         layout.setSizeFull();
 
-        Span description = new Span(loc.getValue(L.HELP_STATISTICS_ADMIN));
+        Span description = new Span(loc.getValue(M_L.HELP_STATISTICS_ADMIN));
         description.addClassName(CssStyles.TEXT_SECONDARY);
 
-        recording = new Checkbox(loc.getValue(L.LABEL_STATISTICS_RECORD));
-        keepMonths = new IntegerField(loc.getValue(L.LABEL_STATISTICS_KEEP_MONTHS));
+        recording = new Checkbox(loc.getValue(M_L.LABEL_STATISTICS_RECORD));
+        keepMonths = new IntegerField(loc.getValue(M_L.LABEL_STATISTICS_KEEP_MONTHS));
         keepMonths.setMin(0);
         keepMonths.setStepButtonsVisible(true);
         keepMonths.setWidth("20em");
-        keepMonths.setHelperText(loc.getValue(L.HELP_STATISTICS_KEEP_MONTHS_INSTANCE));
+        keepMonths.setHelperText(loc.getValue(M_L.HELP_STATISTICS_KEEP_MONTHS_INSTANCE));
 
         Button save = new Button(loc.getValue(L.LABEL_SAVE), _ -> save());
         save.setThemeName("primary");
 
-        users = new ComboBox<>(loc.getValue(L.LABEL_USERS));
+        users = new ComboBox<>(loc.getValue(M_L.LABEL_USERS));
         users.setItemLabelGenerator(User::getLogin);
         users.setClearButtonVisible(true);
-        Button clearUser = new Button(loc.getValue(L.LABEL_STATISTICS_CLEAR_USER), _ -> clearUser());
+        Button clearUser = new Button(loc.getValue(M_L.LABEL_STATISTICS_CLEAR_USER), _ -> clearUser());
         clearUser.addThemeVariants(ButtonVariant.LUMO_ERROR);
-        Button clearEveryone = new Button(loc.getValue(L.LABEL_STATISTICS_CLEAR_EVERYONE), _ -> ConfirmDialog.show(
-                loc.getValue(L.MSG_CONFIRM_STATISTICS_CLEAR_EVERYONE), this::clearEveryone));
+        Button clearEveryone = new Button(loc.getValue(M_L.LABEL_STATISTICS_CLEAR_EVERYONE), _ -> ConfirmDialog.show(
+                loc.getValue(M_L.MSG_CONFIRM_STATISTICS_CLEAR_EVERYONE), this::clearEveryone));
         clearEveryone.addThemeVariants(ButtonVariant.LUMO_ERROR);
         FlexLayout clearRow = new FlexLayout(users, clearUser, clearEveryone);
         clearRow.addClassNames(CssStyles.FLEX_WRAP, CssStyles.GAP_S);
@@ -128,10 +129,10 @@ public class StatisticsPanel implements LLMInteract {
         if (user == null) {
             return;
         }
-        ConfirmDialog.show(String.format(loc.getValue(L.MSG_CONFIRM_STATISTICS_CLEAR_USER), user.getLogin()), () -> {
+        ConfirmDialog.show(String.format(loc.getValue(M_L.MSG_CONFIRM_STATISTICS_CLEAR_USER), user.getLogin()), () -> {
             try {
                 policyService.clearUser(user);
-                Notification.success(loc.getValue(L.MSG_STATISTICS_CLEARED));
+                Notification.success(loc.getValue(M_L.MSG_STATISTICS_CLEARED));
             } catch (Exception e) {
                 UIUtils.internalServerError(loc, e);
             }
@@ -144,7 +145,7 @@ public class StatisticsPanel implements LLMInteract {
     private void clearEveryone() {
         try {
             policyService.clearEveryone();
-            Notification.success(loc.getValue(L.MSG_STATISTICS_CLEARED));
+            Notification.success(loc.getValue(M_L.MSG_STATISTICS_CLEARED));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }

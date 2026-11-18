@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.service.SummaryService;
 import com.github.enerccio.marginalia.domain.service.SummaryService.ImportEntry;
 import com.github.enerccio.marginalia.domain.service.SummaryService.ImportStatus;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -81,10 +82,10 @@ public class SummariesImportDialog extends Dialog {
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-        }), loc.getValue(L.LABEL_EXPORT_SUMMARIES));
+        }), loc.getValue(M_L.LABEL_EXPORT_SUMMARIES));
         export.getElement().setAttribute("download", true);
         bar.addItem(export);
-        bar.addItem(loc.getValue(L.LABEL_IMPORT_SUMMARIES), _ -> {
+        bar.addItem(loc.getValue(M_L.LABEL_IMPORT_SUMMARIES), _ -> {
             SummariesImportDialog dialog = new SummariesImportDialog(manuscript, onImported);
             dialog.create();
             dialog.open();
@@ -92,7 +93,7 @@ public class SummariesImportDialog extends Dialog {
     }
 
     private void create() {
-        setHeaderTitle(loc.getValue(L.LABEL_IMPORT_SUMMARIES));
+        setHeaderTitle(loc.getValue(M_L.LABEL_IMPORT_SUMMARIES));
         setWidth("900px");
         setMaxWidth("100vw");
         setCloseOnEsc(false);
@@ -109,25 +110,25 @@ public class SummariesImportDialog extends Dialog {
         upload.setAcceptedFileTypes(".md", ".txt", "text/markdown", "text/plain");
         upload.setMaxFiles(1);
 
-        byPosition = new Checkbox(loc.getValue(L.LABEL_MATCH_BY_POSITION));
+        byPosition = new Checkbox(loc.getValue(M_L.LABEL_MATCH_BY_POSITION));
         byPosition.addValueChangeListener(_ -> analyze());
-        Span help = new Span(loc.getValue(L.HELP_MATCH_BY_POSITION));
+        Span help = new Span(loc.getValue(M_L.HELP_MATCH_BY_POSITION));
         help.addClassName(CssStyles.TEXT_SECONDARY);
 
         status = new Span();
         grid = new Grid<>();
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
         grid.setHeight("220px");
-        grid.addColumn(ImportEntry::order).setHeader(loc.getValue(L.LABEL_ORDER)).setAutoWidth(true).setFlexGrow(0);
+        grid.addColumn(ImportEntry::order).setHeader(loc.getValue(M_L.LABEL_ORDER)).setAutoWidth(true).setFlexGrow(0);
         grid.addColumn(entry -> statusText(entry.status())).setHeader(loc.getValue(L.LABEL_STATUS)).setAutoWidth(true).setFlexGrow(0);
         grid.addColumn(entry -> StringUtils.abbreviate(StringUtils.normalizeSpace(entry.text()), 300))
-                .setHeader(loc.getValue(L.LABEL_CONTENT)).setFlexGrow(1);
+                .setHeader(loc.getValue(M_L.LABEL_CONTENT)).setFlexGrow(1);
 
-        VerticalLayout layout = new VerticalLayout(new Span(loc.getValue(L.MSG_IMPORT_SUMMARIES)), upload, byPosition, help, status, grid);
+        VerticalLayout layout = new VerticalLayout(new Span(loc.getValue(M_L.MSG_IMPORT_SUMMARIES)), upload, byPosition, help, status, grid);
         layout.setPadding(false);
         add(layout);
 
-        importButton = new Button(loc.getValue(L.LABEL_IMPORT), _ -> doImport());
+        importButton = new Button(loc.getValue(M_L.LABEL_IMPORT), _ -> doImport());
         importButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         getFooter().add(new Button(loc.getValue(L.LABEL_CANCEL), _ -> close()), importButton);
         refreshState();
@@ -136,11 +137,11 @@ public class SummariesImportDialog extends Dialog {
 
     private String statusText(ImportStatus importStatus) {
         return switch (importStatus) {
-            case CHANGED -> loc.getValue(L.LABEL_SUMMARY_WILL_CHANGE);
-            case CHANGED_BY_POSITION -> loc.getValue(L.LABEL_SUMMARY_WILL_CHANGE_BY_POSITION);
-            case UNCHANGED -> loc.getValue(L.ENUM_JSON_STATUS_UNCHANGED);
-            case NOT_FOUND -> loc.getValue(L.LABEL_SUMMARY_PART_NOT_FOUND);
-            case EMPTY -> loc.getValue(L.LABEL_SUMMARY_EMPTY_TEXT);
+            case CHANGED -> loc.getValue(M_L.LABEL_SUMMARY_WILL_CHANGE);
+            case CHANGED_BY_POSITION -> loc.getValue(M_L.LABEL_SUMMARY_WILL_CHANGE_BY_POSITION);
+            case UNCHANGED -> loc.getValue(M_L.ENUM_JSON_STATUS_UNCHANGED);
+            case NOT_FOUND -> loc.getValue(M_L.LABEL_SUMMARY_PART_NOT_FOUND);
+            case EMPTY -> loc.getValue(M_L.LABEL_SUMMARY_EMPTY_TEXT);
         };
     }
 
@@ -153,7 +154,7 @@ public class SummariesImportDialog extends Dialog {
         } catch (IllegalArgumentException e) {
             fileText = null;
             entries = List.of();
-            Notification.warning(loc.getValue(L.MSG_INVALID_SUMMARIES_FILE));
+            Notification.warning(loc.getValue(M_L.MSG_INVALID_SUMMARIES_FILE));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
             return;
@@ -164,14 +165,14 @@ public class SummariesImportDialog extends Dialog {
     private void refreshState() {
         grid.setItems(entries);
         long changes = entries.stream().filter(entry -> entry.status().isChange()).count();
-        status.setText(entries.isEmpty() ? "" : String.format(loc.getValue(L.MSG_SUMMARIES_IMPORT_READY), changes, entries.size()));
+        status.setText(entries.isEmpty() ? "" : String.format(loc.getValue(M_L.MSG_SUMMARIES_IMPORT_READY), changes, entries.size()));
         importButton.setEnabled(changes > 0);
     }
 
     private void doImport() {
         try {
             int changed = summaryService.applyImport(manuscript, entries);
-            Notification.success(String.format(loc.getValue(L.MSG_SUMMARIES_IMPORTED), changed));
+            Notification.success(String.format(loc.getValue(M_L.MSG_SUMMARIES_IMPORTED), changed));
             close();
             onImported.run();
         } catch (Exception e) {

@@ -13,6 +13,7 @@ import com.github.enerccio.marginalia.domain.traits.CommandParameter;
 import com.github.enerccio.marginalia.domain.traits.CommandParameterSignature;
 import com.github.enerccio.marginalia.domain.traits.CommandReturn;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -276,10 +277,10 @@ class CommandServiceTest {
 
         CommandDefinition localized = firstOf("localized");
         assertThat(localized.humanName()).isEqualTo(CommandText.of(L.LABEL_CASE_SENSITIVE));
-        assertThat(localized.humanName().get(L::name)).isEqualTo("LABEL_CASE_SENSITIVE");
+        assertThat(localized.humanName().get(LocalizationKey::name)).isEqualTo("LABEL_CASE_SENSITIVE");
         assertThat(localized.description().key()).isEqualTo(L.LABEL_CLOSE);
         assertThat(localized.llmDescription().isEmpty()).isTrue();
-        assertThat(localized.llmDescription().get(L::name)).isEmpty();
+        assertThat(localized.llmDescription().get(LocalizationKey::name)).isEmpty();
         assertThat(localized.parameters().getFirst().description().key()).isEqualTo(L.LABEL_ID);
         assertThat(localized.returns().description().key()).isEqualTo(L.LABEL_ID);
     }

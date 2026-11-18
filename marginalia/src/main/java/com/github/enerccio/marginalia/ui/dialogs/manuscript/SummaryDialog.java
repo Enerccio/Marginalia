@@ -11,6 +11,7 @@ import com.github.enerccio.marginalia.domain.service.SummaryService;
 import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
@@ -82,7 +83,7 @@ public class SummaryDialog extends Dialog implements LLMInteract {
         this.metaTo = metaTo;
 
         setHeaderTitle(isGenerating
-                ? loc.getValue(metaTo == null ? L.LABEL_GENERATING_SUMMARY : L.LABEL_GENERATING_META_SUMMARY)
+                ? loc.getValue(metaTo == null ? M_L.LABEL_GENERATING_SUMMARY : M_L.LABEL_GENERATING_META_SUMMARY)
                 : loc.getValue(L.LABEL_SUMMARY));
         setWidth("min(700px, 95vw)");
         setHeight("500px");
@@ -102,7 +103,7 @@ public class SummaryDialog extends Dialog implements LLMInteract {
         reasoningMarkdown = new Markdown();
         reasoningMarkdown.addClassName(CssStyles.CHAT_MESSAGE_MARKDOWN);
 
-        reasoningDetails = new Details(loc.getValue(L.LABEL_VIEW_REASONING), reasoningMarkdown);
+        reasoningDetails = new Details(loc.getValue(M_L.LABEL_VIEW_REASONING), reasoningMarkdown);
         reasoningDetails.setWidthFull();
         reasoningDetails.setVisible(false);
 
@@ -261,7 +262,7 @@ public class SummaryDialog extends Dialog implements LLMInteract {
             @Override
             public void onSummaryTerminated() {
                 ui.access(() -> {
-                    setHeaderTitle(loc.getValue(L.LABEL_SUMMARY_STOPPED));
+                    setHeaderTitle(loc.getValue(M_L.LABEL_SUMMARY_STOPPED));
                     updateActionButtonState(false);
                     UIPushGuard.push(ui);
                 });
@@ -270,7 +271,7 @@ public class SummaryDialog extends Dialog implements LLMInteract {
             @Override
             public void onError(Throwable throwable) {
                 ui.access(() -> {
-                    setHeaderTitle(loc.getValue(L.LABEL_SUMMARY_ERROR));
+                    setHeaderTitle(loc.getValue(M_L.LABEL_SUMMARY_ERROR));
                     updateActionButtonState(false);
                     UIUtils.inferenceError(loc, throwable);
                     new DesktopNotifier(ui).failed(NotificationService.SUMMARY, false, manuscript.getName());
@@ -286,12 +287,12 @@ public class SummaryDialog extends Dialog implements LLMInteract {
                     : summaryService.createMetaSummary(manuscript, dialogMessage, metaTo, callback));
 
             if (cancellationToken == null) {
-                setHeaderTitle(loc.getValue(L.LABEL_SUMMARY_ERROR));
+                setHeaderTitle(loc.getValue(M_L.LABEL_SUMMARY_ERROR));
                 updateActionButtonState(false);
-                Notification.error(loc.getValue(L.ERROR_SUMMARY_FAILED));
+                Notification.error(loc.getValue(M_L.ERROR_SUMMARY_FAILED));
             }
         } catch (Exception e) {
-            setHeaderTitle(loc.getValue(L.LABEL_SUMMARY_ERROR));
+            setHeaderTitle(loc.getValue(M_L.LABEL_SUMMARY_ERROR));
             updateActionButtonState(false);
             UIUtils.internalServerError(loc, e);
         }

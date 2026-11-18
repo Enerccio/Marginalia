@@ -7,6 +7,8 @@ import com.github.enerccio.marginalia.domain.service.AgentVirtualFileSystemServi
 import com.github.enerccio.marginalia.domain.service.agent.*;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
@@ -123,23 +125,23 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
         // the list and the viewer share the height of the tab and scroll by themselves, the tab does not scroll over them
         addClassNames(CssStyles.WORKSPACE_BROWSER, CssStyles.MIN_HEIGHT_0, CssStyles.OVERFLOW_AUTO);
 
-        upButton = new Button(loc.getValue(L.LABEL_UP), Solid.ARROW_UP.create(), event -> {
+        upButton = new Button(loc.getValue(M_L.LABEL_UP), Solid.ARROW_UP.create(), event -> {
             folder = folder.isRoot() ? folder : folder.getParent();
             viewer.clear();
             refresh();
         });
         Button refreshButton = new Button(loc.getValue(L.LABEL_REFRESH), Solid.ARROWS_ROTATE.create(), event -> refresh());
         clearButton = new Button(loc.getValue(L.LABEL_CLEAR), Solid.TRASH.create(), event ->
-                ConfirmDialog.open(loc.getValue(L.MSG_AGENT_CONFIRM_CLEAR_WORKSPACE), this::clear, () -> {}));
+                ConfirmDialog.open(loc.getValue(M_L.MSG_AGENT_CONFIRM_CLEAR_WORKSPACE), this::clear, () -> {}));
         clearButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
         newFolderButton = new Button(loc.getValue(L.LABEL_NEW_FOLDER), Solid.FOLDER_PLUS.create(), event ->
                 new TextInputDialog.Builder(loc.getValue(L.LABEL_NEW_FOLDER), this::createFolder)
-                        .inputMessageLabel(loc.getValue(L.LABEL_FOLDER_NAME)).messageRequired().showCancel(true)
+                        .inputMessageLabel(loc.getValue(M_L.LABEL_FOLDER_NAME)).messageRequired().showCancel(true)
                         .build().open());
         for (Button button : List.of(upButton, refreshButton, newFolderButton, clearButton)) {
             button.addThemeVariants(ButtonVariant.LUMO_SMALL);
         }
-        Button uploadButton = new Button(loc.getValue(L.LABEL_UPLOAD_FILE), Solid.UPLOAD.create());
+        Button uploadButton = new Button(loc.getValue(M_L.LABEL_UPLOAD_FILE), Solid.UPLOAD.create());
         uploadButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
         upload = new Upload(new InMemoryUploadHandler((metadata, data) -> upload(metadata.fileName(), data)));
         WorkspaceLimits limits = limits();
@@ -147,12 +149,12 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
         upload.setUploadButton(uploadButton);
         upload.setDropLabel(new Span());
         upload.addFileRejectedListener(event -> Notification.warning(
-                String.format(loc.getValue(L.ERROR_AGENT_ACTION_FAILED), event.getErrorMessage())));
+                String.format(loc.getValue(M_L.ERROR_AGENT_ACTION_FAILED), event.getErrorMessage())));
         pathLabel = new Span();
         pathLabel.addClassNames(CssStyles.TEXT_MONOSPACE, CssStyles.WRAP_ANYWHERE);
         if (phone) {
-            for (Map.Entry<Button, L> entry : Map.of(upButton, L.LABEL_UP, refreshButton, L.LABEL_REFRESH,
-                    newFolderButton, L.LABEL_NEW_FOLDER, uploadButton, L.LABEL_UPLOAD_FILE, clearButton, L.LABEL_CLEAR).entrySet()) {
+            for (Map.Entry<Button, LocalizationKey> entry : Map.<Button, LocalizationKey>of(upButton, M_L.LABEL_UP, refreshButton, L.LABEL_REFRESH,
+                    newFolderButton, L.LABEL_NEW_FOLDER, uploadButton, M_L.LABEL_UPLOAD_FILE, clearButton, L.LABEL_CLEAR).entrySet()) {
                 entry.getKey().setText("");
                 entry.getKey().addThemeVariants(ButtonVariant.LUMO_ICON);
                 entry.getKey().setAriaLabel(loc.getValue(entry.getValue()));
@@ -237,7 +239,7 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
         Button deleteButton = new Button(Solid.TRASH.create(), event ->
                 ConfirmDialog.open(loc.getValue(L.MSG_CONFIRM_DELETE), () -> delete(entry), () -> {}));
         deleteButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ERROR);
-        deleteButton.setTooltipText(loc.getValue(busy.getAsBoolean() ? L.MSG_AGENT_WORKSPACE_BUSY : L.LABEL_DELETE));
+        deleteButton.setTooltipText(loc.getValue(busy.getAsBoolean() ? M_L.MSG_AGENT_WORKSPACE_BUSY : L.LABEL_DELETE));
         deleteButton.setEnabled(!busy.getAsBoolean());
         if (entry.directory()) {
             return deleteButton;
@@ -291,14 +293,14 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
             String text = new String(content, StandardCharsets.UTF_8);
             if (text.indexOf('�') >= 0 || text.indexOf('\0') >= 0) {
                 viewer.clear();
-                noteLabel.setText(loc.getValue(L.MSG_AGENT_FILE_NOT_TEXT));
+                noteLabel.setText(loc.getValue(M_L.MSG_AGENT_FILE_NOT_TEXT));
                 return;
             }
             boolean cut = text.length() > VIEW_LIMIT;
             viewer.setValue(cut ? text.substring(0, VIEW_LIMIT) : text);
-            noteLabel.setText(cut ? String.format(loc.getValue(L.MSG_AGENT_FILE_CUT), VIEW_LIMIT, text.length()) : "");
+            noteLabel.setText(cut ? String.format(loc.getValue(M_L.MSG_AGENT_FILE_CUT), VIEW_LIMIT, text.length()) : "");
         } catch (VirtualFileException e) {
-            Notification.warning(String.format(loc.getValue(L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
+            Notification.warning(String.format(loc.getValue(M_L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
             refresh();
         }
     }
@@ -312,7 +314,7 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
             files.delete(entry.path(), true);
             viewer.clear();
         } catch (VirtualFileException e) {
-            Notification.warning(String.format(loc.getValue(L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
+            Notification.warning(String.format(loc.getValue(M_L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
         }
         refresh();
     }
@@ -331,7 +333,7 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
         try {
             files.createFolder(folder.resolve(name.trim()));
         } catch (VirtualFileException e) {
-            Notification.warning(String.format(loc.getValue(L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
+            Notification.warning(String.format(loc.getValue(M_L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
         }
         refresh();
     }
@@ -369,12 +371,12 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
             try {
                 text = VirtualFileSystem.decodeText(content, target);
             } catch (VirtualFileException e) {
-                Notification.warning(String.format(loc.getValue(L.MSG_AGENT_UPLOAD_NOT_TEXT), fileName));
+                Notification.warning(String.format(loc.getValue(M_L.MSG_AGENT_UPLOAD_NOT_TEXT), fileName));
                 return;
             }
             files.writeText(target, text, false);
         } catch (VirtualFileException e) {
-            Notification.warning(String.format(loc.getValue(L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
+            Notification.warning(String.format(loc.getValue(M_L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
         } finally {
             upload.clearFileList();
             refresh();
@@ -385,7 +387,7 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
             returns = @APIReturn(type = boolean.class))
     private boolean isBusy() {
         if (busy.getAsBoolean()) {
-            Notification.warning(loc.getValue(L.MSG_AGENT_WORKSPACE_BUSY));
+            Notification.warning(loc.getValue(M_L.MSG_AGENT_WORKSPACE_BUSY));
             refresh();
             return true;
         }
@@ -402,7 +404,7 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
             folder = VirtualPath.ROOT;
             viewer.clear();
         } catch (IllegalStateException | VirtualFileException e) {
-            Notification.warning(String.format(loc.getValue(L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
+            Notification.warning(String.format(loc.getValue(M_L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
@@ -442,14 +444,14 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
             UIUtils.setTextIfChanged(pathLabel, "/" + String.join("/", folder.getSegments()));
             upButton.setEnabled(!folder.isRoot());
             clearButton.setEnabled(!busy.getAsBoolean());
-            clearButton.setTooltipText(busy.getAsBoolean() ? loc.getValue(L.MSG_AGENT_WORKSPACE_BUSY) : null);
+            clearButton.setTooltipText(busy.getAsBoolean() ? loc.getValue(M_L.MSG_AGENT_WORKSPACE_BUSY) : null);
             newFolderButton.setEnabled(!busy.getAsBoolean());
-            newFolderButton.setTooltipText(busy.getAsBoolean() ? loc.getValue(L.MSG_AGENT_WORKSPACE_BUSY) : null);
+            newFolderButton.setTooltipText(busy.getAsBoolean() ? loc.getValue(M_L.MSG_AGENT_WORKSPACE_BUSY) : null);
             upload.setEnabled(!busy.getAsBoolean());
             WorkspaceUsage usage = files.getUsage();
             UIUtils.setTextIfChanged(usageLabel, entries.isEmpty() && usage.files() == 0
-                    ? loc.getValue(L.MSG_AGENT_WORKSPACE_EMPTY)
-                    : String.format(loc.getValue(L.MSG_AGENT_WORKSPACE_USAGE), usage.files(),
+                    ? loc.getValue(M_L.MSG_AGENT_WORKSPACE_EMPTY)
+                    : String.format(loc.getValue(M_L.MSG_AGENT_WORKSPACE_USAGE), usage.files(),
                     FileUtils.byteCountToDisplaySize(usage.bytes()),
                     FileUtils.byteCountToDisplaySize(files.getLimits().maxTotalBytes())));
         } catch (Exception e) {

@@ -1,10 +1,11 @@
 package com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.read;
 
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
+import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.templates.TemplateVariables;
 import com.github.enerccio.marginalia.domain.traits.*;
-import com.github.enerccio.marginalia.loc.L;
 import com.google.gson.JsonObject;
 
 import java.util.List;
@@ -65,7 +66,7 @@ public class GetTemplateVariablesCommand extends ManuscriptReadSupport {
                 result.addProperty("handle", at.message().getUuid());
                 result.addProperty("position", at.position());
             }
-            default -> throw new IllegalArgumentException(String.format(loc.getValue(L.ERROR_COMMAND_UNKNOWN_SCOPE), scope));
+            default -> throw new IllegalArgumentException(String.format(loc.getValue(M_L.ERROR_COMMAND_UNKNOWN_SCOPE), scope));
         }
         result.add("variables", variables.toJson("global".equals(name) ? TemplateVariables.Scope.GLOBAL
                 : TemplateVariables.Scope.LOCAL));

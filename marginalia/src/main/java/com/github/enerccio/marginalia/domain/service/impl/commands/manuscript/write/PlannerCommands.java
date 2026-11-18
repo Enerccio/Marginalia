@@ -1,12 +1,12 @@
 package com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.write;
 
 import com.github.enerccio.marginalia.domain.model.PlannedScene;
+import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.PlannerService;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.read.ManuscriptReadSupport;
 import com.github.enerccio.marginalia.domain.traits.*;
-import com.github.enerccio.marginalia.loc.L;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;

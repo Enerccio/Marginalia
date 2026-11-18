@@ -160,7 +160,7 @@ All application code is in `com.github.enerccio.marginalia` (`marginalia/src/mai
 | `domain.traits`, `domain.collections`, `domain.listener` | Shared | Annotations (`@CommonTx`, `@Extendable`, `@PublicAPI`, `@CleanupReference`...), enums, the entity listener for extended attributes. |
 | `extensions`, `instruct` | Extensions | The `MarginaliaExtension` interface, the bytecode instrumentation. |
 | `bound` | Startup, sessions | Application initializer and migrations hook, the `SessionManager` and its session bookkeeping. |
-| `loc` | Shared | Localization: the `L` keys and the English texts. |
+| `loc` | Shared | Localization: the `L` (platform) and `M_L` (application) keys and their texts. |
 | `concurrent`, `utils` | Shared | Helpers. |
 
 The UI depends on services, services on repositories, repositories on the entities - not the other way round. UI
@@ -537,25 +537,32 @@ Everything is in `<user.home>/.marginalia/` (see also [The data folder](../user/
 
 ## Localization
 
-All UI texts are looked up through the `Localization` bean by an `L` key (`loc.getValue(L.LABEL_SAVE)`). The bean
-(`StoryLocalizationImpl`, the platform's `LocalizationImpl` plus the labels of the story enums and the built-in prompts;
-code that needs those injects it as `StoryLocalization`) holds one `LocalizationBundle` per `Language`: the texts of every key, the `Locale` and the date
-formats of that language, and the name shown in the language selector. The application ships `LocalizationBundleEN`
-(the default language, which has to be complete - the application doesn't start otherwise), `LocalizationBundleJP`,
-`LocalizationBundleFR`, `LocalizationBundleES`, `LocalizationBundleDE`, `LocalizationBundleKO` and `LocalizationBundleIT`;
-they are listed in the `localization` bean in `container-config.xml`. Texts of template variables and macros (the
-hints shown next to prompt fields) are localized the same way.
+All UI texts are looked up through the `Localization` bean by a key (`loc.getValue(L.LABEL_SAVE)`,
+`loc.getValue(M_L.LABEL_BOOKS)`). Each layer has its own enum of keys, both `LocalizationKey`s: the platform's `L`
+(login, users, models, settings, the shared words such as Save and Cancel, and every key named in a command
+annotation, see below) and the application's `M_L` (books, lorebooks, agents, generation...); a visual novel built on
+the platform would add a third. `getValue(LocalizationKey)` finds the texts of the key's enum, so code that shows
+texts of both keeps them as `LocalizationKey`.
+
+The bean (`MarginaliaLocalizationImpl`, the platform's `LocalizationImpl` plus the labels of the story enums and the
+built-in prompts; code that needs those injects it as `MarginaliaLocalization`) holds one `LocalizationBundle` per
+`Language`: the `L` texts, the `Locale` and the date formats of that language, and the name shown in the language
+selector. The texts of the other enums are `TextBundle`s of the same language (`MarginaliaLocalizationBundleEN`...),
+registered with `registerTexts`. The application ships `LocalizationBundleEN` and `MarginaliaLocalizationBundleEN`
+(the default language, which has to be complete for both enums - the application doesn't start otherwise),
+and the `JP`, `FR`, `ES`, `DE`, `KO` and `IT` pairs; they are the `bundles` and `texts` of the `localization` bean in
+`container-config.xml`. Texts of template variables and macros (the hints shown next to prompt fields) are localized
+the same way.
+
+The command annotations (`@Command`, `@CommandParameter`, `@CommandReturn`, `@LocalizedTemplateDescription`) are the
+platform's and an annotation element holds one enum, so their texts are `L` keys whichever layer the command belongs
+to.
 
 ```mermaid
 flowchart LR
-    SP["SessionPoint<br/>(session scoped)<br/>language"] -->|current language| Loc["LocalizationImpl<br/>getValue(L)"]
-    Loc --> B1["LocalizationBundleEN"]
-    Loc --> B2["LocalizationBundleJP"]
-    Loc --> B4["LocalizationBundleFR"]
-    Loc --> B5["LocalizationBundleES"]
-    Loc --> B6["LocalizationBundleDE"]
-    Loc --> B7["LocalizationBundleKO"]
-    Loc --> B8["LocalizationBundleIT"]
+    SP["SessionPoint<br/>(session scoped)<br/>language"] -->|current language| Loc["LocalizationImpl<br/>getValue(LocalizationKey)"]
+    Loc -->|"L keys, formats"| B1["LocalizationBundleEN, JP, FR,<br/>ES, DE, KO, IT"]
+    Loc -->|"M_L keys"| B2["MarginaliaLocalizationBundleEN, JP, FR,<br/>ES, DE, KO, IT"]
     Loc --> B3["bundles of extensions"]
     US["UserSetting.language"] -->|"Main, when the workspace opens"| SP
     LS["LanguageSelector"] -->|saves, then reloads the user's pages| US
@@ -571,16 +578,17 @@ flowchart LR
   phone drawer) offers `Localization.getAvailableLanguages()`; a change saves the setting, sets the session and
   reloads every UI of every session of the user (`SessionManager.runForUsers`), where the workspace opens again with
   the new language. `Viewer` doesn't choose anything, it uses what is in its `SessionPoint`.
-- **Extensions.** An extension that implements `ExtensionHasLocalization` returns bundles of its own;
+- **Extensions.** An extension that implements `ExtensionHasLocalization` returns bundles of its own
+  (`getLocalizationBundles`, the `L` texts and formats, and `getTextBundles`, the `M_L` texts);
   `OsgiServiceImpl` registers them after `onExtensionLoad` and removes them when the extension is unloaded (see
   [Example plugin](plugins/example.md#walkthrough-chinese-localization)). A language that already has a bundle is
   refused, so an extension can't replace English.
-- **Adding a language to the application.** Copy `LocalizationBundleEN`, translate, add the class as a bean to the
-  `bundles` list of `localization`. `BundleCompletenessTest` checks that a bundle has every key and the same
-  `%s`/`%d` placeholders as the English text.
+- **Adding a language to the application.** Copy `LocalizationBundleEN` and `MarginaliaLocalizationBundleEN`,
+  translate, add the classes as beans to the `bundles` and `texts` lists of `localization`. `BundleCompletenessTest`
+  checks that the bundles have every key and the same `%s`/`%d` placeholders as the English texts.
 - **The language of the prompts** is a second, independent choice: `UserSetting.promptLanguage`, copied into
   `SessionPoint.promptLanguage` at the login and when the user saves the settings (in an agent run the language of the agent).
-  `StoryLocalization.getDefaults()` returns the built-in prompts (`Defaults`, `DefaultsJA`, `DefaultsFR`, `DefaultsES`, `DefaultsDE`, `DefaultsIT`, `DefaultsKO`, and those extensions register, such as
+  `MarginaliaLocalization.getDefaults()` returns the built-in prompts (`Defaults`, `DefaultsJA`, `DefaultsFR`, `DefaultsES`, `DefaultsDE`, `DefaultsIT`, `DefaultsKO`, and those extensions register, such as
   `DefaultsZH` of the Chinese localization) of that language,
   English without a session; the plugins pick theirs with `PluginLocalizationBundle.forPromptLanguage`. See
   [Templating](templating.md#the-built-in-prompts-and-their-languages).

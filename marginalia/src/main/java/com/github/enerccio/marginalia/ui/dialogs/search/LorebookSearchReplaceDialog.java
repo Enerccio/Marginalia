@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.service.LorebookReplaceService.Opti
 import com.github.enerccio.marginalia.domain.service.LorebookReplaceService.Plan;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
@@ -36,7 +37,7 @@ public class LorebookSearchReplaceDialog extends SearchReplaceDialog {
             returns = @APIReturn(type = String.class))
     @Override
     protected String getTitle() {
-        return loc.getValue(L.LABEL_SEARCH_AND_REPLACE);
+        return loc.getValue(M_L.LABEL_SEARCH_AND_REPLACE);
     }
 
     @PublicAPI(from = "1.4.0",
@@ -56,14 +57,14 @@ public class LorebookSearchReplaceDialog extends SearchReplaceDialog {
         return progress -> {
             Plan plan = replaceService.plan(lorebook, options, progress);
             List<SearchReplaceItem> items = plan.items().stream()
-                    .map(item -> new SearchReplaceItem(loc.getValue(L.ENUM_DOMAIN_LOREBOOK_ENTRY),
+                    .map(item -> new SearchReplaceItem(loc.getValue(M_L.ENUM_DOMAIN_LOREBOOK_ENTRY),
                             StringUtils.defaultIfBlank(item.name(), String.valueOf(item.id())), item.hits()))
                     .toList();
             return new SearchResult(items, null, replacing -> {
                 LorebookReplaceService.Result result = replaceService.apply(lorebook, plan, replacing);
-                String message = String.format(loc.getValue(L.MSG_REPLACE_DONE), result.hits(), result.changed());
+                String message = String.format(loc.getValue(M_L.MSG_REPLACE_DONE), result.hits(), result.changed());
                 return result.skipped() == 0 ? message
-                        : message + "\n" + String.format(loc.getValue(L.MSG_REPLACE_SKIPPED), result.skipped());
+                        : message + "\n" + String.format(loc.getValue(M_L.MSG_REPLACE_SKIPPED), result.skipped());
             });
         };
     }

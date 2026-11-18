@@ -2,18 +2,19 @@ package com.github.enerccio.marginalia.domain.service.command;
 
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
 
 import java.util.function.Function;
 
 /**
- * A text of a registered command (its human name, a description...): either the {@link L} key of a localized text,
+ * A text of a registered command (its human name, a description...): either the key of a localized text ({@link L} in the annotations of a command),
  * resolved in the language of the user whenever it is shown, or a plain text of an extension that brings no
  * translations. Never both; a text with neither is {@link #isEmpty() empty}.
  *
  * @param key  the key of the localized text, null when the text is a plain one or there is none
  * @param text the plain text, null when the text is a localized one or there is none
  */
-public record CommandText(L key, String text) {
+public record CommandText(LocalizationKey key, String text) {
 
     /** No text. */
     public static final CommandText NONE = new CommandText(null, null);
@@ -24,7 +25,7 @@ public record CommandText(L key, String text) {
         }
     }
 
-    public static CommandText of(L key) {
+    public static CommandText of(LocalizationKey key) {
         return key == null ? NONE : new CommandText(key, null);
     }
 
@@ -68,7 +69,7 @@ public record CommandText(L key, String text) {
     }
 
     /** The text with the given lookup of the keys, empty string when there is none. */
-    public String get(Function<L, String> lookup) {
+    public String get(Function<LocalizationKey, String> lookup) {
         if (key != null) {
             String value = lookup.apply(key);
             return value == null ? "" : value;

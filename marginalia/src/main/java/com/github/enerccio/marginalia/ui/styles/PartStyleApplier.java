@@ -3,8 +3,8 @@ package com.github.enerccio.marginalia.ui.styles;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.PartStyleService;
 import com.github.enerccio.marginalia.domain.styles.PartStyle;
-import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.menu.StoryMenuItem.Choice;
 import com.vaadin.flow.component.Component;
@@ -103,7 +103,7 @@ public final class PartStyleApplier {
     public static List<Choice> choices(Localization loc, PartStyleService service, Manuscript manuscript, Consumer<String> choose) throws Exception {
         PartStyle chosen = service.findChosen(manuscript);
         List<Choice> choices = new ArrayList<>();
-        choices.add(new Choice(String.format(loc.getValue(L.LABEL_STYLE_DEFAULT_ENTRY), service.getDefault().getDisplayName(loc)),
+        choices.add(new Choice(String.format(loc.getValue(M_L.LABEL_STYLE_DEFAULT_ENTRY), service.getDefault().getDisplayName(loc)),
                 chosen == null, () -> choose.accept(null)));
         for (PartStyle style : sorted(service.listForBooks(), loc)) {
             choices.add(new Choice(style.getDisplayName(loc), chosen != null && style.getId().equals(chosen.getId()),

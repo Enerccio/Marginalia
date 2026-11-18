@@ -14,6 +14,8 @@ import com.github.enerccio.marginalia.domain.service.search.ManuscriptSearchCrit
 import com.github.enerccio.marginalia.domain.service.search.Sorter;
 import com.github.enerccio.marginalia.domain.service.search.Sorter.Ordering;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
@@ -131,32 +133,32 @@ public class ManuscriptSearchDialog extends Dialog {
         setHeaderTitle(loc.getValue(L.LABEL_ADVANCED_SEARCH) + (scoped ? ": " + scopeName() : ""));
         setWidth("min(1000px, 95vw)");
 
-        subfolders.setLabel(loc.getValue(L.LABEL_INCLUDE_SUBFOLDERS));
+        subfolders.setLabel(loc.getValue(M_L.LABEL_INCLUDE_SUBFOLDERS));
         subfolders.setVisible(scoped);
 
         name.setLabel(loc.getValue(L.LABEL_NAME));
         name.setClearButtonVisible(true);
         name.addKeyDownListener(Key.ENTER, e -> search());
 
-        tags(includeTags, L.LABEL_TAGS_INCLUDE);
+        tags(includeTags, M_L.LABEL_TAGS_INCLUDE);
         tagMatch(includeMatch, TagMatch.ALL);
-        tags(excludeTags, L.LABEL_TAGS_EXCLUDE);
+        tags(excludeTags, M_L.LABEL_TAGS_EXCLUDE);
         tagMatch(excludeMatch, TagMatch.ANY);
 
-        date(createdFrom, L.LABEL_CREATED_FROM);
-        date(createdTo, L.LABEL_CREATED_TO);
-        date(modifiedFrom, L.LABEL_MODIFIED_FROM);
-        date(modifiedTo, L.LABEL_MODIFIED_TO);
+        date(createdFrom, M_L.LABEL_CREATED_FROM);
+        date(createdTo, M_L.LABEL_CREATED_TO);
+        date(modifiedFrom, M_L.LABEL_MODIFIED_FROM);
+        date(modifiedTo, M_L.LABEL_MODIFIED_TO);
 
-        count(partsFrom, L.LABEL_PARTS_FROM);
-        count(partsTo, L.LABEL_PARTS_TO);
+        count(partsFrom, M_L.LABEL_PARTS_FROM);
+        count(partsTo, M_L.LABEL_PARTS_TO);
 
-        fulltext.setLabel(loc.getValue(L.LABEL_TEXT));
+        fulltext.setLabel(loc.getValue(M_L.LABEL_TEXT));
         fulltext.setClearButtonVisible(true);
         fulltext.addKeyDownListener(Key.ENTER, e -> search());
-        allBranches.setLabel(loc.getValue(L.LABEL_SEARCH_IN_ALL_BRANCHES));
+        allBranches.setLabel(loc.getValue(M_L.LABEL_SEARCH_IN_ALL_BRANCHES));
         allBranches.setValue(false);
-        includeVersions.setLabel(loc.getValue(L.LABEL_SEARCH_INCLUDE_VERSIONS));
+        includeVersions.setLabel(loc.getValue(M_L.LABEL_SEARCH_INCLUDE_VERSIONS));
         includeVersions.setValue(false);
         // the fields share rows and wrap when the dialog is narrow
         name.setMinWidth("12em");
@@ -175,7 +177,7 @@ public class ManuscriptSearchDialog extends Dialog {
         form.addClassName(CssStyles.GAP_S);
         form.setWidthFull();
 
-        Button search = new Button(loc.getValue(L.LABEL_SEARCH), Solid.SEARCH.create(), e -> search());
+        Button search = new Button(loc.getValue(M_L.LABEL_SEARCH), Solid.SEARCH.create(), e -> search());
         search.setThemeName("primary");
         Button clear = new Button(loc.getValue(L.LABEL_CLEAR), e -> clear());
         HorizontalLayout buttons = new HorizontalLayout(search, clear, summary);
@@ -185,7 +187,7 @@ public class ManuscriptSearchDialog extends Dialog {
         results.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_ROW_STRIPES, GridVariant.LUMO_WRAP_CELL_CONTENT);
         results.addColumn(Row::name).setHeader(loc.getValue(L.LABEL_NAME)).setSortable(true)
                 .setComparator(Comparator.comparing(Row::name, String.CASE_INSENSITIVE_ORDER)).setFlexGrow(2);
-        results.addColumn(Row::tags).setHeader(loc.getValue(L.LABEL_TAGS)).setFlexGrow(2);
+        results.addColumn(Row::tags).setHeader(loc.getValue(M_L.LABEL_TAGS)).setFlexGrow(2);
         results.addComponentColumn(this::tools).setHeader("").setFlexGrow(0).setAutoWidth(true);
         results.setHeight("40vh");
         results.setWidthFull();
@@ -199,7 +201,7 @@ public class ManuscriptSearchDialog extends Dialog {
         getFooter().add(new Button(loc.getValue(L.LABEL_CLOSE), e -> close()));
     }
 
-    private void tags(MultiSelectComboBox<Tag> box, L label) {
+    private void tags(MultiSelectComboBox<Tag> box, LocalizationKey label) {
         box.setLabel(loc.getValue(label));
         box.setMinWidth("8em");
         box.setItemLabelGenerator(Tag::getValue);
@@ -216,7 +218,7 @@ public class ManuscriptSearchDialog extends Dialog {
 
     private void tagMatch(ComboBox<TagMatch> box, TagMatch value) {
         box.setItems(TagMatch.values());
-        box.setItemLabelGenerator(match -> loc.getValue(match == TagMatch.ALL ? L.ENUM_TAG_MATCH_ALL : L.ENUM_TAG_MATCH_ANY));
+        box.setItemLabelGenerator(match -> loc.getValue(match == TagMatch.ALL ? M_L.ENUM_TAG_MATCH_ALL : M_L.ENUM_TAG_MATCH_ANY));
         box.setAllowCustomValue(false);
         box.setValue(value);
         box.setWidth("10em");
@@ -252,14 +254,14 @@ public class ManuscriptSearchDialog extends Dialog {
         return row;
     }
 
-    private void date(DatePicker picker, L label) {
+    private void date(DatePicker picker, LocalizationKey label) {
         picker.setLabel(loc.getValue(label));
         picker.setLocale(loc.getLocale());
         picker.setClearButtonVisible(true);
         picker.setMinWidth("9em");
     }
 
-    private void count(IntegerField field, L label) {
+    private void count(IntegerField field, LocalizationKey label) {
         field.setLabel(loc.getValue(label));
         field.setMin(0);
         field.setStepButtonsVisible(true);
@@ -270,7 +272,7 @@ public class ManuscriptSearchDialog extends Dialog {
 
     private String scopeName() {
         try {
-            return folder == null ? loc.getValue(L.LABEL_TOP_LEVEL) : folderService.getPath(folder);
+            return folder == null ? loc.getValue(M_L.LABEL_TOP_LEVEL) : folderService.getPath(folder);
         } catch (Exception e) {
             return folder.getName();
         }
@@ -281,7 +283,7 @@ public class ManuscriptSearchDialog extends Dialog {
         tools.setSpacing(false);
         if (onShow != null) {
             Button show = new Button(Solid.FOLDER.create(), e -> onShow.accept(row.manuscript));
-            show.setTooltipText(loc.getValue(L.LABEL_SHOW_IN_FOLDER));
+            show.setTooltipText(loc.getValue(M_L.LABEL_SHOW_IN_FOLDER));
             tools.add(show);
         }
         if (onOpen != null) {
@@ -360,7 +362,7 @@ public class ManuscriptSearchDialog extends Dialog {
             }
             results.setItems(rows);
             results.setVisible(true);
-            summary.setText(rows.isEmpty() ? loc.getValue(L.MSG_SEARCH_NO_RESULTS) : String.format(loc.getValue(L.MSG_BOOKS_FOUND), rows.size()));
+            summary.setText(rows.isEmpty() ? loc.getValue(M_L.MSG_SEARCH_NO_RESULTS) : String.format(loc.getValue(M_L.MSG_BOOKS_FOUND), rows.size()));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }

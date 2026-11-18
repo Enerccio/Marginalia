@@ -1,6 +1,6 @@
 package com.github.enerccio.marginalia.ui.menu;
 
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.story.StoryCard;
 import com.github.enerccio.marginalia.ui.dialogs.story.StoryEditor;
@@ -91,7 +91,7 @@ public final class StoryMenuItem {
         return new StoryMenuItem(key, MenuKind.TOOLS, label, action, null);
     }
 
-    public static StoryMenuItem tools(String key, L label, Consumer<StoryEditor> action) {
+    public static StoryMenuItem tools(String key, LocalizationKey label, Consumer<StoryEditor> action) {
         return tools(key, loc -> loc.getValue(label), action);
     }
 
@@ -115,7 +115,7 @@ public final class StoryMenuItem {
         return new StoryMenuItem(key, MenuKind.CARD, label, null, action);
     }
 
-    public static StoryMenuItem card(String key, L label, BiConsumer<StoryEditor, StoryCard> action) {
+    public static StoryMenuItem card(String key, LocalizationKey label, BiConsumer<StoryEditor, StoryCard> action) {
         return card(key, loc -> loc.getValue(label), action);
     }
 
@@ -135,7 +135,7 @@ public final class StoryMenuItem {
         return new StoryMenuItem(key, MenuKind.TEXT, label, null, action);
     }
 
-    public static StoryMenuItem text(String key, L label, BiConsumer<StoryEditor, StoryCard> action) {
+    public static StoryMenuItem text(String key, LocalizationKey label, BiConsumer<StoryEditor, StoryCard> action) {
         return text(key, loc -> loc.getValue(label), action);
     }
 

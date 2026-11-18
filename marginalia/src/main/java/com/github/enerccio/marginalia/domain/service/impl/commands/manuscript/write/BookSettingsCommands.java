@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.domain.service.EffectiveHistoryLimit;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.traits.*;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.L;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -186,7 +187,7 @@ public class BookSettingsCommands extends ManuscriptWriteSupport {
     public void setBookHistoryLimit(CommandContext context) throws Exception {
         int maxVersions = context.get("maxVersions", Integer.class);
         if (maxVersions < 0) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_HISTORY_LIMIT_NEGATIVE));
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_COMMAND_HISTORY_LIMIT_NEGATIVE));
         }
         setBookHistoryLimit(context, maxVersions);
     }
@@ -197,7 +198,7 @@ public class BookSettingsCommands extends ManuscriptWriteSupport {
         ManuscriptService.BookSettings changes = new ManuscriptService.BookSettings().name(name).description(description)
                 .pov(pov).tense(tense).style(style).language(language == null ? null : language(language));
         if (name == null && description == null && pov == null && tense == null && style == null && language == null) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_NOTHING_TO_CHANGE));
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_COMMAND_NOTHING_TO_CHANGE));
         }
         ManuscriptService.SettingsSaved saved = manuscriptService.updateSettings(book.manuscript, changes);
         Manuscript manuscript = saved.manuscript();
@@ -216,9 +217,9 @@ public class BookSettingsCommands extends ManuscriptWriteSupport {
                                 String metaSummaryPrompt) throws Exception {
         Book book = new Book(context);
         if (template == null && userPrompt == null && summaryPrompt == null && metaSummaryPrompt == null) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_NOTHING_TO_CHANGE));
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_COMMAND_NOTHING_TO_CHANGE));
         }
-        if (!confirmed(context, loc.getValue(L.MSG_COMMAND_SET_PROMPTS_CONFIRM))) {
+        if (!confirmed(context, loc.getValue(M_L.MSG_COMMAND_SET_PROMPTS_CONFIRM))) {
             return;
         }
         ManuscriptService.SettingsSaved saved = manuscriptService.updateSettings(book.manuscript,
@@ -262,7 +263,7 @@ public class BookSettingsCommands extends ManuscriptWriteSupport {
     private void setBookTags(CommandContext context, String add, String remove) throws Exception {
         Book book = new Book(context);
         if (add == null && remove == null) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_NOTHING_TO_CHANGE));
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_COMMAND_NOTHING_TO_CHANGE));
         }
         Manuscript manuscript = book.manuscript;
         List<Tag> current = tagRelationService.getTagsForObject(manuscript);
@@ -290,6 +291,6 @@ public class BookSettingsCommands extends ManuscriptWriteSupport {
         String wanted = text.strip();
         return Arrays.stream(Language.values())
                 .filter(l -> l.getCode().equalsIgnoreCase(wanted) || l.getDisplayName().equalsIgnoreCase(wanted) || l.name().equalsIgnoreCase(wanted))
-                .findFirst().orElseThrow(() -> new IllegalArgumentException(String.format(loc.getValue(L.ERROR_COMMAND_UNKNOWN_LANGUAGE), text)));
+                .findFirst().orElseThrow(() -> new IllegalArgumentException(String.format(loc.getValue(M_L.ERROR_COMMAND_UNKNOWN_LANGUAGE), text)));
     }
 }

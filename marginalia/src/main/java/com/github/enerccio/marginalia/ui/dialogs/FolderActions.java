@@ -6,6 +6,8 @@ import com.github.enerccio.marginalia.domain.service.FolderService;
 import com.github.enerccio.marginalia.domain.service.FolderService.Content;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -58,9 +60,9 @@ public class FolderActions {
             try {
                 done.accept(folderService.create(name, parent));
             } catch (Exception e) {
-                refused(e, L.ERROR_FOLDER_NAME_TAKEN);
+                refused(e, M_L.ERROR_FOLDER_NAME_TAKEN);
             }
-        }).inputMessageLabel(loc.getValue(L.LABEL_FOLDER_NAME)).messageRequired().showCancel(true).build().open();
+        }).inputMessageLabel(loc.getValue(M_L.LABEL_FOLDER_NAME)).messageRequired().showCancel(true).build().open();
     }
 
     /**
@@ -73,13 +75,13 @@ public class FolderActions {
             try {
                 Folder renamed = folderService.rename(folder, name);
                 if (renamed == null) {
-                    Notification.warning(loc.getValue(L.ERROR_FOLDER_GONE));
+                    Notification.warning(loc.getValue(M_L.ERROR_FOLDER_GONE));
                 }
                 done.accept(renamed);
             } catch (Exception e) {
-                refused(e, L.ERROR_FOLDER_NAME_TAKEN);
+                refused(e, M_L.ERROR_FOLDER_NAME_TAKEN);
             }
-        }).inputMessageLabel(loc.getValue(L.LABEL_FOLDER_NAME)).initialValue(folder.getName()).messageRequired().showCancel(true)
+        }).inputMessageLabel(loc.getValue(M_L.LABEL_FOLDER_NAME)).initialValue(folder.getName()).messageRequired().showCancel(true)
                 .build().open();
     }
 
@@ -104,17 +106,17 @@ public class FolderActions {
 
     private void chooseDeletion(Folder folder, Content content, Runnable done) {
         Dialog dialog = new Dialog();
-        dialog.setHeaderTitle(loc.getValue(L.LABEL_DELETE_FOLDER));
+        dialog.setHeaderTitle(loc.getValue(M_L.LABEL_DELETE_FOLDER));
         dialog.setWidth("460px");
         UIUtils.fitPhone(dialog, false);
 
         RadioButtonGroup<Boolean> choice = new RadioButtonGroup<>();
         choice.setItems(false, true);
-        choice.setItemLabelGenerator(withContent -> loc.getValue(withContent ? L.LABEL_FOLDER_DELETE_CONTENT : L.LABEL_FOLDER_MOVE_CONTENT_UP));
+        choice.setItemLabelGenerator(withContent -> loc.getValue(withContent ? M_L.LABEL_FOLDER_DELETE_CONTENT : M_L.LABEL_FOLDER_MOVE_CONTENT_UP));
         choice.setValue(false);
 
         VerticalLayout layout = new VerticalLayout(
-                new Span(String.format(loc.getValue(L.MSG_DELETE_FOLDER_CONTENT), folder.getName(), content.books(), content.folders())),
+                new Span(String.format(loc.getValue(M_L.MSG_DELETE_FOLDER_CONTENT), folder.getName(), content.books(), content.folders())),
                 choice);
         layout.setPadding(false);
         dialog.add(layout);
@@ -123,7 +125,7 @@ public class FolderActions {
         Button delete = new Button(loc.getValue(L.LABEL_DELETE), _ -> {
             dialog.close();
             if (choice.getValue()) {
-                ConfirmDialog.show(String.format(loc.getValue(L.MSG_CONFIRM_DELETE_FOLDER_CONTENT), content.books(), content.folders()),
+                ConfirmDialog.show(String.format(loc.getValue(M_L.MSG_CONFIRM_DELETE_FOLDER_CONTENT), content.books(), content.folders()),
                         () -> deleteWithContent(folder, done));
             } else {
                 deleteMoving(folder, done);
@@ -142,7 +144,7 @@ public class FolderActions {
             folderService.delete(folder, false);
             done.run();
         } catch (IllegalStateException e) {
-            Notification.warning(loc.getValue(L.ERROR_FOLDER_CLASH_ON_DELETE));
+            Notification.warning(loc.getValue(M_L.ERROR_FOLDER_CLASH_ON_DELETE));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
@@ -168,7 +170,7 @@ public class FolderActions {
         try {
             List<Target> targets = new ArrayList<>();
             if (current != null) {
-                targets.add(new Target(null, loc.getValue(L.LABEL_TOP_LEVEL)));
+                targets.add(new Target(null, loc.getValue(M_L.LABEL_TOP_LEVEL)));
             }
             Map<Long, String> paths = folderService.getPaths();
             List<Map.Entry<Long, String>> ordered = new ArrayList<>(paths.entrySet());
@@ -179,7 +181,7 @@ public class FolderActions {
                 }
             }
 
-            ListSelectDialog<Target> dialog = new ListSelectDialog<>(loc.getValue(L.LABEL_MOVE_TO_FOLDER), loc.getValue(L.LABEL_FOLDER),
+            ListSelectDialog<Target> dialog = new ListSelectDialog<>(loc.getValue(M_L.LABEL_MOVE_TO_FOLDER), loc.getValue(M_L.LABEL_FOLDER),
                     Target::label, target -> {
                 try {
                     manuscriptService.moveToFolder(books, target.folder());
@@ -196,9 +198,9 @@ public class FolderActions {
         }
     }
 
-    private void refused(Exception e, L taken) {
+    private void refused(Exception e, LocalizationKey taken) {
         if (e instanceof IllegalArgumentException) {
-            Notification.warning(loc.getValue(L.ERROR_FOLDER_NAME_INVALID));
+            Notification.warning(loc.getValue(M_L.ERROR_FOLDER_NAME_INVALID));
         } else if (e instanceof IllegalStateException) {
             Notification.warning(loc.getValue(taken));
         } else {

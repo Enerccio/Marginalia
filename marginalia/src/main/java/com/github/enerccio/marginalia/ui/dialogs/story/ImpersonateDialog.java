@@ -8,6 +8,7 @@ import com.github.enerccio.marginalia.domain.service.ImpersonateService;
 import com.github.enerccio.marginalia.domain.service.NotificationService;
 import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
 import com.github.enerccio.marginalia.ui.widgets.DesktopNotifier;
@@ -87,7 +88,7 @@ public class ImpersonateDialog extends Dialog {
         this.turn = turn;
         this.outline = StringUtils.trimToEmpty(outline);
         this.onUse = onUse;
-        this.request = WindowRun.of(this, NotificationService.IMPERSONATE, () -> loc.getValue(L.LABEL_IMPERSONATING)).book(manuscript);
+        this.request = WindowRun.of(this, NotificationService.IMPERSONATE, () -> loc.getValue(M_L.LABEL_IMPERSONATING)).book(manuscript);
 
         setHeaderTitle(loc.getValue(L.LABEL_IMPERSONATE));
         setWidth("min(900px, 95vw)");
@@ -96,18 +97,18 @@ public class ImpersonateDialog extends Dialog {
         setCloseOnOutsideClick(false);
         setModality(ModalityMode.STRICT);
 
-        Span info = new Span(loc.getValue(L.MSG_IMPERSONATE_INFO));
+        Span info = new Span(loc.getValue(M_L.MSG_IMPERSONATE_INFO));
         info.addClassName(CssStyles.HINT_TEXT);
 
-        TextArea plan = new TextArea(loc.getValue(L.LABEL_IMPERSONATE_OUTLINE));
+        TextArea plan = new TextArea(loc.getValue(M_L.LABEL_IMPERSONATE_OUTLINE));
         plan.setValue(this.outline);
         plan.setReadOnly(true);
         plan.setWidthFull();
         plan.setMaxRows(8);
         plan.setVisible(!this.outline.isEmpty());
 
-        guidance.setLabel(loc.getValue(L.LABEL_IMPERSONATE_GUIDANCE));
-        guidance.setPlaceholder(loc.getValue(L.MSG_IMPERSONATE_PLACEHOLDER));
+        guidance.setLabel(loc.getValue(M_L.LABEL_IMPERSONATE_GUIDANCE));
+        guidance.setPlaceholder(loc.getValue(M_L.MSG_IMPERSONATE_PLACEHOLDER));
         guidance.setValue(turn == null ? "" : StringUtils.defaultString(turn.instructions()));
         guidance.setWidthFull();
         guidance.setMinRows(3);
@@ -117,11 +118,11 @@ public class ImpersonateDialog extends Dialog {
         showGenerating(false);
 
         reasoningMarkdown.addClassName(CssStyles.CHAT_MESSAGE_MARKDOWN);
-        reasoningDetails = new Details(loc.getValue(L.LABEL_VIEW_REASONING), reasoningMarkdown);
+        reasoningDetails = new Details(loc.getValue(M_L.LABEL_VIEW_REASONING), reasoningMarkdown);
         reasoningDetails.setWidthFull();
         reasoningDetails.setVisible(false);
 
-        result.setLabel(loc.getValue(L.LABEL_IMPERSONATED_INSTRUCTIONS));
+        result.setLabel(loc.getValue(M_L.LABEL_IMPERSONATED_INSTRUCTIONS));
         result.setWidthFull();
         result.setMinRows(6);
         result.setMaxRows(24);
@@ -135,7 +136,7 @@ public class ImpersonateDialog extends Dialog {
         content.addClassName(CssStyles.GAP_S);
         add(content);
 
-        use.setText(loc.getValue(L.LABEL_IMPERSONATE_USE));
+        use.setText(loc.getValue(M_L.LABEL_IMPERSONATE_USE));
         use.setThemeName("primary");
         use.setEnabled(false);
         use.addClickListener(_ -> use());
@@ -156,12 +157,12 @@ public class ImpersonateDialog extends Dialog {
      */
     private void showGenerating(boolean running) {
         generating = running;
-        setHeaderTitle(loc.getValue(running ? L.LABEL_IMPERSONATING : L.LABEL_IMPERSONATE));
+        setHeaderTitle(loc.getValue(running ? M_L.LABEL_IMPERSONATING : L.LABEL_IMPERSONATE));
         if (running) {
             start.setText(loc.getValue(L.LABEL_STOP));
             start.setThemeName("error primary");
         } else {
-            start.setText(loc.getValue(hasDraft ? L.LABEL_IMPERSONATE_AGAIN : L.LABEL_IMPERSONATE));
+            start.setText(loc.getValue(hasDraft ? M_L.LABEL_IMPERSONATE_AGAIN : L.LABEL_IMPERSONATE));
             start.setThemeName("primary");
         }
         guidance.setReadOnly(running);
@@ -230,12 +231,12 @@ public class ImpersonateDialog extends Dialog {
             if (cancellationToken == null) {
                 request.finished();
                 showGenerating(false);
-                Notification.error(loc.getValue(L.ERROR_IMPERSONATE_FAILED));
+                Notification.error(loc.getValue(M_L.ERROR_IMPERSONATE_FAILED));
             }
         } catch (ImpersonateService.ContextInsufficient e) {
             request.finished();
             showGenerating(false);
-            Notification.error(loc.getValue(L.ERROR_CONTEXT_INSUFFICIENT));
+            Notification.error(loc.getValue(M_L.ERROR_CONTEXT_INSUFFICIENT));
         } catch (Exception e) {
             request.finished();
             showGenerating(false);

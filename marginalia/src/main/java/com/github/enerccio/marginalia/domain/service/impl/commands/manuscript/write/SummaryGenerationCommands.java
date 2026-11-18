@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.domain.service.CancellationToken;
 import com.github.enerccio.marginalia.domain.service.SummaryService;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.traits.*;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.L;
 import com.google.gson.JsonObject;
 import java.util.concurrent.CancellationException;
@@ -68,7 +69,7 @@ public class SummaryGenerationCommands extends ManuscriptWriteSupport {
 
             @Override
             public void onSummaryTerminated() {
-                done.completeExceptionally(new CancellationException(loc.getValue(L.ERROR_COMMAND_GENERATION_CANCELLED)));
+                done.completeExceptionally(new CancellationException(loc.getValue(M_L.ERROR_COMMAND_GENERATION_CANCELLED)));
             }
 
             @Override
@@ -76,13 +77,13 @@ public class SummaryGenerationCommands extends ManuscriptWriteSupport {
                 done.completeExceptionally(throwable);
             }
         };
-        context.setStatus(loc.getValue(L.MSG_COMMAND_SUMMARIZING));
+        context.setStatus(loc.getValue(M_L.MSG_COMMAND_SUMMARIZING));
         Summary summary;
         {
             CancellationToken token = oldest == null ? summaryService.createSummary(book.manuscript, head, callback)
                     : summaryService.createMetaSummary(book.manuscript, head, oldest, callback);
             if (token == null) {
-                throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_SUMMARY_NOT_POSSIBLE));
+                throw new IllegalArgumentException(loc.getValue(M_L.ERROR_COMMAND_SUMMARY_NOT_POSSIBLE));
             }
             summary = await(context, done, token);
         }

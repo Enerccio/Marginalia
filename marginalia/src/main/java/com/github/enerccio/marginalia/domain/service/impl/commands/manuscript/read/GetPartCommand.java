@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.r
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.traits.*;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.L;
 import com.google.gson.JsonObject;
 
@@ -92,7 +93,7 @@ public class GetPartCommand extends ManuscriptReadSupport {
             case "pov" -> message.getPovCharacter();
             case "present" -> message.getPresentCharacters();
             case "reasoning" -> message.getResponseReasoning();
-            default -> throw new IllegalArgumentException(String.format(loc.getValue(L.ERROR_COMMAND_UNKNOWN_FIELD), field,
+            default -> throw new IllegalArgumentException(String.format(loc.getValue(M_L.ERROR_COMMAND_UNKNOWN_FIELD), field,
                     String.join(", ", FIELDS)));
         };
 

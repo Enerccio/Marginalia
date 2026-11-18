@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.PhraseWatchService;
 import com.github.enerccio.marginalia.extensions.InheritedSettingValues;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.*;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -85,7 +86,7 @@ public class FolderDialog extends Dialog {
             return false;
         }
         if (stored == null || stored.isDeleted()) {
-            Notification.warning(loc.getValue(L.ERROR_FOLDER_GONE));
+            Notification.warning(loc.getValue(M_L.ERROR_FOLDER_GONE));
             return false;
         }
 
@@ -104,21 +105,21 @@ public class FolderDialog extends Dialog {
         ResizableTextArea.install(loc, descriptionField, "120px");
         descriptionField.setValue(StringUtils.defaultString(stored.getDescription()));
 
-        TagMultiComboBox tags = new TagMultiComboBox(loc.getValue(L.LABEL_TAGS));
+        TagMultiComboBox tags = new TagMultiComboBox(loc.getValue(M_L.LABEL_TAGS));
         tags.setWidthFull();
         tags.setForEntity(stored);
 
         languageCombo = new InheritedLanguageCombo(loc.getValue(L.LABEL_LANGUAGE));
         languageCombo.load(stored.getLanguage(), stored.getParent());
 
-        historyLimitField = new HistoryLimitField(loc.getValue(L.LABEL_HISTORY_MAX_VERSIONS));
+        historyLimitField = new HistoryLimitField(loc.getValue(M_L.LABEL_HISTORY_MAX_VERSIONS));
         try {
             historyLimitField.load(stored.getHistoryMaxVersions(), manuscriptService.resolveInheritedHistoryLimit(stored.getParent()));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
 
-        Span help = new Span(loc.getValue(L.HELP_FOLDER_SETTINGS));
+        Span help = new Span(loc.getValue(M_L.HELP_FOLDER_SETTINGS));
 
         form = new PromptSettingsForm("200px", null).create();
         form.load(field -> field.ofFolder(stored), stored.getParent());
@@ -134,7 +135,7 @@ public class FolderDialog extends Dialog {
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
-        Details phrases = new Details(loc.getValue(L.LABEL_PHRASE_WATCH), phrasesEditor);
+        Details phrases = new Details(loc.getValue(M_L.LABEL_PHRASE_WATCH), phrasesEditor);
         phrases.setWidthFull();
         phrases.setOpened(!stored.getWatchedPhrases().isEmpty());
 
@@ -162,7 +163,7 @@ public class FolderDialog extends Dialog {
     void save() {
         if (StringUtils.isBlank(nameField.getValue())) {
             nameField.setInvalid(true);
-            nameField.setErrorMessage(loc.getValue(L.ERROR_NAME_CANT_BE_EMPTY));
+            nameField.setErrorMessage(loc.getValue(M_L.ERROR_NAME_CANT_BE_EMPTY));
             return;
         }
         if (!form.validate() || !phrasesEditor.validate()) {
@@ -174,7 +175,7 @@ public class FolderDialog extends Dialog {
                 saved = phraseWatchService.setForFolder(saved, phrasesEditor.getValue());
             }
             if (saved == null) {
-                Notification.warning(loc.getValue(L.ERROR_FOLDER_GONE));
+                Notification.warning(loc.getValue(M_L.ERROR_FOLDER_GONE));
                 return;
             }
             close();
@@ -182,9 +183,9 @@ public class FolderDialog extends Dialog {
         } catch (LockedException e) {
             UIUtils.internalServerError(loc, e);
         } catch (IllegalArgumentException e) {
-            Notification.warning(loc.getValue(L.ERROR_FOLDER_NAME_INVALID));
+            Notification.warning(loc.getValue(M_L.ERROR_FOLDER_NAME_INVALID));
         } catch (IllegalStateException e) {
-            Notification.warning(loc.getValue(L.ERROR_FOLDER_NAME_TAKEN));
+            Notification.warning(loc.getValue(M_L.ERROR_FOLDER_NAME_TAKEN));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }

@@ -716,8 +716,10 @@ the story parts of both layouts open it from the settings menu and show the stor
 
 ### Text
 
-Never hard-code user-visible text. Add a key to `loc/L.java` and the text to `LocalizationBundleEN` (and `LocalizationBundleJP`, `LocalizationBundleFR`, `LocalizationBundleES`, `LocalizationBundleDE`, `LocalizationBundleKO`, `LocalizationBundleIT`), and use
-`loc.getValue(L.KEY)` (`Localization` is injected into every UI class). Date formats come from the same bean
+Never hard-code user-visible text. Add a key to `loc/M_L.java` and the text to `MarginaliaLocalizationBundleEN` (and the `JP`, `FR`, `ES`, `DE`, `KO` and `IT` ones), and use
+`loc.getValue(M_L.KEY)` (`Localization` is injected into every UI class); a text of the platform's screens (login,
+users, models, settings) or one a command annotation names is an `L` key in the `LocalizationBundle*` classes
+instead. A field or parameter that holds keys of both enums is a `LocalizationKey`. Date formats come from the same bean
 (`loc.getDateFormat()`...). The name of a kind of entity (book, lorebook...) is `loc.localizeDomainObject(entityClass)`; it falls back to the closest known superclass, then to the simple class name, so a new entity type needs a mapping in `LocalizationImpl.loadMaps()`. The texts are in the language of the user's session, so never keep a text in a field that outlives the page or the request - look it up when you show it ([Localization](architecture.md#localization)).
 
 ### Errors

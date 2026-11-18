@@ -8,7 +8,7 @@ import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
 import com.github.enerccio.marginalia.domain.service.LorebookService;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.read.ManuscriptReadSupport;
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +48,7 @@ public abstract class LorebookReadSupport extends ManuscriptReadSupport {
             this.context = book.context();
             Lorebook root = book.manuscript.getLorebook() == null ? null : lorebookService.find(book.manuscript.getLorebook());
             if (root == null || root.isDeleted()) {
-                throw new IllegalStateException(loc.getValue(L.ERROR_COMMAND_NO_LOREBOOK));
+                throw new IllegalStateException(loc.getValue(M_L.ERROR_COMMAND_NO_LOREBOOK));
             }
             Queue<Lorebook> queue = new ArrayDeque<>();
             queue.add(root);
@@ -76,11 +76,11 @@ public abstract class LorebookReadSupport extends ManuscriptReadSupport {
             if (isHandle(ref)) {
                 Lorebook found = CommandScope.of(context).resolveLorebook(ref.strip());
                 return books.stream().filter(b -> b.getId().equals(found.getId())).findFirst()
-                        .orElseThrow(() -> new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_NO_SUCH_HANDLE)));
+                        .orElseThrow(() -> new IllegalArgumentException(loc.getValue(M_L.ERROR_COMMAND_NO_SUCH_HANDLE)));
             }
             int n = number(ref);
             if (n < 1 || n > books.size()) {
-                throw new IllegalArgumentException(String.format(loc.getValue(L.ERROR_COMMAND_NO_SUCH_LOREBOOK), n, books.size()));
+                throw new IllegalArgumentException(String.format(loc.getValue(M_L.ERROR_COMMAND_NO_SUCH_LOREBOOK), n, books.size()));
             }
             return books.get(n - 1);
         }
@@ -91,7 +91,7 @@ public abstract class LorebookReadSupport extends ManuscriptReadSupport {
          */
         public Lorebook bookOrUnused(String handle) throws Exception {
             if (!isHandle(handle)) {
-                throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_HANDLE_REQUIRED));
+                throw new IllegalArgumentException(loc.getValue(M_L.ERROR_COMMAND_HANDLE_REQUIRED));
             }
             Lorebook found = CommandScope.of(context).resolveUnusedLorebook(handle.strip());
             return books.stream().filter(b -> b.getId().equals(found.getId())).findFirst().orElse(found);
@@ -101,7 +101,7 @@ public abstract class LorebookReadSupport extends ManuscriptReadSupport {
             try {
                 return Integer.parseInt(text.strip());
             } catch (NumberFormatException e) {
-                throw new IllegalArgumentException(String.format(loc.getValue(L.ERROR_COMMAND_NOT_A_REFERENCE), text), e);
+                throw new IllegalArgumentException(String.format(loc.getValue(M_L.ERROR_COMMAND_NOT_A_REFERENCE), text), e);
             }
         }
 
@@ -117,14 +117,14 @@ public abstract class LorebookReadSupport extends ManuscriptReadSupport {
             if (entryRef != null && isHandle(entryRef)) {
                 LorebookEntry entry = CommandScope.of(context).resolveEntry(entryRef.strip());
                 Lorebook owner = books.stream().filter(b -> b.getId().equals(entry.getLorebook().getId())).findFirst()
-                        .orElseThrow(() -> new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_NO_SUCH_HANDLE)));
+                        .orElseThrow(() -> new IllegalArgumentException(loc.getValue(M_L.ERROR_COMMAND_NO_SUCH_HANDLE)));
                 List<LorebookEntry> all = entries(owner);
                 for (int i = 0; i < all.size(); i++) {
                     if (all.get(i).getId().equals(entry.getId())) {
                         return new Found(owner, all.get(i), i + 1);
                     }
                 }
-                throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_NO_SUCH_HANDLE));
+                throw new IllegalArgumentException(loc.getValue(M_L.ERROR_COMMAND_NO_SUCH_HANDLE));
             }
             Lorebook owner = book(lorebookRef);
             int number = entryRef == null ? 0 : number(entryRef);
@@ -145,7 +145,7 @@ public abstract class LorebookReadSupport extends ManuscriptReadSupport {
         public LorebookEntry entry(Lorebook book, Integer number) throws Exception {
             List<LorebookEntry> all = entries(book);
             if (number == null || number < 1 || number > all.size()) {
-                throw new IllegalArgumentException(String.format(loc.getValue(L.ERROR_COMMAND_NO_SUCH_LORE_ENTRY),
+                throw new IllegalArgumentException(String.format(loc.getValue(M_L.ERROR_COMMAND_NO_SUCH_LORE_ENTRY),
                         number(book), number, all.size()));
             }
             return all.get(number - 1);

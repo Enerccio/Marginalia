@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.service.ArchiveImportService.Insert
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ArchiveImportRunner;
 import com.github.enerccio.marginalia.ui.dialogs.ChatImportFormat;
@@ -120,7 +121,7 @@ public class BookImportDialog extends Dialog {
     }
 
     private void create() {
-        setHeaderTitle(loc.getValue(L.LABEL_IMPORT));
+        setHeaderTitle(loc.getValue(M_L.LABEL_IMPORT));
         setWidth("520px");
 
         boolean intoBook = target != null;
@@ -161,7 +162,7 @@ public class BookImportDialog extends Dialog {
         layout.setPadding(true);
         add(layout);
 
-        importButton = new Button(loc.getValue(L.LABEL_IMPORT), event -> importBook());
+        importButton = new Button(loc.getValue(M_L.LABEL_IMPORT), event -> importBook());
         importButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         getFooter().add(new Button(loc.getValue(L.LABEL_CANCEL), event -> close()), importButton);
         if (!intoBook) {

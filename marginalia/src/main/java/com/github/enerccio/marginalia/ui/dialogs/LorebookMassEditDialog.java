@@ -13,7 +13,8 @@ import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
 import com.github.enerccio.marginalia.domain.service.LorebookService;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
-import com.github.enerccio.marginalia.loc.StoryLocalization;
+import com.github.enerccio.marginalia.loc.M_L;
+import com.github.enerccio.marginalia.loc.MarginaliaLocalization;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.widgets.TagMultiComboBox;
@@ -94,7 +95,7 @@ public class LorebookMassEditDialog extends Dialog {
     }
 
     @Autowired
-    private StoryLocalization loc;
+    private MarginaliaLocalization loc;
 
     @Autowired
     private LorebookService lorebookService;
@@ -139,7 +140,7 @@ public class LorebookMassEditDialog extends Dialog {
                     @APILocals(name = "footer", type = HorizontalLayout.class),
                     @APILocals(name = "content", type = VerticalLayout.class)})
     public void create() {
-        setHeaderTitle(loc.getValue(L.LABEL_MASS_EDIT) + ": " + StringUtils.defaultString(root.getName()));
+        setHeaderTitle(loc.getValue(M_L.LABEL_MASS_EDIT) + ": " + StringUtils.defaultString(root.getName()));
         setWidth("1400px");
         setMaxWidth("96%");
         setHeight("85%");
@@ -147,10 +148,10 @@ public class LorebookMassEditDialog extends Dialog {
         setCloseOnOutsideClick(false);
         UIUtils.fitPhone(this, true);
 
-        Span hint = new Span(loc.getValue(L.HELP_LOREBOOK_MASS_EDIT));
+        Span hint = new Span(loc.getValue(M_L.HELP_LOREBOOK_MASS_EDIT));
         hint.addClassName(CssStyles.HINT_TEXT);
 
-        lockedHint = new Span(loc.getValue(L.LABEL_LOCKED_BY_AGENT));
+        lockedHint = new Span(loc.getValue(M_L.LABEL_LOCKED_BY_AGENT));
         lockedHint.addClassName(CssStyles.HINT_TEXT);
         lockedHint.setVisible(false);
 
@@ -169,37 +170,37 @@ public class LorebookMassEditDialog extends Dialog {
         grid.addThemeVariants(GridVariant.LUMO_COMPACT);
         grid.addComponentColumn(this::checkbox).setHeader(allBox).setFlexGrow(0).setWidth(UIConstants.TOOL_COLUMN_SIZE);
         grid.addComponentColumn(this::enabledBox).setHeader("").setFlexGrow(0).setWidth(UIConstants.TOOL_COLUMN_SIZE);
-        grid.addComponentColumn(this::nameField).setHeader(loc.getValue(L.LABEL_ENTRY_NAME)).setFlexGrow(2);
-        grid.addComponentColumn(this::orderField).setHeader(loc.getValue(L.LABEL_ORDER)).setFlexGrow(0)
+        grid.addComponentColumn(this::nameField).setHeader(loc.getValue(M_L.LABEL_ENTRY_NAME)).setFlexGrow(2);
+        grid.addComponentColumn(this::orderField).setHeader(loc.getValue(M_L.LABEL_ORDER)).setFlexGrow(0)
                 .setWidth(UIConstants.TOOL_COLUMN_SIZE_LARGE);
-        grid.addComponentColumn(this::bookBox).setHeader(loc.getValue(L.LABEL_LOREBOOK)).setFlexGrow(2);
-        grid.addComponentColumn(this::tagsBox).setHeader(loc.getValue(L.LABEL_TAGS)).setFlexGrow(2);
-        grid.addComponentColumn(this::filteringModeBox).setHeader(loc.getValue(L.LABEL_FILTERING_MODE)).setFlexGrow(0)
+        grid.addComponentColumn(this::bookBox).setHeader(loc.getValue(M_L.LABEL_LOREBOOK)).setFlexGrow(2);
+        grid.addComponentColumn(this::tagsBox).setHeader(loc.getValue(M_L.LABEL_TAGS)).setFlexGrow(2);
+        grid.addComponentColumn(this::filteringModeBox).setHeader(loc.getValue(M_L.LABEL_FILTERING_MODE)).setFlexGrow(0)
                 .setWidth(COMBO_COLUMN_SIZE);
-        grid.addComponentColumn(this::filteringField).setHeader(loc.getValue(L.LABEL_FILTERING)).setFlexGrow(1)
+        grid.addComponentColumn(this::filteringField).setHeader(loc.getValue(M_L.LABEL_FILTERING)).setFlexGrow(1)
                 .setWidth(TEXT_COLUMN_SIZE);
-        grid.addComponentColumn(this::insertionModeBox).setHeader(loc.getValue(L.LABEL_INSERTION_MODE)).setFlexGrow(0)
+        grid.addComponentColumn(this::insertionModeBox).setHeader(loc.getValue(M_L.LABEL_INSERTION_MODE)).setFlexGrow(0)
                 .setWidth(COMBO_COLUMN_SIZE);
-        grid.addComponentColumn(this::negativeTagsBox).setHeader(loc.getValue(L.LABEL_NEGATIVE_TAGS)).setFlexGrow(2);
-        grid.addComponentColumn(this::activationContextBox).setHeader(loc.getValue(L.LABEL_ACTIVATION_CONTEXT)).setFlexGrow(0)
+        grid.addComponentColumn(this::negativeTagsBox).setHeader(loc.getValue(M_L.LABEL_NEGATIVE_TAGS)).setFlexGrow(2);
+        grid.addComponentColumn(this::activationContextBox).setHeader(loc.getValue(M_L.LABEL_ACTIVATION_CONTEXT)).setFlexGrow(0)
                 .setWidth(COMBO_COLUMN_SIZE);
-        grid.addComponentColumn(this::activationPartsField).setHeader(loc.getValue(L.LABEL_PARTS)).setFlexGrow(0)
+        grid.addComponentColumn(this::activationPartsField).setHeader(loc.getValue(M_L.LABEL_PARTS)).setFlexGrow(0)
                 .setWidth(UIConstants.TOOL_COLUMN_SIZE_LARGE);
-        grid.addComponentColumn(row -> messageField(row, true)).setHeader(loc.getValue(L.LABEL_FROM_MESSAGE)).setFlexGrow(0)
+        grid.addComponentColumn(row -> messageField(row, true)).setHeader(loc.getValue(M_L.LABEL_FROM_MESSAGE)).setFlexGrow(0)
                 .setWidth(UIConstants.TOOL_COLUMN_SIZE_LARGE);
-        grid.addComponentColumn(row -> messageField(row, false)).setHeader(loc.getValue(L.LABEL_TO_MESSAGE)).setFlexGrow(0)
+        grid.addComponentColumn(row -> messageField(row, false)).setHeader(loc.getValue(M_L.LABEL_TO_MESSAGE)).setFlexGrow(0)
                 .setWidth(UIConstants.TOOL_COLUMN_SIZE_LARGE);
-        grid.addComponentColumn(this::noteField).setHeader(loc.getValue(L.LABEL_NOTE)).setFlexGrow(1)
+        grid.addComponentColumn(this::noteField).setHeader(loc.getValue(M_L.LABEL_NOTE)).setFlexGrow(1)
                 .setWidth(TEXT_COLUMN_SIZE);
-        grid.addComponentColumn(this::contentCell).setHeader(loc.getValue(L.LABEL_CONTENT)).setFlexGrow(4)
+        grid.addComponentColumn(this::contentCell).setHeader(loc.getValue(M_L.LABEL_CONTENT)).setFlexGrow(4)
                 .setWidth(CONTENT_COLUMN_SIZE);
 
-        targetBox = new ComboBox<>(loc.getValue(L.LABEL_MOVE_TO_LOREBOOK));
+        targetBox = new ComboBox<>(loc.getValue(M_L.LABEL_MOVE_TO_LOREBOOK));
         targetBox.setItemLabelGenerator(book -> StringUtils.defaultString(book.getName()));
         targetBox.addValueChangeListener(event -> updateButtons());
-        moveChecked = new Button(loc.getValue(L.LABEL_MOVE_CHECKED), Solid.EXCHANGE_ALT.create(), event -> moveChecked());
+        moveChecked = new Button(loc.getValue(M_L.LABEL_MOVE_CHECKED), Solid.EXCHANGE_ALT.create(), event -> moveChecked());
         moveChecked.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        deleteChecked = new Button(loc.getValue(L.LABEL_DELETE_CHECKED), Solid.TRASH.create(), event -> deleteChecked());
+        deleteChecked = new Button(loc.getValue(M_L.LABEL_DELETE_CHECKED), Solid.TRASH.create(), event -> deleteChecked());
         deleteChecked.addThemeVariants(ButtonVariant.LUMO_ERROR);
         Button refresh = new Button(loc.getValue(L.LABEL_REFRESH), Solid.REFRESH.create(), event -> reload());
         Button close = new Button(loc.getValue(L.LABEL_CLOSE), event -> close());
@@ -590,7 +591,7 @@ public class LorebookMassEditDialog extends Dialog {
     private <T extends Component> T dimmed(T component, Row row) {
         if (row.locked) {
             component.addClassName(CssStyles.MULTI_TAG_LOCKED);
-            UIUtils.addTooltip(component, loc.getValue(L.LABEL_LOCKED_BY_AGENT));
+            UIUtils.addTooltip(component, loc.getValue(M_L.LABEL_LOCKED_BY_AGENT));
         }
         return component;
     }
@@ -634,7 +635,7 @@ public class LorebookMassEditDialog extends Dialog {
         Lorebook target = targetBox.getValue();
         List<Row> checked = rows.stream().filter(row -> row.checked).toList();
         if (target == null || checked.isEmpty()) {
-            Notification.warning(loc.getValue(L.MSG_MOVE_PICK_FIRST));
+            Notification.warning(loc.getValue(M_L.MSG_MOVE_PICK_FIRST));
             return;
         }
         move(checked, target);
@@ -651,7 +652,7 @@ public class LorebookMassEditDialog extends Dialog {
         if (checked.isEmpty()) {
             return;
         }
-        ConfirmDialog.show(String.format(loc.getValue(L.MSG_CONFIRM_DELETE_ENTRIES), checked.size()), () -> delete(checked));
+        ConfirmDialog.show(String.format(loc.getValue(M_L.MSG_CONFIRM_DELETE_ENTRIES), checked.size()), () -> delete(checked));
     }
 
     /**
@@ -706,7 +707,7 @@ public class LorebookMassEditDialog extends Dialog {
         }
         if (moved > 0) {
             changed = true;
-            Notification.success(String.format(loc.getValue(L.MSG_ENTRIES_MOVED), moved, StringUtils.defaultString(target.getName())));
+            Notification.success(String.format(loc.getValue(M_L.MSG_ENTRIES_MOVED), moved, StringUtils.defaultString(target.getName())));
         }
         reload();
     }

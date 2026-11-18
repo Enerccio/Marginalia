@@ -7,7 +7,8 @@ import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.LorebookService;
 import com.github.enerccio.marginalia.domain.service.ProtocolService;
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
 import com.vaadin.flow.component.Component;
@@ -96,7 +97,7 @@ class SharedImportDialogTest extends MarginaliaTestBase {
         return grid.getGenericDataView().getItems().toList();
     }
 
-    private boolean saysNothingIsShared(Component dialog, L text) {
+    private boolean saysNothingIsShared(Component dialog, LocalizationKey text) {
         return all(dialog).filter(Span.class::isInstance).map(Span.class::cast)
                 .anyMatch(span -> span.isVisible() && loc.getValue(text).equals(span.getText()));
     }
@@ -122,7 +123,7 @@ class SharedImportDialogTest extends MarginaliaTestBase {
         List<Lorebook> listed = items(dialog);
         assertThat(listed).extracting(Lorebook::getUuid).contains(shared.getUuid()).doesNotContain(own.getUuid());
         assertThat(grid(dialog).isVisible()).isTrue();
-        assertThat(saysNothingIsShared(dialog, L.MSG_NO_SHARED_LOREBOOKS)).isFalse();
+        assertThat(saysNothingIsShared(dialog, M_L.MSG_NO_SHARED_LOREBOOKS)).isFalse();
         assertThat(dialog.authorOf(listed.stream().filter(l -> l.getUuid().equals(shared.getUuid())).findFirst().orElseThrow()))
                 .isEqualTo(author.getFullName() == null || author.getFullName().isBlank() ? author.getLogin() : author.getFullName());
     }
@@ -165,9 +166,9 @@ class SharedImportDialogTest extends MarginaliaTestBase {
         });
 
         assertThat(grid(lorebooks).isVisible()).isFalse();
-        assertThat(saysNothingIsShared(lorebooks, L.MSG_NO_SHARED_LOREBOOKS)).isTrue();
+        assertThat(saysNothingIsShared(lorebooks, M_L.MSG_NO_SHARED_LOREBOOKS)).isTrue();
         assertThat(grid(protocols).isVisible()).isFalse();
-        assertThat(saysNothingIsShared(protocols, L.MSG_NO_SHARED_PROTOCOLS)).isTrue();
+        assertThat(saysNothingIsShared(protocols, M_L.MSG_NO_SHARED_PROTOCOLS)).isTrue();
     }
 
     @Test
