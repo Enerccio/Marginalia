@@ -474,6 +474,34 @@ public class ArcOutlineService {
         return !commandService.getCommands(CHARACTERS_COMMAND).isEmpty();
     }
 
+    /** Whether the command is one of the tools of the characters (the Character Tracker plugin). */
+    public static boolean isCharacterTool(String command) {
+        return command != null && toolNames(WizardOptions.ToolGroup.CHARACTERS).contains(command);
+    }
+
+    /**
+     * The cast of the book as the commands of the characters number it: what the wizard shows instead of the numbers the model passes.
+     * Read with {@code list-characters} and {@code list-character-relations} in the scope of the book, on the thread of the caller;
+     * {@link CharacterNumbers#NONE} when the plugin is not there or the commands fail.
+     */
+    public CharacterNumbers characterNumbers(Manuscript book) {
+        try {
+            String characters = runForText("list-characters", book);
+            String relations = runForText("list-character-relations", book);
+            return CharacterNumbers.parse(characters, relations);
+        } catch (Exception e) {
+            if (log != null) {
+                log.debug("The characters could not be read for the wizard: {}", e.getMessage());
+            }
+            return CharacterNumbers.NONE;
+        }
+    }
+
+    private String runForText(String command, Manuscript book) throws Exception {
+        Object value = commandService.execute(command, new LinkedHashMap<>(), false, commandScopes.forManuscript(book)).get(30, TimeUnit.SECONDS);
+        return value == null ? null : value.toString();
+    }
+
     /** Whether the Story Notes plugin is installed and loaded. */
     public boolean notesAvailable() {
         return ipcService.getManuscriptProviders().containsKey(NOTES_BUNDLE);
@@ -508,7 +536,9 @@ public class ArcOutlineService {
         if (!allowed.isEmpty()) {
             DestructiveCommandMode mode = options.isAskBeforeChanging() ? DestructiveCommandMode.ASK : DestructiveCommandMode.AUTO;
             functions = functions.and(CommandFunctions.create(commandService, allowed, mode, loc::getValue, approval, null, null, null,
-                    new CommandCage(commandScopes.forManuscript(book), null)));
+                    // the question a command asks itself (delete-character) was answered by then: the dialog asked the author before the call
+                    // (the option to ask), or the author let the model change and delete on its own; the scope of templates would say no
+                    new CommandCage(commandScopes.forApi(book, true), null)));
         }
         return functions;
     }
