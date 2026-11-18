@@ -1,0 +1,338 @@
+# The layer of every main class, for LayerDependencyTest (see TODO.REFACTOR.md).
+#
+#   <layer> <name>
+#
+# <layer> is "platform" (no story concept: what Joi and the visual novel build on) or "app" (Marginalia itself).
+# <name> is a package or a class, relative to com.github.enerccio.marginalia ("." alone is the base package itself).
+# The longest name that matches wins, so a package gets a default and the classes that differ are listed under it.
+# Nested classes go with their outer class. A class that no line matches fails the test: decide its layer here.
+
+# --- base package ---
+platform .
+app Defaults
+app DefaultsDE
+app DefaultsES
+app DefaultsFR
+app DefaultsIT
+app DefaultsJA
+app DefaultsKO
+
+platform api
+platform concurrent
+platform instruct
+platform loc
+
+# --- bound ---
+platform bound
+app bound.AgentRequestAttributes
+app bound.AgentSession
+app bound.AgenticSessionPoint
+app bound.migration
+
+# --- domain: model ---
+platform domain.listener
+platform domain.security
+platform domain.templates
+app domain.templates.AnnotateTemplateData
+app domain.templates.ExportAuthorshipTemplateData
+app domain.templates.ExportFrontMatterTemplateData
+app domain.templates.ExportHeaderTemplateData
+app domain.templates.ImpersonateTemplateData
+app domain.templates.LorebookTemplateData
+app domain.templates.MasterTemplateData
+app domain.templates.MetaSummaryTemplateData
+app domain.templates.RedraftTemplateData
+app domain.templates.SummaryTemplateData
+app domain.templates.UserPromptData
+platform domain.traits
+
+platform domain.model
+app domain.model.AgentModelProfile
+app domain.model.AnnotationTemplate
+app domain.model.ImageAnchor
+app domain.model.ImageAttachment
+app domain.model.PartLayout
+app domain.model.PlannedScene
+app domain.model.WatchedPhrase
+
+app domain.model.impl
+platform domain.model.impl.AI
+platform domain.model.impl.ChatCompletionProtocol
+platform domain.model.impl.ExtensionAI
+platform domain.model.impl.Gpu
+platform domain.model.impl.GpuLock
+platform domain.model.impl.GpuStep
+platform domain.model.impl.Job
+platform domain.model.impl.JobCall
+platform domain.model.impl.OpenAICompatible
+platform domain.model.impl.Protocol
+platform domain.model.impl.Resource
+platform domain.model.impl.Tag
+platform domain.model.impl.TagRelation
+platform domain.model.impl.Usage
+platform domain.model.impl.settings
+app domain.model.impl.settings.ExportSettings
+app domain.model.impl.settings.StylesSetting
+
+platform domain.collections
+app domain.collections.ActivationContext
+app domain.collections.ActivityKind
+app domain.collections.ActivityMetric
+app domain.collections.AgentBatchMode
+app domain.collections.AgentRunPairKind
+app domain.collections.AgentRunStatus
+app domain.collections.AnnotationSource
+app domain.collections.AnnotationStatus
+app domain.collections.DestructiveCommandMode
+app domain.collections.FilteringMode
+app domain.collections.InsertionMode
+app domain.collections.RevisionDetail
+app domain.collections.RevisionSource
+app domain.collections.StatisticRange
+app domain.collections.StatisticSide
+app domain.collections.SummaryType
+app domain.collections.WebhookFormat
+
+app domain.components
+platform domain.components.AILimit
+platform domain.components.AILimits
+platform domain.components.CronSchedule
+platform domain.components.LimitStatus
+platform domain.components.TokenLimits
+platform domain.components.TokenizerChoice
+platform domain.components.TokenizerKey
+platform domain.components.TokenizerProbe
+
+app domain.styles
+
+# --- domain: repositories ---
+app domain.repository
+platform domain.repository.AIRepository
+platform domain.repository.BaseRepository
+platform domain.repository.ExtendableRepository
+platform domain.repository.GpuLockRepository
+platform domain.repository.GpuRepository
+platform domain.repository.GpuStepRepository
+platform domain.repository.JobRepository
+platform domain.repository.OwnedRepository
+platform domain.repository.ProtocolRepository
+platform domain.repository.ResourceRepository
+platform domain.repository.SettingRepository
+platform domain.repository.TagRelationRepository
+platform domain.repository.TagRepository
+platform domain.repository.UsageRepository
+platform domain.repository.impl.JpaAIRepository
+platform domain.repository.impl.JpaBaseRepository
+platform domain.repository.impl.JpaExtendableRepository
+platform domain.repository.impl.JpaGpuLockRepository
+platform domain.repository.impl.JpaGpuRepository
+platform domain.repository.impl.JpaGpuStepRepository
+platform domain.repository.impl.JpaJobRepository
+platform domain.repository.impl.JpaOwnedRepository
+platform domain.repository.impl.JpaProtocolRepository
+platform domain.repository.impl.JpaResourceRepository
+platform domain.repository.impl.JpaSettingRepository
+platform domain.repository.impl.JpaTagRelationRepository
+platform domain.repository.impl.JpaTagRepository
+platform domain.repository.impl.JpaUsageRepository
+platform domain.repository.impl.StaleSaves
+
+# --- domain: services ---
+app domain.service
+platform domain.service.AIGate
+platform domain.service.AILimitService
+platform domain.service.AIService
+platform domain.service.BaseService
+platform domain.service.CancellationToken
+platform domain.service.CleanupService
+platform domain.service.CommandService
+platform domain.service.DatabaseBackupService
+platform domain.service.ExtendableService
+platform domain.service.ExtensionService
+platform domain.service.ExtensionTokenizer
+platform domain.service.ExtensionVerificationException
+platform domain.service.FunctionRegistry
+platform domain.service.GpuService
+platform domain.service.InferenceErrors
+platform domain.service.InferenceException
+platform domain.service.InferenceListener
+platform domain.service.InferenceService
+platform domain.service.InferenceServices
+platform domain.service.InferenceSession
+platform domain.service.JobService
+platform domain.service.ManualService
+platform domain.service.NotificationService
+platform domain.service.OsgiService
+platform domain.service.OwnedService
+platform domain.service.ProtocolService
+platform domain.service.ResourceGarbageService
+platform domain.service.ResourceService
+platform domain.service.SettingService
+platform domain.service.TagRelationService
+platform domain.service.TagService
+platform domain.service.TemplateService
+platform domain.service.TokenizerResolver
+platform domain.service.TokenizerService
+platform domain.service.ToolService
+platform domain.service.TrashService
+platform domain.service.UnmeteredScope
+platform domain.service.UpdateService
+platform domain.service.UsageContext
+platform domain.service.UsageService
+
+platform domain.service.command
+platform domain.service.function
+platform domain.service.gpu
+platform domain.service.job
+platform domain.service.manual
+platform domain.service.run
+platform domain.service.structured
+platform domain.service.tool
+
+platform domain.service.impl.AIGateImpl
+platform domain.service.impl.AILimitServiceImpl
+platform domain.service.impl.AIServiceImpl
+platform domain.service.impl.BaseServiceImpl
+platform domain.service.impl.CleanupServiceImpl
+platform domain.service.impl.CommandContextImpl
+platform domain.service.impl.CommandRunImpl
+platform domain.service.impl.CommandServiceImpl
+platform domain.service.impl.CommandValues
+platform domain.service.impl.DatabaseBackupServiceImpl
+platform domain.service.impl.ExtendableServiceImpl
+platform domain.service.impl.ExtensionLogger
+platform domain.service.impl.ExtensionServiceImpl
+platform domain.service.impl.FunctionRegistryImpl
+platform domain.service.impl.GpuServiceImpl
+platform domain.service.impl.InferenceServicesImpl
+platform domain.service.impl.JobServiceImpl
+platform domain.service.impl.ManualServiceImpl
+platform domain.service.impl.NotificationServiceImpl
+platform domain.service.impl.OsgiServiceImpl
+platform domain.service.impl.OwnedServiceImpl
+platform domain.service.impl.ProtocolServiceImpl
+platform domain.service.impl.ResourceGarbageServiceImpl
+platform domain.service.impl.ResourceServiceImpl
+platform domain.service.impl.SettingServiceImpl
+platform domain.service.impl.TagRelationServiceImpl
+platform domain.service.impl.TagServiceImpl
+platform domain.service.impl.TemplateServiceImpl
+platform domain.service.impl.TokenizerServiceImpl
+platform domain.service.impl.ToolServiceImpl
+platform domain.service.impl.UpdateServiceImpl
+platform domain.service.impl.UsageServiceImpl
+platform domain.service.impl.generation.dto
+app domain.service.impl.generation.dto.GenerationFailure
+app domain.service.impl.generation.dto.GenerationOutcome
+app domain.service.impl.generation.dto.LoreImage
+app domain.service.impl.generation.dto.LorebookEntryVerdict
+app domain.service.impl.generation.dto.PrePromptData
+platform domain.service.impl.inference
+platform domain.service.impl.job
+
+# --- extensions ---
+platform extensions
+app extensions.AnnotationFactsRegistry
+app extensions.ExportTextRegistry
+app extensions.InheritedSetting
+app extensions.InheritedSettingRegistry
+app extensions.InheritedSettingValues
+app extensions.PartTextRegistry
+
+app export
+app utils.docimport
+
+# --- ui ---
+platform ui
+platform ui.jobs
+platform ui.menu
+app ui.menu.StoryMenuItem
+app ui.menu.StoryMenuRegistry
+platform ui.notifications
+platform ui.shortcuts
+app ui.exports
+app ui.styles
+app ui.workspace
+platform ui.workspace.parts.admin.CleanupPanel
+platform ui.workspace.parts.admin.DatabaseBackupPanel
+platform ui.workspace.parts.admin.GpuPanel
+platform ui.workspace.parts.admin.JobsPanel
+platform ui.workspace.parts.admin.ResourceGarbagePanel
+platform ui.workspace.parts.admin.UpdatePanel
+
+app ui.components
+platform ui.components.ApiKeysView
+platform ui.components.BuildInfoFooter
+platform ui.components.CommandBar
+platform ui.components.CommandResult
+platform ui.components.CommandResultTarget
+platform ui.components.CommandResultView
+platform ui.components.InvalidExtensionsWarning
+platform ui.components.PageRuns
+platform ui.components.RunCorner
+platform ui.components.RunsOnPage
+platform ui.components.TagsView
+platform ui.components.ThreadCopyRequestAttributes
+platform ui.components.TreantTree
+
+app ui.dialogs
+platform ui.dialogs.AIDialog
+platform ui.dialogs.AILimitEditDialog
+platform ui.dialogs.AILimitInfoDialog
+platform ui.dialogs.AILimitsDialog
+platform ui.dialogs.CommandProgressDialog
+platform ui.dialogs.ConfirmDialog
+platform ui.dialogs.DescriptionDialog
+platform ui.dialogs.ErrorDialog
+platform ui.dialogs.ExtensionLogDialog
+platform ui.dialogs.GpuDialog
+platform ui.dialogs.GpuLockDialog
+platform ui.dialogs.GpuStepDialog
+platform ui.dialogs.ListSelectDialog
+platform ui.dialogs.ProgressBarDialog
+platform ui.dialogs.ProtocolDialog
+platform ui.dialogs.TextInputDialog
+platform ui.dialogs.ThreadAccessDialog
+platform ui.dialogs.ToolSelectionDialog
+platform ui.dialogs.UIPushGuard
+platform ui.dialogs.UsageDialog
+platform ui.dialogs.UserDialog
+platform ui.dialogs.permissions
+app ui.dialogs.permissions.AgentsPermissionComponent
+app ui.dialogs.permissions.HelperPermissionComponent
+app ui.dialogs.permissions.VersionHistoryPermissionComponent
+
+app ui.main
+platform ui.main.ApiServlet
+platform ui.main.CssRegistry
+platform ui.main.HealthServlet
+platform ui.main.JobsView
+platform ui.main.LoginCheckRoute
+
+platform ui.widgets
+app ui.widgets.AnnotationTemplatesEditor
+app ui.widgets.AuthorshipField
+app ui.widgets.BookLabels
+app ui.widgets.FloatingWindow
+app ui.widgets.FolderBookProvider
+app ui.widgets.FolderBookRow
+app ui.widgets.HistoryLimitField
+app ui.widgets.InheritedLanguageCombo
+app ui.widgets.MergeTurnsDialog
+app ui.widgets.PromptSettingsForm
+app ui.widgets.TurnRow
+app ui.widgets.WatchedPhrasesEditor
+app ui.widgets.WindowRun
+
+# --- utils ---
+platform utils
+app utils.AuthorshipTracker
+app utils.CommandUtils
+app utils.GeneratedTextHighlighter
+app utils.LmStudioChats
+app utils.MassRename
+app utils.QuoteFinder
+app utils.SearchHighlighter
+app utils.SillyTavernChats
+app utils.SummaryTransfer
+app utils.TurnDetailsMerge

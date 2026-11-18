@@ -122,6 +122,7 @@ fake is the model server.
 | `generation`, `utils` (macros, 1.7.0) | `ClosestMacroTest`, `CommandMacroTest`, `ReflectUtilsTest` | `ClosestMacroTest`: {%{`{{closest-message::n}}`}%}, {%{`{{closest-summary::n}}`}%} and `{{current-message}}` count the parts and summaries back from the part being written (a position that is not there is empty, the argument can be a macro, a regenerate and a swipe have the part they replace as the current one, a new part has none). `CommandMacroTest`: {%{`{{command::name::argument}}`}%} runs a read only command made for macros (its answer is in the prompt, it runs once per generation whatever the number of renders, other arguments are other calls, a command in an untaken branch is not run, an `async` one is waited for, one not made for macros is not run, a failing one renders empty and is not kept); the answer is kept with the part the generation continues from (a later generation from the part reads it, a regenerate or a swipe runs it again, a refresh drops the answers of calls that were not made); `availableInMacros` without `readOnly` is refused when the commands are registered. `ReflectUtilsTest`: a private method or field is found in a class whose hierarchy ends in JDK classes (`Object`'s methods cannot be opened: the lookup used to fail and an extension was told the method did not exist). |
 | `cleanup` | `CleanupServiceTest`, `TrashServiceTest`, `SoftDeleteCascadeTest`, `PermanentDeleteTest`, `AgentCleanupTest` | Purging soft-deleted data (also an AI with usage rows), owned data, strong and weak references, resources whose object is gone (kept while a row, also one in the trash, names them or a contributor keeps them); the trash: own objects only, administrator sees all, restore refused while a deleted parent is not restored with it, extended content; `SoftDeleteCascadeTest`: a soft delete takes the owned objects with it and a restore brings them back (the purge tests there log in as administrator); `PermanentDeleteTest`: deleting parts and entries for good, children moved to the parent, active leaf, blocked deletes roll back. |
 | `instruct` | `ExtendableMethodVisitorTest`, `BuildTimeWeaverTest`, `RuntimeInstrumentationTest`, `ExtensionVerifierTest`, `PublicAPISignatureTest` | The bytecode instrumentation of `@Extendable` methods, the weaver of the build and the runtime agent; the verification of extensions against the application; the `@PublicAPI` declarations of the `@Extendable` classes. |
+| `architecture` (1.9.0) | `LayerDependencyTest` | The platform (the code Joi and the visual novel are to build on, see `TODO.REFACTOR.md`) does not name a class of the application: every main class has a layer in `layers/layers.txt`, the references that exist today are listed in `layers/allowed-leaks.txt` and the list may only shrink. See [The layer check](#the-layer-check). |
 | `utils`, `generation` (1.7.0) | `AppClockTest`, `StoredTimesFollowAppClockTest` | `AppClock`, the one clock the application stores times from: it follows the system clock until a test sets another, every reader sees the set clock; a generation run "on" another day stores the times of the part (creation, modification, the stamps of the history) from it. The dataset build moves it day by day. |
 | `planner`, `command` (1.7.0) | `PlannerServiceTest`, `PlannerCommandsTest` | The planner of a book: a scene is added at the end with a new uuid and never as done, the texts are stripped and a title is required, done and not done, an update keeps the place, moves stop at the ends, a missing scene is ignored on delete and an error elsewhere, the list is a copy, the listeners are told of every change until they are removed, the scenes travel with a backup, the limit of scenes; the commands add, update (only what is given), mark done and move by the number in the list, delete. |
 | `planner`, `utils` (1.8.0) | `PlannerServiceTest`, `TurnDetailsMergeTest` | More of the planner: a scene is inserted after the scene given, two scenes become one in the place of the first (done only when both were), the parts of the active branch become scenes at the end (a long first line is cut for the title, nothing is imported when the scenes do not fit the limit). `TurnDetailsMergeTest`: what the merge dialog suggests for two turns, texts under each other, a blank or repeated text not joined, the names of both lists once, the first value where there is one, titles joined and cut. |
@@ -484,6 +485,22 @@ The `instruct` tests check the bytecode that makes `@Extendable` methods extensi
 The fixtures are compiled with the same `-parameters` and `preserveAllLocals` options as the application; if you
 change the compiler settings in `pom.xml`, these tests tell you whether extensions still see names of arguments and
 locals.
+
+## The layer check
+
+`LayerDependencyTest` (`architecture`) guards the split of the platform from the application (`TODO.REFACTOR.md`).
+`src/test/resources/layers/layers.txt` gives every main class a layer, `platform` or `app`: a line names a package or a
+class relative to `com.github.enerccio.marginalia` (`.` is the base package itself), the longest matching name wins
+and nested classes go with their outer class. The test reads the compiled classes with ASM (`ClassRemapper` collects
+every class named in signatures, bodies, annotations and constants) and fails when
+
+- a class has no layer (add a line to the map),
+- a platform class names an application class that `layers/allowed-leaks.txt` does not list (make it a registration
+  point or an interface of the platform, or correct the map), or
+- a listed reference is gone (delete its line: the list only shrinks).
+
+After a change of the map, `-Dlayers.update=true` rewrites the list from the classes (it writes to
+`src/test/resources`, so run it from the `marginalia` folder).
 
 ## The dataset book
 
