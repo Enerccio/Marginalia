@@ -4,7 +4,6 @@ import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.M_L;
-import com.github.enerccio.marginalia.loc.L;
 import com.google.gson.JsonObject;
 
 import java.util.List;
@@ -19,62 +18,92 @@ public class GetPartCommand extends ManuscriptReadSupport {
 
     private static final List<String> FIELDS = List.of("response", "instructions", "scene", "pov", "present", "reasoning");
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_GET_PART,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_GET_PART, llmDescription = L.DESC_COMMAND_GET_PART_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_GET_PART_RETURN))
+                    @CommandParameter(name = "part", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_GET_PART,
+            description = M_L.DESC_COMMAND_GET_PART,
+            llmDescription = M_L.DESC_COMMAND_GET_PART_LLM,
+            parameters = @MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_PART_PARAM),
+            returns = M_L.DESC_COMMAND_GET_PART_RETURN)
     public void getPart(CommandContext context) throws Exception {
         getPart(context, ref(context, "part"), null, null, null, null);
     }
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_GET_PART,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_GET_PART, llmDescription = L.DESC_COMMAND_GET_PART_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM),
-                    @CommandParameter(name = "branch", type = String.class, description = L.DESC_COMMAND_BRANCH_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_GET_PART_RETURN))
+                    @CommandParameter(name = "part", type = String.class),
+                    @CommandParameter(name = "branch", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_GET_PART,
+            description = M_L.DESC_COMMAND_GET_PART,
+            llmDescription = M_L.DESC_COMMAND_GET_PART_LLM,
+            parameters = {@MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_PART_PARAM),
+                    @MarginaliaParameterText(name = "branch", description = M_L.DESC_COMMAND_BRANCH_PARAM)},
+            returns = M_L.DESC_COMMAND_GET_PART_RETURN)
     public void getPartBranch(CommandContext context) throws Exception {
         getPart(context, ref(context, "part"), ref(context, "branch"), null, null, null);
     }
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_GET_PART,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_GET_PART, llmDescription = L.DESC_COMMAND_GET_PART_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM),
-                    @CommandParameter(name = "branch", type = String.class, description = L.DESC_COMMAND_BRANCH_PARAM),
-                    @CommandParameter(name = "offset", type = Integer.class, optional = true, defaultValue = "0", min = "0", description = L.DESC_COMMAND_OFFSET_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_GET_PART_RETURN))
+                    @CommandParameter(name = "part", type = String.class),
+                    @CommandParameter(name = "branch", type = String.class),
+                    @CommandParameter(name = "offset", type = Integer.class, optional = true, defaultValue = "0", min = "0")}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_GET_PART,
+            description = M_L.DESC_COMMAND_GET_PART,
+            llmDescription = M_L.DESC_COMMAND_GET_PART_LLM,
+            parameters = {@MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_PART_PARAM),
+                    @MarginaliaParameterText(name = "branch", description = M_L.DESC_COMMAND_BRANCH_PARAM),
+                    @MarginaliaParameterText(name = "offset", description = M_L.DESC_COMMAND_OFFSET_PARAM)},
+            returns = M_L.DESC_COMMAND_GET_PART_RETURN)
     public void getPartOffset(CommandContext context) throws Exception {
         getPart(context, ref(context, "part"), ref(context, "branch"), context.get("offset", Integer.class), null, null);
     }
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_GET_PART,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_GET_PART, llmDescription = L.DESC_COMMAND_GET_PART_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM),
-                    @CommandParameter(name = "branch", type = String.class, description = L.DESC_COMMAND_BRANCH_PARAM),
-                    @CommandParameter(name = "offset", type = Integer.class, optional = true, defaultValue = "0", min = "0", description = L.DESC_COMMAND_OFFSET_PARAM),
-                    @CommandParameter(name = "length", type = Integer.class, optional = true, defaultValue = "6000", min = "1", max = "20000", description = L.DESC_COMMAND_LENGTH_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_GET_PART_RETURN))
+                    @CommandParameter(name = "part", type = String.class),
+                    @CommandParameter(name = "branch", type = String.class),
+                    @CommandParameter(name = "offset", type = Integer.class, optional = true, defaultValue = "0", min = "0"),
+                    @CommandParameter(name = "length", type = Integer.class, optional = true, defaultValue = "6000", min = "1", max = "20000")}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_GET_PART,
+            description = M_L.DESC_COMMAND_GET_PART,
+            llmDescription = M_L.DESC_COMMAND_GET_PART_LLM,
+            parameters = {@MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_PART_PARAM),
+                    @MarginaliaParameterText(name = "branch", description = M_L.DESC_COMMAND_BRANCH_PARAM),
+                    @MarginaliaParameterText(name = "offset", description = M_L.DESC_COMMAND_OFFSET_PARAM),
+                    @MarginaliaParameterText(name = "length", description = M_L.DESC_COMMAND_LENGTH_PARAM)},
+            returns = M_L.DESC_COMMAND_GET_PART_RETURN)
     public void getPartLength(CommandContext context) throws Exception {
         getPart(context, ref(context, "part"), ref(context, "branch"), context.get("offset", Integer.class), context.get("length", Integer.class), null);
     }
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_GET_PART,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_GET_PART, llmDescription = L.DESC_COMMAND_GET_PART_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM),
-                    @CommandParameter(name = "branch", type = String.class, description = L.DESC_COMMAND_BRANCH_PARAM),
-                    @CommandParameter(name = "offset", type = Integer.class, optional = true, defaultValue = "0", min = "0", description = L.DESC_COMMAND_OFFSET_PARAM),
-                    @CommandParameter(name = "length", type = Integer.class, optional = true, defaultValue = "6000", min = "1", max = "20000", description = L.DESC_COMMAND_LENGTH_PARAM),
-                    @CommandParameter(name = "field", type = String.class, description = L.DESC_COMMAND_FIELD_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_GET_PART_RETURN))
+                    @CommandParameter(name = "part", type = String.class),
+                    @CommandParameter(name = "branch", type = String.class),
+                    @CommandParameter(name = "offset", type = Integer.class, optional = true, defaultValue = "0", min = "0"),
+                    @CommandParameter(name = "length", type = Integer.class, optional = true, defaultValue = "6000", min = "1", max = "20000"),
+                    @CommandParameter(name = "field", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_GET_PART,
+            description = M_L.DESC_COMMAND_GET_PART,
+            llmDescription = M_L.DESC_COMMAND_GET_PART_LLM,
+            parameters = {@MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_PART_PARAM),
+                    @MarginaliaParameterText(name = "branch", description = M_L.DESC_COMMAND_BRANCH_PARAM),
+                    @MarginaliaParameterText(name = "offset", description = M_L.DESC_COMMAND_OFFSET_PARAM),
+                    @MarginaliaParameterText(name = "length", description = M_L.DESC_COMMAND_LENGTH_PARAM),
+                    @MarginaliaParameterText(name = "field", description = M_L.DESC_COMMAND_FIELD_PARAM)},
+            returns = M_L.DESC_COMMAND_GET_PART_RETURN)
     public void getPartField(CommandContext context) throws Exception {
         getPart(context, ref(context, "part"), ref(context, "branch"), context.get("offset", Integer.class), context.get("length", Integer.class), context.get("field", String.class));
     }

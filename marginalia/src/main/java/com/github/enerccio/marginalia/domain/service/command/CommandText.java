@@ -1,13 +1,13 @@
 package com.github.enerccio.marginalia.domain.service.command;
 
-import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.loc.LocalizationKey;
 
+import java.util.List;
 import java.util.function.Function;
 
 /**
- * A text of a registered command (its human name, a description...): either the key of a localized text ({@link L} in the annotations of a command),
+ * A text of a registered command (its human name, a description...): either the key of a localized text,
  * resolved in the language of the user whenever it is shown, or a plain text of an extension that brings no
  * translations. Never both; a text with neither is {@link #isEmpty() empty}.
  *
@@ -34,7 +34,8 @@ public record CommandText(LocalizationKey key, String text) {
     }
 
     /**
-     * The text of the annotation attributes of a pair ({@code description} and {@code descriptionText}): the arrays
+     * The text of the annotation attributes of a pair (the {@code description} of the {@code CommandTextSource}
+     * annotation and {@code descriptionText}): the arrays
      * are the way to tell "not given" from "given", so each has none or one element and only one of them may have it (exactly one when the text is required).
      *
      * @param where the command (method) for the message
@@ -44,18 +45,18 @@ public record CommandText(LocalizationKey key, String text) {
      * @param required whether one of them has to be given
      * @throws IllegalArgumentException when the attributes are set wrongly
      */
-    public static CommandText of(String where, String field, L[] keys, String[] texts, boolean required) {
-        if (keys.length > 1 || texts.length > 1) {
-            throw new IllegalArgumentException(where + ": " + field + " takes one value, not " + Math.max(keys.length, texts.length));
+    public static CommandText of(String where, String field, List<LocalizationKey> keys, String[] texts, boolean required) {
+        if (keys.size() > 1 || texts.length > 1) {
+            throw new IllegalArgumentException(where + ": " + field + " takes one value, not " + Math.max(keys.size(), texts.length));
         }
-        if (keys.length == 1 && texts.length == 1) {
+        if (keys.size() == 1 && texts.length == 1) {
             throw new IllegalArgumentException(where + ": " + field + " is given as a localization key and as a text, use one of them");
         }
-        if (required && keys.length == 0 && texts.length == 0) {
+        if (required && keys.isEmpty() && texts.length == 0) {
             throw new IllegalArgumentException(where + ": " + field + " is not given, set it as a localization key or as a text ("
                     + field + " or " + field + "Text)");
         }
-        return keys.length == 1 ? of(keys[0]) : texts.length == 1 ? ofText(texts[0]) : NONE;
+        return keys.size() == 1 ? of(keys.getFirst()) : texts.length == 1 ? ofText(texts[0]) : NONE;
     }
 
     /** Whether there is no text to show. */

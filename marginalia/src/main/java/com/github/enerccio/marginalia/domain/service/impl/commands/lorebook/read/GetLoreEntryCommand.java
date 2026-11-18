@@ -1,7 +1,7 @@
 package com.github.enerccio.marginalia.domain.service.impl.commands.lorebook.read;
 
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.traits.*;
@@ -16,48 +16,70 @@ public class GetLoreEntryCommand extends LorebookReadSupport {
 
     static final String NAME = "get-lore-entry";
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_GET_LORE_ENTRY,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_GET_LORE_ENTRY, llmDescription = L.DESC_COMMAND_GET_LORE_ENTRY_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "entry", type = String.class, description = L.DESC_COMMAND_LORE_ENTRY_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_GET_LORE_ENTRY_RETURN))
+                    @CommandParameter(name = "entry", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_GET_LORE_ENTRY,
+            description = M_L.DESC_COMMAND_GET_LORE_ENTRY,
+            llmDescription = M_L.DESC_COMMAND_GET_LORE_ENTRY_LLM,
+            parameters = @MarginaliaParameterText(name = "entry", description = M_L.DESC_COMMAND_LORE_ENTRY_PARAM),
+            returns = M_L.DESC_COMMAND_GET_LORE_ENTRY_RETURN)
     public void getLoreEntry(CommandContext context) throws Exception {
         getLoreEntry(context, ref(context, "entry"), null, null, null);
     }
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_GET_LORE_ENTRY,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_GET_LORE_ENTRY, llmDescription = L.DESC_COMMAND_GET_LORE_ENTRY_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "entry", type = String.class, description = L.DESC_COMMAND_LORE_ENTRY_PARAM),
-                    @CommandParameter(name = "lorebook", type = String.class, description = L.DESC_COMMAND_LOREBOOK_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_GET_LORE_ENTRY_RETURN))
+                    @CommandParameter(name = "entry", type = String.class),
+                    @CommandParameter(name = "lorebook", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_GET_LORE_ENTRY,
+            description = M_L.DESC_COMMAND_GET_LORE_ENTRY,
+            llmDescription = M_L.DESC_COMMAND_GET_LORE_ENTRY_LLM,
+            parameters = {@MarginaliaParameterText(name = "entry", description = M_L.DESC_COMMAND_LORE_ENTRY_PARAM),
+                    @MarginaliaParameterText(name = "lorebook", description = M_L.DESC_COMMAND_LOREBOOK_PARAM)},
+            returns = M_L.DESC_COMMAND_GET_LORE_ENTRY_RETURN)
     public void getLoreEntryLorebook(CommandContext context) throws Exception {
         getLoreEntry(context, ref(context, "entry"), ref(context, "lorebook"), null, null);
     }
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_GET_LORE_ENTRY,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_GET_LORE_ENTRY, llmDescription = L.DESC_COMMAND_GET_LORE_ENTRY_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "entry", type = String.class, description = L.DESC_COMMAND_LORE_ENTRY_PARAM),
-                    @CommandParameter(name = "lorebook", type = String.class, description = L.DESC_COMMAND_LOREBOOK_PARAM),
-                    @CommandParameter(name = "offset", type = Integer.class, optional = true, defaultValue = "0", min = "0", description = L.DESC_COMMAND_OFFSET_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_GET_LORE_ENTRY_RETURN))
+                    @CommandParameter(name = "entry", type = String.class),
+                    @CommandParameter(name = "lorebook", type = String.class),
+                    @CommandParameter(name = "offset", type = Integer.class, optional = true, defaultValue = "0", min = "0")}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_GET_LORE_ENTRY,
+            description = M_L.DESC_COMMAND_GET_LORE_ENTRY,
+            llmDescription = M_L.DESC_COMMAND_GET_LORE_ENTRY_LLM,
+            parameters = {@MarginaliaParameterText(name = "entry", description = M_L.DESC_COMMAND_LORE_ENTRY_PARAM),
+                    @MarginaliaParameterText(name = "lorebook", description = M_L.DESC_COMMAND_LOREBOOK_PARAM),
+                    @MarginaliaParameterText(name = "offset", description = M_L.DESC_COMMAND_OFFSET_PARAM)},
+            returns = M_L.DESC_COMMAND_GET_LORE_ENTRY_RETURN)
     public void getLoreEntryOffset(CommandContext context) throws Exception {
         getLoreEntry(context, ref(context, "entry"), ref(context, "lorebook"), context.get("offset", Integer.class), null);
     }
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_GET_LORE_ENTRY,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_GET_LORE_ENTRY, llmDescription = L.DESC_COMMAND_GET_LORE_ENTRY_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "entry", type = String.class, description = L.DESC_COMMAND_LORE_ENTRY_PARAM),
-                    @CommandParameter(name = "lorebook", type = String.class, description = L.DESC_COMMAND_LOREBOOK_PARAM),
-                    @CommandParameter(name = "offset", type = Integer.class, optional = true, defaultValue = "0", min = "0", description = L.DESC_COMMAND_OFFSET_PARAM),
-                    @CommandParameter(name = "length", type = Integer.class, optional = true, defaultValue = "6000", min = "1", max = "20000", description = L.DESC_COMMAND_LENGTH_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_GET_LORE_ENTRY_RETURN))
+                    @CommandParameter(name = "entry", type = String.class),
+                    @CommandParameter(name = "lorebook", type = String.class),
+                    @CommandParameter(name = "offset", type = Integer.class, optional = true, defaultValue = "0", min = "0"),
+                    @CommandParameter(name = "length", type = Integer.class, optional = true, defaultValue = "6000", min = "1", max = "20000")}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_GET_LORE_ENTRY,
+            description = M_L.DESC_COMMAND_GET_LORE_ENTRY,
+            llmDescription = M_L.DESC_COMMAND_GET_LORE_ENTRY_LLM,
+            parameters = {@MarginaliaParameterText(name = "entry", description = M_L.DESC_COMMAND_LORE_ENTRY_PARAM),
+                    @MarginaliaParameterText(name = "lorebook", description = M_L.DESC_COMMAND_LOREBOOK_PARAM),
+                    @MarginaliaParameterText(name = "offset", description = M_L.DESC_COMMAND_OFFSET_PARAM),
+                    @MarginaliaParameterText(name = "length", description = M_L.DESC_COMMAND_LENGTH_PARAM)},
+            returns = M_L.DESC_COMMAND_GET_LORE_ENTRY_RETURN)
     public void getLoreEntryLength(CommandContext context) throws Exception {
         getLoreEntry(context, ref(context, "entry"), ref(context, "lorebook"), context.get("offset", Integer.class), context.get("length", Integer.class));
     }

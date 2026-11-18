@@ -8,7 +8,6 @@ import com.github.enerccio.marginalia.domain.service.SummaryService;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.M_L;
-import com.github.enerccio.marginalia.loc.L;
 import com.google.gson.JsonObject;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
@@ -22,23 +21,32 @@ public class SummaryGenerationCommands extends ManuscriptWriteSupport {
     static final String REGENERATE_SUMMARY = "regenerate-summary";
     static final String CREATE_META_SUMMARY = "create-meta-summary";
 
-    @Command(commandName = REGENERATE_SUMMARY, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_REGENERATE_SUMMARY, async = true,
+    @Command(commandName = REGENERATE_SUMMARY, batch = BatchPolicy.SINGLE, async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_REGENERATE_SUMMARY, llmDescription = L.DESC_COMMAND_REGENERATE_SUMMARY_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_HANDLE_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_REGENERATE_SUMMARY_RETURN))
+                    @CommandParameter(name = "part", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_REGENERATE_SUMMARY,
+            description = M_L.DESC_COMMAND_REGENERATE_SUMMARY,
+            llmDescription = M_L.DESC_COMMAND_REGENERATE_SUMMARY_LLM,
+            parameters = @MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_PART_HANDLE_PARAM),
+            returns = M_L.DESC_COMMAND_REGENERATE_SUMMARY_RETURN)
     public void regenerateSummary(CommandContext context) throws Exception {
         regenerateSummary(context, ref(context, "part"));
     }
 
-    @Command(commandName = CREATE_META_SUMMARY, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_CREATE_META_SUMMARY, async = true,
+    @Command(commandName = CREATE_META_SUMMARY, batch = BatchPolicy.SINGLE, async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_CREATE_META_SUMMARY, llmDescription = L.DESC_COMMAND_CREATE_META_SUMMARY_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "from", type = String.class, description = L.DESC_COMMAND_META_FROM_PARAM),
-                    @CommandParameter(name = "to", type = String.class, description = L.DESC_COMMAND_META_TO_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_CREATE_META_SUMMARY_RETURN))
+                    @CommandParameter(name = "from", type = String.class),
+                    @CommandParameter(name = "to", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_CREATE_META_SUMMARY,
+            description = M_L.DESC_COMMAND_CREATE_META_SUMMARY,
+            llmDescription = M_L.DESC_COMMAND_CREATE_META_SUMMARY_LLM,
+            parameters = {@MarginaliaParameterText(name = "from", description = M_L.DESC_COMMAND_META_FROM_PARAM),
+                    @MarginaliaParameterText(name = "to", description = M_L.DESC_COMMAND_META_TO_PARAM)},
+            returns = M_L.DESC_COMMAND_CREATE_META_SUMMARY_RETURN)
     public void createMetaSummary(CommandContext context) throws Exception {
         createMetaSummary(context, ref(context, "from"), ref(context, "to"));
     }

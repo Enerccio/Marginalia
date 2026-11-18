@@ -8,11 +8,16 @@ import com.github.enerccio.marginalia.domain.service.command.CommandRun;
 import com.github.enerccio.marginalia.domain.service.command.CommandText;
 import com.github.enerccio.marginalia.domain.service.impl.CommandServiceImpl;
 import com.github.enerccio.marginalia.domain.traits.Command;
+import com.github.enerccio.marginalia.domain.traits.MarginaliaParameterText;
+import com.github.enerccio.marginalia.domain.traits.MarginaliaCommandTexts;
 import com.github.enerccio.marginalia.domain.traits.CommandDataSeverity;
 import com.github.enerccio.marginalia.domain.traits.CommandParameter;
+import com.github.enerccio.marginalia.domain.traits.CommandParameterText;
+import com.github.enerccio.marginalia.domain.traits.CommandTexts;
 import com.github.enerccio.marginalia.domain.traits.CommandParameterSignature;
 import com.github.enerccio.marginalia.domain.traits.CommandReturn;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.LocalizationKey;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -195,9 +200,36 @@ class CommandServiceTest {
     }
 
     public static class Localized {
-        @Command(commandName = "localized", humanName = L.LABEL_CASE_SENSITIVE, description = L.LABEL_CLOSE,
-                signature = @CommandParameterSignature(@CommandParameter(name = "x", description = L.LABEL_ID)),
-                returns = @CommandReturn(name = "r", type = String.class, description = L.LABEL_ID))
+        @Command(commandName = "localized",
+                signature = @CommandParameterSignature(@CommandParameter(name = "x")),
+                returns = @CommandReturn(name = "r", type = String.class))
+        @MarginaliaCommandTexts(humanName = M_L.LABEL_CASE_SENSITIVE, description = M_L.LABEL_ADD_BOOK,
+                parameters = @MarginaliaParameterText(name = "x", description = M_L.LABEL_ID),
+                returns = M_L.LABEL_ID)
+        public void run(CommandContext context) {
+        }
+    }
+
+    /** A command of the platform: the same texts with its own annotation and enum. */
+    public static class PlatformLocalized {
+        @Command(commandName = "platform-localized", signature = @CommandParameterSignature(@CommandParameter(name = "x")))
+        @CommandTexts(humanName = L.LABEL_CLOSE, parameters = @CommandParameterText(name = "x", description = L.LABEL_YES))
+        public void run(CommandContext context) {
+        }
+    }
+
+    public static class TwoTextAnnotations {
+        @Command(commandName = "two-annotations")
+        @CommandTexts(humanName = L.LABEL_CLOSE)
+        @MarginaliaCommandTexts(humanName = M_L.LABEL_ID)
+        public void run(CommandContext context) {
+        }
+    }
+
+    public static class UnknownParameterText {
+        @Command(commandName = "unknown-parameter", humanNameText = "Unknown",
+                signature = @CommandParameterSignature(@CommandParameter(name = "x")))
+        @MarginaliaCommandTexts(parameters = @MarginaliaParameterText(name = "y", description = M_L.LABEL_ID))
         public void run(CommandContext context) {
         }
     }
@@ -209,33 +241,38 @@ class CommandServiceTest {
     }
 
     public static class BothTexts {
-        @Command(commandName = "both-texts", humanName = L.LABEL_ID, humanNameText = "Id")
+        @Command(commandName = "both-texts", humanNameText = "Id")
+        @MarginaliaCommandTexts(humanName = M_L.LABEL_ID)
         public void run(CommandContext context) {
         }
     }
 
     public static class TwoKeys {
-        @Command(commandName = "two-keys", humanNameText = "Two", description = {L.LABEL_ID, L.LABEL_CLOSE})
+        @Command(commandName = "two-keys", humanNameText = "Two")
+        @MarginaliaCommandTexts(description = {M_L.LABEL_ID, M_L.LABEL_ADD_BOOK})
         public void run(CommandContext context) {
         }
     }
 
     public static class BothParameterTexts {
         @Command(commandName = "both-parameter-texts", humanNameText = "Both",
-                signature = @CommandParameterSignature(@CommandParameter(name = "x", description = L.LABEL_ID, descriptionText = "x")))
+                signature = @CommandParameterSignature(@CommandParameter(name = "x", descriptionText = "x")))
+        @MarginaliaCommandTexts(parameters = @MarginaliaParameterText(name = "x", description = M_L.LABEL_ID))
         public void run(CommandContext context) {
         }
     }
 
     public static class BothReturnTexts {
         @Command(commandName = "both-return-texts", humanNameText = "Both",
-                returns = @CommandReturn(name = "r", type = String.class, description = L.LABEL_ID, descriptionText = "r"))
+                returns = @CommandReturn(name = "r", type = String.class, descriptionText = "r"))
+        @MarginaliaCommandTexts(returns = M_L.LABEL_ID)
         public void run(CommandContext context) {
         }
     }
 
     public static class DifferentKinds {
-        @Command(commandName = "kinds", humanName = L.LABEL_ID, signature = @CommandParameterSignature)
+        @Command(commandName = "kinds", signature = @CommandParameterSignature)
+        @MarginaliaCommandTexts(humanName = M_L.LABEL_ID)
         public void one(CommandContext context) {
         }
 
@@ -276,13 +313,36 @@ class CommandServiceTest {
         commands.registerCommands(new Localized());
 
         CommandDefinition localized = firstOf("localized");
-        assertThat(localized.humanName()).isEqualTo(CommandText.of(L.LABEL_CASE_SENSITIVE));
+        assertThat(localized.humanName()).isEqualTo(CommandText.of(M_L.LABEL_CASE_SENSITIVE));
         assertThat(localized.humanName().get(LocalizationKey::name)).isEqualTo("LABEL_CASE_SENSITIVE");
-        assertThat(localized.description().key()).isEqualTo(L.LABEL_CLOSE);
+        assertThat(localized.description().key()).isEqualTo(M_L.LABEL_ADD_BOOK);
         assertThat(localized.llmDescription().isEmpty()).isTrue();
         assertThat(localized.llmDescription().get(LocalizationKey::name)).isEmpty();
-        assertThat(localized.parameters().getFirst().description().key()).isEqualTo(L.LABEL_ID);
-        assertThat(localized.returns().description().key()).isEqualTo(L.LABEL_ID);
+        assertThat(localized.parameters().getFirst().description().key()).isEqualTo(M_L.LABEL_ID);
+        assertThat(localized.returns().description().key()).isEqualTo(M_L.LABEL_ID);
+    }
+
+    @Test
+    void eachLayerGivesItsTextsWithItsOwnAnnotation() {
+        commands.registerCommands(new PlatformLocalized());
+
+        CommandDefinition platform = firstOf("platform-localized");
+        assertThat(platform.humanName().key()).isEqualTo(L.LABEL_CLOSE);
+        assertThat(platform.parameters().getFirst().description().key()).isEqualTo(L.LABEL_YES);
+    }
+
+    @Test
+    void aCommandHasOneTextAnnotation() {
+        assertThatThrownBy(() -> commands.registerCommands(new TwoTextAnnotations()))
+                .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("two @CommandTextSource annotations");
+        assertThat(commands.getCommands()).isEmpty();
+    }
+
+    @Test
+    void aParameterTextNamesAParameterOfTheSignature() {
+        assertThatThrownBy(() -> commands.registerCommands(new UnknownParameterText()))
+                .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("does not have: [y]");
+        assertThat(commands.getCommands()).isEmpty();
     }
 
     @Test

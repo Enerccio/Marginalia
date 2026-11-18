@@ -4,9 +4,10 @@ import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.service.TemplateService;
 import com.github.enerccio.marginalia.domain.templates.TemplateData;
 import com.github.enerccio.marginalia.domain.templates.macros.Macros;
-import com.github.enerccio.marginalia.domain.traits.LocalizedTemplateDescription;
+import com.github.enerccio.marginalia.domain.traits.LocalizedAnnotations;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.HasHelper;
 import com.vaadin.flow.component.HasValue;
@@ -75,17 +76,17 @@ public final class TemplateHints {
 
             Set<String> declared = new HashSet<>();
             for (Field f : clazz.getDeclaredFields()) {
-                LocalizedTemplateDescription descAnnot = f.getAnnotation(LocalizedTemplateDescription.class);
-                if (descAnnot == null) {
+                LocalizationKey description = LocalizedAnnotations.templateDescription(f);
+                if (description == null) {
                     String getterName = "get" + StringUtils.capitalize(f.getName());
                     try {
                         Method method = clazz.getMethod(getterName);
-                        descAnnot = method.getAnnotation(LocalizedTemplateDescription.class);
+                        description = LocalizedAnnotations.templateDescription(method);
                     } catch (Exception ignored) {
                     }
                 }
 
-                String descriptionText = descAnnot != null ? loc.getValue(descAnnot.loc()) : "";
+                String descriptionText = description != null ? loc.getValue(description) : "";
                 layout.add(createItem("{{" + f.getName() + "}}", descriptionText));
                 declared.add(f.getName());
             }

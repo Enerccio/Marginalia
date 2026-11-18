@@ -5,7 +5,6 @@ import com.github.enerccio.marginalia.domain.service.OsgiService;
 import com.github.enerccio.marginalia.extensions.ExtensionHasLocalization;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
 import com.github.enerccio.marginalia.loc.L;
-import com.github.enerccio.marginalia.loc.LocalizationKey;
 import com.github.enerccio.marginalia.loc.Language;
 import com.github.enerccio.marginalia.loc.LocalizationBundle;
 import com.github.enerccio.marginalia.loc.LocalizationBundleBase;

@@ -13,7 +13,6 @@ import com.github.enerccio.marginalia.domain.service.command.CommandScope;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationOptions;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.M_L;
-import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.utils.QuoteFinder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -56,22 +55,30 @@ public class AnnotationWriteCommands extends ManuscriptWriteSupport {
     @Autowired
     private PhraseWatchService phraseWatchService;
 
-    @Command(commandName = SCAN_PHRASES, humanName = L.LABEL_COMMAND_SCAN_PHRASES,
+    @Command(commandName = SCAN_PHRASES,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_SCAN_PHRASES, llmDescription = L.DESC_COMMAND_SCAN_PHRASES_LLM,
             signature = @CommandParameterSignature,
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SCAN_PHRASES_RETURN))
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SCAN_PHRASES,
+            description = M_L.DESC_COMMAND_SCAN_PHRASES,
+            llmDescription = M_L.DESC_COMMAND_SCAN_PHRASES_LLM,
+            returns = M_L.DESC_COMMAND_SCAN_PHRASES_RETURN)
     public void scanPhrases(CommandContext context) throws Exception {
         scanPhrases(context, null, null);
     }
 
-    @Command(commandName = SCAN_PHRASES, humanName = L.LABEL_COMMAND_SCAN_PHRASES,
+    @Command(commandName = SCAN_PHRASES,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_SCAN_PHRASES, llmDescription = L.DESC_COMMAND_SCAN_PHRASES_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "from", type = String.class, description = L.DESC_COMMAND_SCAN_PHRASES_FROM_PARAM),
-                    @CommandParameter(name = "to", type = String.class, description = L.DESC_COMMAND_SCAN_PHRASES_TO_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SCAN_PHRASES_RETURN))
+                    @CommandParameter(name = "from", type = String.class),
+                    @CommandParameter(name = "to", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SCAN_PHRASES,
+            description = M_L.DESC_COMMAND_SCAN_PHRASES,
+            llmDescription = M_L.DESC_COMMAND_SCAN_PHRASES_LLM,
+            parameters = {@MarginaliaParameterText(name = "from", description = M_L.DESC_COMMAND_SCAN_PHRASES_FROM_PARAM),
+                    @MarginaliaParameterText(name = "to", description = M_L.DESC_COMMAND_SCAN_PHRASES_TO_PARAM)},
+            returns = M_L.DESC_COMMAND_SCAN_PHRASES_RETURN)
     public void scanPhrasesBetween(CommandContext context) throws Exception {
         scanPhrases(context, ref(context, "from"), ref(context, "to"));
     }
@@ -90,149 +97,216 @@ public class AnnotationWriteCommands extends ManuscriptWriteSupport {
         answer(context, result);
     }
 
-    @Command(commandName = GENERATE, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_GENERATE_ANNOTATION, async = true,
+    @Command(commandName = GENERATE, batch = BatchPolicy.SINGLE, async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_GENERATE_ANNOTATION, llmDescription = L.DESC_COMMAND_GENERATE_ANNOTATION_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_HANDLE_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_GENERATE_ANNOTATION_RETURN))
+                    @CommandParameter(name = "part", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_GENERATE_ANNOTATION,
+            description = M_L.DESC_COMMAND_GENERATE_ANNOTATION,
+            llmDescription = M_L.DESC_COMMAND_GENERATE_ANNOTATION_LLM,
+            parameters = @MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_PART_HANDLE_PARAM),
+            returns = M_L.DESC_COMMAND_GENERATE_ANNOTATION_RETURN)
     public void generate(CommandContext context) throws Exception {
         generate(context, ref(context, "part"), null);
     }
 
-    @Command(commandName = GENERATE, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_GENERATE_ANNOTATION, async = true,
+    @Command(commandName = GENERATE, batch = BatchPolicy.SINGLE, async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_GENERATE_ANNOTATION, llmDescription = L.DESC_COMMAND_GENERATE_ANNOTATION_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_HANDLE_PARAM),
-                    @CommandParameter(name = "profile", type = String.class, description = L.DESC_COMMAND_GEN_PROFILE_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_GENERATE_ANNOTATION_RETURN))
+                    @CommandParameter(name = "part", type = String.class),
+                    @CommandParameter(name = "profile", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_GENERATE_ANNOTATION,
+            description = M_L.DESC_COMMAND_GENERATE_ANNOTATION,
+            llmDescription = M_L.DESC_COMMAND_GENERATE_ANNOTATION_LLM,
+            parameters = {@MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_PART_HANDLE_PARAM),
+                    @MarginaliaParameterText(name = "profile", description = M_L.DESC_COMMAND_GEN_PROFILE_PARAM)},
+            returns = M_L.DESC_COMMAND_GENERATE_ANNOTATION_RETURN)
     public void generateProfile(CommandContext context) throws Exception {
         generate(context, ref(context, "part"), ref(context, "profile"));
     }
 
-    @Command(commandName = CREATE, humanName = L.LABEL_COMMAND_CREATE_ANNOTATION,
+    @Command(commandName = CREATE,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_CREATE_ANNOTATION, llmDescription = L.DESC_COMMAND_CREATE_ANNOTATION_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_HANDLE_PARAM),
-                    @CommandParameter(name = "text", type = String.class, description = L.DESC_COMMAND_ANNOTATION_TEXT_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_CREATE_ANNOTATION_RETURN))
+                    @CommandParameter(name = "part", type = String.class),
+                    @CommandParameter(name = "text", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_CREATE_ANNOTATION,
+            description = M_L.DESC_COMMAND_CREATE_ANNOTATION,
+            llmDescription = M_L.DESC_COMMAND_CREATE_ANNOTATION_LLM,
+            parameters = {@MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_PART_HANDLE_PARAM),
+                    @MarginaliaParameterText(name = "text", description = M_L.DESC_COMMAND_ANNOTATION_TEXT_PARAM)},
+            returns = M_L.DESC_COMMAND_CREATE_ANNOTATION_RETURN)
     public void create(CommandContext context) throws Exception {
         create(context, ref(context, "part"), context.get("text", String.class), null, null);
     }
 
-    @Command(commandName = CREATE, humanName = L.LABEL_COMMAND_CREATE_ANNOTATION,
+    @Command(commandName = CREATE,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_CREATE_ANNOTATION, llmDescription = L.DESC_COMMAND_CREATE_ANNOTATION_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_HANDLE_PARAM),
-                    @CommandParameter(name = "text", type = String.class, description = L.DESC_COMMAND_ANNOTATION_TEXT_PARAM),
-                    @CommandParameter(name = "quote", type = String.class, optional = true, description = L.DESC_COMMAND_ANNOTATION_QUOTE_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_CREATE_ANNOTATION_RETURN))
+                    @CommandParameter(name = "part", type = String.class),
+                    @CommandParameter(name = "text", type = String.class),
+                    @CommandParameter(name = "quote", type = String.class, optional = true)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_CREATE_ANNOTATION,
+            description = M_L.DESC_COMMAND_CREATE_ANNOTATION,
+            llmDescription = M_L.DESC_COMMAND_CREATE_ANNOTATION_LLM,
+            parameters = {@MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_PART_HANDLE_PARAM),
+                    @MarginaliaParameterText(name = "text", description = M_L.DESC_COMMAND_ANNOTATION_TEXT_PARAM),
+                    @MarginaliaParameterText(name = "quote", description = M_L.DESC_COMMAND_ANNOTATION_QUOTE_PARAM)},
+            returns = M_L.DESC_COMMAND_CREATE_ANNOTATION_RETURN)
     public void createQuote(CommandContext context) throws Exception {
         create(context, ref(context, "part"), context.get("text", String.class), context.get("quote", String.class), null);
     }
 
-    @Command(commandName = CREATE, humanName = L.LABEL_COMMAND_CREATE_ANNOTATION,
+    @Command(commandName = CREATE,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_CREATE_ANNOTATION, llmDescription = L.DESC_COMMAND_CREATE_ANNOTATION_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_HANDLE_PARAM),
-                    @CommandParameter(name = "text", type = String.class, description = L.DESC_COMMAND_ANNOTATION_TEXT_PARAM),
-                    @CommandParameter(name = "quote", type = String.class, optional = true, description = L.DESC_COMMAND_ANNOTATION_QUOTE_PARAM),
-                    @CommandParameter(name = "type", type = String.class, optional = true, description = L.DESC_COMMAND_ANNOTATION_TYPE_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_CREATE_ANNOTATION_RETURN))
+                    @CommandParameter(name = "part", type = String.class),
+                    @CommandParameter(name = "text", type = String.class),
+                    @CommandParameter(name = "quote", type = String.class, optional = true),
+                    @CommandParameter(name = "type", type = String.class, optional = true)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_CREATE_ANNOTATION,
+            description = M_L.DESC_COMMAND_CREATE_ANNOTATION,
+            llmDescription = M_L.DESC_COMMAND_CREATE_ANNOTATION_LLM,
+            parameters = {@MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_PART_HANDLE_PARAM),
+                    @MarginaliaParameterText(name = "text", description = M_L.DESC_COMMAND_ANNOTATION_TEXT_PARAM),
+                    @MarginaliaParameterText(name = "quote", description = M_L.DESC_COMMAND_ANNOTATION_QUOTE_PARAM),
+                    @MarginaliaParameterText(name = "type", description = M_L.DESC_COMMAND_ANNOTATION_TYPE_PARAM)},
+            returns = M_L.DESC_COMMAND_CREATE_ANNOTATION_RETURN)
     public void createType(CommandContext context) throws Exception {
         create(context, ref(context, "part"), context.get("text", String.class), context.get("quote", String.class),
                 context.get("type", String.class));
     }
 
-    @Command(commandName = UPDATE, humanName = L.LABEL_COMMAND_UPDATE_ANNOTATION,
+    @Command(commandName = UPDATE,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_UPDATE_ANNOTATION, llmDescription = L.DESC_COMMAND_UPDATE_ANNOTATION_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "annotation", type = String.class, description = L.DESC_COMMAND_ANNOTATION_PARAM),
-                    @CommandParameter(name = "text", type = String.class, description = L.DESC_COMMAND_ANNOTATION_TEXT_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_UPDATE_ANNOTATION_RETURN))
+                    @CommandParameter(name = "annotation", type = String.class),
+                    @CommandParameter(name = "text", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_UPDATE_ANNOTATION,
+            description = M_L.DESC_COMMAND_UPDATE_ANNOTATION,
+            llmDescription = M_L.DESC_COMMAND_UPDATE_ANNOTATION_LLM,
+            parameters = {@MarginaliaParameterText(name = "annotation", description = M_L.DESC_COMMAND_ANNOTATION_PARAM),
+                    @MarginaliaParameterText(name = "text", description = M_L.DESC_COMMAND_ANNOTATION_TEXT_PARAM)},
+            returns = M_L.DESC_COMMAND_UPDATE_ANNOTATION_RETURN)
     public void update(CommandContext context) throws Exception {
         update(context, ref(context, "annotation"), context.get("text", String.class), null, null);
     }
 
-    @Command(commandName = UPDATE, humanName = L.LABEL_COMMAND_UPDATE_ANNOTATION,
+    @Command(commandName = UPDATE,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_UPDATE_ANNOTATION, llmDescription = L.DESC_COMMAND_UPDATE_ANNOTATION_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "annotation", type = String.class, description = L.DESC_COMMAND_ANNOTATION_PARAM),
-                    @CommandParameter(name = "text", type = String.class, description = L.DESC_COMMAND_ANNOTATION_TEXT_PARAM),
-                    @CommandParameter(name = "type", type = String.class, optional = true, description = L.DESC_COMMAND_ANNOTATION_TYPE_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_UPDATE_ANNOTATION_RETURN))
+                    @CommandParameter(name = "annotation", type = String.class),
+                    @CommandParameter(name = "text", type = String.class),
+                    @CommandParameter(name = "type", type = String.class, optional = true)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_UPDATE_ANNOTATION,
+            description = M_L.DESC_COMMAND_UPDATE_ANNOTATION,
+            llmDescription = M_L.DESC_COMMAND_UPDATE_ANNOTATION_LLM,
+            parameters = {@MarginaliaParameterText(name = "annotation", description = M_L.DESC_COMMAND_ANNOTATION_PARAM),
+                    @MarginaliaParameterText(name = "text", description = M_L.DESC_COMMAND_ANNOTATION_TEXT_PARAM),
+                    @MarginaliaParameterText(name = "type", description = M_L.DESC_COMMAND_ANNOTATION_TYPE_PARAM)},
+            returns = M_L.DESC_COMMAND_UPDATE_ANNOTATION_RETURN)
     public void updateType(CommandContext context) throws Exception {
         update(context, ref(context, "annotation"), context.get("text", String.class), context.get("type", String.class), null);
     }
 
-    @Command(commandName = UPDATE, humanName = L.LABEL_COMMAND_UPDATE_ANNOTATION,
+    @Command(commandName = UPDATE,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_UPDATE_ANNOTATION, llmDescription = L.DESC_COMMAND_UPDATE_ANNOTATION_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "annotation", type = String.class, description = L.DESC_COMMAND_ANNOTATION_PARAM),
-                    @CommandParameter(name = "text", type = String.class, description = L.DESC_COMMAND_ANNOTATION_TEXT_PARAM),
-                    @CommandParameter(name = "type", type = String.class, optional = true, description = L.DESC_COMMAND_ANNOTATION_TYPE_PARAM),
-                    @CommandParameter(name = "sendToPrompt", type = Boolean.class, optional = true, description = L.DESC_COMMAND_ANNOTATION_SEND_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_UPDATE_ANNOTATION_RETURN))
+                    @CommandParameter(name = "annotation", type = String.class),
+                    @CommandParameter(name = "text", type = String.class),
+                    @CommandParameter(name = "type", type = String.class, optional = true),
+                    @CommandParameter(name = "sendToPrompt", type = Boolean.class, optional = true)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_UPDATE_ANNOTATION,
+            description = M_L.DESC_COMMAND_UPDATE_ANNOTATION,
+            llmDescription = M_L.DESC_COMMAND_UPDATE_ANNOTATION_LLM,
+            parameters = {@MarginaliaParameterText(name = "annotation", description = M_L.DESC_COMMAND_ANNOTATION_PARAM),
+                    @MarginaliaParameterText(name = "text", description = M_L.DESC_COMMAND_ANNOTATION_TEXT_PARAM),
+                    @MarginaliaParameterText(name = "type", description = M_L.DESC_COMMAND_ANNOTATION_TYPE_PARAM),
+                    @MarginaliaParameterText(name = "sendToPrompt", description = M_L.DESC_COMMAND_ANNOTATION_SEND_PARAM)},
+            returns = M_L.DESC_COMMAND_UPDATE_ANNOTATION_RETURN)
     public void updateSend(CommandContext context) throws Exception {
         update(context, ref(context, "annotation"), context.get("text", String.class), context.get("type", String.class),
                 context.get("sendToPrompt", Boolean.class));
     }
 
-    @Command(commandName = RESOLVE, humanName = L.LABEL_COMMAND_RESOLVE_ANNOTATION,
+    @Command(commandName = RESOLVE,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_RESOLVE_ANNOTATION, llmDescription = L.DESC_COMMAND_RESOLVE_ANNOTATION_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "annotation", type = String.class, description = L.DESC_COMMAND_ANNOTATION_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_RESOLVE_ANNOTATION_RETURN))
+                    @CommandParameter(name = "annotation", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_RESOLVE_ANNOTATION,
+            description = M_L.DESC_COMMAND_RESOLVE_ANNOTATION,
+            llmDescription = M_L.DESC_COMMAND_RESOLVE_ANNOTATION_LLM,
+            parameters = @MarginaliaParameterText(name = "annotation", description = M_L.DESC_COMMAND_ANNOTATION_PARAM),
+            returns = M_L.DESC_COMMAND_RESOLVE_ANNOTATION_RETURN)
     public void resolve(CommandContext context) throws Exception {
         resolve(context, ref(context, "annotation"), null);
     }
 
-    @Command(commandName = RESOLVE, humanName = L.LABEL_COMMAND_RESOLVE_ANNOTATION,
+    @Command(commandName = RESOLVE,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_RESOLVE_ANNOTATION, llmDescription = L.DESC_COMMAND_RESOLVE_ANNOTATION_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "annotation", type = String.class, description = L.DESC_COMMAND_ANNOTATION_PARAM),
-                    @CommandParameter(name = "status", type = String.class, optional = true, defaultValue = "resolved", description = L.DESC_COMMAND_ANNOTATION_STATUS_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_RESOLVE_ANNOTATION_RETURN))
+                    @CommandParameter(name = "annotation", type = String.class),
+                    @CommandParameter(name = "status", type = String.class, optional = true, defaultValue = "resolved")}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_RESOLVE_ANNOTATION,
+            description = M_L.DESC_COMMAND_RESOLVE_ANNOTATION,
+            llmDescription = M_L.DESC_COMMAND_RESOLVE_ANNOTATION_LLM,
+            parameters = {@MarginaliaParameterText(name = "annotation", description = M_L.DESC_COMMAND_ANNOTATION_PARAM),
+                    @MarginaliaParameterText(name = "status", description = M_L.DESC_COMMAND_ANNOTATION_STATUS_PARAM)},
+            returns = M_L.DESC_COMMAND_RESOLVE_ANNOTATION_RETURN)
     public void resolveStatus(CommandContext context) throws Exception {
         resolve(context, ref(context, "annotation"), ref(context, "status"));
     }
 
-    @Command(commandName = REATTACH, humanName = L.LABEL_COMMAND_REATTACH_ANNOTATION,
+    @Command(commandName = REATTACH,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_REATTACH_ANNOTATION, llmDescription = L.DESC_COMMAND_REATTACH_ANNOTATION_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "annotation", type = String.class, description = L.DESC_COMMAND_ANNOTATION_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_REATTACH_ANNOTATION_RETURN))
+                    @CommandParameter(name = "annotation", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_REATTACH_ANNOTATION,
+            description = M_L.DESC_COMMAND_REATTACH_ANNOTATION,
+            llmDescription = M_L.DESC_COMMAND_REATTACH_ANNOTATION_LLM,
+            parameters = @MarginaliaParameterText(name = "annotation", description = M_L.DESC_COMMAND_ANNOTATION_PARAM),
+            returns = M_L.DESC_COMMAND_REATTACH_ANNOTATION_RETURN)
     public void reattachWhole(CommandContext context) throws Exception {
         reattach(context, ref(context, "annotation"), null);
     }
 
-    @Command(commandName = REATTACH, humanName = L.LABEL_COMMAND_REATTACH_ANNOTATION,
+    @Command(commandName = REATTACH,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_REATTACH_ANNOTATION, llmDescription = L.DESC_COMMAND_REATTACH_ANNOTATION_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "annotation", type = String.class, description = L.DESC_COMMAND_ANNOTATION_PARAM),
-                    @CommandParameter(name = "quote", type = String.class, optional = true, description = L.DESC_COMMAND_ANNOTATION_QUOTE_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_REATTACH_ANNOTATION_RETURN))
+                    @CommandParameter(name = "annotation", type = String.class),
+                    @CommandParameter(name = "quote", type = String.class, optional = true)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_REATTACH_ANNOTATION,
+            description = M_L.DESC_COMMAND_REATTACH_ANNOTATION,
+            llmDescription = M_L.DESC_COMMAND_REATTACH_ANNOTATION_LLM,
+            parameters = {@MarginaliaParameterText(name = "annotation", description = M_L.DESC_COMMAND_ANNOTATION_PARAM),
+                    @MarginaliaParameterText(name = "quote", description = M_L.DESC_COMMAND_ANNOTATION_QUOTE_PARAM)},
+            returns = M_L.DESC_COMMAND_REATTACH_ANNOTATION_RETURN)
     public void reattachQuote(CommandContext context) throws Exception {
         reattach(context, ref(context, "annotation"), context.get("quote", String.class));
     }
 
-    @Command(commandName = DELETE, humanName = L.LABEL_COMMAND_DELETE_ANNOTATION,
+    @Command(commandName = DELETE,
             dataSeverity = CommandDataSeverity.DESTRUCTIVE,
-            description = L.DESC_COMMAND_DELETE_ANNOTATION, llmDescription = L.DESC_COMMAND_DELETE_ANNOTATION_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "annotation", type = String.class, description = L.DESC_COMMAND_ANNOTATION_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_DELETE_ANNOTATION_RETURN))
+                    @CommandParameter(name = "annotation", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_DELETE_ANNOTATION,
+            description = M_L.DESC_COMMAND_DELETE_ANNOTATION,
+            llmDescription = M_L.DESC_COMMAND_DELETE_ANNOTATION_LLM,
+            parameters = @MarginaliaParameterText(name = "annotation", description = M_L.DESC_COMMAND_ANNOTATION_PARAM),
+            returns = M_L.DESC_COMMAND_DELETE_ANNOTATION_RETURN)
     public void delete(CommandContext context) throws Exception {
         Book book = new Book(context);
         Annotation annotation = book.annotation(ref(context, "annotation"));

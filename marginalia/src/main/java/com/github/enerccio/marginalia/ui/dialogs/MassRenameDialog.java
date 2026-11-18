@@ -221,7 +221,7 @@ public class MassRenameDialog extends Dialog implements LLMInteract {
         textBox = field(loc.getValue(M_L.LABEL_RENAME_TEXT_TO_ADD), "260px");
         findBox = field(loc.getValue(M_L.LABEL_RENAME_FIND), "220px");
         withBox = field(loc.getValue(M_L.LABEL_REPLACE_WITH), "220px");
-        caseBox = new Checkbox(loc.getValue(L.LABEL_CASE_SENSITIVE));
+        caseBox = new Checkbox(loc.getValue(M_L.LABEL_CASE_SENSITIVE));
         caseBox.addValueChangeListener(event -> preview());
         patternBox = field(loc.getValue(M_L.LABEL_RENAME_PATTERN), "260px");
         patternBox.setValue(MassRename.NAME + " " + MassRename.NUMBER);

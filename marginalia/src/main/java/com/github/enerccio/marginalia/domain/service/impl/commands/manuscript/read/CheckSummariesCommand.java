@@ -1,7 +1,7 @@
 package com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.read;
 
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.domain.service.SummaryService.SummaryBlock;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.traits.*;
@@ -18,21 +18,28 @@ public class CheckSummariesCommand extends ManuscriptReadSupport {
 
     static final String NAME = "check-summaries";
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_CHECK_SUMMARIES,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_CHECK_SUMMARIES, llmDescription = L.DESC_COMMAND_CHECK_SUMMARIES_LLM,
             signature = @CommandParameterSignature,
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_CHECK_SUMMARIES_RETURN))
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_CHECK_SUMMARIES,
+            description = M_L.DESC_COMMAND_CHECK_SUMMARIES,
+            llmDescription = M_L.DESC_COMMAND_CHECK_SUMMARIES_LLM,
+            returns = M_L.DESC_COMMAND_CHECK_SUMMARIES_RETURN)
     public void checkSummaries(CommandContext context) throws Exception {
         checkSummaries(context, null);
     }
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_CHECK_SUMMARIES,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_CHECK_SUMMARIES, llmDescription = L.DESC_COMMAND_CHECK_SUMMARIES_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "branch", type = String.class, description = L.DESC_COMMAND_BRANCH_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_CHECK_SUMMARIES_RETURN))
+                    @CommandParameter(name = "branch", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_CHECK_SUMMARIES,
+            description = M_L.DESC_COMMAND_CHECK_SUMMARIES,
+            llmDescription = M_L.DESC_COMMAND_CHECK_SUMMARIES_LLM,
+            parameters = @MarginaliaParameterText(name = "branch", description = M_L.DESC_COMMAND_BRANCH_PARAM),
+            returns = M_L.DESC_COMMAND_CHECK_SUMMARIES_RETURN)
     public void checkSummariesBranch(CommandContext context) throws Exception {
         checkSummaries(context, ref(context, "branch"));
     }

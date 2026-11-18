@@ -7,6 +7,8 @@ import com.github.enerccio.marginalia.domain.traits.Command;
 import com.github.enerccio.marginalia.domain.traits.CommandParameter;
 import com.github.enerccio.marginalia.domain.traits.CommandParameterSignature;
 import com.github.enerccio.marginalia.domain.traits.CommandReturn;
+import com.github.enerccio.marginalia.domain.traits.LocalizedAnnotations;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
 import org.springframework.beans.factory.DisposableBean;
@@ -14,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.web.context.request.RequestAttributes;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -115,6 +118,14 @@ public class CommandServiceImpl implements CommandService, DisposableBean {
         if (signature.any() && signature.value().length > 0) {
             throw new IllegalArgumentException(describe(method) + " declares parameters and also takes any arguments");
         }
+        Annotation texts = LocalizedAnnotations.commandTexts(method);
+        Map<String, List<LocalizationKey>> parameterTexts = new HashMap<>();
+        for (Annotation parameterText : LocalizedAnnotations.annotations(texts, "parameters")) {
+            String parameterName = LocalizedAnnotations.string(parameterText, "name");
+            if (parameterTexts.put(parameterName, LocalizedAnnotations.keys(parameterText, "description")) != null) {
+                throw new IllegalArgumentException(describe(method) + " describes the parameter '" + parameterName + "' twice");
+            }
+        }
         List<CommandParameterDefinition> parameters = new ArrayList<>();
         Set<String> names = new HashSet<>();
         for (CommandParameter parameter : signature.value()) {
@@ -124,8 +135,13 @@ public class CommandServiceImpl implements CommandService, DisposableBean {
             }
             parameters.add(new CommandParameterDefinition(parameter.name(), parameter.type(),
                     CommandText.of(describe(method), "description of parameter " + parameter.name(),
-                            parameter.description(), parameter.descriptionText(), false),
+                            parameterTexts.getOrDefault(parameter.name(), List.of()), parameter.descriptionText(), false),
                     parameter.optional(), parameter.defaultValue(), List.of(parameter.allowed()), parameter.min(), parameter.max()));
+        }
+        if (!names.containsAll(parameterTexts.keySet())) {
+            Set<String> unknown = new TreeSet<>(parameterTexts.keySet());
+            unknown.removeAll(names);
+            throw new IllegalArgumentException(describe(method) + " describes parameters its signature does not have: " + unknown);
         }
         CommandReturn returns = meta.returns();
         try {
@@ -150,12 +166,14 @@ public class CommandServiceImpl implements CommandService, DisposableBean {
         if (meta.progressInStory() && !meta.async()) {
             throw new IllegalArgumentException("Command " + name + " in " + where + " shows its progress in the story, so it has to be async");
         }
-        return new CommandDefinition(name, CommandText.of(where, "humanName", meta.humanName(), meta.humanNameText(), true),
-                CommandText.of(where, "description", meta.description(), meta.descriptionText(), false),
-                CommandText.of(where, "llmDescription", meta.llmDescription(), meta.llmDescriptionText(), false), meta.async(),
+        return new CommandDefinition(name,
+                CommandText.of(where, "humanName", LocalizedAnnotations.keys(texts, "humanName"), meta.humanNameText(), true),
+                CommandText.of(where, "description", LocalizedAnnotations.keys(texts, "description"), meta.descriptionText(), false),
+                CommandText.of(where, "llmDescription", LocalizedAnnotations.keys(texts, "llmDescription"), meta.llmDescriptionText(), false), meta.async(),
                 meta.dataSeverity(), meta.availableForAgent(), meta.readOnly(), meta.availableInMacros(), meta.batch(), linked, suite, signature.any(), List.copyOf(parameters),
                 new CommandReturnDefinition(returns.name(), returns.type(),
-                        CommandText.of(where, "description of the return value", returns.description(), returns.descriptionText(), false)),
+                        CommandText.of(where, "description of the return value", LocalizedAnnotations.keys(texts, "returns"),
+                                returns.descriptionText(), false)),
                 meta.progressInStory());
     }
 

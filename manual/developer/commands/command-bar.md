@@ -86,7 +86,7 @@ server (`setOpenOnClick/Focus/Hover(false)`, `setModal(false)`). The CSS classes
 
 ### The help
 
-`CommandHelp.of(allCommands, text, localizer)` is pure (no UI; the `localizer` turns an `L` key into the text of the user, the bar passes `loc::getValue`) and returns the typed name, the command, its forms that fit what is
+`CommandHelp.of(allCommands, text, localizer)` is pure (no UI; the `localizer` turns a `LocalizationKey` into the text of the user, the bar passes `loc::getValue`) and returns the typed name, the command, its forms that fit what is
 typed, the index of the argument being typed and whether there are too many arguments. The bar renders: the description,
 the description with the data severity label, the forms with the current parameter highlighted and its description, the return value, and an error line for too many
 arguments, an unknown command or text without a slash. The texts are localization keys (`LABEL_COMMAND_*`,

@@ -7,7 +7,6 @@ import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.M_L;
-import com.github.enerccio.marginalia.loc.L;
 import com.google.gson.JsonObject;
 
 /**
@@ -23,123 +22,184 @@ public class PartEditCommands extends ManuscriptWriteSupport {
     static final String APPEND_TO_PART = "append-to-part";
     static final String SET_PART_FIELDS = "set-part-fields";
 
-    @Command(commandName = EDIT_PART, humanName = L.LABEL_COMMAND_EDIT_PART,
+    @Command(commandName = EDIT_PART,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_EDIT_PART, llmDescription = L.DESC_COMMAND_EDIT_PART_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_HANDLE_PARAM),
-                    @CommandParameter(name = "old", type = String.class, description = L.DESC_COMMAND_OLD_PARAM),
-                    @CommandParameter(name = "new", type = String.class, description = L.DESC_COMMAND_NEW_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_EDIT_PART_RETURN))
+                    @CommandParameter(name = "part", type = String.class),
+                    @CommandParameter(name = "old", type = String.class),
+                    @CommandParameter(name = "new", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_EDIT_PART,
+            description = M_L.DESC_COMMAND_EDIT_PART,
+            llmDescription = M_L.DESC_COMMAND_EDIT_PART_LLM,
+            parameters = {@MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_PART_HANDLE_PARAM),
+                    @MarginaliaParameterText(name = "old", description = M_L.DESC_COMMAND_OLD_PARAM),
+                    @MarginaliaParameterText(name = "new", description = M_L.DESC_COMMAND_NEW_PARAM)},
+            returns = M_L.DESC_COMMAND_EDIT_PART_RETURN)
     public void editPart(CommandContext context) throws Exception {
         editPart(context, ref(context, "part"), context.get("old", String.class), context.get("new", String.class), null);
     }
 
-    @Command(commandName = EDIT_PART, humanName = L.LABEL_COMMAND_EDIT_PART,
+    @Command(commandName = EDIT_PART,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_EDIT_PART, llmDescription = L.DESC_COMMAND_EDIT_PART_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_HANDLE_PARAM),
-                    @CommandParameter(name = "old", type = String.class, description = L.DESC_COMMAND_OLD_PARAM),
-                    @CommandParameter(name = "new", type = String.class, description = L.DESC_COMMAND_NEW_PARAM),
-                    @CommandParameter(name = "field", type = String.class, description = L.DESC_COMMAND_WRITE_FIELD_PARAM, allowed = {"response", "instructions", "scene", "pov", "present"})}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_EDIT_PART_RETURN))
+                    @CommandParameter(name = "part", type = String.class),
+                    @CommandParameter(name = "old", type = String.class),
+                    @CommandParameter(name = "new", type = String.class),
+                    @CommandParameter(name = "field", type = String.class, allowed = {"response", "instructions", "scene", "pov", "present"})}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_EDIT_PART,
+            description = M_L.DESC_COMMAND_EDIT_PART,
+            llmDescription = M_L.DESC_COMMAND_EDIT_PART_LLM,
+            parameters = {@MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_PART_HANDLE_PARAM),
+                    @MarginaliaParameterText(name = "old", description = M_L.DESC_COMMAND_OLD_PARAM),
+                    @MarginaliaParameterText(name = "new", description = M_L.DESC_COMMAND_NEW_PARAM),
+                    @MarginaliaParameterText(name = "field", description = M_L.DESC_COMMAND_WRITE_FIELD_PARAM)},
+            returns = M_L.DESC_COMMAND_EDIT_PART_RETURN)
     public void editPartField(CommandContext context) throws Exception {
         editPart(context, ref(context, "part"), context.get("old", String.class), context.get("new", String.class), ref(context, "field"));
     }
 
-    @Command(commandName = REPLACE_PART_TEXT, humanName = L.LABEL_COMMAND_REPLACE_PART_TEXT,
+    @Command(commandName = REPLACE_PART_TEXT,
             dataSeverity = CommandDataSeverity.DESTRUCTIVE,
-            description = L.DESC_COMMAND_REPLACE_PART_TEXT, llmDescription = L.DESC_COMMAND_REPLACE_PART_TEXT_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_HANDLE_PARAM),
-                    @CommandParameter(name = "text", type = String.class, description = L.DESC_COMMAND_NEW_TEXT_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_REPLACE_PART_TEXT_RETURN))
+                    @CommandParameter(name = "part", type = String.class),
+                    @CommandParameter(name = "text", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_REPLACE_PART_TEXT,
+            description = M_L.DESC_COMMAND_REPLACE_PART_TEXT,
+            llmDescription = M_L.DESC_COMMAND_REPLACE_PART_TEXT_LLM,
+            parameters = {@MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_PART_HANDLE_PARAM),
+                    @MarginaliaParameterText(name = "text", description = M_L.DESC_COMMAND_NEW_TEXT_PARAM)},
+            returns = M_L.DESC_COMMAND_REPLACE_PART_TEXT_RETURN)
     public void replacePartText(CommandContext context) throws Exception {
         replacePartText(context, ref(context, "part"), context.get("text", String.class), null);
     }
 
-    @Command(commandName = REPLACE_PART_TEXT, humanName = L.LABEL_COMMAND_REPLACE_PART_TEXT,
+    @Command(commandName = REPLACE_PART_TEXT,
             dataSeverity = CommandDataSeverity.DESTRUCTIVE,
-            description = L.DESC_COMMAND_REPLACE_PART_TEXT, llmDescription = L.DESC_COMMAND_REPLACE_PART_TEXT_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_HANDLE_PARAM),
-                    @CommandParameter(name = "text", type = String.class, description = L.DESC_COMMAND_NEW_TEXT_PARAM),
-                    @CommandParameter(name = "field", type = String.class, description = L.DESC_COMMAND_WRITE_FIELD_PARAM, allowed = {"response", "instructions", "scene", "pov", "present"})}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_REPLACE_PART_TEXT_RETURN))
+                    @CommandParameter(name = "part", type = String.class),
+                    @CommandParameter(name = "text", type = String.class),
+                    @CommandParameter(name = "field", type = String.class, allowed = {"response", "instructions", "scene", "pov", "present"})}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_REPLACE_PART_TEXT,
+            description = M_L.DESC_COMMAND_REPLACE_PART_TEXT,
+            llmDescription = M_L.DESC_COMMAND_REPLACE_PART_TEXT_LLM,
+            parameters = {@MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_PART_HANDLE_PARAM),
+                    @MarginaliaParameterText(name = "text", description = M_L.DESC_COMMAND_NEW_TEXT_PARAM),
+                    @MarginaliaParameterText(name = "field", description = M_L.DESC_COMMAND_WRITE_FIELD_PARAM)},
+            returns = M_L.DESC_COMMAND_REPLACE_PART_TEXT_RETURN)
     public void replacePartTextField(CommandContext context) throws Exception {
         replacePartText(context, ref(context, "part"), context.get("text", String.class), ref(context, "field"));
     }
 
-    @Command(commandName = APPEND_TO_PART, humanName = L.LABEL_COMMAND_APPEND_TO_PART,
+    @Command(commandName = APPEND_TO_PART,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_APPEND_TO_PART, llmDescription = L.DESC_COMMAND_APPEND_TO_PART_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_HANDLE_PARAM),
-                    @CommandParameter(name = "text", type = String.class, description = L.DESC_COMMAND_NEW_TEXT_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_APPEND_TO_PART_RETURN))
+                    @CommandParameter(name = "part", type = String.class),
+                    @CommandParameter(name = "text", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_APPEND_TO_PART,
+            description = M_L.DESC_COMMAND_APPEND_TO_PART,
+            llmDescription = M_L.DESC_COMMAND_APPEND_TO_PART_LLM,
+            parameters = {@MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_PART_HANDLE_PARAM),
+                    @MarginaliaParameterText(name = "text", description = M_L.DESC_COMMAND_NEW_TEXT_PARAM)},
+            returns = M_L.DESC_COMMAND_APPEND_TO_PART_RETURN)
     public void appendToPart(CommandContext context) throws Exception {
         appendToPart(context, ref(context, "part"), context.get("text", String.class), null);
     }
 
-    @Command(commandName = APPEND_TO_PART, humanName = L.LABEL_COMMAND_APPEND_TO_PART,
+    @Command(commandName = APPEND_TO_PART,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_APPEND_TO_PART, llmDescription = L.DESC_COMMAND_APPEND_TO_PART_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_HANDLE_PARAM),
-                    @CommandParameter(name = "text", type = String.class, description = L.DESC_COMMAND_NEW_TEXT_PARAM),
-                    @CommandParameter(name = "separator", type = String.class, description = L.DESC_COMMAND_SEPARATOR_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_APPEND_TO_PART_RETURN))
+                    @CommandParameter(name = "part", type = String.class),
+                    @CommandParameter(name = "text", type = String.class),
+                    @CommandParameter(name = "separator", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_APPEND_TO_PART,
+            description = M_L.DESC_COMMAND_APPEND_TO_PART,
+            llmDescription = M_L.DESC_COMMAND_APPEND_TO_PART_LLM,
+            parameters = {@MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_PART_HANDLE_PARAM),
+                    @MarginaliaParameterText(name = "text", description = M_L.DESC_COMMAND_NEW_TEXT_PARAM),
+                    @MarginaliaParameterText(name = "separator", description = M_L.DESC_COMMAND_SEPARATOR_PARAM)},
+            returns = M_L.DESC_COMMAND_APPEND_TO_PART_RETURN)
     public void appendToPartSeparator(CommandContext context) throws Exception {
         appendToPart(context, ref(context, "part"), context.get("text", String.class), context.get("separator", String.class));
     }
 
-    @Command(commandName = SET_PART_FIELDS, humanName = L.LABEL_COMMAND_SET_PART_FIELDS,
+    @Command(commandName = SET_PART_FIELDS,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_SET_PART_FIELDS, llmDescription = L.DESC_COMMAND_SET_PART_FIELDS_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_HANDLE_PARAM),
-                    @CommandParameter(name = "instructions", type = String.class, description = L.DESC_COMMAND_TURN_INSTRUCTIONS_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SET_PART_FIELDS_RETURN))
+                    @CommandParameter(name = "part", type = String.class),
+                    @CommandParameter(name = "instructions", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SET_PART_FIELDS,
+            description = M_L.DESC_COMMAND_SET_PART_FIELDS,
+            llmDescription = M_L.DESC_COMMAND_SET_PART_FIELDS_LLM,
+            parameters = {@MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_PART_HANDLE_PARAM),
+                    @MarginaliaParameterText(name = "instructions", description = M_L.DESC_COMMAND_TURN_INSTRUCTIONS_PARAM)},
+            returns = M_L.DESC_COMMAND_SET_PART_FIELDS_RETURN)
     public void setPartFields(CommandContext context) throws Exception {
         setPartFields(context, ref(context, "part"), context.get("instructions", String.class), null, null, null);
     }
 
-    @Command(commandName = SET_PART_FIELDS, humanName = L.LABEL_COMMAND_SET_PART_FIELDS,
+    @Command(commandName = SET_PART_FIELDS,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_SET_PART_FIELDS, llmDescription = L.DESC_COMMAND_SET_PART_FIELDS_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_HANDLE_PARAM),
-                    @CommandParameter(name = "instructions", type = String.class, description = L.DESC_COMMAND_TURN_INSTRUCTIONS_PARAM),
-                    @CommandParameter(name = "scene", type = String.class, description = L.DESC_COMMAND_TURN_SCENE_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SET_PART_FIELDS_RETURN))
+                    @CommandParameter(name = "part", type = String.class),
+                    @CommandParameter(name = "instructions", type = String.class),
+                    @CommandParameter(name = "scene", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SET_PART_FIELDS,
+            description = M_L.DESC_COMMAND_SET_PART_FIELDS,
+            llmDescription = M_L.DESC_COMMAND_SET_PART_FIELDS_LLM,
+            parameters = {@MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_PART_HANDLE_PARAM),
+                    @MarginaliaParameterText(name = "instructions", description = M_L.DESC_COMMAND_TURN_INSTRUCTIONS_PARAM),
+                    @MarginaliaParameterText(name = "scene", description = M_L.DESC_COMMAND_TURN_SCENE_PARAM)},
+            returns = M_L.DESC_COMMAND_SET_PART_FIELDS_RETURN)
     public void setPartFieldsScene(CommandContext context) throws Exception {
         setPartFields(context, ref(context, "part"), context.get("instructions", String.class), context.get("scene", String.class), null, null);
     }
 
-    @Command(commandName = SET_PART_FIELDS, humanName = L.LABEL_COMMAND_SET_PART_FIELDS,
+    @Command(commandName = SET_PART_FIELDS,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_SET_PART_FIELDS, llmDescription = L.DESC_COMMAND_SET_PART_FIELDS_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_HANDLE_PARAM),
-                    @CommandParameter(name = "instructions", type = String.class, description = L.DESC_COMMAND_TURN_INSTRUCTIONS_PARAM),
-                    @CommandParameter(name = "scene", type = String.class, description = L.DESC_COMMAND_TURN_SCENE_PARAM),
-                    @CommandParameter(name = "pov", type = String.class, description = L.DESC_COMMAND_TURN_POV_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SET_PART_FIELDS_RETURN))
+                    @CommandParameter(name = "part", type = String.class),
+                    @CommandParameter(name = "instructions", type = String.class),
+                    @CommandParameter(name = "scene", type = String.class),
+                    @CommandParameter(name = "pov", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SET_PART_FIELDS,
+            description = M_L.DESC_COMMAND_SET_PART_FIELDS,
+            llmDescription = M_L.DESC_COMMAND_SET_PART_FIELDS_LLM,
+            parameters = {@MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_PART_HANDLE_PARAM),
+                    @MarginaliaParameterText(name = "instructions", description = M_L.DESC_COMMAND_TURN_INSTRUCTIONS_PARAM),
+                    @MarginaliaParameterText(name = "scene", description = M_L.DESC_COMMAND_TURN_SCENE_PARAM),
+                    @MarginaliaParameterText(name = "pov", description = M_L.DESC_COMMAND_TURN_POV_PARAM)},
+            returns = M_L.DESC_COMMAND_SET_PART_FIELDS_RETURN)
     public void setPartFieldsPov(CommandContext context) throws Exception {
         setPartFields(context, ref(context, "part"), context.get("instructions", String.class), context.get("scene", String.class), context.get("pov", String.class), null);
     }
 
-    @Command(commandName = SET_PART_FIELDS, humanName = L.LABEL_COMMAND_SET_PART_FIELDS,
+    @Command(commandName = SET_PART_FIELDS,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_SET_PART_FIELDS, llmDescription = L.DESC_COMMAND_SET_PART_FIELDS_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_HANDLE_PARAM),
-                    @CommandParameter(name = "instructions", type = String.class, description = L.DESC_COMMAND_TURN_INSTRUCTIONS_PARAM),
-                    @CommandParameter(name = "scene", type = String.class, description = L.DESC_COMMAND_TURN_SCENE_PARAM),
-                    @CommandParameter(name = "pov", type = String.class, description = L.DESC_COMMAND_TURN_POV_PARAM),
-                    @CommandParameter(name = "present", type = String.class, description = L.DESC_COMMAND_TURN_PRESENT_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SET_PART_FIELDS_RETURN))
+                    @CommandParameter(name = "part", type = String.class),
+                    @CommandParameter(name = "instructions", type = String.class),
+                    @CommandParameter(name = "scene", type = String.class),
+                    @CommandParameter(name = "pov", type = String.class),
+                    @CommandParameter(name = "present", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SET_PART_FIELDS,
+            description = M_L.DESC_COMMAND_SET_PART_FIELDS,
+            llmDescription = M_L.DESC_COMMAND_SET_PART_FIELDS_LLM,
+            parameters = {@MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_PART_HANDLE_PARAM),
+                    @MarginaliaParameterText(name = "instructions", description = M_L.DESC_COMMAND_TURN_INSTRUCTIONS_PARAM),
+                    @MarginaliaParameterText(name = "scene", description = M_L.DESC_COMMAND_TURN_SCENE_PARAM),
+                    @MarginaliaParameterText(name = "pov", description = M_L.DESC_COMMAND_TURN_POV_PARAM),
+                    @MarginaliaParameterText(name = "present", description = M_L.DESC_COMMAND_TURN_PRESENT_PARAM)},
+            returns = M_L.DESC_COMMAND_SET_PART_FIELDS_RETURN)
     public void setPartFieldsPresent(CommandContext context) throws Exception {
         setPartFields(context, ref(context, "part"), context.get("instructions", String.class), context.get("scene", String.class), context.get("pov", String.class), context.get("present", String.class));
     }

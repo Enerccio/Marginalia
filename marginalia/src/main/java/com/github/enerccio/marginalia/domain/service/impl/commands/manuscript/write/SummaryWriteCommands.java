@@ -6,7 +6,6 @@ import com.github.enerccio.marginalia.domain.service.SummaryService;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.M_L;
-import com.github.enerccio.marginalia.loc.L;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
@@ -25,53 +24,74 @@ public class SummaryWriteCommands extends ManuscriptWriteSupport {
     static final String REMOVE_SUMMARY = "remove-summary";
     static final String REVALIDATE_SUMMARIES = "revalidate-summaries";
 
-    @Command(commandName = SET_SUMMARY, humanName = L.LABEL_COMMAND_SET_SUMMARY,
+    @Command(commandName = SET_SUMMARY,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_SET_SUMMARY, llmDescription = L.DESC_COMMAND_SET_SUMMARY_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_HANDLE_PARAM),
-                    @CommandParameter(name = "text", type = String.class, description = L.DESC_COMMAND_SUMMARY_TEXT_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SET_SUMMARY_RETURN))
+                    @CommandParameter(name = "part", type = String.class),
+                    @CommandParameter(name = "text", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SET_SUMMARY,
+            description = M_L.DESC_COMMAND_SET_SUMMARY,
+            llmDescription = M_L.DESC_COMMAND_SET_SUMMARY_LLM,
+            parameters = {@MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_PART_HANDLE_PARAM),
+                    @MarginaliaParameterText(name = "text", description = M_L.DESC_COMMAND_SUMMARY_TEXT_PARAM)},
+            returns = M_L.DESC_COMMAND_SET_SUMMARY_RETURN)
     public void setSummary(CommandContext context) throws Exception {
         setSummary(context, ref(context, "part"), context.get("text", String.class));
     }
 
-    @Command(commandName = REMOVE_SUMMARY, humanName = L.LABEL_COMMAND_REMOVE_SUMMARY,
+    @Command(commandName = REMOVE_SUMMARY,
             dataSeverity = CommandDataSeverity.DESTRUCTIVE,
-            description = L.DESC_COMMAND_REMOVE_SUMMARY, llmDescription = L.DESC_COMMAND_REMOVE_SUMMARY_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_HANDLE_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_REMOVE_SUMMARY_RETURN))
+                    @CommandParameter(name = "part", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_REMOVE_SUMMARY,
+            description = M_L.DESC_COMMAND_REMOVE_SUMMARY,
+            llmDescription = M_L.DESC_COMMAND_REMOVE_SUMMARY_LLM,
+            parameters = @MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_PART_HANDLE_PARAM),
+            returns = M_L.DESC_COMMAND_REMOVE_SUMMARY_RETURN)
     public void removeSummary(CommandContext context) throws Exception {
         removeSummary(context, ref(context, "part"), null);
     }
 
-    @Command(commandName = REMOVE_SUMMARY, humanName = L.LABEL_COMMAND_REMOVE_SUMMARY,
+    @Command(commandName = REMOVE_SUMMARY,
             dataSeverity = CommandDataSeverity.DESTRUCTIVE,
-            description = L.DESC_COMMAND_REMOVE_SUMMARY, llmDescription = L.DESC_COMMAND_REMOVE_SUMMARY_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_HANDLE_PARAM),
-                    @CommandParameter(name = "unwind", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_UNWIND_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_REMOVE_SUMMARY_RETURN))
+                    @CommandParameter(name = "part", type = String.class),
+                    @CommandParameter(name = "unwind", type = Boolean.class, optional = true, defaultValue = "false")}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_REMOVE_SUMMARY,
+            description = M_L.DESC_COMMAND_REMOVE_SUMMARY,
+            llmDescription = M_L.DESC_COMMAND_REMOVE_SUMMARY_LLM,
+            parameters = {@MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_PART_HANDLE_PARAM),
+                    @MarginaliaParameterText(name = "unwind", description = M_L.DESC_COMMAND_UNWIND_PARAM)},
+            returns = M_L.DESC_COMMAND_REMOVE_SUMMARY_RETURN)
     public void removeSummaryUnwind(CommandContext context) throws Exception {
         removeSummary(context, ref(context, "part"), context.get("unwind", Boolean.class));
     }
 
-    @Command(commandName = REVALIDATE_SUMMARIES, humanName = L.LABEL_COMMAND_REVALIDATE_SUMMARIES,
+    @Command(commandName = REVALIDATE_SUMMARIES,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_REVALIDATE_SUMMARIES, llmDescription = L.DESC_COMMAND_REVALIDATE_SUMMARIES_LLM,
             signature = @CommandParameterSignature,
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_REVALIDATE_SUMMARIES_RETURN))
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_REVALIDATE_SUMMARIES,
+            description = M_L.DESC_COMMAND_REVALIDATE_SUMMARIES,
+            llmDescription = M_L.DESC_COMMAND_REVALIDATE_SUMMARIES_LLM,
+            returns = M_L.DESC_COMMAND_REVALIDATE_SUMMARIES_RETURN)
     public void revalidateSummaries(CommandContext context) throws Exception {
         revalidateSummaries(context, null);
     }
 
-    @Command(commandName = REVALIDATE_SUMMARIES, humanName = L.LABEL_COMMAND_REVALIDATE_SUMMARIES,
+    @Command(commandName = REVALIDATE_SUMMARIES,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_REVALIDATE_SUMMARIES, llmDescription = L.DESC_COMMAND_REVALIDATE_SUMMARIES_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_REVALIDATE_PART_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_REVALIDATE_SUMMARIES_RETURN))
+                    @CommandParameter(name = "part", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_REVALIDATE_SUMMARIES,
+            description = M_L.DESC_COMMAND_REVALIDATE_SUMMARIES,
+            llmDescription = M_L.DESC_COMMAND_REVALIDATE_SUMMARIES_LLM,
+            parameters = @MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_REVALIDATE_PART_PARAM),
+            returns = M_L.DESC_COMMAND_REVALIDATE_SUMMARIES_RETURN)
     public void revalidateSummariesPart(CommandContext context) throws Exception {
         revalidateSummaries(context, ref(context, "part"));
     }

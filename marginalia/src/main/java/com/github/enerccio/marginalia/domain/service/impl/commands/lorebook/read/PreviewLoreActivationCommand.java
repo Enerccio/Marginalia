@@ -1,7 +1,7 @@
 package com.github.enerccio.marginalia.domain.service.impl.commands.lorebook.read;
 
 import com.github.enerccio.marginalia.domain.collections.InsertionMode;
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.domain.components.LoreConditions;
 import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.impl.*;
@@ -52,35 +52,50 @@ public class PreviewLoreActivationCommand extends LorebookReadSupport {
     @Autowired
     private TemplateService templateService;
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_PREVIEW_LORE_ACTIVATION,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_PREVIEW_LORE_ACTIVATION, llmDescription = L.DESC_COMMAND_PREVIEW_LORE_ACTIVATION_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "text", type = String.class, description = L.DESC_COMMAND_PREVIEW_TEXT_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_PREVIEW_LORE_ACTIVATION_RETURN))
+                    @CommandParameter(name = "text", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_PREVIEW_LORE_ACTIVATION,
+            description = M_L.DESC_COMMAND_PREVIEW_LORE_ACTIVATION,
+            llmDescription = M_L.DESC_COMMAND_PREVIEW_LORE_ACTIVATION_LLM,
+            parameters = @MarginaliaParameterText(name = "text", description = M_L.DESC_COMMAND_PREVIEW_TEXT_PARAM),
+            returns = M_L.DESC_COMMAND_PREVIEW_LORE_ACTIVATION_RETURN)
     public void previewText(CommandContext context) throws Exception {
         preview(context, context.get("text", String.class), null, null, null);
     }
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_PREVIEW_LORE_ACTIVATION,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_PREVIEW_LORE_ACTIVATION, llmDescription = L.DESC_COMMAND_PREVIEW_LORE_ACTIVATION_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "text", type = String.class, description = L.DESC_COMMAND_PREVIEW_TEXT_PARAM),
-                    @CommandParameter(name = "limit", type = Integer.class, optional = true, defaultValue = "50", min = "1", max = "200", description = L.DESC_COMMAND_LIMIT_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_PREVIEW_LORE_ACTIVATION_RETURN))
+                    @CommandParameter(name = "text", type = String.class),
+                    @CommandParameter(name = "limit", type = Integer.class, optional = true, defaultValue = "50", min = "1", max = "200")}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_PREVIEW_LORE_ACTIVATION,
+            description = M_L.DESC_COMMAND_PREVIEW_LORE_ACTIVATION,
+            llmDescription = M_L.DESC_COMMAND_PREVIEW_LORE_ACTIVATION_LLM,
+            parameters = {@MarginaliaParameterText(name = "text", description = M_L.DESC_COMMAND_PREVIEW_TEXT_PARAM),
+                    @MarginaliaParameterText(name = "limit", description = M_L.DESC_COMMAND_LIMIT_PARAM)},
+            returns = M_L.DESC_COMMAND_PREVIEW_LORE_ACTIVATION_RETURN)
     public void previewTextLimit(CommandContext context) throws Exception {
         preview(context, context.get("text", String.class), null, null, context.get("limit", Integer.class));
     }
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_PREVIEW_LORE_ACTIVATION,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_PREVIEW_LORE_ACTIVATION, llmDescription = L.DESC_COMMAND_PREVIEW_LORE_ACTIVATION_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM),
-                    @CommandParameter(name = "branch", type = String.class, description = L.DESC_COMMAND_BRANCH_PARAM),
-                    @CommandParameter(name = "limit", type = Integer.class, optional = true, defaultValue = "50", min = "1", max = "200", description = L.DESC_COMMAND_LIMIT_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_PREVIEW_LORE_ACTIVATION_RETURN))
+                    @CommandParameter(name = "part", type = String.class),
+                    @CommandParameter(name = "branch", type = String.class),
+                    @CommandParameter(name = "limit", type = Integer.class, optional = true, defaultValue = "50", min = "1", max = "200")}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_PREVIEW_LORE_ACTIVATION,
+            description = M_L.DESC_COMMAND_PREVIEW_LORE_ACTIVATION,
+            llmDescription = M_L.DESC_COMMAND_PREVIEW_LORE_ACTIVATION_LLM,
+            parameters = {@MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_PART_PARAM),
+                    @MarginaliaParameterText(name = "branch", description = M_L.DESC_COMMAND_BRANCH_PARAM),
+                    @MarginaliaParameterText(name = "limit", description = M_L.DESC_COMMAND_LIMIT_PARAM)},
+            returns = M_L.DESC_COMMAND_PREVIEW_LORE_ACTIVATION_RETURN)
     public void previewPartLimit(CommandContext context) throws Exception {
         preview(context, null, ref(context, "part"), ref(context, "branch"), context.get("limit", Integer.class));
     }

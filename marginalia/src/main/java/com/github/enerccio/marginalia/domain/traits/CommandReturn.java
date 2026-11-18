@@ -1,7 +1,5 @@
 package com.github.enerccio.marginalia.domain.traits;
 
-import com.github.enerccio.marginalia.loc.L;
-
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -22,10 +20,10 @@ public @interface CommandReturn {
     /** Type of the returned value, a direct class reference such as {@code String.class}; {@code Object.class} is "any". */
     Class<?> type();
 
-    /** What the value is, the key of its text; may be left out (see {@link Command} for the pairs of texts). */
-    L[] description() default {};
-
-    /** {@link #description()} as a plain text, for extensions without translations. */
+    /**
+     * What the value is, as a plain text; may be left out. The localized text is the {@code returns} of the method's
+     * {@link CommandTextSource} annotation (see {@link Command} for the pairs of texts).
+     */
     String[] descriptionText() default {};
 
 }

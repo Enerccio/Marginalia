@@ -74,28 +74,54 @@ Rules to remember:
 
 ## Texts
 
-Every text a command shows is given in two ways, as a pair of attributes:
+Every text a command shows is given in two ways: as a localization key, resolved in the language of the user every time
+it is shown (`CommandText.get(loc)`), or as a plain text, for an extension that brings no translations and shown as it is.
 
-| Attribute (localized)                      | Attribute (plain text)                         | Used for                                                     |
-|--------------------------------------------|------------------------------------------------|--------------------------------------------------------------|
-| `@Command.humanName`                       | `@Command.humanNameText`                       | Name shown to the user (required: one of the two)            |
-| `@Command.description`                     | `@Command.descriptionText`                     | What the command does, for the user                          |
-| `@Command.llmDescription`                  | `@Command.llmDescriptionText`                  | What it does and when to use it, for an agent                |
-| `@CommandParameter.description`            | `@CommandParameter.descriptionText`            | What the parameter is, in the help                           |
-| `@CommandReturn.description`               | `@CommandReturn.descriptionText`               | What the returned value is, in the help                      |
+| Localized (text annotation)        | Plain text                          | Used for                                                     |
+|------------------------------------|-------------------------------------|--------------------------------------------------------------|
+| `humanName`                        | `@Command.humanNameText`            | Name shown to the user (required: one of the two)            |
+| `description`                      | `@Command.descriptionText`          | What the command does, for the user                          |
+| `llmDescription`                   | `@Command.llmDescriptionText`       | What it does and when to use it, for an agent                |
+| `parameters` (by parameter name)   | `@CommandParameter.descriptionText` | What the parameter is, in the help                           |
+| `returns`                          | `@CommandReturn.descriptionText`    | What the returned value is, in the help                      |
 
-The localized one takes an `L` key and is resolved in the language of the user every time it is shown (`CommandText.get(loc)`),
-so the application's own commands use it (`humanName = L.LABEL_COMMAND_TAKE_BACKUP`; the key goes to `L` and to the
-`LocalizationBundle*` classes as usual). An annotation element holds a single enum and the annotations are the
-platform's, so these keys are always `L` keys, also for a command of the application, whose other texts are `M_L`
-keys; `CommandText` itself holds any `LocalizationKey`. The plain one is for an extension that brings no translations and is shown as it is.
-The identifiers (`commandName`, a parameter's `name`, the return `name`) are not texts and stay strings.
+The plain texts are elements of `@Command` and its nested annotations. The keys are in a second annotation on the same
+method, a **text annotation**: an annotation element holds one enum type, so each layer has its own, typed with its own
+key enum and marked with `@CommandTextSource`, and the registry finds it by that mark and reads its elements by name.
+The application's commands use `@MarginaliaCommandTexts` (`M_L` keys, a parameter's text is a
+`@MarginaliaParameterText`), the platform's `@CommandTexts` (`L` keys, `@CommandParameterText`):
 
-The attributes are arrays only so that "not given" can be told from "given" (the default is the empty array); write the value
-alone: `humanName = L.LABEL_X`, `humanNameText = "X"`. The human name needs one of the two; the other texts are optional. A pair may hold only one value: both
-attributes of a pair, more than one element, or none for the human name make `registerCommands` throw `IllegalArgumentException` that names the
-method and the attribute. The registry keeps each as a `CommandText` (`key()` or `text()`, `isEmpty()`, `get(...)`); an
-annotation attribute needs an enum constant, so use `L.X` directly there, not a constant that holds it.
+```java
+@Command(commandName = "scan-phrases", async = true, dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+        signature = @CommandParameterSignature({@CommandParameter(name = "from", type = String.class),
+                @CommandParameter(name = "to", type = String.class)}),
+        returns = @CommandReturn(name = "result", type = String.class))
+@MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SCAN_PHRASES,
+        description = M_L.DESC_COMMAND_SCAN_PHRASES,
+        llmDescription = M_L.DESC_COMMAND_SCAN_PHRASES_LLM,
+        parameters = {@MarginaliaParameterText(name = "from", description = M_L.DESC_COMMAND_SCAN_PHRASES_FROM_PARAM),
+                @MarginaliaParameterText(name = "to", description = M_L.DESC_COMMAND_SCAN_PHRASES_TO_PARAM)},
+        returns = M_L.DESC_COMMAND_SCAN_PHRASES_RETURN)
+public void scanPhrases(CommandContext context) { ... }
+```
+
+The keys go to `M_L` and the `MarginaliaLocalizationBundle*` classes as usual. A layer above the platform that has
+commands declares its own text annotation the same way: the elements `humanName`, `description`, `llmDescription`,
+`returns` (arrays of its keys) and `parameters` (an array of an annotation with `String name()` and a `description()`
+array of keys), and `@CommandTextSource` on the annotation type. The identifiers (`commandName`, a parameter's `name`,
+the return `name`) are not texts and stay strings.
+
+The elements are arrays only so that "not given" can be told from "given" (the default is the empty array); write the value
+alone: `humanName = M_L.LABEL_X`, `humanNameText = "X"`. The human name needs one of the two; the other texts are optional.
+`registerCommands` throws `IllegalArgumentException` naming the method for: both texts of a pair, more than one element,
+none for the human name, two text annotations on one method, a text annotation without one of the elements, a
+parameter text whose name is not in the signature, or a parameter described twice. The registry keeps each text as a
+`CommandText` (`key()`, any `LocalizationKey`, or `text()`, `isEmpty()`, `get(...)`); an annotation element needs an
+enum constant, so use `M_L.X` directly there, not a constant that holds it.
+
+The variables of a template's data are described the same way: `@MarginaliaTemplateDescription(loc = M_L.X)` on the
+field or its getter (`@LocalizedTemplateDescription` with an `L` key for the platform's), both marked
+`@TemplateDescriptionSource` and read by `LocalizedAnnotations.templateDescription`.
 
 ## Data severity
 
@@ -317,7 +343,7 @@ only after the answer. `/search-replace-parts` and `/search-replace-lore-entries
 
 ## Checklist
 
-- [ ] Each form has `description`, `llmDescription` (as `L` keys when the texts are translated), `signature`, `returns`.
+- [ ] Each form has `description`, `llmDescription` (as keys of the text annotation when the texts are translated), `signature`, `returns`.
 - [ ] Each command declares `dataSeverity` (`NON_DESTRUCTIVE` only when nothing that exists is changed or removed).
 - [ ] The suite has no state of a run or a user in fields.
 - [ ] `async` commands look at `isTerminated()`.

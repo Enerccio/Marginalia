@@ -5,7 +5,6 @@ import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.M_L;
-import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.utils.RegexTimeoutException;
 import com.github.enerccio.marginalia.utils.TimeSafeText;
 import com.google.gson.JsonArray;
@@ -27,35 +26,50 @@ public class SearchLoreCommand extends LorebookReadSupport {
     /** The characters around a match in a snippet. */
     private static final int SNIPPET_RADIUS = 40;
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_SEARCH_LORE,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_SEARCH_LORE, llmDescription = L.DESC_COMMAND_SEARCH_LORE_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "query", type = String.class, description = L.DESC_COMMAND_LORE_QUERY_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SEARCH_LORE_RETURN))
+                    @CommandParameter(name = "query", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SEARCH_LORE,
+            description = M_L.DESC_COMMAND_SEARCH_LORE,
+            llmDescription = M_L.DESC_COMMAND_SEARCH_LORE_LLM,
+            parameters = @MarginaliaParameterText(name = "query", description = M_L.DESC_COMMAND_LORE_QUERY_PARAM),
+            returns = M_L.DESC_COMMAND_SEARCH_LORE_RETURN)
     public void searchLore(CommandContext context) throws Exception {
         searchLore(context, context.get("query", String.class), null, null);
     }
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_SEARCH_LORE,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_SEARCH_LORE, llmDescription = L.DESC_COMMAND_SEARCH_LORE_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "query", type = String.class, description = L.DESC_COMMAND_LORE_QUERY_PARAM),
-                    @CommandParameter(name = "regex", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_REGEX_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SEARCH_LORE_RETURN))
+                    @CommandParameter(name = "query", type = String.class),
+                    @CommandParameter(name = "regex", type = Boolean.class, optional = true, defaultValue = "false")}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SEARCH_LORE,
+            description = M_L.DESC_COMMAND_SEARCH_LORE,
+            llmDescription = M_L.DESC_COMMAND_SEARCH_LORE_LLM,
+            parameters = {@MarginaliaParameterText(name = "query", description = M_L.DESC_COMMAND_LORE_QUERY_PARAM),
+                    @MarginaliaParameterText(name = "regex", description = M_L.DESC_COMMAND_REGEX_PARAM)},
+            returns = M_L.DESC_COMMAND_SEARCH_LORE_RETURN)
     public void searchLoreRegex(CommandContext context) throws Exception {
         searchLore(context, context.get("query", String.class), context.get("regex", Boolean.class), null);
     }
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_SEARCH_LORE,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_SEARCH_LORE, llmDescription = L.DESC_COMMAND_SEARCH_LORE_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "query", type = String.class, description = L.DESC_COMMAND_LORE_QUERY_PARAM),
-                    @CommandParameter(name = "regex", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_REGEX_PARAM),
-                    @CommandParameter(name = "limit", type = Integer.class, optional = true, defaultValue = "50", min = "1", max = "200", description = L.DESC_COMMAND_LIMIT_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SEARCH_LORE_RETURN))
+                    @CommandParameter(name = "query", type = String.class),
+                    @CommandParameter(name = "regex", type = Boolean.class, optional = true, defaultValue = "false"),
+                    @CommandParameter(name = "limit", type = Integer.class, optional = true, defaultValue = "50", min = "1", max = "200")}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SEARCH_LORE,
+            description = M_L.DESC_COMMAND_SEARCH_LORE,
+            llmDescription = M_L.DESC_COMMAND_SEARCH_LORE_LLM,
+            parameters = {@MarginaliaParameterText(name = "query", description = M_L.DESC_COMMAND_LORE_QUERY_PARAM),
+                    @MarginaliaParameterText(name = "regex", description = M_L.DESC_COMMAND_REGEX_PARAM),
+                    @MarginaliaParameterText(name = "limit", description = M_L.DESC_COMMAND_LIMIT_PARAM)},
+            returns = M_L.DESC_COMMAND_SEARCH_LORE_RETURN)
     public void searchLoreLimit(CommandContext context) throws Exception {
         searchLore(context, context.get("query", String.class), context.get("regex", Boolean.class), context.get("limit", Integer.class));
     }

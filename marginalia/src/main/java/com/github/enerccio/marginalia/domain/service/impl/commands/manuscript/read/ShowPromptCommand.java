@@ -1,7 +1,7 @@
 package com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.read;
 
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.domain.service.MessagePromptService;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.traits.*;
@@ -19,48 +19,70 @@ public class ShowPromptCommand extends ManuscriptReadSupport {
     @Autowired
     private MessagePromptService messagePromptService;
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_SHOW_PROMPT,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_SHOW_PROMPT, llmDescription = L.DESC_COMMAND_SHOW_PROMPT_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SHOW_PROMPT_RETURN))
+                    @CommandParameter(name = "part", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SHOW_PROMPT,
+            description = M_L.DESC_COMMAND_SHOW_PROMPT,
+            llmDescription = M_L.DESC_COMMAND_SHOW_PROMPT_LLM,
+            parameters = @MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_PART_PARAM),
+            returns = M_L.DESC_COMMAND_SHOW_PROMPT_RETURN)
     public void showPrompt(CommandContext context) throws Exception {
         showPrompt(context, ref(context, "part"), null, null, null);
     }
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_SHOW_PROMPT,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_SHOW_PROMPT, llmDescription = L.DESC_COMMAND_SHOW_PROMPT_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM),
-                    @CommandParameter(name = "branch", type = String.class, description = L.DESC_COMMAND_BRANCH_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SHOW_PROMPT_RETURN))
+                    @CommandParameter(name = "part", type = String.class),
+                    @CommandParameter(name = "branch", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SHOW_PROMPT,
+            description = M_L.DESC_COMMAND_SHOW_PROMPT,
+            llmDescription = M_L.DESC_COMMAND_SHOW_PROMPT_LLM,
+            parameters = {@MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_PART_PARAM),
+                    @MarginaliaParameterText(name = "branch", description = M_L.DESC_COMMAND_BRANCH_PARAM)},
+            returns = M_L.DESC_COMMAND_SHOW_PROMPT_RETURN)
     public void showPromptBranch(CommandContext context) throws Exception {
         showPrompt(context, ref(context, "part"), ref(context, "branch"), null, null);
     }
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_SHOW_PROMPT,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_SHOW_PROMPT, llmDescription = L.DESC_COMMAND_SHOW_PROMPT_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM),
-                    @CommandParameter(name = "branch", type = String.class, description = L.DESC_COMMAND_BRANCH_PARAM),
-                    @CommandParameter(name = "offset", type = Integer.class, optional = true, defaultValue = "0", min = "0", description = L.DESC_COMMAND_OFFSET_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SHOW_PROMPT_RETURN))
+                    @CommandParameter(name = "part", type = String.class),
+                    @CommandParameter(name = "branch", type = String.class),
+                    @CommandParameter(name = "offset", type = Integer.class, optional = true, defaultValue = "0", min = "0")}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SHOW_PROMPT,
+            description = M_L.DESC_COMMAND_SHOW_PROMPT,
+            llmDescription = M_L.DESC_COMMAND_SHOW_PROMPT_LLM,
+            parameters = {@MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_PART_PARAM),
+                    @MarginaliaParameterText(name = "branch", description = M_L.DESC_COMMAND_BRANCH_PARAM),
+                    @MarginaliaParameterText(name = "offset", description = M_L.DESC_COMMAND_OFFSET_PARAM)},
+            returns = M_L.DESC_COMMAND_SHOW_PROMPT_RETURN)
     public void showPromptOffset(CommandContext context) throws Exception {
         showPrompt(context, ref(context, "part"), ref(context, "branch"), context.get("offset", Integer.class), null);
     }
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_SHOW_PROMPT,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_SHOW_PROMPT, llmDescription = L.DESC_COMMAND_SHOW_PROMPT_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM),
-                    @CommandParameter(name = "branch", type = String.class, description = L.DESC_COMMAND_BRANCH_PARAM),
-                    @CommandParameter(name = "offset", type = Integer.class, optional = true, defaultValue = "0", min = "0", description = L.DESC_COMMAND_OFFSET_PARAM),
-                    @CommandParameter(name = "length", type = Integer.class, optional = true, defaultValue = "6000", min = "1", max = "20000", description = L.DESC_COMMAND_LENGTH_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SHOW_PROMPT_RETURN))
+                    @CommandParameter(name = "part", type = String.class),
+                    @CommandParameter(name = "branch", type = String.class),
+                    @CommandParameter(name = "offset", type = Integer.class, optional = true, defaultValue = "0", min = "0"),
+                    @CommandParameter(name = "length", type = Integer.class, optional = true, defaultValue = "6000", min = "1", max = "20000")}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SHOW_PROMPT,
+            description = M_L.DESC_COMMAND_SHOW_PROMPT,
+            llmDescription = M_L.DESC_COMMAND_SHOW_PROMPT_LLM,
+            parameters = {@MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_PART_PARAM),
+                    @MarginaliaParameterText(name = "branch", description = M_L.DESC_COMMAND_BRANCH_PARAM),
+                    @MarginaliaParameterText(name = "offset", description = M_L.DESC_COMMAND_OFFSET_PARAM),
+                    @MarginaliaParameterText(name = "length", description = M_L.DESC_COMMAND_LENGTH_PARAM)},
+            returns = M_L.DESC_COMMAND_SHOW_PROMPT_RETURN)
     public void showPromptLength(CommandContext context) throws Exception {
         showPrompt(context, ref(context, "part"), ref(context, "branch"), context.get("offset", Integer.class), context.get("length", Integer.class));
     }

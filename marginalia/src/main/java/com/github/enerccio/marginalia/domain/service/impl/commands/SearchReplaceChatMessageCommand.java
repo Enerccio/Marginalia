@@ -8,7 +8,6 @@ import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.service.search.replace.TextSearch.InvalidSearchException;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.M_L;
-import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.utils.CommandUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,124 +40,192 @@ public class SearchReplaceChatMessageCommand {
     @Autowired
     private Localization loc;
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_SEARCH_REPLACE_STORY, async = true,
+    @Command(commandName = NAME, async = true,
             dataSeverity = CommandDataSeverity.DESTRUCTIVE,
-            description = L.DESC_COMMAND_SEARCH_REPLACE_STORY, llmDescription = L.DESC_COMMAND_SEARCH_REPLACE_STORY_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "search", type = String.class, description = L.DESC_COMMAND_SEARCH_PARAM),
-                    @CommandParameter(name = "replace", type = String.class, description = L.DESC_COMMAND_REPLACE_PARAM)}),
-            returns = @CommandReturn(name = "message", type = String.class, description = L.DESC_COMMAND_SEARCH_REPLACE_STORY_RETURN))
+                    @CommandParameter(name = "search", type = String.class),
+                    @CommandParameter(name = "replace", type = String.class)}),
+            returns = @CommandReturn(name = "message", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SEARCH_REPLACE_STORY,
+            description = M_L.DESC_COMMAND_SEARCH_REPLACE_STORY,
+            llmDescription = M_L.DESC_COMMAND_SEARCH_REPLACE_STORY_LLM,
+            parameters = {@MarginaliaParameterText(name = "search", description = M_L.DESC_COMMAND_SEARCH_PARAM),
+                    @MarginaliaParameterText(name = "replace", description = M_L.DESC_COMMAND_REPLACE_PARAM)},
+            returns = M_L.DESC_COMMAND_SEARCH_REPLACE_STORY_RETURN)
     public void replace(CommandContext context) throws Exception {
         run(context, false, true, true, false, true, null, false);
     }
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_SEARCH_REPLACE_STORY, async = true,
+    @Command(commandName = NAME, async = true,
             dataSeverity = CommandDataSeverity.DESTRUCTIVE,
-            description = L.DESC_COMMAND_SEARCH_REPLACE_STORY, llmDescription = L.DESC_COMMAND_SEARCH_REPLACE_STORY_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "search", type = String.class, description = L.DESC_COMMAND_SEARCH_PARAM),
-                    @CommandParameter(name = "replace", type = String.class, description = L.DESC_COMMAND_REPLACE_PARAM),
-                    @CommandParameter(name = "regex", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_REGEX_PARAM)}),
-            returns = @CommandReturn(name = "message", type = String.class, description = L.DESC_COMMAND_SEARCH_REPLACE_STORY_RETURN))
+                    @CommandParameter(name = "search", type = String.class),
+                    @CommandParameter(name = "replace", type = String.class),
+                    @CommandParameter(name = "regex", type = Boolean.class, optional = true, defaultValue = "false")}),
+            returns = @CommandReturn(name = "message", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SEARCH_REPLACE_STORY,
+            description = M_L.DESC_COMMAND_SEARCH_REPLACE_STORY,
+            llmDescription = M_L.DESC_COMMAND_SEARCH_REPLACE_STORY_LLM,
+            parameters = {@MarginaliaParameterText(name = "search", description = M_L.DESC_COMMAND_SEARCH_PARAM),
+                    @MarginaliaParameterText(name = "replace", description = M_L.DESC_COMMAND_REPLACE_PARAM),
+                    @MarginaliaParameterText(name = "regex", description = M_L.DESC_COMMAND_REGEX_PARAM)},
+            returns = M_L.DESC_COMMAND_SEARCH_REPLACE_STORY_RETURN)
     public void replaceRegex(CommandContext context) throws Exception {
         run(context, context.get("regex", Boolean.class), true, true, false, true, null, false);
     }
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_SEARCH_REPLACE_STORY, async = true,
+    @Command(commandName = NAME, async = true,
             dataSeverity = CommandDataSeverity.DESTRUCTIVE,
-            description = L.DESC_COMMAND_SEARCH_REPLACE_STORY, llmDescription = L.DESC_COMMAND_SEARCH_REPLACE_STORY_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "search", type = String.class, description = L.DESC_COMMAND_SEARCH_PARAM),
-                    @CommandParameter(name = "replace", type = String.class, description = L.DESC_COMMAND_REPLACE_PARAM),
-                    @CommandParameter(name = "regex", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_REGEX_PARAM),
-                    @CommandParameter(name = "caseSensitive", type = Boolean.class, optional = true, defaultValue = "true", description = L.DESC_COMMAND_CASE_SENSITIVE_PARAM)}),
-            returns = @CommandReturn(name = "message", type = String.class, description = L.DESC_COMMAND_SEARCH_REPLACE_STORY_RETURN))
+                    @CommandParameter(name = "search", type = String.class),
+                    @CommandParameter(name = "replace", type = String.class),
+                    @CommandParameter(name = "regex", type = Boolean.class, optional = true, defaultValue = "false"),
+                    @CommandParameter(name = "caseSensitive", type = Boolean.class, optional = true, defaultValue = "true")}),
+            returns = @CommandReturn(name = "message", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SEARCH_REPLACE_STORY,
+            description = M_L.DESC_COMMAND_SEARCH_REPLACE_STORY,
+            llmDescription = M_L.DESC_COMMAND_SEARCH_REPLACE_STORY_LLM,
+            parameters = {@MarginaliaParameterText(name = "search", description = M_L.DESC_COMMAND_SEARCH_PARAM),
+                    @MarginaliaParameterText(name = "replace", description = M_L.DESC_COMMAND_REPLACE_PARAM),
+                    @MarginaliaParameterText(name = "regex", description = M_L.DESC_COMMAND_REGEX_PARAM),
+                    @MarginaliaParameterText(name = "caseSensitive", description = M_L.DESC_COMMAND_CASE_SENSITIVE_PARAM)},
+            returns = M_L.DESC_COMMAND_SEARCH_REPLACE_STORY_RETURN)
     public void replaceCase(CommandContext context) throws Exception {
         run(context, context.get("regex", Boolean.class), context.get("caseSensitive", Boolean.class), true, false, true, null, false);
     }
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_SEARCH_REPLACE_STORY, async = true,
+    @Command(commandName = NAME, async = true,
             dataSeverity = CommandDataSeverity.DESTRUCTIVE,
-            description = L.DESC_COMMAND_SEARCH_REPLACE_STORY, llmDescription = L.DESC_COMMAND_SEARCH_REPLACE_STORY_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "search", type = String.class, description = L.DESC_COMMAND_SEARCH_PARAM),
-                    @CommandParameter(name = "replace", type = String.class, description = L.DESC_COMMAND_REPLACE_PARAM),
-                    @CommandParameter(name = "regex", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_REGEX_PARAM),
-                    @CommandParameter(name = "caseSensitive", type = Boolean.class, optional = true, defaultValue = "true", description = L.DESC_COMMAND_CASE_SENSITIVE_PARAM),
-                    @CommandParameter(name = "summaries", type = Boolean.class, optional = true, defaultValue = "true", description = L.DESC_COMMAND_SUMMARIES_PARAM)}),
-            returns = @CommandReturn(name = "message", type = String.class, description = L.DESC_COMMAND_SEARCH_REPLACE_STORY_RETURN))
+                    @CommandParameter(name = "search", type = String.class),
+                    @CommandParameter(name = "replace", type = String.class),
+                    @CommandParameter(name = "regex", type = Boolean.class, optional = true, defaultValue = "false"),
+                    @CommandParameter(name = "caseSensitive", type = Boolean.class, optional = true, defaultValue = "true"),
+                    @CommandParameter(name = "summaries", type = Boolean.class, optional = true, defaultValue = "true")}),
+            returns = @CommandReturn(name = "message", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SEARCH_REPLACE_STORY,
+            description = M_L.DESC_COMMAND_SEARCH_REPLACE_STORY,
+            llmDescription = M_L.DESC_COMMAND_SEARCH_REPLACE_STORY_LLM,
+            parameters = {@MarginaliaParameterText(name = "search", description = M_L.DESC_COMMAND_SEARCH_PARAM),
+                    @MarginaliaParameterText(name = "replace", description = M_L.DESC_COMMAND_REPLACE_PARAM),
+                    @MarginaliaParameterText(name = "regex", description = M_L.DESC_COMMAND_REGEX_PARAM),
+                    @MarginaliaParameterText(name = "caseSensitive", description = M_L.DESC_COMMAND_CASE_SENSITIVE_PARAM),
+                    @MarginaliaParameterText(name = "summaries", description = M_L.DESC_COMMAND_SUMMARIES_PARAM)},
+            returns = M_L.DESC_COMMAND_SEARCH_REPLACE_STORY_RETURN)
     public void replaceSummaries(CommandContext context) throws Exception {
         run(context, context.get("regex", Boolean.class), context.get("caseSensitive", Boolean.class),
                 context.get("summaries", Boolean.class), false, true, null, false);
     }
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_SEARCH_REPLACE_STORY, async = true,
+    @Command(commandName = NAME, async = true,
             dataSeverity = CommandDataSeverity.DESTRUCTIVE,
-            description = L.DESC_COMMAND_SEARCH_REPLACE_STORY, llmDescription = L.DESC_COMMAND_SEARCH_REPLACE_STORY_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "search", type = String.class, description = L.DESC_COMMAND_SEARCH_PARAM),
-                    @CommandParameter(name = "replace", type = String.class, description = L.DESC_COMMAND_REPLACE_PARAM),
-                    @CommandParameter(name = "regex", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_REGEX_PARAM),
-                    @CommandParameter(name = "caseSensitive", type = Boolean.class, optional = true, defaultValue = "true", description = L.DESC_COMMAND_CASE_SENSITIVE_PARAM),
-                    @CommandParameter(name = "summaries", type = Boolean.class, optional = true, defaultValue = "true", description = L.DESC_COMMAND_SUMMARIES_PARAM),
-                    @CommandParameter(name = "allBranches", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_ALL_BRANCHES_PARAM)}),
-            returns = @CommandReturn(name = "message", type = String.class, description = L.DESC_COMMAND_SEARCH_REPLACE_STORY_RETURN))
+                    @CommandParameter(name = "search", type = String.class),
+                    @CommandParameter(name = "replace", type = String.class),
+                    @CommandParameter(name = "regex", type = Boolean.class, optional = true, defaultValue = "false"),
+                    @CommandParameter(name = "caseSensitive", type = Boolean.class, optional = true, defaultValue = "true"),
+                    @CommandParameter(name = "summaries", type = Boolean.class, optional = true, defaultValue = "true"),
+                    @CommandParameter(name = "allBranches", type = Boolean.class, optional = true, defaultValue = "false")}),
+            returns = @CommandReturn(name = "message", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SEARCH_REPLACE_STORY,
+            description = M_L.DESC_COMMAND_SEARCH_REPLACE_STORY,
+            llmDescription = M_L.DESC_COMMAND_SEARCH_REPLACE_STORY_LLM,
+            parameters = {@MarginaliaParameterText(name = "search", description = M_L.DESC_COMMAND_SEARCH_PARAM),
+                    @MarginaliaParameterText(name = "replace", description = M_L.DESC_COMMAND_REPLACE_PARAM),
+                    @MarginaliaParameterText(name = "regex", description = M_L.DESC_COMMAND_REGEX_PARAM),
+                    @MarginaliaParameterText(name = "caseSensitive", description = M_L.DESC_COMMAND_CASE_SENSITIVE_PARAM),
+                    @MarginaliaParameterText(name = "summaries", description = M_L.DESC_COMMAND_SUMMARIES_PARAM),
+                    @MarginaliaParameterText(name = "allBranches", description = M_L.DESC_COMMAND_ALL_BRANCHES_PARAM)},
+            returns = M_L.DESC_COMMAND_SEARCH_REPLACE_STORY_RETURN)
     public void replaceBranches(CommandContext context) throws Exception {
         run(context, context.get("regex", Boolean.class), context.get("caseSensitive", Boolean.class),
                 context.get("summaries", Boolean.class), context.get("allBranches", Boolean.class), true, null, false);
     }
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_SEARCH_REPLACE_STORY, async = true,
+    @Command(commandName = NAME, async = true,
             dataSeverity = CommandDataSeverity.DESTRUCTIVE,
-            description = L.DESC_COMMAND_SEARCH_REPLACE_STORY, llmDescription = L.DESC_COMMAND_SEARCH_REPLACE_STORY_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "search", type = String.class, description = L.DESC_COMMAND_SEARCH_PARAM),
-                    @CommandParameter(name = "replace", type = String.class, description = L.DESC_COMMAND_REPLACE_PARAM),
-                    @CommandParameter(name = "regex", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_REGEX_PARAM),
-                    @CommandParameter(name = "caseSensitive", type = Boolean.class, optional = true, defaultValue = "true", description = L.DESC_COMMAND_CASE_SENSITIVE_PARAM),
-                    @CommandParameter(name = "summaries", type = Boolean.class, optional = true, defaultValue = "true", description = L.DESC_COMMAND_SUMMARIES_PARAM),
-                    @CommandParameter(name = "allBranches", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_ALL_BRANCHES_PARAM),
-                    @CommandParameter(name = "revalidateSummaries", type = Boolean.class, optional = true, defaultValue = "true", description = L.DESC_COMMAND_REVALIDATE_PARAM)}),
-            returns = @CommandReturn(name = "message", type = String.class, description = L.DESC_COMMAND_SEARCH_REPLACE_STORY_RETURN))
+                    @CommandParameter(name = "search", type = String.class),
+                    @CommandParameter(name = "replace", type = String.class),
+                    @CommandParameter(name = "regex", type = Boolean.class, optional = true, defaultValue = "false"),
+                    @CommandParameter(name = "caseSensitive", type = Boolean.class, optional = true, defaultValue = "true"),
+                    @CommandParameter(name = "summaries", type = Boolean.class, optional = true, defaultValue = "true"),
+                    @CommandParameter(name = "allBranches", type = Boolean.class, optional = true, defaultValue = "false"),
+                    @CommandParameter(name = "revalidateSummaries", type = Boolean.class, optional = true, defaultValue = "true")}),
+            returns = @CommandReturn(name = "message", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SEARCH_REPLACE_STORY,
+            description = M_L.DESC_COMMAND_SEARCH_REPLACE_STORY,
+            llmDescription = M_L.DESC_COMMAND_SEARCH_REPLACE_STORY_LLM,
+            parameters = {@MarginaliaParameterText(name = "search", description = M_L.DESC_COMMAND_SEARCH_PARAM),
+                    @MarginaliaParameterText(name = "replace", description = M_L.DESC_COMMAND_REPLACE_PARAM),
+                    @MarginaliaParameterText(name = "regex", description = M_L.DESC_COMMAND_REGEX_PARAM),
+                    @MarginaliaParameterText(name = "caseSensitive", description = M_L.DESC_COMMAND_CASE_SENSITIVE_PARAM),
+                    @MarginaliaParameterText(name = "summaries", description = M_L.DESC_COMMAND_SUMMARIES_PARAM),
+                    @MarginaliaParameterText(name = "allBranches", description = M_L.DESC_COMMAND_ALL_BRANCHES_PARAM),
+                    @MarginaliaParameterText(name = "revalidateSummaries", description = M_L.DESC_COMMAND_REVALIDATE_PARAM)},
+            returns = M_L.DESC_COMMAND_SEARCH_REPLACE_STORY_RETURN)
     public void replaceAll(CommandContext context) throws Exception {
         run(context, context.get("regex", Boolean.class), context.get("caseSensitive", Boolean.class),
                 context.get("summaries", Boolean.class), context.get("allBranches", Boolean.class),
                 context.get("revalidateSummaries", Boolean.class), null, false);
     }
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_SEARCH_REPLACE_STORY, async = true,
+    @Command(commandName = NAME, async = true,
             dataSeverity = CommandDataSeverity.DESTRUCTIVE,
-            description = L.DESC_COMMAND_SEARCH_REPLACE_STORY, llmDescription = L.DESC_COMMAND_SEARCH_REPLACE_STORY_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "search", type = String.class, description = L.DESC_COMMAND_SEARCH_PARAM),
-                    @CommandParameter(name = "replace", type = String.class, description = L.DESC_COMMAND_REPLACE_PARAM),
-                    @CommandParameter(name = "regex", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_REGEX_PARAM),
-                    @CommandParameter(name = "caseSensitive", type = Boolean.class, optional = true, defaultValue = "true", description = L.DESC_COMMAND_CASE_SENSITIVE_PARAM),
-                    @CommandParameter(name = "summaries", type = Boolean.class, optional = true, defaultValue = "true", description = L.DESC_COMMAND_SUMMARIES_PARAM),
-                    @CommandParameter(name = "allBranches", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_ALL_BRANCHES_PARAM),
-                    @CommandParameter(name = "revalidateSummaries", type = Boolean.class, optional = true, defaultValue = "true", description = L.DESC_COMMAND_REVALIDATE_PARAM),
-                    @CommandParameter(name = "maxHits", type = Integer.class, optional = true, min = "1", description = L.DESC_COMMAND_MAX_HITS_PARAM)}),
-            returns = @CommandReturn(name = "message", type = String.class, description = L.DESC_COMMAND_SEARCH_REPLACE_STORY_RETURN))
+                    @CommandParameter(name = "search", type = String.class),
+                    @CommandParameter(name = "replace", type = String.class),
+                    @CommandParameter(name = "regex", type = Boolean.class, optional = true, defaultValue = "false"),
+                    @CommandParameter(name = "caseSensitive", type = Boolean.class, optional = true, defaultValue = "true"),
+                    @CommandParameter(name = "summaries", type = Boolean.class, optional = true, defaultValue = "true"),
+                    @CommandParameter(name = "allBranches", type = Boolean.class, optional = true, defaultValue = "false"),
+                    @CommandParameter(name = "revalidateSummaries", type = Boolean.class, optional = true, defaultValue = "true"),
+                    @CommandParameter(name = "maxHits", type = Integer.class, optional = true, min = "1")}),
+            returns = @CommandReturn(name = "message", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SEARCH_REPLACE_STORY,
+            description = M_L.DESC_COMMAND_SEARCH_REPLACE_STORY,
+            llmDescription = M_L.DESC_COMMAND_SEARCH_REPLACE_STORY_LLM,
+            parameters = {@MarginaliaParameterText(name = "search", description = M_L.DESC_COMMAND_SEARCH_PARAM),
+                    @MarginaliaParameterText(name = "replace", description = M_L.DESC_COMMAND_REPLACE_PARAM),
+                    @MarginaliaParameterText(name = "regex", description = M_L.DESC_COMMAND_REGEX_PARAM),
+                    @MarginaliaParameterText(name = "caseSensitive", description = M_L.DESC_COMMAND_CASE_SENSITIVE_PARAM),
+                    @MarginaliaParameterText(name = "summaries", description = M_L.DESC_COMMAND_SUMMARIES_PARAM),
+                    @MarginaliaParameterText(name = "allBranches", description = M_L.DESC_COMMAND_ALL_BRANCHES_PARAM),
+                    @MarginaliaParameterText(name = "revalidateSummaries", description = M_L.DESC_COMMAND_REVALIDATE_PARAM),
+                    @MarginaliaParameterText(name = "maxHits", description = M_L.DESC_COMMAND_MAX_HITS_PARAM)},
+            returns = M_L.DESC_COMMAND_SEARCH_REPLACE_STORY_RETURN)
     public void replaceMaxHits(CommandContext context) throws Exception {
         run(context, context.get("regex", Boolean.class), context.get("caseSensitive", Boolean.class),
                 context.get("summaries", Boolean.class), context.get("allBranches", Boolean.class),
                 context.get("revalidateSummaries", Boolean.class), context.get("maxHits", Integer.class), false);
     }
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_SEARCH_REPLACE_STORY, async = true,
+    @Command(commandName = NAME, async = true,
             dataSeverity = CommandDataSeverity.DESTRUCTIVE,
-            description = L.DESC_COMMAND_SEARCH_REPLACE_STORY, llmDescription = L.DESC_COMMAND_SEARCH_REPLACE_STORY_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "search", type = String.class, description = L.DESC_COMMAND_SEARCH_PARAM),
-                    @CommandParameter(name = "replace", type = String.class, description = L.DESC_COMMAND_REPLACE_PARAM),
-                    @CommandParameter(name = "regex", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_REGEX_PARAM),
-                    @CommandParameter(name = "caseSensitive", type = Boolean.class, optional = true, defaultValue = "true", description = L.DESC_COMMAND_CASE_SENSITIVE_PARAM),
-                    @CommandParameter(name = "summaries", type = Boolean.class, optional = true, defaultValue = "true", description = L.DESC_COMMAND_SUMMARIES_PARAM),
-                    @CommandParameter(name = "allBranches", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_ALL_BRANCHES_PARAM),
-                    @CommandParameter(name = "revalidateSummaries", type = Boolean.class, optional = true, defaultValue = "true", description = L.DESC_COMMAND_REVALIDATE_PARAM),
-                    @CommandParameter(name = "maxHits", type = Integer.class, optional = true, min = "1", description = L.DESC_COMMAND_MAX_HITS_PARAM),
-                    @CommandParameter(name = "dryRun", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_DRY_RUN_PARAM)}),
-            returns = @CommandReturn(name = "message", type = String.class, description = L.DESC_COMMAND_SEARCH_REPLACE_STORY_RETURN))
+                    @CommandParameter(name = "search", type = String.class),
+                    @CommandParameter(name = "replace", type = String.class),
+                    @CommandParameter(name = "regex", type = Boolean.class, optional = true, defaultValue = "false"),
+                    @CommandParameter(name = "caseSensitive", type = Boolean.class, optional = true, defaultValue = "true"),
+                    @CommandParameter(name = "summaries", type = Boolean.class, optional = true, defaultValue = "true"),
+                    @CommandParameter(name = "allBranches", type = Boolean.class, optional = true, defaultValue = "false"),
+                    @CommandParameter(name = "revalidateSummaries", type = Boolean.class, optional = true, defaultValue = "true"),
+                    @CommandParameter(name = "maxHits", type = Integer.class, optional = true, min = "1"),
+                    @CommandParameter(name = "dryRun", type = Boolean.class, optional = true, defaultValue = "false")}),
+            returns = @CommandReturn(name = "message", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SEARCH_REPLACE_STORY,
+            description = M_L.DESC_COMMAND_SEARCH_REPLACE_STORY,
+            llmDescription = M_L.DESC_COMMAND_SEARCH_REPLACE_STORY_LLM,
+            parameters = {@MarginaliaParameterText(name = "search", description = M_L.DESC_COMMAND_SEARCH_PARAM),
+                    @MarginaliaParameterText(name = "replace", description = M_L.DESC_COMMAND_REPLACE_PARAM),
+                    @MarginaliaParameterText(name = "regex", description = M_L.DESC_COMMAND_REGEX_PARAM),
+                    @MarginaliaParameterText(name = "caseSensitive", description = M_L.DESC_COMMAND_CASE_SENSITIVE_PARAM),
+                    @MarginaliaParameterText(name = "summaries", description = M_L.DESC_COMMAND_SUMMARIES_PARAM),
+                    @MarginaliaParameterText(name = "allBranches", description = M_L.DESC_COMMAND_ALL_BRANCHES_PARAM),
+                    @MarginaliaParameterText(name = "revalidateSummaries", description = M_L.DESC_COMMAND_REVALIDATE_PARAM),
+                    @MarginaliaParameterText(name = "maxHits", description = M_L.DESC_COMMAND_MAX_HITS_PARAM),
+                    @MarginaliaParameterText(name = "dryRun", description = M_L.DESC_COMMAND_DRY_RUN_PARAM)},
+            returns = M_L.DESC_COMMAND_SEARCH_REPLACE_STORY_RETURN)
     public void replaceDryRun(CommandContext context) throws Exception {
         run(context, context.get("regex", Boolean.class), context.get("caseSensitive", Boolean.class),
                 context.get("summaries", Boolean.class), context.get("allBranches", Boolean.class),

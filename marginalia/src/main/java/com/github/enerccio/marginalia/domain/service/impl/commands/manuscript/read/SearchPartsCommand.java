@@ -5,7 +5,6 @@ import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.service.search.FulltextHit;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.M_L;
-import com.github.enerccio.marginalia.loc.L;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
@@ -19,35 +18,50 @@ public class SearchPartsCommand extends ManuscriptReadSupport {
 
     static final String NAME = "search-parts";
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_SEARCH_PARTS,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_SEARCH_PARTS, llmDescription = L.DESC_COMMAND_SEARCH_PARTS_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "query", type = String.class, description = L.DESC_COMMAND_QUERY_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SEARCH_PARTS_RETURN))
+                    @CommandParameter(name = "query", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SEARCH_PARTS,
+            description = M_L.DESC_COMMAND_SEARCH_PARTS,
+            llmDescription = M_L.DESC_COMMAND_SEARCH_PARTS_LLM,
+            parameters = @MarginaliaParameterText(name = "query", description = M_L.DESC_COMMAND_QUERY_PARAM),
+            returns = M_L.DESC_COMMAND_SEARCH_PARTS_RETURN)
     public void searchParts(CommandContext context) throws Exception {
         searchParts(context, context.get("query", String.class), null, false);
     }
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_SEARCH_PARTS,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_SEARCH_PARTS, llmDescription = L.DESC_COMMAND_SEARCH_PARTS_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "query", type = String.class, description = L.DESC_COMMAND_QUERY_PARAM),
-                    @CommandParameter(name = "limit", type = Integer.class, optional = true, defaultValue = "50", min = "1", max = "200", description = L.DESC_COMMAND_LIMIT_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SEARCH_PARTS_RETURN))
+                    @CommandParameter(name = "query", type = String.class),
+                    @CommandParameter(name = "limit", type = Integer.class, optional = true, defaultValue = "50", min = "1", max = "200")}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SEARCH_PARTS,
+            description = M_L.DESC_COMMAND_SEARCH_PARTS,
+            llmDescription = M_L.DESC_COMMAND_SEARCH_PARTS_LLM,
+            parameters = {@MarginaliaParameterText(name = "query", description = M_L.DESC_COMMAND_QUERY_PARAM),
+                    @MarginaliaParameterText(name = "limit", description = M_L.DESC_COMMAND_LIMIT_PARAM)},
+            returns = M_L.DESC_COMMAND_SEARCH_PARTS_RETURN)
     public void searchPartsLimit(CommandContext context) throws Exception {
         searchParts(context, context.get("query", String.class), context.get("limit", Integer.class), false);
     }
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_SEARCH_PARTS,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_SEARCH_PARTS, llmDescription = L.DESC_COMMAND_SEARCH_PARTS_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "query", type = String.class, description = L.DESC_COMMAND_QUERY_PARAM),
-                    @CommandParameter(name = "limit", type = Integer.class, optional = true, defaultValue = "50", min = "1", max = "200", description = L.DESC_COMMAND_LIMIT_PARAM),
-                    @CommandParameter(name = "includeVersions", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_INCLUDE_VERSIONS_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SEARCH_PARTS_RETURN))
+                    @CommandParameter(name = "query", type = String.class),
+                    @CommandParameter(name = "limit", type = Integer.class, optional = true, defaultValue = "50", min = "1", max = "200"),
+                    @CommandParameter(name = "includeVersions", type = Boolean.class, optional = true, defaultValue = "false")}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SEARCH_PARTS,
+            description = M_L.DESC_COMMAND_SEARCH_PARTS,
+            llmDescription = M_L.DESC_COMMAND_SEARCH_PARTS_LLM,
+            parameters = {@MarginaliaParameterText(name = "query", description = M_L.DESC_COMMAND_QUERY_PARAM),
+                    @MarginaliaParameterText(name = "limit", description = M_L.DESC_COMMAND_LIMIT_PARAM),
+                    @MarginaliaParameterText(name = "includeVersions", description = M_L.DESC_COMMAND_INCLUDE_VERSIONS_PARAM)},
+            returns = M_L.DESC_COMMAND_SEARCH_PARTS_RETURN)
     public void searchPartsVersions(CommandContext context) throws Exception {
         searchParts(context, context.get("query", String.class), context.get("limit", Integer.class),
                 Boolean.TRUE.equals(context.get("includeVersions", Boolean.class)));

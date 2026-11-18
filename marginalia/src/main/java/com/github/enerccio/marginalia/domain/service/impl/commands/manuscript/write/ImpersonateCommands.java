@@ -7,7 +7,6 @@ import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.templates.ImpersonateTemplateData;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.M_L;
-import com.github.enerccio.marginalia.loc.L;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -30,44 +29,58 @@ public class ImpersonateCommands extends ManuscriptWriteSupport {
     @Autowired
     private TemplateService templateService;
 
-    @Command(commandName = IMPERSONATE, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_IMPERSONATE, async = true,
+    @Command(commandName = IMPERSONATE, batch = BatchPolicy.SINGLE, async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, availableForAgent = false, readOnly = true,
-            description = L.DESC_COMMAND_IMPERSONATE,
             signature = @CommandParameterSignature,
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_IMPERSONATE_RETURN))
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_IMPERSONATE,
+            description = M_L.DESC_COMMAND_IMPERSONATE,
+            returns = M_L.DESC_COMMAND_IMPERSONATE_RETURN)
     public void impersonate(CommandContext context) throws Exception {
         impersonate(context, null, null, null);
     }
 
-    @Command(commandName = IMPERSONATE, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_IMPERSONATE, async = true,
+    @Command(commandName = IMPERSONATE, batch = BatchPolicy.SINGLE, async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, availableForAgent = false, readOnly = true,
-            description = L.DESC_COMMAND_IMPERSONATE,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "instructions", type = String.class, description = L.DESC_COMMAND_IMPERSONATE_INSTRUCTIONS_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_IMPERSONATE_RETURN))
+                    @CommandParameter(name = "instructions", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_IMPERSONATE,
+            description = M_L.DESC_COMMAND_IMPERSONATE,
+            parameters = @MarginaliaParameterText(name = "instructions", description = M_L.DESC_COMMAND_IMPERSONATE_INSTRUCTIONS_PARAM),
+            returns = M_L.DESC_COMMAND_IMPERSONATE_RETURN)
     public void impersonateInstructions(CommandContext context) throws Exception {
         impersonate(context, context.get("instructions", String.class), null, null);
     }
 
-    @Command(commandName = IMPERSONATE, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_IMPERSONATE, async = true,
+    @Command(commandName = IMPERSONATE, batch = BatchPolicy.SINGLE, async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, availableForAgent = false, readOnly = true,
-            description = L.DESC_COMMAND_IMPERSONATE,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "instructions", type = String.class, description = L.DESC_COMMAND_IMPERSONATE_INSTRUCTIONS_PARAM),
-                    @CommandParameter(name = "outline", type = String.class, description = L.DESC_COMMAND_IMPERSONATE_OUTLINE_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_IMPERSONATE_RETURN))
+                    @CommandParameter(name = "instructions", type = String.class),
+                    @CommandParameter(name = "outline", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_IMPERSONATE,
+            description = M_L.DESC_COMMAND_IMPERSONATE,
+            parameters = {@MarginaliaParameterText(name = "instructions", description = M_L.DESC_COMMAND_IMPERSONATE_INSTRUCTIONS_PARAM),
+                    @MarginaliaParameterText(name = "outline", description = M_L.DESC_COMMAND_IMPERSONATE_OUTLINE_PARAM)},
+            returns = M_L.DESC_COMMAND_IMPERSONATE_RETURN)
     public void impersonateOutline(CommandContext context) throws Exception {
         impersonate(context, context.get("instructions", String.class), context.get("outline", String.class), null);
     }
 
-    @Command(commandName = IMPERSONATE, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_IMPERSONATE, async = true,
+    @Command(commandName = IMPERSONATE, batch = BatchPolicy.SINGLE, async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, availableForAgent = false, readOnly = true,
-            description = L.DESC_COMMAND_IMPERSONATE,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "instructions", type = String.class, description = L.DESC_COMMAND_IMPERSONATE_INSTRUCTIONS_PARAM),
-                    @CommandParameter(name = "outline", type = String.class, description = L.DESC_COMMAND_IMPERSONATE_OUTLINE_PARAM),
-                    @CommandParameter(name = "prompt", type = String.class, description = L.DESC_COMMAND_IMPERSONATE_PROMPT_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_IMPERSONATE_RETURN))
+                    @CommandParameter(name = "instructions", type = String.class),
+                    @CommandParameter(name = "outline", type = String.class),
+                    @CommandParameter(name = "prompt", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_IMPERSONATE,
+            description = M_L.DESC_COMMAND_IMPERSONATE,
+            parameters = {@MarginaliaParameterText(name = "instructions", description = M_L.DESC_COMMAND_IMPERSONATE_INSTRUCTIONS_PARAM),
+                    @MarginaliaParameterText(name = "outline", description = M_L.DESC_COMMAND_IMPERSONATE_OUTLINE_PARAM),
+                    @MarginaliaParameterText(name = "prompt", description = M_L.DESC_COMMAND_IMPERSONATE_PROMPT_PARAM)},
+            returns = M_L.DESC_COMMAND_IMPERSONATE_RETURN)
     public void impersonatePrompt(CommandContext context) throws Exception {
         impersonate(context, context.get("instructions", String.class), context.get("outline", String.class), context.get("prompt", String.class));
     }

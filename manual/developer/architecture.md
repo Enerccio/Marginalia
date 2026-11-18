@@ -539,8 +539,7 @@ Everything is in `<user.home>/.marginalia/` (see also [The data folder](../user/
 
 All UI texts are looked up through the `Localization` bean by a key (`loc.getValue(L.LABEL_SAVE)`,
 `loc.getValue(M_L.LABEL_BOOKS)`). Each layer has its own enum of keys, both `LocalizationKey`s: the platform's `L`
-(login, users, models, settings, the shared words such as Save and Cancel, and every key named in a command
-annotation, see below) and the application's `M_L` (books, lorebooks, agents, generation...); a visual novel built on
+(login, users, models, settings, the shared words such as Save and Cancel) and the application's `M_L` (books, lorebooks, agents, generation...); a visual novel built on
 the platform would add a third. `getValue(LocalizationKey)` finds the texts of the key's enum, so code that shows
 texts of both keeps them as `LocalizationKey`.
 
@@ -554,9 +553,11 @@ and the `JP`, `FR`, `ES`, `DE`, `KO` and `IT` pairs; they are the `bundles` and 
 `container-config.xml`. Texts of template variables and macros (the hints shown next to prompt fields) are localized
 the same way.
 
-The command annotations (`@Command`, `@CommandParameter`, `@CommandReturn`, `@LocalizedTemplateDescription`) are the
-platform's and an annotation element holds one enum, so their texts are `L` keys whichever layer the command belongs
-to.
+An annotation element holds one enum type, so the keys of the texts of a command and of a template variable are in
+an annotation of the layer, typed with its enum: `@MarginaliaCommandTexts` and `@MarginaliaTemplateDescription` with
+`M_L` keys, the platform's `@CommandTexts` and `@LocalizedTemplateDescription` with `L` keys. The platform finds them by
+their meta-annotation (`@CommandTextSource`, `@TemplateDescriptionSource`) and reads the elements by name
+(`LocalizedAnnotations`), see [Writing commands](commands/writing-commands.md#texts).
 
 ```mermaid
 flowchart LR

@@ -1,6 +1,5 @@
 package com.github.enerccio.marginalia.domain.service.command;
 
-import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.LocalizationKey;
 
 import java.util.*;

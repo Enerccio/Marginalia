@@ -1,7 +1,7 @@
 package com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.read;
 
 import com.github.enerccio.marginalia.domain.model.impl.Annotation;
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.google.gson.JsonObject;
@@ -14,12 +14,16 @@ public class GetAnnotationCommand extends ManuscriptReadSupport {
 
     static final String NAME = "get-annotation";
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_GET_ANNOTATION,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_GET_ANNOTATION, llmDescription = L.DESC_COMMAND_GET_ANNOTATION_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "annotation", type = String.class, description = L.DESC_COMMAND_ANNOTATION_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_GET_ANNOTATION_RETURN))
+                    @CommandParameter(name = "annotation", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_GET_ANNOTATION,
+            description = M_L.DESC_COMMAND_GET_ANNOTATION,
+            llmDescription = M_L.DESC_COMMAND_GET_ANNOTATION_LLM,
+            parameters = @MarginaliaParameterText(name = "annotation", description = M_L.DESC_COMMAND_ANNOTATION_PARAM),
+            returns = M_L.DESC_COMMAND_GET_ANNOTATION_RETURN)
     public void getAnnotation(CommandContext context) throws Exception {
         Book book = new Book(context);
         Annotation annotation = book.annotation(ref(context, "annotation"));

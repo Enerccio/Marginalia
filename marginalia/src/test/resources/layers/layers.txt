@@ -57,6 +57,9 @@ app domain.templates.RedraftTemplateData
 app domain.templates.SummaryTemplateData
 app domain.templates.UserPromptData
 platform domain.traits
+app domain.traits.MarginaliaCommandTexts
+app domain.traits.MarginaliaParameterText
+app domain.traits.MarginaliaTemplateDescription
 
 platform domain.model
 app domain.model.AgentModelProfile

@@ -119,7 +119,7 @@ There is no formatter configuration in the repository; match the code around you
 - **The current user** comes from the session-scoped `User` bean; services check ownership (`findForUser`) - the UI
   must not be the only thing protecting other users' data.
 - **UI text** is never hard-coded: add a key to `loc/M_L.java` (a text of the application) or `loc/L.java` (a text
-  of the platform, or one a command annotation names) and the text to its English bundle,
+  of the platform) and the text to its English bundle,
   `loc/MarginaliaLocalizationBundleEN.java` or `loc/LocalizationBundleEN.java` (and to the `JP`, `FR`, `ES`, `DE`,
   `KO` and `IT` ones of the same enum and the Chinese plugin's `MarginaliaLocalizationBundleZH.java` /
   `LocalizationBundleZH.java`; a language without the key shows the English text), and

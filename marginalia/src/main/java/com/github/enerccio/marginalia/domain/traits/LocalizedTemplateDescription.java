@@ -7,6 +7,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * The description of a template variable, an {@link L} key (see {@link TemplateDescriptionSource}).
+ */
+@TemplateDescriptionSource
 @Target({ElementType.FIELD, ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface LocalizedTemplateDescription {

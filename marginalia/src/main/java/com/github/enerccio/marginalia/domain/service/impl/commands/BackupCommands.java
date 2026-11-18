@@ -7,11 +7,11 @@ import com.github.enerccio.marginalia.domain.service.BackupService.ManuscriptBac
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.traits.Command;
+import com.github.enerccio.marginalia.domain.traits.MarginaliaCommandTexts;
 import com.github.enerccio.marginalia.domain.traits.CommandDataSeverity;
 import com.github.enerccio.marginalia.domain.traits.CommandParameterSignature;
 import com.github.enerccio.marginalia.domain.traits.CommandReturn;
 import com.github.enerccio.marginalia.loc.M_L;
-import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
@@ -33,12 +33,13 @@ public class BackupCommands {
     @Autowired
     private Localization loc;
 
-    @Command(commandName = "take-backup", humanName = L.LABEL_COMMAND_TAKE_BACKUP, async = true,
+    @Command(commandName = "take-backup", async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, availableForAgent = false,
-            description = L.DESC_COMMAND_TAKE_BACKUP,
             signature = @CommandParameterSignature,
-            returns = @CommandReturn(name = "message", type = String.class,
-                    description = L.DESC_COMMAND_TAKE_BACKUP_RETURN))
+            returns = @CommandReturn(name = "message", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_TAKE_BACKUP,
+            description = M_L.DESC_COMMAND_TAKE_BACKUP,
+            returns = M_L.DESC_COMMAND_TAKE_BACKUP_RETURN)
     public void takeBackup(CommandContext context) throws Exception {
         Manuscript manuscript = CommandScope.of(context).getManuscript();
         if (manuscript == null) {

@@ -1,7 +1,6 @@
 package com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.read;
 
 import com.github.enerccio.marginalia.domain.collections.AnnotationStatus;
-import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.domain.model.impl.Annotation;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
@@ -19,57 +18,82 @@ public class ListAnnotationsCommand extends ManuscriptReadSupport {
 
     static final String NAME = "list-annotations";
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_LIST_ANNOTATIONS,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_LIST_ANNOTATIONS, llmDescription = L.DESC_COMMAND_LIST_ANNOTATIONS_LLM,
             signature = @CommandParameterSignature,
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_LIST_ANNOTATIONS_RETURN))
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_LIST_ANNOTATIONS,
+            description = M_L.DESC_COMMAND_LIST_ANNOTATIONS,
+            llmDescription = M_L.DESC_COMMAND_LIST_ANNOTATIONS_LLM,
+            returns = M_L.DESC_COMMAND_LIST_ANNOTATIONS_RETURN)
     public void listAnnotations(CommandContext context) throws Exception {
         listAnnotations(context, null, null, null, null);
     }
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_LIST_ANNOTATIONS,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_LIST_ANNOTATIONS, llmDescription = L.DESC_COMMAND_LIST_ANNOTATIONS_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "status", type = String.class, optional = true, defaultValue = "open", description = L.DESC_COMMAND_ANNOTATION_STATUS_FILTER_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_LIST_ANNOTATIONS_RETURN))
+                    @CommandParameter(name = "status", type = String.class, optional = true, defaultValue = "open")}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_LIST_ANNOTATIONS,
+            description = M_L.DESC_COMMAND_LIST_ANNOTATIONS,
+            llmDescription = M_L.DESC_COMMAND_LIST_ANNOTATIONS_LLM,
+            parameters = @MarginaliaParameterText(name = "status", description = M_L.DESC_COMMAND_ANNOTATION_STATUS_FILTER_PARAM),
+            returns = M_L.DESC_COMMAND_LIST_ANNOTATIONS_RETURN)
     public void listAnnotationsStatus(CommandContext context) throws Exception {
         listAnnotations(context, ref(context, "status"), null, null, null);
     }
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_LIST_ANNOTATIONS,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_LIST_ANNOTATIONS, llmDescription = L.DESC_COMMAND_LIST_ANNOTATIONS_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "status", type = String.class, optional = true, defaultValue = "open", description = L.DESC_COMMAND_ANNOTATION_STATUS_FILTER_PARAM),
-                    @CommandParameter(name = "part", type = String.class, optional = true, description = L.DESC_COMMAND_ANNOTATION_FILTER_PART_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_LIST_ANNOTATIONS_RETURN))
+                    @CommandParameter(name = "status", type = String.class, optional = true, defaultValue = "open"),
+                    @CommandParameter(name = "part", type = String.class, optional = true)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_LIST_ANNOTATIONS,
+            description = M_L.DESC_COMMAND_LIST_ANNOTATIONS,
+            llmDescription = M_L.DESC_COMMAND_LIST_ANNOTATIONS_LLM,
+            parameters = {@MarginaliaParameterText(name = "status", description = M_L.DESC_COMMAND_ANNOTATION_STATUS_FILTER_PARAM),
+                    @MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_ANNOTATION_FILTER_PART_PARAM)},
+            returns = M_L.DESC_COMMAND_LIST_ANNOTATIONS_RETURN)
     public void listAnnotationsPart(CommandContext context) throws Exception {
         listAnnotations(context, ref(context, "status"), ref(context, "part"), null, null);
     }
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_LIST_ANNOTATIONS,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_LIST_ANNOTATIONS, llmDescription = L.DESC_COMMAND_LIST_ANNOTATIONS_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "status", type = String.class, optional = true, defaultValue = "open", description = L.DESC_COMMAND_ANNOTATION_STATUS_FILTER_PARAM),
-                    @CommandParameter(name = "part", type = String.class, optional = true, description = L.DESC_COMMAND_ANNOTATION_FILTER_PART_PARAM),
-                    @CommandParameter(name = "offset", type = Integer.class, optional = true, defaultValue = "0", min = "0", description = L.DESC_COMMAND_OFFSET_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_LIST_ANNOTATIONS_RETURN))
+                    @CommandParameter(name = "status", type = String.class, optional = true, defaultValue = "open"),
+                    @CommandParameter(name = "part", type = String.class, optional = true),
+                    @CommandParameter(name = "offset", type = Integer.class, optional = true, defaultValue = "0", min = "0")}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_LIST_ANNOTATIONS,
+            description = M_L.DESC_COMMAND_LIST_ANNOTATIONS,
+            llmDescription = M_L.DESC_COMMAND_LIST_ANNOTATIONS_LLM,
+            parameters = {@MarginaliaParameterText(name = "status", description = M_L.DESC_COMMAND_ANNOTATION_STATUS_FILTER_PARAM),
+                    @MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_ANNOTATION_FILTER_PART_PARAM),
+                    @MarginaliaParameterText(name = "offset", description = M_L.DESC_COMMAND_OFFSET_PARAM)},
+            returns = M_L.DESC_COMMAND_LIST_ANNOTATIONS_RETURN)
     public void listAnnotationsOffset(CommandContext context) throws Exception {
         listAnnotations(context, ref(context, "status"), ref(context, "part"), context.get("offset", Integer.class), null);
     }
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_LIST_ANNOTATIONS,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_LIST_ANNOTATIONS, llmDescription = L.DESC_COMMAND_LIST_ANNOTATIONS_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "status", type = String.class, optional = true, defaultValue = "open", description = L.DESC_COMMAND_ANNOTATION_STATUS_FILTER_PARAM),
-                    @CommandParameter(name = "part", type = String.class, optional = true, description = L.DESC_COMMAND_ANNOTATION_FILTER_PART_PARAM),
-                    @CommandParameter(name = "offset", type = Integer.class, optional = true, defaultValue = "0", min = "0", description = L.DESC_COMMAND_OFFSET_PARAM),
-                    @CommandParameter(name = "limit", type = Integer.class, optional = true, defaultValue = "50", min = "1", max = "200", description = L.DESC_COMMAND_LIMIT_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_LIST_ANNOTATIONS_RETURN))
+                    @CommandParameter(name = "status", type = String.class, optional = true, defaultValue = "open"),
+                    @CommandParameter(name = "part", type = String.class, optional = true),
+                    @CommandParameter(name = "offset", type = Integer.class, optional = true, defaultValue = "0", min = "0"),
+                    @CommandParameter(name = "limit", type = Integer.class, optional = true, defaultValue = "50", min = "1", max = "200")}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_LIST_ANNOTATIONS,
+            description = M_L.DESC_COMMAND_LIST_ANNOTATIONS,
+            llmDescription = M_L.DESC_COMMAND_LIST_ANNOTATIONS_LLM,
+            parameters = {@MarginaliaParameterText(name = "status", description = M_L.DESC_COMMAND_ANNOTATION_STATUS_FILTER_PARAM),
+                    @MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_ANNOTATION_FILTER_PART_PARAM),
+                    @MarginaliaParameterText(name = "offset", description = M_L.DESC_COMMAND_OFFSET_PARAM),
+                    @MarginaliaParameterText(name = "limit", description = M_L.DESC_COMMAND_LIMIT_PARAM)},
+            returns = M_L.DESC_COMMAND_LIST_ANNOTATIONS_RETURN)
     public void listAnnotationsLimit(CommandContext context) throws Exception {
         listAnnotations(context, ref(context, "status"), ref(context, "part"), context.get("offset", Integer.class),
                 context.get("limit", Integer.class));

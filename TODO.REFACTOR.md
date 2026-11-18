@@ -192,12 +192,11 @@ Found on the way, to decide:
 - [x] **Localization.** The keys are split: one enum per layer (`LocalizationKey`), the platform's `L` with the
       `LocalizationBundle*` (the language and its formats), the app's `M_L` with the `MarginaliaLocalizationBundle*`
       (`TextBundle`s registered with `Localization.registerTexts`, by an extension with
-      `ExtensionHasLocalization.getTextBundles`); `getValue(LocalizationKey)` looks up the enum of the key. `L` keeps
-      the platform's texts and every key a command annotation names (`@Command`, `@CommandParameter`,
-      `@CommandReturn`, `@LocalizedTemplateDescription` are platform and an annotation element holds one enum), so
-      445 app texts stay in `L`. The layer-2 core enum (and `TODO.VN.MD`) is one more enum with its bundles.
-- [ ] **Command texts of the app in `L`.** Either the command annotations take key names (checked by a test) or each
-      layer gets its own annotation attributes; until then a command's texts are `L` keys.
+      `ExtensionHasLocalization.getTextBundles`); `getValue(LocalizationKey)` looks up the enum of the key. The localized
+      texts of commands and template variables are in an annotation per layer (`@MarginaliaCommandTexts`,
+      `@MarginaliaTemplateDescription` with `M_L`; `@CommandTexts`, `@LocalizedTemplateDescription` with `L`), found by
+      the meta-annotations `@CommandTextSource` / `@TemplateDescriptionSource` (`LocalizedAnnotations`), so no app text
+      is left in `L`. The layer-2 core enum (and `TODO.VN.MD`) is one more enum with its bundles and annotations.
 - [ ] **Tests.** The platform base from Phase 1 as a `test-jar` of the platform module; the platform's own tests
       move with it (inference, templates, function/tool, gpu, jobs, security, instruct, CRUD of platform entities).
 - [ ] **Packaging.** The WAR has the platform JAR in `WEB-INF/lib`; the desktop app and Docker image unchanged in

@@ -4,7 +4,6 @@ import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.M_L;
-import com.github.enerccio.marginalia.loc.L;
 import com.google.gson.JsonObject;
 
 /**
@@ -20,88 +19,126 @@ public class LorebookWriteCommands extends LorebookWriteSupport {
     static final String REMOVE_SUBBOOK = "remove-subbook";
     static final String DELETE_LOREBOOK = "delete-lorebook";
 
-    @Command(commandName = CREATE_LOREBOOK, humanName = L.LABEL_COMMAND_CREATE_LOREBOOK,
+    @Command(commandName = CREATE_LOREBOOK,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_CREATE_LOREBOOK, llmDescription = L.DESC_COMMAND_CREATE_LOREBOOK_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "name", type = String.class, description = L.DESC_COMMAND_LOREBOOK_NAME_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_CREATE_LOREBOOK_RETURN))
+                    @CommandParameter(name = "name", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_CREATE_LOREBOOK,
+            description = M_L.DESC_COMMAND_CREATE_LOREBOOK,
+            llmDescription = M_L.DESC_COMMAND_CREATE_LOREBOOK_LLM,
+            parameters = @MarginaliaParameterText(name = "name", description = M_L.DESC_COMMAND_LOREBOOK_NAME_PARAM),
+            returns = M_L.DESC_COMMAND_CREATE_LOREBOOK_RETURN)
     public void createLorebook(CommandContext context) throws Exception {
         createLorebook(context, context.get("name", String.class), null);
     }
 
-    @Command(commandName = CREATE_LOREBOOK, humanName = L.LABEL_COMMAND_CREATE_LOREBOOK,
+    @Command(commandName = CREATE_LOREBOOK,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_CREATE_LOREBOOK, llmDescription = L.DESC_COMMAND_CREATE_LOREBOOK_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "name", type = String.class, description = L.DESC_COMMAND_LOREBOOK_NAME_PARAM),
-                    @CommandParameter(name = "parent", type = String.class, description = L.DESC_COMMAND_PARENT_LOREBOOK_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_CREATE_LOREBOOK_RETURN))
+                    @CommandParameter(name = "name", type = String.class),
+                    @CommandParameter(name = "parent", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_CREATE_LOREBOOK,
+            description = M_L.DESC_COMMAND_CREATE_LOREBOOK,
+            llmDescription = M_L.DESC_COMMAND_CREATE_LOREBOOK_LLM,
+            parameters = {@MarginaliaParameterText(name = "name", description = M_L.DESC_COMMAND_LOREBOOK_NAME_PARAM),
+                    @MarginaliaParameterText(name = "parent", description = M_L.DESC_COMMAND_PARENT_LOREBOOK_PARAM)},
+            returns = M_L.DESC_COMMAND_CREATE_LOREBOOK_RETURN)
     public void createLorebookParent(CommandContext context) throws Exception {
         createLorebook(context, context.get("name", String.class), ref(context, "parent"));
     }
 
-    @Command(commandName = SET_LOREBOOK, humanName = L.LABEL_COMMAND_SET_LOREBOOK,
+    @Command(commandName = SET_LOREBOOK,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_SET_LOREBOOK, llmDescription = L.DESC_COMMAND_SET_LOREBOOK_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "lorebook", type = String.class, description = L.DESC_COMMAND_LOREBOOK_HANDLE_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SET_LOREBOOK_RETURN))
+                    @CommandParameter(name = "lorebook", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SET_LOREBOOK,
+            description = M_L.DESC_COMMAND_SET_LOREBOOK,
+            llmDescription = M_L.DESC_COMMAND_SET_LOREBOOK_LLM,
+            parameters = @MarginaliaParameterText(name = "lorebook", description = M_L.DESC_COMMAND_LOREBOOK_HANDLE_PARAM),
+            returns = M_L.DESC_COMMAND_SET_LOREBOOK_RETURN)
     public void setLorebook(CommandContext context) throws Exception {
         setLorebook(context, ref(context, "lorebook"), null, null);
     }
 
-    @Command(commandName = SET_LOREBOOK, humanName = L.LABEL_COMMAND_SET_LOREBOOK,
+    @Command(commandName = SET_LOREBOOK,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_SET_LOREBOOK, llmDescription = L.DESC_COMMAND_SET_LOREBOOK_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "lorebook", type = String.class, description = L.DESC_COMMAND_LOREBOOK_HANDLE_PARAM),
-                    @CommandParameter(name = "name", type = String.class, description = L.DESC_COMMAND_LOREBOOK_NAME_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SET_LOREBOOK_RETURN))
+                    @CommandParameter(name = "lorebook", type = String.class),
+                    @CommandParameter(name = "name", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SET_LOREBOOK,
+            description = M_L.DESC_COMMAND_SET_LOREBOOK,
+            llmDescription = M_L.DESC_COMMAND_SET_LOREBOOK_LLM,
+            parameters = {@MarginaliaParameterText(name = "lorebook", description = M_L.DESC_COMMAND_LOREBOOK_HANDLE_PARAM),
+                    @MarginaliaParameterText(name = "name", description = M_L.DESC_COMMAND_LOREBOOK_NAME_PARAM)},
+            returns = M_L.DESC_COMMAND_SET_LOREBOOK_RETURN)
     public void setLorebookName(CommandContext context) throws Exception {
         setLorebook(context, ref(context, "lorebook"), context.get("name", String.class), null);
     }
 
-    @Command(commandName = SET_LOREBOOK, humanName = L.LABEL_COMMAND_SET_LOREBOOK,
+    @Command(commandName = SET_LOREBOOK,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_SET_LOREBOOK, llmDescription = L.DESC_COMMAND_SET_LOREBOOK_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "lorebook", type = String.class, description = L.DESC_COMMAND_LOREBOOK_HANDLE_PARAM),
-                    @CommandParameter(name = "name", type = String.class, description = L.DESC_COMMAND_LOREBOOK_NAME_PARAM),
-                    @CommandParameter(name = "enabled", type = Boolean.class, optional = true, description = L.DESC_COMMAND_LOREBOOK_ENABLED_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SET_LOREBOOK_RETURN))
+                    @CommandParameter(name = "lorebook", type = String.class),
+                    @CommandParameter(name = "name", type = String.class),
+                    @CommandParameter(name = "enabled", type = Boolean.class, optional = true)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SET_LOREBOOK,
+            description = M_L.DESC_COMMAND_SET_LOREBOOK,
+            llmDescription = M_L.DESC_COMMAND_SET_LOREBOOK_LLM,
+            parameters = {@MarginaliaParameterText(name = "lorebook", description = M_L.DESC_COMMAND_LOREBOOK_HANDLE_PARAM),
+                    @MarginaliaParameterText(name = "name", description = M_L.DESC_COMMAND_LOREBOOK_NAME_PARAM),
+                    @MarginaliaParameterText(name = "enabled", description = M_L.DESC_COMMAND_LOREBOOK_ENABLED_PARAM)},
+            returns = M_L.DESC_COMMAND_SET_LOREBOOK_RETURN)
     public void setLorebookEnabled(CommandContext context) throws Exception {
         setLorebook(context, ref(context, "lorebook"), context.get("name", String.class), context.get("enabled", Boolean.class));
     }
 
-    @Command(commandName = ADD_SUBBOOK, humanName = L.LABEL_COMMAND_ADD_SUBBOOK,
+    @Command(commandName = ADD_SUBBOOK,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_ADD_SUBBOOK, llmDescription = L.DESC_COMMAND_ADD_SUBBOOK_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "lorebook", type = String.class, description = L.DESC_COMMAND_LOREBOOK_HANDLE_PARAM),
-                    @CommandParameter(name = "subbook", type = String.class, description = L.DESC_COMMAND_SUBBOOK_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_ADD_SUBBOOK_RETURN))
+                    @CommandParameter(name = "lorebook", type = String.class),
+                    @CommandParameter(name = "subbook", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_ADD_SUBBOOK,
+            description = M_L.DESC_COMMAND_ADD_SUBBOOK,
+            llmDescription = M_L.DESC_COMMAND_ADD_SUBBOOK_LLM,
+            parameters = {@MarginaliaParameterText(name = "lorebook", description = M_L.DESC_COMMAND_LOREBOOK_HANDLE_PARAM),
+                    @MarginaliaParameterText(name = "subbook", description = M_L.DESC_COMMAND_SUBBOOK_PARAM)},
+            returns = M_L.DESC_COMMAND_ADD_SUBBOOK_RETURN)
     public void addSubbook(CommandContext context) throws Exception {
         addSubbook(context, ref(context, "lorebook"), ref(context, "subbook"));
     }
 
-    @Command(commandName = REMOVE_SUBBOOK, humanName = L.LABEL_COMMAND_REMOVE_SUBBOOK,
+    @Command(commandName = REMOVE_SUBBOOK,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_REMOVE_SUBBOOK, llmDescription = L.DESC_COMMAND_REMOVE_SUBBOOK_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "lorebook", type = String.class, description = L.DESC_COMMAND_LOREBOOK_HANDLE_PARAM),
-                    @CommandParameter(name = "subbook", type = String.class, description = L.DESC_COMMAND_SUBBOOK_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_REMOVE_SUBBOOK_RETURN))
+                    @CommandParameter(name = "lorebook", type = String.class),
+                    @CommandParameter(name = "subbook", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_REMOVE_SUBBOOK,
+            description = M_L.DESC_COMMAND_REMOVE_SUBBOOK,
+            llmDescription = M_L.DESC_COMMAND_REMOVE_SUBBOOK_LLM,
+            parameters = {@MarginaliaParameterText(name = "lorebook", description = M_L.DESC_COMMAND_LOREBOOK_HANDLE_PARAM),
+                    @MarginaliaParameterText(name = "subbook", description = M_L.DESC_COMMAND_SUBBOOK_PARAM)},
+            returns = M_L.DESC_COMMAND_REMOVE_SUBBOOK_RETURN)
     public void removeSubbook(CommandContext context) throws Exception {
         removeSubbook(context, ref(context, "lorebook"), ref(context, "subbook"));
     }
 
-    @Command(commandName = DELETE_LOREBOOK, humanName = L.LABEL_COMMAND_DELETE_LOREBOOK,
+    @Command(commandName = DELETE_LOREBOOK,
             dataSeverity = CommandDataSeverity.DESTRUCTIVE,
-            description = L.DESC_COMMAND_DELETE_LOREBOOK, llmDescription = L.DESC_COMMAND_DELETE_LOREBOOK_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "lorebook", type = String.class, description = L.DESC_COMMAND_LOREBOOK_HANDLE_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_DELETE_LOREBOOK_RETURN))
+                    @CommandParameter(name = "lorebook", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_DELETE_LOREBOOK,
+            description = M_L.DESC_COMMAND_DELETE_LOREBOOK,
+            llmDescription = M_L.DESC_COMMAND_DELETE_LOREBOOK_LLM,
+            parameters = @MarginaliaParameterText(name = "lorebook", description = M_L.DESC_COMMAND_LOREBOOK_HANDLE_PARAM),
+            returns = M_L.DESC_COMMAND_DELETE_LOREBOOK_RETURN)
     public void deleteLorebook(CommandContext context) throws Exception {
         deleteLorebook(context, ref(context, "lorebook"));
     }

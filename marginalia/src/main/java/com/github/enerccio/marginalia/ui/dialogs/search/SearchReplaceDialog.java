@@ -184,7 +184,7 @@ public abstract class SearchReplaceDialog extends ThreadAccessDialog {
     @PublicAPI(from = "1.4.0",
             returns = @APIReturn(type = String.class))
     protected String getIdColumnHeader() {
-        return loc.getValue(L.LABEL_ID);
+        return loc.getValue(M_L.LABEL_ID);
     }
 
     /**
@@ -261,7 +261,7 @@ public abstract class SearchReplaceDialog extends ThreadAccessDialog {
             });
         }
         regexBox = new Checkbox(loc.getValue(M_L.LABEL_SEARCH_BY_REGEX), false);
-        caseSensitiveBox = new Checkbox(loc.getValue(L.LABEL_CASE_SENSITIVE), true);
+        caseSensitiveBox = new Checkbox(loc.getValue(M_L.LABEL_CASE_SENSITIVE), true);
         // a regular expression says itself whether the case matters, with (?i)
         regexBox.addValueChangeListener(e -> caseSensitiveBox.setEnabled(!e.getValue()));
 

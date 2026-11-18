@@ -1,7 +1,6 @@
 package com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.read;
 
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
-import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.templates.TemplateVariables;
@@ -18,35 +17,50 @@ public class GetTemplateVariablesCommand extends ManuscriptReadSupport {
 
     static final String NAME = "get-template-variables";
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_GET_TEMPLATE_VARIABLES,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_GET_TEMPLATE_VARIABLES, llmDescription = L.DESC_COMMAND_GET_TEMPLATE_VARIABLES_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "scope", type = String.class, description = L.DESC_COMMAND_SCOPE_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_GET_TEMPLATE_VARIABLES_RETURN))
+                    @CommandParameter(name = "scope", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_GET_TEMPLATE_VARIABLES,
+            description = M_L.DESC_COMMAND_GET_TEMPLATE_VARIABLES,
+            llmDescription = M_L.DESC_COMMAND_GET_TEMPLATE_VARIABLES_LLM,
+            parameters = @MarginaliaParameterText(name = "scope", description = M_L.DESC_COMMAND_SCOPE_PARAM),
+            returns = M_L.DESC_COMMAND_GET_TEMPLATE_VARIABLES_RETURN)
     public void getTemplateVariables(CommandContext context) throws Exception {
         templateVariables(context, context.get("scope", String.class), null, null);
     }
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_GET_TEMPLATE_VARIABLES,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_GET_TEMPLATE_VARIABLES, llmDescription = L.DESC_COMMAND_GET_TEMPLATE_VARIABLES_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "scope", type = String.class, description = L.DESC_COMMAND_SCOPE_PARAM),
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_GET_TEMPLATE_VARIABLES_RETURN))
+                    @CommandParameter(name = "scope", type = String.class),
+                    @CommandParameter(name = "part", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_GET_TEMPLATE_VARIABLES,
+            description = M_L.DESC_COMMAND_GET_TEMPLATE_VARIABLES,
+            llmDescription = M_L.DESC_COMMAND_GET_TEMPLATE_VARIABLES_LLM,
+            parameters = {@MarginaliaParameterText(name = "scope", description = M_L.DESC_COMMAND_SCOPE_PARAM),
+                    @MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_PART_PARAM)},
+            returns = M_L.DESC_COMMAND_GET_TEMPLATE_VARIABLES_RETURN)
     public void getTemplateVariablesPart(CommandContext context) throws Exception {
         templateVariables(context, context.get("scope", String.class), ref(context, "part"), null);
     }
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_GET_TEMPLATE_VARIABLES,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_GET_TEMPLATE_VARIABLES, llmDescription = L.DESC_COMMAND_GET_TEMPLATE_VARIABLES_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "scope", type = String.class, description = L.DESC_COMMAND_SCOPE_PARAM),
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM),
-                    @CommandParameter(name = "branch", type = String.class, description = L.DESC_COMMAND_BRANCH_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_GET_TEMPLATE_VARIABLES_RETURN))
+                    @CommandParameter(name = "scope", type = String.class),
+                    @CommandParameter(name = "part", type = String.class),
+                    @CommandParameter(name = "branch", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_GET_TEMPLATE_VARIABLES,
+            description = M_L.DESC_COMMAND_GET_TEMPLATE_VARIABLES,
+            llmDescription = M_L.DESC_COMMAND_GET_TEMPLATE_VARIABLES_LLM,
+            parameters = {@MarginaliaParameterText(name = "scope", description = M_L.DESC_COMMAND_SCOPE_PARAM),
+                    @MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_PART_PARAM),
+                    @MarginaliaParameterText(name = "branch", description = M_L.DESC_COMMAND_BRANCH_PARAM)},
+            returns = M_L.DESC_COMMAND_GET_TEMPLATE_VARIABLES_RETURN)
     public void getTemplateVariablesBranch(CommandContext context) throws Exception {
         templateVariables(context, context.get("scope", String.class), ref(context, "part"), ref(context, "branch"));
     }

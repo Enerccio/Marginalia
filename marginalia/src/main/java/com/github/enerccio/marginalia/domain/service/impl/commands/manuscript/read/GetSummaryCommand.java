@@ -1,7 +1,7 @@
 package com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.read;
 
 import com.github.enerccio.marginalia.domain.collections.SummaryType;
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Summary;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
@@ -18,23 +18,32 @@ public class GetSummaryCommand extends ManuscriptReadSupport {
 
     static final String NAME = "get-summary";
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_GET_SUMMARY,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_GET_SUMMARY, llmDescription = L.DESC_COMMAND_GET_SUMMARY_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_GET_SUMMARY_RETURN))
+                    @CommandParameter(name = "part", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_GET_SUMMARY,
+            description = M_L.DESC_COMMAND_GET_SUMMARY,
+            llmDescription = M_L.DESC_COMMAND_GET_SUMMARY_LLM,
+            parameters = @MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_PART_PARAM),
+            returns = M_L.DESC_COMMAND_GET_SUMMARY_RETURN)
     public void getSummary(CommandContext context) throws Exception {
         getSummary(context, ref(context, "part"), null);
     }
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_GET_SUMMARY,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_GET_SUMMARY, llmDescription = L.DESC_COMMAND_GET_SUMMARY_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM),
-                    @CommandParameter(name = "branch", type = String.class, description = L.DESC_COMMAND_BRANCH_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_GET_SUMMARY_RETURN))
+                    @CommandParameter(name = "part", type = String.class),
+                    @CommandParameter(name = "branch", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_GET_SUMMARY,
+            description = M_L.DESC_COMMAND_GET_SUMMARY,
+            llmDescription = M_L.DESC_COMMAND_GET_SUMMARY_LLM,
+            parameters = {@MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_PART_PARAM),
+                    @MarginaliaParameterText(name = "branch", description = M_L.DESC_COMMAND_BRANCH_PARAM)},
+            returns = M_L.DESC_COMMAND_GET_SUMMARY_RETURN)
     public void getSummaryBranch(CommandContext context) throws Exception {
         getSummary(context, ref(context, "part"), ref(context, "branch"));
     }

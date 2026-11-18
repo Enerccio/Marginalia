@@ -1,7 +1,5 @@
 package com.github.enerccio.marginalia.domain.traits;
 
-import com.github.enerccio.marginalia.loc.L;
-
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -57,12 +55,10 @@ public @interface CommandParameter {
     String max() default "";
 
     /**
-     * What the parameter means, shown to the user while they type it, the key of its text; may be left out (see
-     * {@link Command} for the pairs of texts).
+     * What the parameter means, shown to the user while they type it, as a plain text; may be left out. The localized
+     * text is in the {@code parameters} of the method's {@link CommandTextSource} annotation (see {@link Command} for the
+     * pairs of texts).
      */
-    L[] description() default {};
-
-    /** {@link #description()} as a plain text, for extensions without translations. */
     String[] descriptionText() default {};
 
 }

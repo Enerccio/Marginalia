@@ -1,7 +1,9 @@
 package com.github.enerccio.marginalia.domain.templates;
 
 import com.github.enerccio.marginalia.domain.traits.LocalizedTemplateDescription;
+import com.github.enerccio.marginalia.domain.traits.MarginaliaTemplateDescription;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 
 /**
  * Variables of the redraft prompt: the part the author wants written again, what the author wants changed, the story
@@ -9,7 +11,7 @@ import com.github.enerccio.marginalia.loc.L;
  */
 public class RedraftTemplateData extends TemplateData {
 
-    @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_BACKGROUND_LORE)
+    @MarginaliaTemplateDescription(loc = M_L.DESC_TEMPLATE_BACKGROUND_LORE)
     private String backgroundLore;
     @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_NARRATIVE_POV)
     private String narrativePov;
@@ -25,23 +27,23 @@ public class RedraftTemplateData extends TemplateData {
     private String presentCharacters;
     @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_INSTRUCTIONS)
     private String instructions;
-    @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_SUMMARIES)
+    @MarginaliaTemplateDescription(loc = M_L.DESC_TEMPLATE_SUMMARIES)
     private String summaries;
-    @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_PREVIOUS_STORY)
+    @MarginaliaTemplateDescription(loc = M_L.DESC_TEMPLATE_PREVIOUS_STORY)
     private String previousStory;
-    @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_PART_TEXT)
+    @MarginaliaTemplateDescription(loc = M_L.DESC_TEMPLATE_PART_TEXT)
     private String text;
-    @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_FOLLOWING_STORY)
+    @MarginaliaTemplateDescription(loc = M_L.DESC_TEMPLATE_FOLLOWING_STORY)
     private String followingStory;
-    @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_REDRAFT_INSTRUCTIONS)
+    @MarginaliaTemplateDescription(loc = M_L.DESC_TEMPLATE_REDRAFT_INSTRUCTIONS)
     private String redraftInstructions;
-    @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_ANNOTATIONS)
+    @MarginaliaTemplateDescription(loc = M_L.DESC_TEMPLATE_ANNOTATIONS)
     private String annotations;
-    @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_SELECTION)
+    @MarginaliaTemplateDescription(loc = M_L.DESC_TEMPLATE_SELECTION)
     private String selection;
-    @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_SELECTION_BEFORE)
+    @MarginaliaTemplateDescription(loc = M_L.DESC_TEMPLATE_SELECTION_BEFORE)
     private String selectionBefore;
-    @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_SELECTION_AFTER)
+    @MarginaliaTemplateDescription(loc = M_L.DESC_TEMPLATE_SELECTION_AFTER)
     private String selectionAfter;
 
     public String getBackgroundLore() {
