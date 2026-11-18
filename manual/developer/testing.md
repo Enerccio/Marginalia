@@ -155,18 +155,22 @@ Not covered by automated tests: the Vaadin UI (apart from `LLMSnapshotTest`, `He
 
 ```mermaid
 classDiagram
+    PlatformTestBase <|-- MarginaliaTestBase
+    PlatformTestBase <|-- OwnedCrudContract
     MarginaliaTestBase <|-- GenerationTestBase
-    MarginaliaTestBase <|-- OwnedCrudContract
     OwnedCrudContract <|-- ExtendableCrudContract
     MarginaliaTestBase <|-- BackupTestBase
     GenerationTestBase <|-- LorebookActivationTest
     ExtendableCrudContract <|-- ProtocolCrudTest
     TemplateTestBase <|-- MacroRenderingTest
-    class MarginaliaTestBase {
+    class PlatformTestBase {
         +llm
         +createUser()
         +login()
         +createAI()
+    }
+    class MarginaliaTestBase {
+        +quietBackgroundWriters()
     }
     class GenerationTestBase {
         +ai
@@ -188,13 +192,16 @@ classDiagram
 |---|---|---|
 | none | no | Pure units (`CronScheduleTest`, `SillyTavernEntryConverterTest`, `FlywayMigrationTest`). |
 | `TemplateTestBase` | no | Anything rendered by `TemplateServiceImpl`. |
-| `MarginaliaTestBase` | yes | Services, repositories, backups, cleanup. |
+| `PlatformTestBase` | yes | Code of the platform: users, permissions, AIs, jobs; names no class of the application. |
+| `MarginaliaTestBase` | yes | Services, repositories, backups, cleanup of the application. |
 | `GenerationTestBase` | yes | Anything that needs a real generation. |
 | `OwnedCrudContract` / `ExtendableCrudContract` | yes | The CRUD contract of a new entity. |
 
 ### MarginaliaTestBase
 
-`test/MarginaliaTestBase` starts the application context from
+`test/PlatformTestBase` (users, permissions, the login, AIs on the mock LLM; the platform's part, checked by the
+layer test below) and `test/MarginaliaTestBase` on top of it (the background writers of the application, the sizes of
+the books and the activity, see `quietBackgroundWriters`) start the application context from
 `src/test/resources/META-INF/spring/test-application-config.xml`. That file imports the production
 `application-config.xml` and adds `TestContextPostProcessor`, which
 
@@ -501,6 +508,11 @@ every class named in signatures, bodies, annotations and constants) and fails wh
 
 After a change of the map, `-Dlayers.update=true` rewrites the list from the classes (it writes to
 `src/test/resources`, so run it from the `marginalia` folder).
+
+A second check does the same for the shared test code: the test classes that `layers/test-layers.txt` lists as
+`platform` (`PlatformTestBase`, the mock LLM in `test.llm`, `ExpectedLog`, `ComponentTree`, `TestContextPostProcessor`,
+`TestUserService`, the CRUD contracts) may name no application class, main or test, nor a test class the file does not
+list. There is no allow list for it. These classes are the future test-jar of the platform module.
 
 ## The dataset book
 

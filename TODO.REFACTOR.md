@@ -142,8 +142,11 @@ classes; each item is a registration point or an interface in place of a hard re
         `WindowRun` take an `OwnedEntity` and `BaseEntity` parts, the book window is found as a `HostWindow`, so both are
         platform; `ExtensionSettingsForm` (the book and folder settings) is `app` in the map; `UIUtils` shows any
         `LockedException` with its own `describe(loc)`.
-13. [ ] **Test base.** `MarginaliaTestBase` split into a platform base (`loginAs`, `createUser`, `createAI`,
+13. [x] **Test base.** `MarginaliaTestBase` split into a platform base (`loginAs`, `createUser`, `createAI`,
         `MockLLMServer`, the CRUD contracts) and the app's story helpers on top.
+        Done: `PlatformTestBase` (users, permissions, login, AIs, the mock LLM) under `MarginaliaTestBase` (the
+        background writers of books and activity); the CRUD contracts extend the platform base. `LayerDependencyTest`
+        checks the shared test code too (`layers/test-layers.txt`, no allow list).
 
 Done when the allow list of `LayerDependencyTest` is empty. Progress: 153 references from 33 classes at the start,
 133 from 21 after items 1, 2, 3, 7 and parts of 6 and 12 (2026-11-19), 115 from 15 after the settings split and items 9, 10. 70 from 13 after the command framework (item 5). 38 from 11 after localization (item 11). 19 from 7 after cleanup (item 6) and the widgets of item 12, 0 after the session, the command bar and the API (2026-11-19).

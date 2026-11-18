@@ -4,7 +4,7 @@ import com.github.enerccio.marginalia.domain.model.BaseEntity;
 import com.github.enerccio.marginalia.domain.model.OwnedEntity;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.OwnedService;
-import com.github.enerccio.marginalia.test.MarginaliaTestBase;
+import com.github.enerccio.marginalia.test.PlatformTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -16,7 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * CRUD behaviour shared by every owned entity: identity on create, update, soft and hard delete, and owner isolation.
  * Subclasses create a valid entity, change it, and check the change survived a reload.
  */
-public abstract class OwnedCrudContract<T extends OwnedEntity> extends MarginaliaTestBase {
+public abstract class OwnedCrudContract<T extends OwnedEntity> extends PlatformTestBase {
 
     protected User owner;
 

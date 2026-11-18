@@ -39,11 +39,12 @@ class LayerDependencyTest {
     private static final String BASE = "com.github.enerccio.marginalia.";
     private static final String MAP = "/layers/layers.txt";
     private static final String ALLOWED = "/layers/allowed-leaks.txt";
+    private static final String TEST_MAP = "/layers/test-layers.txt";
     private static final Path ALLOWED_SOURCE = Path.of("src/test/resources/layers/allowed-leaks.txt");
 
     @Test
     void platformDoesNotNameApplicationClasses() throws Exception {
-        Map<String, String> rules = readRules();
+        Map<String, String> rules = readRules(MAP);
         Map<String, Set<String>> references = readReferences(mainClasses());
 
         Set<String> unmapped = new TreeSet<>();
@@ -91,6 +92,39 @@ class LayerDependencyTest {
         if (!problems.isEmpty()) {
             fail(problems.toString());
         }
+    }
+
+    /**
+     * The shared test code of the platform (the test base, the mock LLM, the CRUD contracts; {@code layers/test-layers.txt})
+     * names no class of the application, main or test, and has no allow list.
+     */
+    @Test
+    void platformTestCodeDoesNotNameApplicationClasses() throws Exception {
+        Map<String, String> mainRules = readRules(MAP);
+        Map<String, String> testRules = readRules(TEST_MAP);
+        Map<String, Set<String>> references = readReferences(testClasses());
+        Set<String> leaks = new TreeSet<>();
+        for (Map.Entry<String, Set<String>> entry : references.entrySet()) {
+            String from = entry.getKey();
+            if (!"platform".equals(layerOf(testRules, from))) {
+                continue;
+            }
+            for (String to : entry.getValue()) {
+                String layer = references.containsKey(to) ? layerOf(testRules, to) : layerOf(mainRules, to);
+                if ("app".equals(layer) || (references.containsKey(to) && layer == null)) {
+                    leaks.add(from + " -> " + to);
+                }
+            }
+        }
+        if (!leaks.isEmpty()) {
+            fail("Platform test code that names application classes or unlisted test classes (" + TEST_MAP + "):\n  "
+                    + String.join("\n  ", leaks));
+        }
+    }
+
+    /** The folder the test classes were compiled to. */
+    private static Path testClasses() throws URISyntaxException {
+        return Path.of(LayerDependencyTest.class.getProtectionDomain().getCodeSource().getLocation().toURI());
     }
 
     /** The folder the main classes were compiled to (also with {@code -Dbuild.dir}). */
@@ -158,15 +192,15 @@ class LayerDependencyTest {
         return best;
     }
 
-    private static Map<String, String> readRules() throws IOException {
+    private static Map<String, String> readRules(String map) throws IOException {
         Map<String, String> rules = new TreeMap<>();
-        for (String line : readLines(MAP)) {
+        for (String line : readLines(map)) {
             String[] parts = line.split("\\s+");
             if (parts.length != 2 || !(parts[0].equals("platform") || parts[0].equals("app"))) {
-                fail("Bad line in " + MAP + ": " + line);
+                fail("Bad line in " + map + ": " + line);
             }
             if (rules.put(parts[1], parts[0]) != null) {
-                fail("Listed twice in " + MAP + ": " + parts[1]);
+                fail("Listed twice in " + map + ": " + parts[1]);
             }
         }
         return rules;

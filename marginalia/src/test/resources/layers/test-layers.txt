@@ -1,0 +1,14 @@
+# Layers of the shared test code (LayerDependencyTest#platformTestCodeDoesNotNameApplicationClasses), same format as
+# layers.txt. A test class listed as platform may name no class of the application, main or test; test classes that are
+# not listed are not checked. These become the test-jar of the platform module (TODO.REFACTOR.md Phase 2).
+platform test.PlatformTestBase
+platform test.llm
+platform test.ExpectedLog
+platform test.ComponentTree
+platform test.TestContextPostProcessor
+platform test.TestUserService
+platform crud.OwnedCrudContract
+platform crud.ExtendableCrudContract
+app test.MarginaliaTestBase
+app test.GenerationTestBase
+app test.AgentTestBase
