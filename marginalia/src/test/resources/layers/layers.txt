@@ -304,6 +304,7 @@ platform ui.dialogs.UserDialog
 platform ui.dialogs.permissions
 app ui.dialogs.permissions.AgentsPermissionComponent
 app ui.dialogs.permissions.HelperPermissionComponent
+app ui.dialogs.permissions.PermissionUIFactoryImpl
 app ui.dialogs.permissions.VersionHistoryPermissionComponent
 
 app ui.main

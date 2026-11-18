@@ -389,6 +389,9 @@
 
     <bean class="com.github.enerccio.marginalia.instruct.RuntimeInstrumentationInitializer" />
 
+    <!-- the editors of the permission types in the permissions dialog -->
+    <bean class="com.github.enerccio.marginalia.ui.dialogs.permissions.PermissionUIFactoryImpl" />
+
     <!-- the books and parts of the runs (Runs names no story class) -->
     <bean class="com.github.enerccio.marginalia.domain.service.impl.BookRunScope" init-method="install" />
 </beans>

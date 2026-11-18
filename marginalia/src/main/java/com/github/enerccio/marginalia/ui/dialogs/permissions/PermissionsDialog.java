@@ -57,8 +57,11 @@ public class PermissionsDialog extends Dialog implements LLMInteract {
     @Autowired
     private User currentUser;
 
+    /** The editors of the permission types (the application's, a bean). */
+    @Autowired
+    private PermissionUIFactory uiFactory;
+
     private final User user;
-    private final PermissionUIFactory uiFactory = new PermissionUIFactoryImpl();
 
     /** A permission as edited in the dialog. */
     private static final class Row {

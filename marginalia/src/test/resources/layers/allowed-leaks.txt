@@ -116,9 +116,6 @@ ui.components.CommandBar -> domain.model.impl.Manuscript
 ui.components.CommandBar -> domain.service.CommandScopes
 ui.components.CommandBar -> domain.service.GenerationView
 ui.dialogs.CommandProgressDialog -> ui.widgets.FloatingWindow
-ui.dialogs.permissions.PermissionUIFactoryImpl -> ui.dialogs.permissions.AgentsPermissionComponent
-ui.dialogs.permissions.PermissionUIFactoryImpl -> ui.dialogs.permissions.HelperPermissionComponent
-ui.dialogs.permissions.PermissionUIFactoryImpl -> ui.dialogs.permissions.VersionHistoryPermissionComponent
 ui.menu.BuiltMenu -> ui.dialogs.story.StoryCard
 ui.menu.BuiltMenu -> ui.dialogs.story.StoryEditor
 ui.menu.BuiltMenu -> ui.menu.StoryMenuItem
