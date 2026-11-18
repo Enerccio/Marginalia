@@ -226,8 +226,10 @@ Found on the way, to decide:
       `WEB-INF/classes`; Vaadin runs in production mode; first start, login and the workspace work; `/jobs` (the
       platform's `JobsView`) opens; the modules of the platform widgets are in the bundle (`renderChart`,
       `renderGraph`, `renderTreant`, `marginalia-markdown-editor`), and the frontend build found their npm packages
-      (`package.json` unchanged). The WAR build needs a `-Dbuild.dir` inside the project (Vite, see Notes). Not run yet:
-      the Docker image, the desktop distribution and the workflows.
+      (`package.json` unchanged). The WAR build needs a `-Dbuild.dir` inside the project (Vite, see Notes). The Docker
+      image too (Colima, classic builder): the builder stage installs the platform and the app, the plugin stages build
+      the 3 libraries and 30 plugins, and the runtime image starts in production mode with the same checks passing
+      (first start, login, `/jobs`, the widget modules). Not run yet: the desktop distribution and the workflows.
 - [ ] **Docs.** `CLAUDE.md` (commands, module layout), `manual/developer/building.md`, architecture and plugin pages;
       `tools/check_dev_docs.py` `covers` paths that moved.
 
