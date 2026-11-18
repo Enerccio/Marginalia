@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
+import com.github.enerccio.marginalia.ui.widgets.HostWindow;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.ui.LLMInteract;
@@ -16,7 +17,7 @@ import com.vaadin.flow.component.dialog.Dialog;
  * It is a {@link StoryHost}: {@link #refreshManuscript()} and {@link #save()} replace the book the window holds with the
  * one from the database.
  */
-public interface ManuscriptWindow extends StoryHost, Restorable, LLMInteract {
+public interface ManuscriptWindow extends StoryHost, Restorable, LLMInteract, HostWindow {
 
     void create() throws Exception;
 

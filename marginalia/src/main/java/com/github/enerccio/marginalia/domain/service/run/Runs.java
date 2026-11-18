@@ -4,6 +4,8 @@ import com.github.enerccio.marginalia.domain.model.BaseEntity;
 import com.github.enerccio.marginalia.domain.model.OwnedEntity;
 import com.github.enerccio.marginalia.domain.service.LockedException;
 import com.github.enerccio.marginalia.domain.service.job.Jobs;
+import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.Localization;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.shared.Registration;
 import org.hibernate.proxy.HibernateProxy;
@@ -127,6 +129,11 @@ public final class Runs {
         /** The run that holds the object. */
         public Run getRun() {
             return run;
+        }
+
+        @Override
+        public String describe(Localization loc) {
+            return String.format(loc.getValue(L.ERROR_HELD_BY_RUN), run.getLabel());
         }
     }
 

@@ -3,11 +3,8 @@ package com.github.enerccio.marginalia.utils;
 import com.github.enerccio.marginalia.Configuration;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.UIConstants;
-import com.github.enerccio.marginalia.domain.service.FolderBookLockedException;
 import com.github.enerccio.marginalia.domain.service.InferenceErrors;
-import com.github.enerccio.marginalia.domain.service.LorebookLockedException;
-import com.github.enerccio.marginalia.domain.service.ManuscriptLockedException;
-import com.github.enerccio.marginalia.domain.service.run.Runs;
+import com.github.enerccio.marginalia.domain.service.LockedException;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
@@ -105,19 +102,10 @@ public class UIUtils {
 
     public static void internalServerError(Localization loc, Throwable cause) {
         for (Throwable t = cause; t != null && t.getCause() != t; t = t.getCause()) {
-            if (t instanceof Runs.HeldException held) {
-                // not a fault: a run works on it (a generation, a window of the book in another page, a translation)
-                Notification.warning(String.format(loc.getValue(L.ERROR_HELD_BY_RUN), held.getRun().getLabel()));
-                return;
-            }
-            if (t instanceof FolderBookLockedException locked) {
-                Notification.warning(String.format(loc.getValue(L.ERROR_FOLDER_BOOK_LOCKED), locked.getAgentName(), locked.getBookName()));
-                return;
-            }
-            if (t instanceof ManuscriptLockedException locked) {
-                // not a fault: the book is worked on by an agent, the user has to pause or stop it
-                Notification.warning(String.format(loc.getValue(t instanceof LorebookLockedException ? L.ERROR_LOREBOOK_LOCKED : L.ERROR_BOOK_LOCKED),
-                        locked.getAgentName()));
+            if (t instanceof LockedException locked) {
+                // not a fault: a run works on it (a generation, a translation) or an agent holds the book, the user has
+                // to wait, or pause or stop it
+                Notification.warning(locked.describe(loc));
                 return;
             }
         }

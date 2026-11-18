@@ -180,6 +180,7 @@ platform domain.service.TemplateService
 platform domain.service.TokenizerResolver
 platform domain.service.TokenizerService
 platform domain.service.ToolService
+platform domain.service.TrashPolicy
 platform domain.service.TrashService
 platform domain.service.UnmeteredScope
 platform domain.service.UpdateService
@@ -327,7 +328,6 @@ platform ui.widgets
 app ui.widgets.AnnotationTemplatesEditor
 app ui.widgets.AuthorshipField
 app ui.widgets.BookLabels
-app ui.widgets.FloatingWindow
 app ui.widgets.FolderBookProvider
 app ui.widgets.FolderBookRow
 app ui.widgets.HistoryLimitField
@@ -336,7 +336,7 @@ app ui.widgets.MergeTurnsDialog
 app ui.widgets.PromptSettingsForm
 app ui.widgets.TurnRow
 app ui.widgets.WatchedPhrasesEditor
-app ui.widgets.WindowRun
+app ui.widgets.ExtensionSettingsForm
 
 # --- utils ---
 platform utils

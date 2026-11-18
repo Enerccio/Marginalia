@@ -100,10 +100,13 @@ classes; each item is a registration point or an interface in place of a hard re
        `CommandScope` (book, lorebooks, run) is `app` and extends it, commands use `CommandScope.of(context)` (plugin API
        change, the five plugins that read the scope are fixed). Left: `CommandBar` (`setGenerationView`, the hold of the
        book for a generation, `CommandScopes.session(view)`) and `ApiDispatcher`, which go with the UI and API items.
-6. [ ] **Cleanup and resources.** (resources done: `SharedResources`, the app's `BookSharedResources`; cleanup left) `CleanupServiceImpl` (1,174 lines, names seven story entities) and
+6. [x] **Cleanup and resources.** `CleanupServiceImpl` (1,174 lines, names seven story entities) and
        `JpaResourceRepository` / `ResourceServiceImpl` (resources of a book through `ChatMessage`): story-specific
        cleanup steps and "resources of an owner" queries become contributions the app registers. `@CleanupReference`
        already covers most of the purge; check what is left.
+       Done: resources through `SharedResources` (the app's `BookSharedResources`); the trash through `TrashPolicy`
+       (the app's `BookTrashPolicy`: the kinds that can be deleted for good and what goes with them, moving the children
+       of deleted parts, the size of the books); the uuid scan of the purge has its own pattern.
 7. [x] **Tags.** `TagRelationService(Impl)` names `Manuscript`: tagged types registered.
 8. [ ] **Session.** `SessionPoint` holds the open book, window and section; `ApplicationPoint` / `SessionInformation`
        name `Workspace`. Split into a platform `SessionPoint` (user, language, generic attributes) and an app
@@ -128,12 +131,15 @@ classes; each item is a registration point or an interface in place of a hard re
         `L` and the bundles still hold every key (Phase 2).
 12. [ ] **Widgets and the rest.** `AuthorshipField`, `FloatingWindow`, `ExtensionSettingsForm`, `ReaderStyleChooser`,
         `PartView`: move to `app` in the map, or (`FloatingWindow`, `ExtensionSettingsForm`) cut out the story part.
-        Done: `PermissionUIFactoryImpl` is an app bean, `ApplicationEntryPoint` is platform.
+        Done: `PermissionUIFactoryImpl` is an app bean, `ApplicationEntryPoint` is platform. `FloatingWindow` and
+        `WindowRun` take an `OwnedEntity` and `BaseEntity` parts, the book window is found as a `HostWindow`, so both are
+        platform; `ExtensionSettingsForm` (the book and folder settings) is `app` in the map; `UIUtils` shows any
+        `LockedException` with its own `describe(loc)`.
 13. [ ] **Test base.** `MarginaliaTestBase` split into a platform base (`loginAs`, `createUser`, `createAI`,
         `MockLLMServer`, the CRUD contracts) and the app's story helpers on top.
 
 Done when the allow list of `LayerDependencyTest` is empty. Progress: 153 references from 33 classes at the start,
-133 from 21 after items 1, 2, 3, 7 and parts of 6 and 12 (2026-11-19), 115 from 15 after the settings split and items 9, 10. 70 from 13 after the command framework (item 5). 38 from 11 after localization (item 11).
+133 from 21 after items 1, 2, 3, 7 and parts of 6 and 12 (2026-11-19), 115 from 15 after the settings split and items 9, 10. 70 from 13 after the command framework (item 5). 38 from 11 after localization (item 11). 19 from 7 after cleanup (item 6) and the widgets of item 12.
 
 Found on the way, to decide:
 

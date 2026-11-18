@@ -1,5 +1,8 @@
 package com.github.enerccio.marginalia.domain.service;
 
+import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.Localization;
+
 /**
  * A change of a folder that would change what a book in it (or below it) inherits, and an agent works on that book: the
  * lock of the book holds ({@link ManuscriptLockedException}), and this one names the book as well.
@@ -19,5 +22,10 @@ public class FolderBookLockedException extends ManuscriptLockedException {
      */
     public String getBookName() {
         return bookName;
+    }
+
+    @Override
+    public String describe(Localization loc) {
+        return String.format(loc.getValue(L.ERROR_FOLDER_BOOK_LOCKED), getAgentName(), getBookName());
     }
 }

@@ -1,6 +1,6 @@
 package com.github.enerccio.marginalia.ui.widgets;
 
-import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.model.OwnedEntity;
 import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
 import com.vaadin.flow.component.Component;
@@ -28,7 +28,7 @@ public final class WindowRun {
 
     private final String source;
     private final Supplier<String> label;
-    private Manuscript book;
+    private OwnedEntity book;
     private volatile Runs.Run run;
 
     private WindowRun(Component window, String source, Supplier<String> label) {
@@ -56,7 +56,7 @@ public final class WindowRun {
     /**
      * The book the window works on, shown in the panel; none for a run that is about no book (the help assistant).
      */
-    public WindowRun book(Manuscript book) {
+    public WindowRun book(OwnedEntity book) {
         this.book = book;
         return this;
     }

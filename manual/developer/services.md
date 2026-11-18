@@ -553,7 +553,9 @@ generation ends it) and by a run that `setBlocksGeneration(true)` (the redraft a
 `FloatingWindow.blocksGeneration()`, the SillyTavern import); to `SWITCH` (the end of its active branch moves) by a generation in its
 inference; to `START_AGENT` by any run of it, its own window too (`AgentRunServiceImpl.start`). `Runs.check(entity, operation)` throws `Runs.HeldException`, a
 `LockedException` naming the run (the platform base it shares with `ManuscriptLockedException`, so code that wants either catches
-`LockedException`), shown by `UIUtils.internalServerError` as `ERROR_HELD_BY_RUN`.
+`LockedException`), shown by `UIUtils.internalServerError` as `ERROR_HELD_BY_RUN`: it shows any `LockedException` as a warning with
+`describe(loc)`, which each kind (`ManuscriptLockedException`, `LorebookLockedException`, `FolderBookLockedException`, the held run)
+words itself.
 
 `Runs` is platform code and names no story class: which objects are books (`isContainer`), which are parts (`isPart`), the book an
 object is in (`containerOf`) and the title of a book come from a `RunScope`, set once with `Runs.setScope`. Marginalia's is

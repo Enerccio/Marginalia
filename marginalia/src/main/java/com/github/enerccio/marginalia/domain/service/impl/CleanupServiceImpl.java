@@ -8,7 +8,7 @@ import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.security.AdminGuard;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.CleanupService;
-import com.github.enerccio.marginalia.domain.service.ManuscriptSizeService;
+import com.github.enerccio.marginalia.domain.service.TrashPolicy;
 import com.github.enerccio.marginalia.domain.service.TrashService;
 import com.github.enerccio.marginalia.domain.traits.CleanupReference;
 import com.github.enerccio.marginalia.domain.traits.CleanupReference.Policy;
@@ -23,7 +23,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.lang.reflect.Field;
@@ -31,6 +30,8 @@ import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Cleanup of soft deleted entities and, on the same reference model, listing and restoring them ({@link TrashService}).
@@ -41,10 +42,9 @@ public class CleanupServiceImpl implements CleanupService, TrashService {
     private static final Logger log = LoggerFactory.getLogger(CleanupServiceImpl.class);
 
     private static final int CHUNK_SIZE = 500;
-    private static final List<Class<?>> PERMANENTLY_DELETABLE = List.of(ChatMessage.class, LorebookEntry.class);
-    // what goes with a permanently deleted object
-    private static final Set<Class<?>> OWNED_ON_DELETE = Set.of(Summary.class, TagRelation.class, AnchoredPassage.class, MessagePrompt.class,
-            MessageRevision.class);
+    // the text of a column that may name a resource by its uuid
+    private static final Pattern UUID_PATTERN = Pattern.compile(
+            "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}");
     private static final int REMOVE_BATCH_SIZE = 200;
     private static final int MAX_REASONS = 5;
     private static final String[] LABEL_METHODS = {"getName", "getLogin", "getValue"};
@@ -60,9 +60,9 @@ public class CleanupServiceImpl implements CleanupService, TrashService {
     @Autowired
     private User currentUser;
 
-    @Autowired
-    @Lazy
-    private ManuscriptSizeService sizeService;
+    /** What the application adds: the kinds that can be deleted for good, the work around a restore and a delete. */
+    @Autowired(required = false)
+    private TrashPolicy policy = TrashPolicy.NONE;
 
     private EntityManager entityManager;
     private volatile Model model;
@@ -439,7 +439,7 @@ public class CleanupServiceImpl implements CleanupService, TrashService {
                     for (int i = 1; i < row.length; i++) {
                         String text = row[i] instanceof byte[] bytes ? new String(ExtendableEntity.plain(bytes), StandardCharsets.UTF_8)
                                 : (String) row[i];
-                        for (String uuid : BackupResources.uuidsIn(text)) {
+                        for (String uuid : uuidsIn(text)) {
                             candidates.remove(uuid.toLowerCase(Locale.ROOT));
                         }
                     }
@@ -895,35 +895,13 @@ public class CleanupServiceImpl implements CleanupService, TrashService {
         return result;
     }
 
-    /**
-     * The books whose parts (or the books themselves) the trash brings back or takes away: their size may have changed, and the
-     * trash changes it with bulk updates that no service hears.
-     */
     private void touchSizeOf(Set<EntityKey> selection) {
-        try {
-            Set<Long> books = new LinkedHashSet<>();
-            List<Long> parts = new ArrayList<>();
-            for (EntityKey key : selection) {
-                if (key.type() == ChatMessage.class) {
-                    parts.add(key.id());
-                } else if (key.type() == Manuscript.class) {
-                    books.add(key.id());
-                }
-            }
-            for (List<Long> chunk : chunks(parts)) {
-                books.addAll(entityManager.createQuery("SELECT DISTINCT m.parentScript.id FROM ChatMessage m WHERE m.id IN :ids", Long.class)
-                        .setParameter("ids", chunk)
-                        .getResultList());
-            }
-            books.forEach(sizeService::touch);
-        } catch (RuntimeException e) {
-            log.warn("Failed to note the books whose size the trash changed", e);
-        }
+        policy.changed(selection);
     }
 
     @Override
     public List<Class<?>> getPermanentlyDeletableTypes() {
-        return PERMANENTLY_DELETABLE;
+        return policy.permanentlyDeletable();
     }
 
     @Override
@@ -931,7 +909,7 @@ public class CleanupServiceImpl implements CleanupService, TrashService {
     public DeleteResult deletePermanently(Collection<EntityKey> keys) throws Exception {
         Model m = getModel();
         for (EntityKey key : keys) {
-            if (!PERMANENTLY_DELETABLE.contains(key.type())) {
+            if (!policy.permanentlyDeletable().contains(key.type())) {
                 throw new IllegalArgumentException("Can't be deleted permanently: " + key.type().getName());
             }
         }
@@ -942,14 +920,14 @@ public class CleanupServiceImpl implements CleanupService, TrashService {
         }
 
         touchSizeOf(selection);
-        moveChildrenOfMessages(selection);
+        policy.beforePermanentDelete(selection);
 
         Closure closure = closure(m, selection, Set.of());
         Map<EntityKey, List<String>> reasons = new LinkedHashMap<>();
         Set<EntityKey> purge = new LinkedHashSet<>(closure.members);
         // what else would go with the selection: only summaries, annotations and tag links belong to a part or an entry
         for (EntityKey member : closure.members) {
-            if (!selection.contains(member) && !OWNED_ON_DELETE.contains(member.type())) {
+            if (!selection.contains(member) && !policy.ownedOnDelete().contains(member.type())) {
                 for (EntityKey root : closure.origins.getOrDefault(member, selection)) {
                     reasons.computeIfAbsent(root, k -> new ArrayList<>()).add(member + " belongs to it");
                 }
@@ -987,43 +965,6 @@ public class CleanupServiceImpl implements CleanupService, TrashService {
         result.getDeleted().addAll(purge);
         log.info("Permanently deleted {} entities from the trash", purge.size());
         return result;
-    }
-
-    /**
-     * Moves the children of the messages to the nearest ancestor that is not among the messages (deleted children
-     * too, a restored one finds its parent) and the active leaf of the books on them to it, like the delete of a
-     * message in the editor does.
-     */
-    private void moveChildrenOfMessages(Set<EntityKey> selection) {
-        List<Long> ids = selection.stream().filter(key -> key.type() == ChatMessage.class).map(EntityKey::id).toList();
-        if (ids.isEmpty()) {
-            return;
-        }
-        Map<Long, Long> parentOf = new HashMap<>();
-        for (List<Long> chunk : chunks(ids)) {
-            for (Object[] row : entityManager.createQuery("SELECT m.id, m.parent.id FROM ChatMessage m WHERE m.id IN :ids", Object[].class)
-                    .setParameter("ids", chunk).getResultList()) {
-                parentOf.put(((Number) row[0]).longValue(), row[1] != null ? ((Number) row[1]).longValue() : null);
-            }
-        }
-        Set<Long> removed = new HashSet<>(ids);
-        for (Long id : ids) {
-            Long target = parentOf.get(id);
-            while (target != null && removed.contains(target)) {
-                target = parentOf.get(target);
-            }
-            ChatMessage newParent = target != null ? entityManager.getReference(ChatMessage.class, target) : null;
-            entityManager.createQuery("UPDATE ChatMessage m SET m.parent = :parent WHERE m.parent.id = :id")
-                    .setParameter("parent", newParent)
-                    .setParameter("id", id)
-                    .executeUpdate();
-            entityManager.createQuery("UPDATE Manuscript b SET b.activeLeaf = :parent WHERE b.activeLeaf.id = :id")
-                    .setParameter("parent", newParent)
-                    .setParameter("id", id)
-                    .executeUpdate();
-        }
-        entityManager.flush();
-        entityManager.clear();
     }
 
     /**
@@ -1236,6 +1177,17 @@ public class CleanupServiceImpl implements CleanupService, TrashService {
             grouped.computeIfAbsent(key.type(), k -> new ArrayList<>()).add(key.id());
         }
         return grouped;
+    }
+
+    private static Set<String> uuidsIn(String text) {
+        Set<String> found = new LinkedHashSet<>();
+        if (text != null) {
+            Matcher matcher = UUID_PATTERN.matcher(text);
+            while (matcher.find()) {
+                found.add(matcher.group());
+            }
+        }
+        return found;
     }
 
     private List<List<Long>> chunks(List<Long> ids) {

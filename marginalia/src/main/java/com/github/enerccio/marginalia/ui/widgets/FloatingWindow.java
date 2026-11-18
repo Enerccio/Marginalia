@@ -1,13 +1,12 @@
 package com.github.enerccio.marginalia.ui.widgets;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
-import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
-import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.model.BaseEntity;
+import com.github.enerccio.marginalia.domain.model.OwnedEntity;
 import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.components.PageRuns;
-import com.github.enerccio.marginalia.ui.dialogs.ManuscriptWindow;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
@@ -77,8 +76,8 @@ public final class FloatingWindow {
     private Runs.Run hold;
     // the run of the registry the window is a part of (what follows a generated part), instead of one of its own
     private Runs.Run phase;
-    private Manuscript book;
-    private List<ChatMessage> parts = List.of();
+    private OwnedEntity book;
+    private List<BaseEntity> parts = List.of();
     private Runs.Mode mode = Runs.Mode.STRUCTURE;
     private boolean holdsParts;
     private boolean blocksGeneration;
@@ -192,7 +191,7 @@ public final class FloatingWindow {
     /**
      * The book the window works on, shown in the panel of the runs.
      */
-    public FloatingWindow book(Manuscript book) {
+    public FloatingWindow book(OwnedEntity book) {
         this.book = book;
         return this;
     }
@@ -220,7 +219,7 @@ public final class FloatingWindow {
         }
         // only the window of a book: another modal on top of it (the summaries overview the window was opened from) closes while the
         // window goes on, and would end it with itself
-        return ui.getChildren().filter(ManuscriptWindow.class::isInstance).map(Dialog.class::cast)
+        return ui.getChildren().filter(HostWindow.class::isInstance).map(Dialog.class::cast)
                 .filter(Dialog::isOpened).reduce((first, second) -> second).orElse(null);
     }
 
@@ -484,7 +483,7 @@ public final class FloatingWindow {
      * The parts the window works on, marked busy on their cards and held {@link Runs.Mode#STRUCTURE} (a delete or a merge of them is
      * refused) while the window is there.
      */
-    public void setParts(Manuscript book, Collection<ChatMessage> parts) {
+    public void setParts(OwnedEntity book, Collection<? extends BaseEntity> parts) {
         holdParts(book, parts, Runs.Mode.STRUCTURE);
     }
 
@@ -492,9 +491,9 @@ public final class FloatingWindow {
      * The parts the window works on, held in the given mode while the window is there (for a window that only reads them:
      * {@link Runs.Mode#READ}).
      */
-    public void holdParts(Manuscript book, Collection<ChatMessage> parts, Runs.Mode mode) {
+    public void holdParts(OwnedEntity book, Collection<? extends BaseEntity> parts, Runs.Mode mode) {
         this.book = book;
-        this.parts = parts.stream().filter(Objects::nonNull).toList();
+        this.parts = parts.stream().filter(Objects::nonNull).map(BaseEntity.class::cast).toList();
         this.mode = mode;
         this.holdsParts = true;
         if (hold != null) {

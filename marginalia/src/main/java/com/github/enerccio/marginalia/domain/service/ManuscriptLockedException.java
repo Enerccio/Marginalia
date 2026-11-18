@@ -1,5 +1,8 @@
 package com.github.enerccio.marginalia.domain.service;
 
+import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.Localization;
+
 /**
  * A change of a book that an agent works on: the book is locked while a run of its agent is going on, reading it is
  * allowed, changing it is not (see {@link AgentRunService#checkNotLocked}). The user pauses or stops the run to edit.
@@ -14,5 +17,10 @@ public class ManuscriptLockedException extends LockedException {
 
     protected ManuscriptLockedException(String message, String agentName) {
         super(message, agentName);
+    }
+
+    @Override
+    public String describe(Localization loc) {
+        return String.format(loc.getValue(L.ERROR_BOOK_LOCKED), getAgentName());
     }
 }

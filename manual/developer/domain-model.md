@@ -905,11 +905,11 @@ comes back as well. A restored `ChatMessage` deleted by `deleteNodeAndMigrateChi
 they were moved to its parent when it was deleted.
 
 `TrashService.deletePermanently` removes deleted rows for good, for the *Delete Permanently* button of `TrashGrid`. It is
-limited to `getPermanentlyDeletableTypes()` (`ChatMessage`, `LorebookEntry`; anything else raises
-`IllegalArgumentException`) so a user can't purge a whole book, and checks ownership like `restore`. It runs the purge of
+limited to `getPermanentlyDeletableTypes()` (`ChatMessage`, `LorebookEntry`, given by the application's `TrashPolicy` bean
+`BookTrashPolicy`; anything else raises `IllegalArgumentException`) so a user can't purge a whole book, and checks ownership like `restore`. It runs the purge of
 the cleanup (`executePurge`) on the selection: the rows that go with it are only `Summary` and `TagRelation` rows, a
 summary something else uses stays, and a block by a `CleanupContributor` (or any other row that would have to go) makes
-the whole call return `DeleteResult.getBlocked()` and roll back. Before that, `moveChildrenOfMessages` moves the children
+the whole call return `DeleteResult.getBlocked()` and roll back. Before that, `BookTrashPolicy.beforePermanentDelete` moves the children
 of the selected messages - deleted ones too, which the editor's `deleteNodeAndMigrateChildren` never sees - and the
 `activeLeaf` of books to the nearest ancestor that is not selected, with bulk updates, so removing a chain of parts keeps
 the parts below it connected.
