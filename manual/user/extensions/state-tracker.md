@@ -187,6 +187,9 @@ In the settings (the gear):
   that many of the last processed parts.
 - **Lorebook for the model**: the entries the parts activate (default), the whole lorebook, or none.
 - **Model for the extraction** and **Protocol for the extraction**: empty means the model of the book.
+- **Use these settings for new books** saves the settings of this book (the model and the protocol included, the separators
+  stay with the book) as the ones a book starts with where the State Tracker was never used. **Forget the settings for new
+  books** goes back to the built-in settings. Books that already use the tracker keep their own settings.
 
 ## Prompts
 

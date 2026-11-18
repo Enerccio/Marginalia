@@ -225,6 +225,12 @@ public class StateTrackerLocalization extends PluginLocalizationBundle {
     public static final String THE_SYSTEM_MESSAGE_OF_THE_TIDY = "The system message of the tidy, which drops, updates and merges values that faded. Keep the JSON answer format, the plugin reads it. Empty = the inherited one, else the built-in text.";
     public static final String SHOW_THE_STATE_OF_THE_CHARACTER = "Show the state of the character";
 
+    public static final String USE_THESE_SETTINGS_FOR_NEW_BOOKS = "Use these settings for new books";
+    public static final String A_BOOK_WHERE_THE_TRACKER_WAS_NEVER_USED_STARTS_WITH_THEM = "A book where the tracker was never used starts with the settings of this book, the model and the reading with it included (the separators stay with this book)";
+    public static final String NEW_BOOKS_START_WITH_THESE_SETTINGS = "New books start with these settings";
+    public static final String FORGET_THE_SETTINGS_FOR_NEW_BOOKS = "Forget the settings for new books";
+    public static final String NEW_BOOKS_START_WITH_THE_BUILT_IN_SETTINGS = "New books start with the built-in settings";
+
     @Override
     protected void loadKeys() {
         ja(STATE, "状態");
@@ -1802,5 +1808,41 @@ public class StateTrackerLocalization extends PluginLocalizationBundle {
         de(SHOW_THE_STATE_OF_THE_CHARACTER, "Den Zustand der Figur anzeigen");
         ko(SHOW_THE_STATE_OF_THE_CHARACTER, "캐릭터의 상태 보기");
         it(SHOW_THE_STATE_OF_THE_CHARACTER, "Mostra lo stato del personaggio");
+
+        ja(USE_THESE_SETTINGS_FOR_NEW_BOOKS, "これらの設定を新しい本に使う");
+        zh(USE_THESE_SETTINGS_FOR_NEW_BOOKS, "将这些设置用于新书");
+        fr(USE_THESE_SETTINGS_FOR_NEW_BOOKS, "Utiliser ces réglages pour les nouveaux livres");
+        es(USE_THESE_SETTINGS_FOR_NEW_BOOKS, "Usar estos ajustes para los libros nuevos");
+        de(USE_THESE_SETTINGS_FOR_NEW_BOOKS, "Diese Einstellungen für neue Bücher verwenden");
+        ko(USE_THESE_SETTINGS_FOR_NEW_BOOKS, "이 설정을 새 책에 사용");
+        it(USE_THESE_SETTINGS_FOR_NEW_BOOKS, "Usa queste impostazioni per i nuovi libri");
+        ja(A_BOOK_WHERE_THE_TRACKER_WAS_NEVER_USED_STARTS_WITH_THEM, "トラッカーを一度も使っていない本は、この本の設定（モデルとモデルでの読み取りを含む）で始まります（区切り文字はこの本に残ります）");
+        zh(A_BOOK_WHERE_THE_TRACKER_WAS_NEVER_USED_STARTS_WITH_THEM, "从未使用过追踪器的书将以本书的设置开始，包括模型和用模型读取（分隔符留在本书）");
+        fr(A_BOOK_WHERE_THE_TRACKER_WAS_NEVER_USED_STARTS_WITH_THEM, "Un livre où le suivi n'a jamais servi commence avec les réglages de ce livre, le modèle et la lecture avec lui compris (les séparateurs restent avec ce livre)");
+        es(A_BOOK_WHERE_THE_TRACKER_WAS_NEVER_USED_STARTS_WITH_THEM, "Un libro en el que nunca se usó el seguimiento empieza con los ajustes de este libro, incluidos el modelo y la lectura con él (los separadores se quedan en este libro)");
+        de(A_BOOK_WHERE_THE_TRACKER_WAS_NEVER_USED_STARTS_WITH_THEM, "Ein Buch, in dem der Tracker nie benutzt wurde, beginnt mit den Einstellungen dieses Buchs, samt Modell und Lesen mit ihm (die Trennzeichen bleiben bei diesem Buch)");
+        ko(A_BOOK_WHERE_THE_TRACKER_WAS_NEVER_USED_STARTS_WITH_THEM, "추적기를 한 번도 쓰지 않은 책은 모델과 모델로 읽기를 포함한 이 책의 설정으로 시작합니다(구분 기호는 이 책에 남습니다)");
+        it(A_BOOK_WHERE_THE_TRACKER_WAS_NEVER_USED_STARTS_WITH_THEM, "Un libro in cui il tracciatore non è mai stato usato parte con le impostazioni di questo libro, compresi il modello e la lettura con esso (i separatori restano a questo libro)");
+        ja(NEW_BOOKS_START_WITH_THESE_SETTINGS, "新しい本はこれらの設定で始まります");
+        zh(NEW_BOOKS_START_WITH_THESE_SETTINGS, "新书将以这些设置开始");
+        fr(NEW_BOOKS_START_WITH_THESE_SETTINGS, "Les nouveaux livres commencent avec ces réglages");
+        es(NEW_BOOKS_START_WITH_THESE_SETTINGS, "Los libros nuevos empiezan con estos ajustes");
+        de(NEW_BOOKS_START_WITH_THESE_SETTINGS, "Neue Bücher beginnen mit diesen Einstellungen");
+        ko(NEW_BOOKS_START_WITH_THESE_SETTINGS, "새 책은 이 설정으로 시작합니다");
+        it(NEW_BOOKS_START_WITH_THESE_SETTINGS, "I nuovi libri partono con queste impostazioni");
+        ja(FORGET_THE_SETTINGS_FOR_NEW_BOOKS, "新しい本用の設定を消去");
+        zh(FORGET_THE_SETTINGS_FOR_NEW_BOOKS, "清除新书的设置");
+        fr(FORGET_THE_SETTINGS_FOR_NEW_BOOKS, "Oublier les réglages des nouveaux livres");
+        es(FORGET_THE_SETTINGS_FOR_NEW_BOOKS, "Olvidar los ajustes de los libros nuevos");
+        de(FORGET_THE_SETTINGS_FOR_NEW_BOOKS, "Einstellungen für neue Bücher vergessen");
+        ko(FORGET_THE_SETTINGS_FOR_NEW_BOOKS, "새 책용 설정 지우기");
+        it(FORGET_THE_SETTINGS_FOR_NEW_BOOKS, "Dimentica le impostazioni per i nuovi libri");
+        ja(NEW_BOOKS_START_WITH_THE_BUILT_IN_SETTINGS, "新しい本は組み込みの設定で始まります");
+        zh(NEW_BOOKS_START_WITH_THE_BUILT_IN_SETTINGS, "新书将以内置设置开始");
+        fr(NEW_BOOKS_START_WITH_THE_BUILT_IN_SETTINGS, "Les nouveaux livres commencent avec les réglages intégrés");
+        es(NEW_BOOKS_START_WITH_THE_BUILT_IN_SETTINGS, "Los libros nuevos empiezan con los ajustes integrados");
+        de(NEW_BOOKS_START_WITH_THE_BUILT_IN_SETTINGS, "Neue Bücher beginnen mit den eingebauten Einstellungen");
+        ko(NEW_BOOKS_START_WITH_THE_BUILT_IN_SETTINGS, "새 책은 기본 제공 설정으로 시작합니다");
+        it(NEW_BOOKS_START_WITH_THE_BUILT_IN_SETTINGS, "I nuovi libri partono con le impostazioni predefinite");
     }
 }

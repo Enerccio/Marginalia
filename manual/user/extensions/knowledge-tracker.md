@@ -285,6 +285,11 @@ The gear next to *Track a character*:
 | **Separators of this book** | How the present characters field is split into names, one per line (a new line is `\n`). A word such as `and` splits between spaces, so *Jack and Jill* stays one name until you add it. |
 | **My separators (all books)** | The same for all your books. The book's own separators win; with neither, the built-in ones are used. |
 
+**Use these settings for new books** (under the model settings) saves the settings of this book, the reading with the model,
+the model and the protocol included, as the ones a book starts with where the Knowledge Tracker was never used, so a new book
+reads with your model from its first run. The separators of the book stay with it. **Forget the settings for new books** goes back
+to the built-in settings. Books that already use the tracker keep their own settings.
+
 ## Prompts
 
 The system message of the reading (**Knowledge extraction prompt**) and the one of the tidy pass (**Knowledge tidy prompt**) are

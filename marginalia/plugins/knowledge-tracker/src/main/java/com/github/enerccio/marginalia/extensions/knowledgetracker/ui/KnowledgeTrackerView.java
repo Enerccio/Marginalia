@@ -510,9 +510,42 @@ public class KnowledgeTrackerView extends VerticalLayout {
         enable.run();
 
         VerticalLayout box = new VerticalLayout(extract, ask, readBack, parts, autoTidy, tidyEvery, tidyParts, tidyMin, lore, model, protocol);
+        box.add(createBookDefaults());
         box.setPadding(false);
         box.setSpacing(false);
         return box;
+    }
+
+    /**
+     * Saves the settings of this book as the ones a book starts with where the tracker was never used, or forgets them: without it every
+     * new book starts with the built-in settings (no model) and the first run reads nothing with the model.
+     */
+    private Component createBookDefaults() {
+        Button use = new Button(T.localized(USE_THESE_SETTINGS_FOR_NEW_BOOKS), Solid.FLOPPY_DISK.create());
+        use.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY);
+        use.setTooltipText(T.localized(A_BOOK_WHERE_THE_TRACKER_WAS_NEVER_USED_STARTS_WITH_THEM));
+        Button forget = new Button(T.localized(FORGET_THE_SETTINGS_FOR_NEW_BOOKS), Solid.XMARK.create());
+        forget.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY);
+        forget.setEnabled(service.getBookDefaults() != null);
+        use.addClickListener(_ -> {
+            try {
+                service.saveBookDefaults(state.getSettings());
+                forget.setEnabled(true);
+                Notification.success(T.localized(NEW_BOOKS_START_WITH_THESE_SETTINGS));
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
+        });
+        forget.addClickListener(_ -> {
+            try {
+                service.clearBookDefaults();
+                forget.setEnabled(false);
+                Notification.success(T.localized(NEW_BOOKS_START_WITH_THE_BUILT_IN_SETTINGS));
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
+        });
+        return new Div(use, forget);
     }
 
     private static TextArea separatorsField(String label, String value) {

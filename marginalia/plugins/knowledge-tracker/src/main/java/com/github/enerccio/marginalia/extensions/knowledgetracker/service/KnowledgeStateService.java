@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.SettingService;
+import com.github.enerccio.marginalia.extensions.knowledgetracker.model.BookSettings;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.model.KnowledgeState;
 import com.github.enerccio.marginalia.extensions.storytracker.characters.CharacterTrackerCharacters;
 import com.google.gson.Gson;
@@ -29,6 +30,9 @@ public class KnowledgeStateService {
 
     /** Key of the separators in the attributes of the user settings. */
     static final String USER_SEPARATORS_KEY = KnowledgeState.KEY + ".separators";
+
+    /** Key of the settings new books start with in the attributes of the user settings, see {@link #getBookDefaults}. */
+    static final String BOOK_DEFAULTS_KEY = KnowledgeState.KEY + ".bookDefaults";
 
     @Autowired
     private ManuscriptService manuscriptService;
@@ -69,7 +73,8 @@ public class KnowledgeStateService {
     }
 
     /**
-     * The state stored in {@code manuscript} as it is held, a new empty one when there is none.
+     * The state stored in {@code manuscript} as it is held, a new empty one when there is none (with the user's settings for new books,
+     * see {@link #getBookDefaults}).
      */
     public KnowledgeState read(Manuscript manuscript) {
         JsonObject attrs = manuscript.getAttributes();
@@ -77,8 +82,56 @@ public class KnowledgeStateService {
         if (attrs != null && attrs.has(KnowledgeState.KEY)) {
             state = gson.fromJson(attrs.get(KnowledgeState.KEY), KnowledgeState.class);
         }
-        return state != null ? state : new KnowledgeState();
+        if (state == null) {
+            state = new KnowledgeState();
+            BookSettings defaults = getBookDefaults();
+            if (defaults != null) {
+                state.setSettings(defaults);
+            }
+        }
+        return state;
     }
+
+    /**
+     * The settings a book starts with where this tracker was never used: what the user saved with {@link #saveBookDefaults}, {@code null}
+     * when they saved none (the built-in ones apply). It never stores anything and never throws: a book with no state is read from the
+     * prompt builders and the generation too, and it reads as it did when the user settings can't be read.
+     */
+    public BookSettings getBookDefaults() {
+        try {
+            UserSetting userSetting = settingService.find(UserSetting.class, currentUser);
+            JsonObject attrs = userSetting == null ? null : userSetting.getAttributes();
+            if (attrs == null || !attrs.has(BOOK_DEFAULTS_KEY) || !attrs.get(BOOK_DEFAULTS_KEY).isJsonObject()) {
+                return null;
+            }
+            return gson.fromJson(attrs.get(BOOK_DEFAULTS_KEY), BookSettings.class);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /** Stores a copy of the settings as the ones new books start with; the separators stay with their book. */
+    public void saveBookDefaults(BookSettings settings) throws Exception {
+        JsonObject copy = gson.toJsonTree(settings).getAsJsonObject();
+        copy.remove("separators");
+        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
+        JsonObject attrs = userSetting.getAttributes();
+        if (attrs == null) {
+            attrs = new JsonObject();
+            userSetting.setAttributes(attrs);
+        }
+        attrs.add(BOOK_DEFAULTS_KEY, copy);
+        settingService.save(userSetting);
+    }
+
+    /** New books start with the built-in settings again. */
+    public void clearBookDefaults() throws Exception {
+        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
+        if (userSetting.getAttributes() != null && userSetting.getAttributes().remove(BOOK_DEFAULTS_KEY) != null) {
+            settingService.save(userSetting);
+        }
+    }
+
 
     /**
      * The state of the book as it is stored now: a running generation holds the book it was started with, the state

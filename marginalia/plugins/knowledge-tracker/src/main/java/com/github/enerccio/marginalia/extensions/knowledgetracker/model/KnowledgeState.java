@@ -99,6 +99,10 @@ public class KnowledgeState implements TrackerProgress {
         this.startMessage = current.getStartMessage();
     }
 
+    public void setSettings(BookSettings settings) {
+        this.settings = settings;
+    }
+
     public BookSettings getSettings() {
         if (settings == null) {
             settings = new BookSettings();
