@@ -538,7 +538,8 @@ Everything is in `<user.home>/.marginalia/` (see also [The data folder](../user/
 ## Localization
 
 All UI texts are looked up through the `Localization` bean by an `L` key (`loc.getValue(L.LABEL_SAVE)`). The bean
-(`LocalizationImpl`) holds one `LocalizationBundle` per `Language`: the texts of every key, the `Locale` and the date
+(`StoryLocalizationImpl`, the platform's `LocalizationImpl` plus the labels of the story enums and the built-in prompts;
+code that needs those injects it as `StoryLocalization`) holds one `LocalizationBundle` per `Language`: the texts of every key, the `Locale` and the date
 formats of that language, and the name shown in the language selector. The application ships `LocalizationBundleEN`
 (the default language, which has to be complete - the application doesn't start otherwise), `LocalizationBundleJP`,
 `LocalizationBundleFR`, `LocalizationBundleES`, `LocalizationBundleDE`, `LocalizationBundleKO` and `LocalizationBundleIT`;
@@ -579,7 +580,7 @@ flowchart LR
   `%s`/`%d` placeholders as the English text.
 - **The language of the prompts** is a second, independent choice: `UserSetting.promptLanguage`, copied into
   `SessionPoint.promptLanguage` at the login and when the user saves the settings (in an agent run the language of the agent).
-  `Localization.getDefaults()` returns the built-in prompts (`Defaults`, `DefaultsJA`, `DefaultsFR`, `DefaultsES`, `DefaultsDE`, `DefaultsIT`, `DefaultsKO`, and those extensions register, such as
+  `StoryLocalization.getDefaults()` returns the built-in prompts (`Defaults`, `DefaultsJA`, `DefaultsFR`, `DefaultsES`, `DefaultsDE`, `DefaultsIT`, `DefaultsKO`, and those extensions register, such as
   `DefaultsZH` of the Chinese localization) of that language,
   English without a session; the plugins pick theirs with `PluginLocalizationBundle.forPromptLanguage`. See
   [Templating](templating.md#the-built-in-prompts-and-their-languages).

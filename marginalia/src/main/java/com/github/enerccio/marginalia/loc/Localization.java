@@ -1,12 +1,12 @@
 package com.github.enerccio.marginalia.loc;
 
-import com.github.enerccio.marginalia.Defaults;
-import com.github.enerccio.marginalia.domain.collections.*;
+import com.github.enerccio.marginalia.domain.collections.AIType;
+import com.github.enerccio.marginalia.domain.collections.LimitStrategy;
+import com.github.enerccio.marginalia.domain.collections.ProtocolType;
+import com.github.enerccio.marginalia.domain.collections.ReasoningEffort;
+import com.github.enerccio.marginalia.domain.collections.ReasoningPassthrough;
+import com.github.enerccio.marginalia.domain.collections.ResetStrategy;
 import com.github.enerccio.marginalia.domain.security.permissions.PermissionType;
-import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
-import com.github.enerccio.marginalia.domain.service.LorebookActivationService;
-import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookDecision;
-import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookMatch;
 import com.github.enerccio.marginalia.domain.traits.CleanupReference;
 
 import java.text.DateFormat;
@@ -18,6 +18,9 @@ import java.util.Locale;
  * Texts and formats of the UI in the language of the current session ({@code SessionPoint}), the default language
  * when there is no session (startup, scheduled tasks). The texts come from {@link LocalizationBundle}s, one per
  * {@link Language}.
+ * <p>
+ * The labels of the application's own enums and the built-in prompts are in the application's subtype,
+ * {@code StoryLocalization}, which the bean of the application is.
  */
 public interface Localization {
 
@@ -46,23 +49,8 @@ public interface Localization {
     L getReasoningPassthrough(ReasoningPassthrough t);
     L getLimitStrategy(LimitStrategy t);
     L getResetStrategy(ResetStrategy t);
-    L getBackupStrategy(BackupStrategy t);
-    L getFilteringMode(FilteringMode t);
-    L getInsertionMode(InsertionMode t);
-    L getActivationContext(ActivationContext t);
-    L getActivationReason(LorebookActivationService.Reason t);
     L getCleanupPolicy(CleanupReference.Policy t);
-    L getLorebookMatch(LorebookMatch t);
-    L getLorebookDecision(LorebookDecision t);
     L getPermissionType(PermissionType t);
-
-    L getRevisionSource(RevisionSource t);
-
-    L getRevisionDetail(RevisionDetail t);
-
-    L getAgentRunStatus(AgentRunStatus t);
-
-    L getDestructiveCommandMode(DestructiveCommandMode t);
 
     /**
      * Localized name of the kind of object an entity class stands for (book, lorebook...), subclasses use the name of
@@ -96,39 +84,9 @@ public interface Localization {
     Language resolveLanguage(String code);
 
     /**
-     * The built-in prompts and the texts sent to the model in the prompt language of the current session
-     * ({@link #getPromptLanguage()}).
-     */
-    Defaults getDefaults();
-
-    /**
-     * The built-in prompts in the language, the English ones when it has none.
-     */
-    Defaults getDefaults(Language language);
-
-    /**
-     * The built-in prompts of every prompt language, English first: for code that has to recognize a text the
-     * application wrote in any of them (a notice in the transcript of an agent run).
-     */
-    List<Defaults> getAllDefaults();
-
-    /**
-     * Adds the built-in prompts of a language an extension brings (see
-     * {@link com.github.enerccio.marginalia.extensions.ExtensionHasLocalizedPrompts#getPromptDefaults()}).
-     *
-     * @throws IllegalArgumentException when the language already has prompts
-     */
-    void registerDefaults(Defaults texts);
-
-    /**
-     * Removes the prompts added by {@link #registerDefaults}; the ones of the application stay. A user or an agent whose
-     * prompt language is gone gets English.
-     */
-    void unregisterDefaults(Defaults texts);
-
-    /**
      * The language of the built-in prompts for the current session: the user's setting {@code promptLanguage} (in an
-     * agent run the language of the agent), English when it is not set, has no prompts or there is no session. Independent
+     * agent run the language of the agent), English when it is not set, has no prompts or there is no session. Which
+     * languages have prompts is the application's (see {@code StoryLocalization}); the platform alone has only English. Independent
      * of the language of the interface.
      */
     Language getPromptLanguage();

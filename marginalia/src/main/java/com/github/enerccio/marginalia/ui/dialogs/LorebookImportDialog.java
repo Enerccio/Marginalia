@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookImp
 import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookMatch;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.StoryLocalization;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ModalityMode;
@@ -38,7 +39,7 @@ public class LorebookImportDialog extends Dialog implements LLMInteract {
     }
 
     @Autowired
-    private Localization loc;
+    private StoryLocalization loc;
 
     private final Mode mode;
     private final List<LorebookImportCandidate> candidates;

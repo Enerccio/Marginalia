@@ -11,6 +11,7 @@ import com.github.enerccio.marginalia.domain.service.agent.*;
 import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
+import com.github.enerccio.marginalia.loc.StoryLocalization;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -50,7 +51,7 @@ public class AgentVirtualFileSystemServiceImpl implements AgentVirtualFileSystem
     private Configuration configuration;
 
     @Autowired
-    private Localization loc;
+    private StoryLocalization loc;
 
     @Autowired
     @Lazy

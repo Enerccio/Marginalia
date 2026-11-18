@@ -16,6 +16,7 @@ import com.github.enerccio.marginalia.domain.security.service.PermissionService;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
+import com.github.enerccio.marginalia.loc.StoryLocalization;
 import com.github.enerccio.marginalia.loc.Localization;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Hibernate;
@@ -27,7 +28,7 @@ import java.util.*;
 public class AgentServiceImpl extends ExtendableServiceImpl<Agent, AgentRepository> implements AgentService {
 
     @Autowired
-    private Localization loc;
+    private StoryLocalization loc;
 
     @Autowired
     @Lazy

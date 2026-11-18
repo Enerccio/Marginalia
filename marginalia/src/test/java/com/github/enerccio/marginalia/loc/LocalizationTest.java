@@ -17,7 +17,7 @@ class LocalizationTest extends MarginaliaTestBase {
     private static final Language CS = Language.of("cs");
 
     @Autowired
-    private Localization loc;
+    private StoryLocalization loc;
 
     @Autowired
     private SessionPoint sessionPoint;

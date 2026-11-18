@@ -14,7 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class RevisionLocalizationTest extends MarginaliaTestBase {
 
     @Autowired
-    private Localization loc;
+    private StoryLocalization loc;
 
     @Test
     void everySourceAndEveryDetailHasAText() {

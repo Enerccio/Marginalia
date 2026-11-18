@@ -14,6 +14,7 @@ import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.StoryLocalization;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.Restorable;
@@ -79,7 +80,7 @@ import java.util.stream.Collectors;
 public class PhoneLorebookView extends VerticalLayout implements Restorable, LLMInteract {
 
     @Autowired
-    private Localization loc;
+    private StoryLocalization loc;
 
     @Autowired
     private LorebookService lorebookService;

@@ -13,6 +13,7 @@ import com.github.enerccio.marginalia.domain.service.agent.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.StoryLocalization;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.LLMInteract;
@@ -112,7 +113,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
             AgentRunStatus.PAUSING);
 
     @Autowired
-    private Localization loc;
+    private StoryLocalization loc;
 
     @Autowired
     private AgentRunService agentRunService;

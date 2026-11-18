@@ -8,6 +8,7 @@ import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.search.FulltextHit;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.StoryLocalization;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.components.TreantTree;
 import com.github.enerccio.marginalia.ui.dialogs.story.PartHistoryDialog;
@@ -42,7 +43,7 @@ import java.util.*;
 public class PhoneManuscriptTreePart implements PhoneManuscriptDialogPart {
 
     @Autowired
-    private Localization loc;
+    private StoryLocalization loc;
 
     @Autowired
     private ChatMessageService chatMessageService;

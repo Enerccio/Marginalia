@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.domain.collections.FilteringMode;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.StoryLocalization;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
 import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
@@ -30,7 +31,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 public class LorebookEntryEditDialog extends Dialog {
 
     @Autowired
-    private Localization loc;
+    private StoryLocalization loc;
 
     @Autowired
     private LorebookEntryService lorebookEntryService;

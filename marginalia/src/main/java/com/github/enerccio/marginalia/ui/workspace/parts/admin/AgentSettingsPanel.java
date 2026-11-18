@@ -8,6 +8,7 @@ import com.github.enerccio.marginalia.domain.traits.APIReturn;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.domain.traits.PublicAPI;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.StoryLocalization;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
@@ -33,7 +34,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 public class AgentSettingsPanel implements LLMInteract {
 
     @Autowired
-    private Localization loc;
+    private StoryLocalization loc;
 
     @Autowired
     private AgentService agentService;

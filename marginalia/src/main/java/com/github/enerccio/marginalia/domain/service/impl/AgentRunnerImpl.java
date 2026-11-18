@@ -37,6 +37,7 @@ import com.github.enerccio.marginalia.domain.service.manual.ManualTools;
 import com.github.enerccio.marginalia.domain.service.manual.ManualToolsImpl;
 import com.github.enerccio.marginalia.domain.traits.BatchPolicy;
 import com.github.enerccio.marginalia.loc.Language;
+import com.github.enerccio.marginalia.loc.StoryLocalization;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
 import com.google.gson.Gson;
@@ -143,7 +144,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
     private InferenceServices inferenceServices;
 
     @Autowired
-    private Localization localization;
+    private StoryLocalization localization;
 
     @Autowired
     @Lazy

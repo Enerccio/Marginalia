@@ -14,6 +14,7 @@ import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.StoryLocalization;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.LorebookActivationPreviewDialog;
 import com.github.enerccio.marginalia.ui.widgets.MarkdownEditor;
@@ -62,7 +63,7 @@ import java.util.function.Supplier;
 public class LorebookEntryEditor extends VerticalLayout {
 
     @Autowired
-    private Localization loc;
+    private StoryLocalization loc;
 
     @Autowired
     private LorebookEntryService lorebookEntryService;

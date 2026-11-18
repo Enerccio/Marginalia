@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.Defaults;
 import com.github.enerccio.marginalia.domain.service.OsgiService;
 import com.github.enerccio.marginalia.extensions.ExtensionHasLocalizedPrompts;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
+import com.github.enerccio.marginalia.loc.StoryLocalization;
 import com.github.enerccio.marginalia.loc.Localization;
 import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
@@ -25,7 +26,7 @@ public class ExtensionPromptsRegistrar implements OsgiService.ExtensionListener 
     private static final Logger log = LoggerFactory.getLogger(ExtensionPromptsRegistrar.class);
 
     @Autowired
-    private Localization localization;
+    private StoryLocalization localization;
 
     @Autowired
     private ObjectProvider<OsgiService> osgiService;

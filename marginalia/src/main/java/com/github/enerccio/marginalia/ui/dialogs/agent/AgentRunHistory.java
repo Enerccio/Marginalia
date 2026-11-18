@@ -9,6 +9,7 @@ import com.github.enerccio.marginalia.domain.service.AgentRunService;
 import com.github.enerccio.marginalia.domain.service.agent.AgentTranscriptExport;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.StoryLocalization;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
@@ -50,7 +51,7 @@ public class AgentRunHistory extends VerticalLayout implements LLMInteract {
     private static final int RESULT_LIMIT = 100;
 
     @Autowired
-    private Localization loc;
+    private StoryLocalization loc;
 
     @Autowired
     private AgentRunService agentRunService;

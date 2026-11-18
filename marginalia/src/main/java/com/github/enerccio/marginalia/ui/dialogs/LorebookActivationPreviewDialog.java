@@ -15,6 +15,7 @@ import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
 import com.github.enerccio.marginalia.domain.templates.TemplateContext;
 import com.github.enerccio.marginalia.domain.templates.TemplateVariables;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.StoryLocalization;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.BookLabels;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -49,7 +50,7 @@ import java.util.Map;
 public class LorebookActivationPreviewDialog extends Dialog {
 
     @Autowired
-    private Localization loc;
+    private StoryLocalization loc;
 
     @Autowired
     private LorebookActivationService activationService;

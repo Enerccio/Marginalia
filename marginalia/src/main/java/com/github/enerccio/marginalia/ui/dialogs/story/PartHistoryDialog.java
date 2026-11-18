@@ -11,6 +11,7 @@ import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService.PartEdit;
 import com.github.enerccio.marginalia.domain.service.MessageRevisionService;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.StoryLocalization;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
@@ -57,7 +58,7 @@ public class PartHistoryDialog extends Dialog {
     }
 
     @Autowired
-    private Localization loc;
+    private StoryLocalization loc;
 
     @Autowired
     private MessageRevisionService messageRevisionService;

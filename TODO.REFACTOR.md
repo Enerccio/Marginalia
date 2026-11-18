@@ -119,8 +119,13 @@ classes; each item is a registration point or an interface in place of a hard re
         (same package, map entry), and whatever registers them in `OsgiServiceImpl` goes through a hook.
         Done: they were `app` in the map already and `OsgiServiceImpl` does not name them (extensions unregister
         themselves); the hook is `ExtensionRegistrations` of item 9.
-11. [ ] **Localization.** `Localization` / `LocalizationImpl` name `AgentRunStatus`, `Lorebook*` and entity classes
+11. [x] **Localization.** `Localization` / `LocalizationImpl` name `AgentRunStatus`, `Lorebook*` and entity classes
         (labels of story enums and entity kinds): the app registers those label providers.
+        Done as a subtype: `StoryLocalization extends Localization` and `StoryLocalizationImpl extends LocalizationImpl`
+        (the bean) hold the story enum labels, the story entity kinds and the prompts (`Defaults`); the platform keeps
+        the bundles, its own enums, `localizeDomainObject` (filled by the subclass) and the prompt languages (English
+        alone, the subclass gives the ones of `Defaults`). Callers that need story labels inject `StoryLocalization`.
+        `L` and the bundles still hold every key (Phase 2).
 12. [ ] **Widgets and the rest.** `AuthorshipField`, `FloatingWindow`, `ExtensionSettingsForm`, `ReaderStyleChooser`,
         `PartView`: move to `app` in the map, or (`FloatingWindow`, `ExtensionSettingsForm`) cut out the story part.
         Done: `PermissionUIFactoryImpl` is an app bean, `ApplicationEntryPoint` is platform.
@@ -128,7 +133,7 @@ classes; each item is a registration point or an interface in place of a hard re
         `MockLLMServer`, the CRUD contracts) and the app's story helpers on top.
 
 Done when the allow list of `LayerDependencyTest` is empty. Progress: 153 references from 33 classes at the start,
-133 from 21 after items 1, 2, 3, 7 and parts of 6 and 12 (2026-11-19), 115 from 15 after the settings split and items 9, 10. 70 from 13 after the command framework (item 5).
+133 from 21 after items 1, 2, 3, 7 and parts of 6 and 12 (2026-11-19), 115 from 15 after the settings split and items 9, 10. 70 from 13 after the command framework (item 5). 38 from 11 after localization (item 11).
 
 Found on the way, to decide:
 

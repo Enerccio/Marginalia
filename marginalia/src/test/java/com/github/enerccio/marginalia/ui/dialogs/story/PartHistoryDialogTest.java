@@ -10,6 +10,7 @@ import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.MessageRevisionService;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.StoryLocalization;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
 import com.vaadin.flow.component.Component;
@@ -42,7 +43,7 @@ class PartHistoryDialogTest extends MarginaliaTestBase {
     private MessageRevisionService messageRevisionService;
 
     @Autowired
-    private Localization loc;
+    private StoryLocalization loc;
 
     // UI.setCurrent keeps only a weak reference, see WorkspaceStateTest
     private UI ui;

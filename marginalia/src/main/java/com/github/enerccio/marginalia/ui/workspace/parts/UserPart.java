@@ -15,6 +15,7 @@ import com.github.enerccio.marginalia.domain.templates.*;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Language;
+import com.github.enerccio.marginalia.loc.StoryLocalization;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.LLMInteract;
@@ -78,7 +79,7 @@ public class UserPart implements WorkspaceComponent {
     private SessionPoint sessionPoint;
 
     @Autowired
-    private Localization loc;
+    private StoryLocalization loc;
 
     @Autowired
     private SettingService settingService;

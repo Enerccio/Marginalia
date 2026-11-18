@@ -13,6 +13,7 @@ import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.SettingService;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.StoryLocalization;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.*;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
@@ -55,7 +56,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class ManuscriptBackupPart implements ManuscriptDialogPart {
 
     @Autowired
-    private Localization loc;
+    private StoryLocalization loc;
 
     @Autowired
     private BackupService backupService;

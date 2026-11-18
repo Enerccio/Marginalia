@@ -21,6 +21,8 @@ platform api
 platform concurrent
 platform instruct
 platform loc
+app loc.StoryLocalization
+app loc.StoryLocalizationImpl
 
 # --- bound ---
 platform bound
