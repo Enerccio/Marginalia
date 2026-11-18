@@ -865,7 +865,9 @@ The other model's server can be controlled through the same proxy. LiteLLM relay
 the `Authorization` header of the client is **not** passed on, so the target has its own secret in `headers`). A small
 service next to the speech or image server that stops and starts its container is such a target: [`tools/gpu-control`](https://github.com/Enerccio/Marginalia/tree/master/tools/gpu-control)
 (`POST /<container>/start` answers when the service in it is ready, `stop` when it has exited; its README has the compose example and the LiteLLM
-route for the speech server, `/v1/audio/speech`).
+route for the speech server, `/v1/audio/speech`). It can also unload the models of a router **except** the ones named
+(`POST /llama/unload` with `{"keep": ["my-model"]}`), so that Marginalia and another program on the same router each keep only their own model
+without knowing about each other; that call does not save the slot caches as the hook does.
 
 ```yaml
 general_settings:

@@ -29,7 +29,7 @@ Three entities of the installation (`BaseEntity`, not owned by a user; migration
 |---|---|---|
 | `Gpu` | `gpus` | A name and `usedOutside` (migration `V30__gpu_used_outside.sql`). What it is loaded with is known only in memory. |
 | `GpuStep` | `gpu_steps` | An HTTP request: `url`, `method`, `headers` (`EncryptedStringConverter`), `body`, `timeoutSeconds` (0: 60, at most 600), `waitSeconds` (at most 300). Shared by locks. |
-| `GpuLock` | `gpu_locks` | `name`, `gpu`, `maxConcurrent` (0: no limit) and the ordered `acquireSteps` / `releaseSteps` (`@ManyToMany` + `@OrderColumn`, tables `gpu_lock_acquire_steps` and `gpu_lock_release_steps`). |
+| `GpuLock` | `gpu_locks` | `name`, `gpu`, `maxConcurrent` (0: no limit) and the ordered `acquireSteps` / `releaseSteps` / `alwaysSteps` (`@ManyToMany` + `@OrderColumn`, tables `gpu_lock_acquire_steps`, `gpu_lock_release_steps` and `gpu_lock_always_steps`, the last from migration `V32__gpu_lock_always_steps.sql`). |
 
 Deletes are hard: a GPU takes its locks with it, a step is taken out of the locks first. A uuid that names no lock any more means *no lock*.
 
@@ -39,17 +39,19 @@ Deletes are hard: a GPU takes its locks with it, a step is taken out of the lock
 loaded lock (null: unknown), the jobs that hold it, whether steps run, and a FIFO queue. `GpuServiceImpl` gives it the locks through a
 resolver over an in-memory snapshot of the entities (read in a read-only transaction, dropped after every change).
 
-- A job of the **loaded lock** joins at once while `maxConcurrent` allows and nobody waits ahead of it. No step runs.
+- A job of the **loaded lock** joins at once while `maxConcurrent` allows and nobody waits ahead of it. No step runs, except the lock's
+  **always steps** (`LockDef.always`, `eachJob()`), which run before every job of it (`recheck`, on a virtual thread, its place already counted;
+  a failure fails the job and leaves the GPU unknown).
 - A job of **another lock** waits until the holders are gone. The switch runs on a virtual thread of its own: the release steps of the
-  loaded lock (`GpuStepRunner.runAllRegardless`, all of them), then the acquire steps of the new one (`runAll`, the first failure stops).
+  loaded lock (`GpuStepRunner.runAllRegardless`, all of them), then the always and the acquire steps of the new one (`onSwitch()`, `runAll`, the first failure stops).
   A failed acquire leaves the GPU unknown and fails the job; a failed release fails the job and keeps the old lock loaded (the card may be
   full, nothing is started on it).
 - Closing a lease runs **no** step: the GPU stays loaded (sticky). There is no timeout.
 - A GPU **used outside** the application (`LockDef.acquireEachJob`, from `Gpu.usedOutside`) never trusts that state: a job of the loaded lock runs
-  its acquire steps first (`recheck`, on a virtual thread, its place already counted); a failure fails the job and leaves the GPU unknown.
+  its always and acquire steps first (`recheck`); a failure fails the job and leaves the GPU unknown.
 - The queue is fair: once a job waits for a switch, jobs of the loaded lock queue behind it.
 - `unload(gpu)` queues like a job, runs the release steps and leaves the GPU unknown whatever they answered.
-- `GpuLease.reload()` runs the release and the acquire steps of the held lock again (a server that died in the middle of a long job).
+- `GpuLease.reload()` runs the release, the always and the acquire steps of the held lock again (a server that died in the middle of a long job).
 
 ## Using it from a plugin
 

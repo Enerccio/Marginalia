@@ -118,6 +118,48 @@ class GpuArbiterTest {
         assertThat(arbiter.status("gpu").active()).isZero();
     }
 
+    private void alwaysLock(String uuid, String gpu, boolean usedOutside) {
+        locks.put(uuid, new LockDef(uuid, uuid, gpu, 0, List.of(step("load " + uuid)), List.of(step("free " + uuid)), usedOutside,
+                List.of(step("make room " + uuid))));
+    }
+
+    @Test
+    void theAlwaysStepsRunBeforeEveryJobAndBeforeTheAcquireStepsOfASwitch() throws Exception {
+        alwaysLock("llm", "gpu", false);
+        lock("comfy", "gpu", 0);
+        get(arbiter.acquireAsync("llm", null)).close();
+        get(arbiter.acquireAsync("llm", null)).close();
+        get(arbiter.acquireAsync("comfy", null)).close();
+        get(arbiter.acquireAsync("llm", null)).close();
+
+        assertThat(log).containsExactly("make room llm", "load llm", "make room llm", "free llm", "load comfy", "free comfy", "make room llm", "load llm");
+        assertThat(arbiter.loadedLock("gpu")).isEqualTo("llm");
+        assertThat(arbiter.status("gpu").active()).isZero();
+    }
+
+    @Test
+    void onAGpuUsedOutsideTheAlwaysStepsRunBeforeTheAcquireStepsOfEveryJob() throws Exception {
+        alwaysLock("llm", "gpu", true);
+        get(arbiter.acquireAsync("llm", null)).close();
+        get(arbiter.acquireAsync("llm", null)).close();
+
+        assertThat(log).containsExactly("make room llm", "load llm", "make room llm", "load llm");
+    }
+
+    @Test
+    void aFailedAlwaysStepFailsTheJobAndLeavesTheGpuUnknown() throws Exception {
+        alwaysLock("llm", "gpu", false);
+        get(arbiter.acquireAsync("llm", null)).close();
+        failing.add("make room llm");
+
+        assertThatThrownBy(() -> get(arbiter.acquireAsync("llm", null))).hasCauseInstanceOf(GpuException.class);
+        assertThat(arbiter.loadedLock("gpu")).isNull();
+        assertThat(arbiter.status("gpu").active()).isZero();
+        failing.clear();
+        get(arbiter.acquireAsync("llm", null)).close();
+        assertThat(log).endsWith("make room llm", "load llm");
+    }
+
     @Test
     void onAGpuUsedOutsideAFailedRecheckFailsTheJobAndTheNextOneLoadsAgain() throws Exception {
         outsideLock("comfy", "gpu");

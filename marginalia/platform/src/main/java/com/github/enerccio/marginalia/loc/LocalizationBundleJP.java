@@ -310,6 +310,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_EXPIRES, "有効期限");
         setValue(L.LABEL_EXPIRES_AFTER_DAYS, "有効期間（日）");
         setValue(L.LABEL_REVOKE, "失効させる");
+        setValue(L.LABEL_ALWAYS_STEPS, "毎回のジョブ前のステップ");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -542,6 +543,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_GPU_USED_OUTSIDE, "他のプログラムや人もこの GPU を使います。Marginalia は何が読み込まれているか分からないため、GPU のロックが切り替わるときだけでなく、すべてのジョブの前にロックの取得ステップを実行します。各ロックの取得ステップは自分で場所を空け (他のモデルを解放し)、繰り返しても安全である必要があります。");
         setValue(L.HELP_API_ACCESS, "自由に組み合わせられます。バージョンはどのキーでも読めます。書き込みには読み取りが含まれます。更新と拡張機能は管理者専用です。");
         setValue(L.HELP_EXPIRES_AFTER_DAYS, "空欄：キーは期限切れになりません。");
+        setValue(L.HELP_GPU_ALWAYS_STEPS, "このロックのすべてのジョブの前に順番に実行されます。GPU がすでにこのロックを保持しているときも実行され、保持していないときは取得ステップの前に実行されます。最初の失敗でジョブは止まります。他のプログラムのモデルを自分のもの以外アンロードするなど、毎回確かめる必要があるステップ向けです。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_NARRATIVE_POV, "語りの視点（POV）。");

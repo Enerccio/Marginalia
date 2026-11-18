@@ -310,6 +310,7 @@ public class LocalizationBundleKO extends LocalizationBundleBase {
         setValue(L.LABEL_EXPIRES, "만료");
         setValue(L.LABEL_EXPIRES_AFTER_DAYS, "만료까지 (일)");
         setValue(L.LABEL_REVOKE, "폐기");
+        setValue(L.LABEL_ALWAYS_STEPS, "매 작업 전 단계");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 호환");
@@ -542,6 +543,7 @@ public class LocalizationBundleKO extends LocalizationBundleBase {
         setValue(L.HELP_GPU_USED_OUTSIDE, "다른 프로그램이나 사람도 이 GPU를 사용합니다. Marginalia는 무엇이 로드되어 있는지 알 수 없으므로 GPU의 잠금이 바뀔 때뿐 아니라 모든 작업 전에 잠금의 획득 단계를 실행합니다. 이때 각 잠금의 획득 단계는 스스로 자리를 비우고(다른 모델 해제) 반복해도 안전해야 합니다.");
         setValue(L.HELP_API_ACCESS, "자유롭게 조합할 수 있습니다. 버전은 모든 키로 읽을 수 있습니다. 쓰기에는 읽기가 포함됩니다. 업데이트와 확장 기능은 관리자 전용입니다.");
         setValue(L.HELP_EXPIRES_AFTER_DAYS, "비워 두면 키가 만료되지 않습니다.");
+        setValue(L.HELP_GPU_ALWAYS_STEPS, "이 잠금의 모든 작업 전에 순서대로 실행됩니다. GPU가 이미 이 잠금을 가지고 있을 때도 실행되며, 그렇지 않을 때는 획득 단계 전에 실행됩니다. 첫 실패에서 작업이 멈춥니다. 다른 프로그램의 모델을 내 모델만 남기고 언로드하는 것처럼 매번 확인해야 하는 단계용입니다.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_NARRATIVE_POV, "서술의 시점(POV).");

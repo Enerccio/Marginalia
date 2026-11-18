@@ -16,7 +16,7 @@ You set it up once, as the administrator; every user then picks a lock for their
 | | |
 |---|---|
 | **GPU** | One card (or any machine that holds one model at a time): its name, and **Also used outside Marginalia** (see [below](#a-gpu-that-others-use-too)). |
-| **GPU lock** | One way to use a GPU: what is loaded on it. For example *Language model*, *ComfyUI* and *Speech* on the same GPU. A lock has two ordered lists of steps: the **acquire steps** load it (start a container, load a model, unload whatever must go first), the **release steps** free the card of it (stop the container, unload the model). **Jobs at once** limits how many jobs of the lock run together (an image server that makes one image at a time: 1; 0 for no limit). |
+| **GPU lock** | One way to use a GPU: what is loaded on it. For example *Language model*, *ComfyUI* and *Speech* on the same GPU. A lock has two ordered lists of steps: the **acquire steps** load it (start a container, load a model, unload whatever must go first), the **release steps** free the card of it (stop the container, unload the model). A third list, the **steps before every job**, runs before each job of the lock whether the GPU holds it or not (before the acquire steps when it does not): for what must be made sure of every time, because something else may have used the card. **Jobs at once** limits how many jobs of the lock run together (an image server that makes one image at a time: 1; 0 for no limit). |
 | **GPU step** | One HTTP request: an address, a method, headers (`Name: value`, one per line, stored encrypted, so a bearer key can be written there), a body, a timeout (empty: 60 seconds) and a wait after the answer. A step can be used by several locks, for example one *unload the language model* step that both the image and the speech lock run first. **Test** makes the request at once. |
 
 Pick the lock in:
@@ -30,9 +30,9 @@ The **GPU lock** box is shown only when at least one lock exists.
 ## How the turns work
 
 - Every request to a model, every image and every audiobook batch or sample takes the lock of its AI or backend **for its own length**.
-- When the GPU is already loaded with that lock, the job starts at once and no step runs.
+- When the GPU is already loaded with that lock, the job starts at once and no step runs, except the lock's **steps before every job**.
 - When it is loaded with another lock, the job waits until the jobs of that lock are done. Then the **release steps** of that lock run (all
-  of them, also when one fails), then the **acquire steps** of the new lock (in order; the first failure stops them and the job fails with
+  of them, also when one fails), then the steps before every job and the **acquire steps** of the new lock (in order; the first failure stops them and the job fails with
   the message of the step).
 - When a release step fails, the new lock is not loaded at all (the card may still be full): the job fails with the error and the GPU stays
   with the lock it had. The next job of another lock tries to free it again.
@@ -55,6 +55,8 @@ page), what Marginalia thinks is loaded is wrong, and a job may start on a full 
   when the GPU changes locks (the release steps still run only on a change). Each lock's acquire steps must then make room by themselves (unload the
   other models, stop the other server) and be safe to repeat: a start of a server that already runs, an unload of a model that is not loaded and a stop
   of a stopped container must answer with success, or every job fails. It costs those requests on every job.
+- **Steps before every job** do the same for one lock without the others: only the steps that must be checked each time (unload the other
+  program's models, make sure a server answers) run before every job, the rest only on a change.
 - The safe place for this is the GPU machine itself, which every user goes through: a proxy whose *start ComfyUI* unloads the language model first,
   a router hook that stops ComfyUI before it loads the language model. Then nobody can fill the card twice, whatever program asks.
 
@@ -97,6 +99,16 @@ never in it together.
 
 With **Also used outside Marginalia** each acquire must make room by itself instead: *Language model* acquires with *Stop ComfyUI*, and every ComfyUI
 lock with *Unload the language model, Start ComfyUI*.
+
+When another program uses **the same `llama-server` router** with a model of its own (for example a small model next to its speech model), *Unload the
+language model* would throw out its model too, and its own unload would throw out Marginalia's. `tools/gpu-control` has a call that unloads every model of
+the router **except** the ones named: a step `POST http://litellm:4000/gpu/llama/unload` with the body `{"keep": ["<your model>"]}` (its README has the
+pass-through). Make it a **step before every job** of *Language model*; the other program does the same with its own model before each of its jobs.
+When the kept model is the only one loaded the call does nothing and answers at once, so neither program needs to know about the other.
+
+For ComfyUI the same kind of step is `POST http://litellm:4000/gpu/comfy/ensure`: it does nothing when ComfyUI answers, starts the container when
+it is stopped, and restarts it when it runs but ComfyUI does not answer (crashed inside, hung), then waits until it is ready. As a step before every job
+of the ComfyUI locks it makes sure ComfyUI is alive, whoever stopped it.
 
 The AI of the language model picks *Language model*, the image backend *ComfyUI images*, the speech backend *ComfyUI speech*, the
 [speech recognition](../extensions/audiobook.md#speech-recognition) and the [cleanup of clips](../extensions/audiobook.md#cleanup-of-clips) of

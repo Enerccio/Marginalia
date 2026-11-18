@@ -310,6 +310,7 @@ public class LocalizationBundleES extends LocalizationBundleBase {
         setValue(L.LABEL_EXPIRES, "Caduca");
         setValue(L.LABEL_EXPIRES_AFTER_DAYS, "Caduca tras (días)");
         setValue(L.LABEL_REVOKE, "Revocar");
+        setValue(L.LABEL_ALWAYS_STEPS, "Pasos antes de cada trabajo");
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "Compatible con OpenAI");
         setValue(L.ENUM_PROTOCOL_TYPE_OPEN_CHAT_COMPLETION, "Chat Completion");
@@ -538,6 +539,7 @@ public class LocalizationBundleES extends LocalizationBundleBase {
         setValue(L.HELP_GPU_USED_OUTSIDE, "Otros programas o personas también usan esta GPU: Marginalia ejecuta entonces los pasos de adquisición de un bloqueo antes de cada trabajo, no solo cuando la GPU cambia de bloqueo, porque no puede saber qué está cargado. Los pasos de adquisición de cada bloqueo deben entonces hacer sitio por sí mismos (descargar los otros modelos) y poder repetirse sin riesgo.");
         setValue(L.HELP_API_ACCESS, "Cualquier combinación. Cualquier clave puede leer la versión. La escritura incluye la lectura. La actualización y las extensiones son solo para administradores.");
         setValue(L.HELP_EXPIRES_AFTER_DAYS, "Vacío: la clave no caduca.");
+        setValue(L.HELP_GPU_ALWAYS_STEPS, "Se ejecutan en orden antes de cada trabajo de este bloqueo, también cuando la GPU ya lo tiene, antes de los pasos de adquisición cuando no lo tiene; el primer fallo detiene el trabajo. Para un paso que hay que asegurar siempre, por ejemplo descargar los modelos de otro programa salvo el suyo.");
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_NARRATIVE_POV, "Punto de vista (POV) de la narración.");
         setValue(L.DESC_TEMPLATE_NARRATIVE_TENSE, "Tiempo verbal usado en la narración.");

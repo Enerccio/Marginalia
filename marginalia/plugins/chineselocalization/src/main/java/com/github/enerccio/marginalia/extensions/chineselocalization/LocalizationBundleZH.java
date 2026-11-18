@@ -319,6 +319,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_EXPIRES, "到期");
         setValue(L.LABEL_EXPIRES_AFTER_DAYS, "有效天数");
         setValue(L.LABEL_REVOKE, "吊销");
+        setValue(L.LABEL_ALWAYS_STEPS, "每个作业前的步骤");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -551,6 +552,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_GPU_USED_OUTSIDE, "其他程序或人员也使用此 GPU：由于 Marginalia 无法知道加载了什么，它会在每个作业之前运行锁的获取步骤，而不仅是在 GPU 切换锁时。此时每个锁的获取步骤必须自行腾出空间（卸载其他模型），并且可以安全地重复执行。");
         setValue(L.HELP_API_ACCESS, "可任意组合。任何密钥都能读取版本。写入包含读取。更新和扩展仅限管理员。");
         setValue(L.HELP_EXPIRES_AFTER_DAYS, "留空：密钥不会过期。");
+        setValue(L.HELP_GPU_ALWAYS_STEPS, "在此锁的每个作业之前按顺序运行，即使 GPU 已持有此锁也会运行；未持有时在获取步骤之前运行。第一次失败会停止作业。用于每次都必须确保的步骤，例如卸载其他程序的模型（保留您自己的）。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_NARRATIVE_POV, "叙事视角（POV）。");

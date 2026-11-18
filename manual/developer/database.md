@@ -163,6 +163,7 @@ To add one: implement `Migration`, register the bean in the `migrations` list of
 | V29 | `V29__gpus.sql` | New tables `gpus` (`name`), `gpu_steps` (`name`, `url`, `method`, `headers` encrypted, `body`, `timeoutSeconds`, `waitSeconds`) and `gpu_locks` (`name`, `gpu_id`, `maxConcurrent`) with their `_SEQ` tables, the index `ix_gpu_locks_gpu`, and the ordered join tables `gpu_lock_acquire_steps` / `gpu_lock_release_steps` (`lock_id`, `step_id`, `ordinal`): the entities `Gpu`, `GpuStep` and `GpuLock` of the installation, not owned (no `userId`, no extended content), see [GPU locks](plugins/gpu-locks.md#the-model). |
 | V30 | `V30__gpu_used_outside.sql` | `gpus.used_outside boolean not null default 0`: a GPU that is also used outside Marginalia runs the acquire steps of a lock before every job. |
 | V31 | `V31__api_keys.sql` | New table `api_keys` (`name`, `keyPrefix` unique, `secretHash`, the owner `userId`, extended content) with the index `ix_api_keys_owner` (`userId`, `is_deleted`) and `api_keys_SEQ`: the keys of the [HTTP API](api.md) (`ApiKey`), only a SHA-256 hash of the secret is stored. |
+| V32 | `V32__gpu_lock_always_steps.sql` | New ordered join table `gpu_lock_always_steps` (`lock_id`, `step_id`, `ordinal`): the steps a [GPU lock](plugins/gpu-locks.md#the-model) runs before every job, whether the GPU holds it or not (`GpuLock.alwaysSteps`). Copied into the platform's test schema as `V2__gpu_lock_always_steps.sql`. |
 
 ### Rules
 

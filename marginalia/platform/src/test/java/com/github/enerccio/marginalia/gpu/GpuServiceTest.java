@@ -153,6 +153,27 @@ class GpuServiceTest extends PlatformTestBase {
     }
 
     @Test
+    void theAlwaysStepsAreStoredAndRunBeforeEveryJob() throws Exception {
+        loginAdmin();
+        Gpu gpu = gpu(uniqueName("gpu"));
+        GpuStep room = step("make room", "/llama/unload");
+        GpuStep load = step("load llm", "/llm/load");
+        GpuLock llm = lock("llm", gpu, 0, List.of(load), List.of());
+        llm.setAlwaysSteps(List.of(room));
+        GpuLock saved = gpuService.saveLock(llm);
+        assertThat(gpuService.findLocks()).filteredOn(l -> l.getId().equals(saved.getId())).singleElement()
+                .satisfies(l -> assertThat(l.getAlwaysSteps()).extracting(GpuStep::getName).containsExactly("make room"));
+
+        gpuService.acquire(saved.getUuid(), null).close();
+        gpuService.acquire(saved.getUuid(), null).close();
+        assertThat(calls).containsExactly("POST /llama/unload Bearer secret", "POST /llm/load Bearer secret", "POST /llama/unload Bearer secret");
+
+        gpuService.deleteStep(room);
+        assertThat(gpuService.findLocks()).filteredOn(l -> l.getId().equals(saved.getId())).singleElement()
+                .satisfies(l -> assertThat(l.getAlwaysSteps()).isEmpty());
+    }
+
+    @Test
     void aFailingStepFailsTheJob() throws Exception {
         loginAdmin();
         Gpu gpu = gpu(uniqueName("gpu"));

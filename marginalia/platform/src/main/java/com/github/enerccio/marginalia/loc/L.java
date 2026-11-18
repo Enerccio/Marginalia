@@ -294,6 +294,7 @@ public enum L implements LocalizationKey {
     LABEL_EXPIRES,
     LABEL_EXPIRES_AFTER_DAYS,
     LABEL_REVOKE,
+    LABEL_ALWAYS_STEPS,
 
     // --- ENUM ---
     ENUM_AI_TYPE_OPEN_AI_COMPATIBLE,
@@ -526,6 +527,7 @@ public enum L implements LocalizationKey {
     HELP_GPU_USED_OUTSIDE,
     HELP_API_ACCESS,
     HELP_EXPIRES_AFTER_DAYS,
+    HELP_GPU_ALWAYS_STEPS,
 
     // --- DESC ---
     DESC_TEMPLATE_NARRATIVE_POV,

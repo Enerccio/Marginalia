@@ -120,7 +120,8 @@ public class GpuServiceImpl implements GpuService {
                             continue;
                         }
                         defs.put(lock.getUuid(), new LockDef(lock.getUuid(), lock.getName(), lock.getGpu().getUuid(), lock.getMaxConcurrent(),
-                                steps(lock.getAcquireSteps()), steps(lock.getReleaseSteps()), lock.getGpu().isUsedOutside()));
+                                steps(lock.getAcquireSteps()), steps(lock.getReleaseSteps()), lock.getGpu().isUsedOutside(),
+                                steps(lock.getAlwaysSteps())));
                         found.put(lock.getUuid(), new GpuLockChoice(lock.getUuid(), lock.getName(), lock.getGpu().getName()));
                     }
                 } catch (Exception e) {
@@ -253,6 +254,7 @@ public class GpuServiceImpl implements GpuService {
         for (GpuLock lock : lockRepository.findUsingStep(stored)) {
             lock.getAcquireSteps().removeIf(s -> Objects.equals(s.getId(), stored.getId()));
             lock.getReleaseSteps().removeIf(s -> Objects.equals(s.getId(), stored.getId()));
+            lock.getAlwaysSteps().removeIf(s -> Objects.equals(s.getId(), stored.getId()));
             lockRepository.save(lock);
         }
         stepRepository.delete(stored, true);

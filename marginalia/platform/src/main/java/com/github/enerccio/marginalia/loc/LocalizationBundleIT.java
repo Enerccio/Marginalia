@@ -310,6 +310,7 @@ public class LocalizationBundleIT extends LocalizationBundleBase {
         setValue(L.LABEL_EXPIRES, "Scade");
         setValue(L.LABEL_EXPIRES_AFTER_DAYS, "Scade dopo (giorni)");
         setValue(L.LABEL_REVOKE, "Revoca");
+        setValue(L.LABEL_ALWAYS_STEPS, "Passi prima di ogni lavoro");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "Compatibile con OpenAI");
@@ -542,6 +543,7 @@ public class LocalizationBundleIT extends LocalizationBundleBase {
         setValue(L.HELP_GPU_USED_OUTSIDE, "Anche altri programmi o persone usano questa GPU: Marginalia esegue allora i passi di acquisizione di un blocco prima di ogni lavoro, non solo quando la GPU cambia blocco, perché non può sapere cosa è caricato. I passi di acquisizione di ogni blocco devono allora fare spazio da soli (scaricare gli altri modelli) ed essere ripetibili senza rischi.");
         setValue(L.HELP_API_ACCESS, "Qualsiasi combinazione. Ogni chiave può leggere la versione. La scrittura include la lettura. L'aggiornamento e le estensioni sono solo per gli amministratori.");
         setValue(L.HELP_EXPIRES_AFTER_DAYS, "Vuoto: la chiave non scade.");
+        setValue(L.HELP_GPU_ALWAYS_STEPS, "Eseguiti in ordine prima di ogni lavoro di questo blocco, anche quando la GPU lo tiene già, prima dei passi di acquisizione quando non lo tiene; il primo errore ferma il lavoro. Per un passo da garantire ogni volta, per esempio scaricare i modelli di un altro programma tranne il proprio.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_NARRATIVE_POV, "Punto di vista (POV) della narrazione.");

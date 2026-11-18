@@ -25,8 +25,8 @@ public class JpaGpuLockRepository extends JpaBaseRepository<GpuLock> implements 
     @Override
     public List<GpuLock> findUsingStep(GpuStep step) {
         return getEntityManager()
-                .createQuery("SELECT DISTINCT l FROM GpuLock l LEFT JOIN l.acquireSteps a LEFT JOIN l.releaseSteps r "
-                        + "WHERE l.deleted = false AND (a.id = :step OR r.id = :step)", GpuLock.class)
+                .createQuery("SELECT DISTINCT l FROM GpuLock l LEFT JOIN l.acquireSteps a LEFT JOIN l.releaseSteps r LEFT JOIN l.alwaysSteps w "
+                        + "WHERE l.deleted = false AND (a.id = :step OR r.id = :step OR w.id = :step)", GpuLock.class)
                 .setParameter("step", step.getId())
                 .getResultList();
     }

@@ -160,7 +160,7 @@ installing them. `tools/version_from_tag.sh` sets every POM to the version of a 
 
 `tools/update-watcher` is the host side of *Admin → Update* of a Docker installation: `watch.sh` runs `bin/rebuild.sh` when the application asks for it, `install.sh` makes it systemd units (see [Packaging](packaging.md)).
 
-`tools/gpu-control` is a small controller (FastAPI, `gpu_control.py`, with its own README and compose file) that starts and stops the containers that take turns on one GPU (a speech server, ComfyUI), behind a Docker socket proxy; the acquire and release steps of a [GPU lock](plugins/gpu-locks.md) call it (through LiteLLM pass-throughs), see [Setting up the speech server](../user/extensions/audiobook-server.md). `tools/workset_run.sh` runs the dataset harness with the plugins on the classpath ([The dataset book](testing.md#the-dataset-book)).
+`tools/gpu-control` is a small controller (Python standard library, `gpu_control.py`, with its own README, compose file and tests) that starts and stops the containers that take turns on one GPU (a speech server, ComfyUI), behind a Docker socket proxy, and unloads the models of a `llama-server` router except the ones a caller keeps (`POST /llama/unload`); the acquire and release steps of a [GPU lock](plugins/gpu-locks.md) call it (through LiteLLM pass-throughs), see [Setting up the speech server](../user/extensions/audiobook-server.md). `tools/workset_run.sh` runs the dataset harness with the plugins on the classpath ([The dataset book](testing.md#the-dataset-book)).
 
 ## Documentation
 

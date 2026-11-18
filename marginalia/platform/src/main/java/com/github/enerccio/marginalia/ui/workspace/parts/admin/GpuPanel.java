@@ -96,6 +96,7 @@ public class GpuPanel implements LLMInteract {
         lockGrid.addColumn(lock -> lock.getGpu() == null ? "" : lock.getGpu().getName()).setHeader(loc.getValue(L.LABEL_GPU)).setFlexGrow(1);
         lockGrid.addColumn(lock -> lock.getMaxConcurrent() == 0 ? "∞" : String.valueOf(lock.getMaxConcurrent()))
                 .setHeader(loc.getValue(L.LABEL_MAX_CONCURRENT_JOBS)).setFlexGrow(1);
+        lockGrid.addColumn(lock -> names(lock.getAlwaysSteps())).setHeader(loc.getValue(L.LABEL_ALWAYS_STEPS)).setFlexGrow(2);
         lockGrid.addColumn(lock -> names(lock.getAcquireSteps())).setHeader(loc.getValue(L.LABEL_ACQUIRE_STEPS)).setFlexGrow(2);
         lockGrid.addColumn(lock -> names(lock.getReleaseSteps())).setHeader(loc.getValue(L.LABEL_RELEASE_STEPS)).setFlexGrow(2);
         lockGrid.addComponentColumn(lock -> {

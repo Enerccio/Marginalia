@@ -310,6 +310,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_EXPIRES, "Expires");
         setValue(L.LABEL_EXPIRES_AFTER_DAYS, "Expires after (days)");
         setValue(L.LABEL_REVOKE, "Revoke");
+        setValue(L.LABEL_ALWAYS_STEPS, "Steps before every job");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -542,6 +543,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_GPU_USED_OUTSIDE, "Other programs or people use this GPU too: Marginalia then runs the acquire steps of a lock before every job, not only when the GPU changes locks, as it can't know what is loaded. The acquire steps of each lock must then make room by themselves (unload the other models) and be safe to repeat.");
         setValue(L.HELP_API_ACCESS, "Any combination. The version can be read with every key. Write includes read. Updating and the extensions are for administrators only.");
         setValue(L.HELP_EXPIRES_AFTER_DAYS, "Empty: the key does not expire.");
+        setValue(L.HELP_GPU_ALWAYS_STEPS, "Run in order before every job of this lock, also when the GPU already holds it, before the acquire steps when it does not; the first failure stops the job. For a step that must always be made sure of, for example unloading the models of another program except your own.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_NARRATIVE_POV, "Point of view (POV) for the narrative.");

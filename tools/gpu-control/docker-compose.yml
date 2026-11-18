@@ -1,4 +1,5 @@
-# The container controller of tools/gpu-control: stops and starts the containers that share the GPU (ComfyUI, the Chatterbox TTS server), on request.
+# The container controller of tools/gpu-control: stops and starts the containers that share the GPU (ComfyUI, the Chatterbox TTS server), on request,
+# and unloads the models of a llama-server router except the ones a caller keeps.
 # Used through LiteLLM (pass_through_endpoints, see README.md); nothing here is published on the host.
 #
 #   docker network create ai                  # once: the network that LiteLLM, ComfyUI, the TTS server and this controller share
@@ -18,6 +19,7 @@ services:
       POST: 1
       ALLOW_START: 1
       ALLOW_STOP: 1
+      ALLOW_RESTARTS: 1      # ensure restarts a container whose service died inside (also allows kill)
       CONTAINERS: 0          # no inspect: the controller waits for the health address of a container instead
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -32,8 +34,13 @@ services:
       # name=health address, the address that answers 200 when the service in the container is ready
       GPU_CONTROL_CONTAINERS: ${GPU_CONTROL_CONTAINERS:-comfyui-amd=http://comfyui-amd:8188/system_stats,chatterbox=http://chatterbox:8004/api/model-info}
       DOCKER_HOST: http://docker-socket-proxy:2375
+      # llama-server routers for POST /llama/unload (empty: the route answers 404)
+      GPU_CONTROL_LLAMA: ${GPU_CONTROL_LLAMA:-}
+      GPU_CONTROL_LLAMA_KEY: ${GPU_CONTROL_LLAMA_KEY:-}
+      UNLOAD_TIMEOUT: ${UNLOAD_TIMEOUT:-120}
       START_TIMEOUT: ${START_TIMEOUT:-180}
       STOP_TIMEOUT: ${STOP_TIMEOUT:-30}
+      ENSURE_GRACE: ${ENSURE_GRACE:-30}
     networks: [control, ai]
 
 networks:

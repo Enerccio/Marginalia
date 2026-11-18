@@ -310,6 +310,7 @@ public class LocalizationBundleDE extends LocalizationBundleBase {
         setValue(L.LABEL_EXPIRES, "Läuft ab");
         setValue(L.LABEL_EXPIRES_AFTER_DAYS, "Läuft ab nach (Tagen)");
         setValue(L.LABEL_REVOKE, "Widerrufen");
+        setValue(L.LABEL_ALWAYS_STEPS, "Schritte vor jedem Auftrag");
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI-kompatibel");
         setValue(L.ENUM_PROTOCOL_TYPE_OPEN_CHAT_COMPLETION, "Chat Completion");
@@ -538,6 +539,7 @@ public class LocalizationBundleDE extends LocalizationBundleBase {
         setValue(L.HELP_GPU_USED_OUTSIDE, "Auch andere Programme oder Personen nutzen diese GPU: Marginalia führt dann die Belegungsschritte einer Sperre vor jedem Auftrag aus, nicht nur, wenn die GPU die Sperre wechselt, da es nicht wissen kann, was geladen ist. Die Belegungsschritte jeder Sperre müssen dann selbst Platz schaffen (die anderen Modelle entladen) und gefahrlos wiederholbar sein.");
         setValue(L.HELP_API_ACCESS, "Beliebig kombinierbar. Die Version kann jeder Schlüssel lesen. Schreiben schließt Lesen ein. Update und Erweiterungen nur für Administratoren.");
         setValue(L.HELP_EXPIRES_AFTER_DAYS, "Leer: Der Schlüssel läuft nicht ab.");
+        setValue(L.HELP_GPU_ALWAYS_STEPS, "Laufen der Reihe nach vor jedem Auftrag dieser Sperre, auch wenn die GPU sie schon hält, sonst vor den Schritten beim Belegen; der erste Fehler stoppt den Auftrag. Für einen Schritt, der jedes Mal sichergestellt werden muss, etwa die Modelle eines anderen Programms außer dem eigenen zu entladen.");
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_NARRATIVE_POV, "Erzählperspektive (POV) der Erzählung.");
         setValue(L.DESC_TEMPLATE_NARRATIVE_TENSE, "In der Erzählung verwendete Zeitform.");

@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * A GPU lock of the Admin page: its name, its GPU, how many of its jobs run at once, and the two ordered lists of steps (the steps are
+ * A GPU lock of the Admin page: its name, its GPU, how many of its jobs run at once, and the three ordered lists of steps (the steps are
  * shared: the list takes them from the steps of the installation).
  */
 @Configurable(preConstruction = true)
@@ -66,9 +66,10 @@ public class GpuLockDialog extends Dialog {
 
         StepList acquire = new StepList(loc.getValue(L.LABEL_ACQUIRE_STEPS), loc.getValue(L.HELP_GPU_ACQUIRE_STEPS), steps, lock.getAcquireSteps());
         StepList release = new StepList(loc.getValue(L.LABEL_RELEASE_STEPS), loc.getValue(L.HELP_GPU_RELEASE_STEPS), steps, lock.getReleaseSteps());
+        StepList always = new StepList(loc.getValue(L.LABEL_ALWAYS_STEPS), loc.getValue(L.HELP_GPU_ALWAYS_STEPS), steps, lock.getAlwaysSteps());
 
         FormLayout form = new FormLayout(name, gpu, maxConcurrent);
-        add(form, acquire, release);
+        add(form, always, acquire, release);
 
         Button save = new Button(loc.getValue(L.LABEL_SAVE), _ -> {
             name.setInvalid(StringUtils.isBlank(name.getValue()));
@@ -82,6 +83,7 @@ public class GpuLockDialog extends Dialog {
                 lock.setMaxConcurrent(Objects.requireNonNullElse(maxConcurrent.getValue(), 0));
                 lock.setAcquireSteps(new ArrayList<>(acquire.chosen));
                 lock.setReleaseSteps(new ArrayList<>(release.chosen));
+                lock.setAlwaysSteps(new ArrayList<>(always.chosen));
                 gpuService.saveLock(lock);
                 close();
                 onSave.run();

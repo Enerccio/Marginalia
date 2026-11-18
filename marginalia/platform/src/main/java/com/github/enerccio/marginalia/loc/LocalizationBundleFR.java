@@ -310,6 +310,7 @@ public class LocalizationBundleFR extends LocalizationBundleBase {
         setValue(L.LABEL_EXPIRES, "Expire");
         setValue(L.LABEL_EXPIRES_AFTER_DAYS, "Expire après (jours)");
         setValue(L.LABEL_REVOKE, "Révoquer");
+        setValue(L.LABEL_ALWAYS_STEPS, "Étapes avant chaque tâche");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "Compatible OpenAI");
@@ -542,6 +543,7 @@ public class LocalizationBundleFR extends LocalizationBundleBase {
         setValue(L.HELP_GPU_USED_OUTSIDE, "D'autres programmes ou personnes utilisent aussi ce GPU : Marginalia exécute alors les étapes d'acquisition d'un verrou avant chaque tâche, pas seulement quand le GPU change de verrou, car il ne peut pas savoir ce qui est chargé. Les étapes d'acquisition de chaque verrou doivent alors faire de la place elles-mêmes (décharger les autres modèles) et pouvoir être répétées sans risque.");
         setValue(L.HELP_API_ACCESS, "Toute combinaison est possible. Toute clé peut lire la version. L'écriture inclut la lecture. La mise à jour et les extensions sont réservées aux administrateurs.");
         setValue(L.HELP_EXPIRES_AFTER_DAYS, "Vide : la clé n'expire pas.");
+        setValue(L.HELP_GPU_ALWAYS_STEPS, "Exécutées dans l'ordre avant chaque tâche de ce verrou, même quand le GPU le détient déjà, avant les étapes d'acquisition quand il ne le détient pas ; le premier échec arrête la tâche. Pour une étape à garantir à chaque fois, par exemple décharger les modèles d'un autre programme sauf le vôtre.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_NARRATIVE_POV, "Point de vue (POV) du récit.");
