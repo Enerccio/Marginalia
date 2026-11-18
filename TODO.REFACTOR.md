@@ -72,27 +72,34 @@ of `ui.dialogs`, `export`, agents.
 Same module, same packages, ordered so the classes Joi needs first are clean first. Found with `jdeps` on the compiled
 classes; each item is a registration point or an interface in place of a hard reference.
 
-1. [ ] **Runs.** `Runs` holds `ChatMessage` locks and has `Builder.book(Manuscript)`; `HeldException` extends
+1. [x] **Runs.** `Runs` holds `ChatMessage` locks and has `Builder.book(Manuscript)`; `HeldException` extends
        `ManuscriptLockedException`. Holds become typed by entity class without naming one (the app says which classes
        lock as "write parts"), `book(...)` becomes a generic owner object (uuid + label), the exception gets a platform
        base class that `ManuscriptLockedException` extends. Unblocks `JpaBaseRepository`, `GatedInferenceService`,
        `RunsGrid`, `RunCorner`, `RunsOnPage`, `PageRuns`, `WindowRun`, `UIUtils`.
-2. [ ] **Request copying.** `ThreadCopyRequestAttributes` names `AgentRequestAttributes`: a hook the agent code
+       Done: `RunScope` (set by the app's `BookRunScope`), `Builder.book(OwnedEntity)`, platform `LockedException` as
+       the base of `ManuscriptLockedException` and `Runs.HeldException`.
+2. [x] **Request copying.** `ThreadCopyRequestAttributes` names `AgentRequestAttributes`: a hook the agent code
        registers. With 1. done, `OpenAICompatibleInferenceService` and `GatedInferenceService` are clean.
-3. [ ] **Usage.** `UsageContext.open(Manuscript)` and `UsageServiceImpl` (manuscript statistics): the context carries
+       Found clean already (the hit came from stale classes); `DetachedRequestAttributes` / `ApiRequestAttributes`
+       still name `AgenticSessionPoint`, which belongs to item 8.
+3. [x] **Usage.** `UsageContext.open(Manuscript)` and `UsageServiceImpl` (manuscript statistics): the context carries
        an owner object (kind + uuid), the app adds the book statistics through a listener. This is also Joi's "usage per
        assistant and role".
+       Done in a smaller form: `UsageContext.open(BaseEntity)`, `UsageListener` beans (the app's `BookUsageCounter`),
+       and `RequestActivity` (what `ActivityTracker` extends) for the time on the wire. The context is still one id;
+       a kind (assistant, role) comes with Joi's need.
 4. [ ] **Generation listener and views in platform signatures.** `GenerationListener` (names `ChatMessage`),
        `GenerationView`, `PromptField`, `PassageKind`, `IPCService`: decide per class; most are app interfaces that
        sit in `domain.service` only by package and simply go to `app` in the map, not leaks to fix.
 5. [ ] **Commands.** `CommandScope` / `CommandScopesImpl` list the story entities: scopes become registered by the
        app; the framework (`CommandService`, `CommandContext`, `CommandBar`) stays generic. `utils.CommandUtils` goes
        to the app.
-6. [ ] **Cleanup and resources.** `CleanupServiceImpl` (1,174 lines, names seven story entities) and
+6. [ ] **Cleanup and resources.** (resources done: `SharedResources`, the app's `BookSharedResources`; cleanup left) `CleanupServiceImpl` (1,174 lines, names seven story entities) and
        `JpaResourceRepository` / `ResourceServiceImpl` (resources of a book through `ChatMessage`): story-specific
        cleanup steps and "resources of an owner" queries become contributions the app registers. `@CleanupReference`
        already covers most of the purge; check what is left.
-7. [ ] **Tags.** `TagRelationService(Impl)` names `Manuscript`: tagged types registered.
+7. [x] **Tags.** `TagRelationService(Impl)` names `Manuscript`: tagged types registered.
 8. [ ] **Session.** `SessionPoint` holds the open book, window and section; `ApplicationPoint` / `SessionInformation`
        name `Workspace`. Split into a platform `SessionPoint` (user, language, generic attributes) and an app
        `ManuscriptSessionPoint` (or a typed attribute the app stores in it).
@@ -105,10 +112,23 @@ classes; each item is a registration point or an interface in place of a hard re
         (labels of story enums and entity kinds): the app registers those label providers.
 12. [ ] **Widgets and the rest.** `AuthorshipField`, `FloatingWindow`, `ExtensionSettingsForm`, `ReaderStyleChooser`,
         `PartView`: move to `app` in the map, or (`FloatingWindow`, `ExtensionSettingsForm`) cut out the story part.
+        Done: `PermissionUIFactoryImpl` is an app bean, `ApplicationEntryPoint` is platform.
 13. [ ] **Test base.** `MarginaliaTestBase` split into a platform base (`loginAs`, `createUser`, `createAI`,
         `MockLLMServer`, the CRUD contracts) and the app's story helpers on top.
 
-Done when the allow list of `LayerDependencyTest` is empty.
+Done when the allow list of `LayerDependencyTest` is empty. Progress: 153 references from 33 classes at the start,
+133 from 21 after items 1, 2, 3, 7 and parts of 6 and 12 (2026-11-19).
+
+Found on the way, to decide:
+
+- **`UserSetting`** holds settings of the application (`WebhookFormat` of agents, `WatchedPhrase`, `AnnotationTemplate`,
+  `BackupStrategy`). The platform needs its own user settings and the application's settings on top (extended
+  attributes of an app-side part, or a second entity). A design choice, not a quick fix.
+- **`ExtensionHasLocalization.getPromptDefaults()`** returns `Defaults` (the story prompts): the plugin API mixes the
+  UI language with the prompts. Splitting it changes the API of the `chineselocalization` plugin; do it with item 11.
+- **Building the WAR with `-Dbuild.dir` outside the project fails** in `build-frontend` (Vite can't resolve
+  `@rollup/pluginutils` from `/tmp/...`). Tests are fine there. To build plugins against such a build, a classes JAR of
+  `<build.dir>/classes` was installed with `mvn install:install-file -Dclassifier=classes -DpomFile=marginalia/pom.xml`.
 
 ## Phase 2: extract the platform module
 
