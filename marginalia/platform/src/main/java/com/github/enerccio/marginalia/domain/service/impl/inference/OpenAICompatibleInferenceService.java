@@ -817,7 +817,7 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
 
     /**
      * The system message: its text, and when it has images (the lore images of an AI set to send them there,
-     * {@code AI.isLoreImagesInSystem}) the text and the images as parts. The API types the parts of a system message as text
+     * {@code AI.isImagesInSystem}) the text and the images as parts. The API types the parts of a system message as text
      * only, so they are written as JSON; chat templates that take images there (and servers that pass them on) read them, the
      * others refuse the request. Attachments that are not images are left out.
      */

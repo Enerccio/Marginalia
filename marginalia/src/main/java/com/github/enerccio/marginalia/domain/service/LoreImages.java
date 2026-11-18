@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
  * address of the page) and travels with backups and exports, which copy the resource and write its new uuid.
  * <p>
  * The model gets the text without the images ({@link #strip}); the images themselves go along as attachments of a message when the
- * model of the book is set to take them (see {@code AI.isSendLoreImages}).
+ * model of the book is set to take them (see {@code AI.isMultimodal}).
  */
 public final class LoreImages {
 

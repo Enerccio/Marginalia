@@ -278,8 +278,8 @@ public class LocalizationBundleKO extends LocalizationBundleBase {
         setValue(L.LABEL_TEXT_ONLY, "텍스트만");
         setValue(L.LABEL_TEXT_AND_PREVIEW, "텍스트와 미리 보기");
         setValue(L.LABEL_PREVIEW_ONLY, "미리 보기만");
-        setValue(L.LABEL_SEND_LORE_IMAGES, "로어 이미지 전송");
-        setValue(L.LABEL_LORE_IMAGES_IN_SYSTEM, "시스템 메시지의 이미지");
+        setValue(L.LABEL_MULTIMODAL, "멀티모달 (이미지 지원)");
+        setValue(L.LABEL_IMAGES_IN_SYSTEM, "시스템 메시지의 이미지");
         setValue(L.LABEL_GPU_LOCK, "GPU 잠금");
         setValue(L.LABEL_NO_GPU_LOCK, "GPU 잠금 없음");
         setValue(L.LABEL_GPUS, "GPU");
@@ -531,8 +531,8 @@ public class LocalizationBundleKO extends LocalizationBundleBase {
         setValue(L.HELP_JOBS_ADMIN, "외부 AI와 통신하는 모든 작업(생성, 요약, 오디오북 챕터, 이미지)은 사용자, 시작과 종료, 모델이나 음성 또는 이미지 백엔드에 대한 각 호출과 함께 여기에 기록됩니다. 메타데이터만 보관하며 텍스트는 보관하지 않습니다. 자동으로 삭제되는 것은 없습니다: 필터를 설정하고 일치하는 작업을 삭제하세요.");
         setValue(L.HELP_UPDATE, "서버에 로그인하지 않고 Git 체크아웃에서 Docker 설치를 업데이트합니다: 브랜치의 최신 버전을 가져와 플러그인과 함께 빌드하고 Marginalia를 다시 시작합니다.");
         setValue(L.HELP_AI_CONNECTIONS, "이 모델로 동시에 진행될 수 있는 요청 수: 모든 사용자의 모든 종류의 요청(내 생성, 사이드 쿼리, 에이전트, 플러그인). 나머지는 들어온 순서대로 차례를 기다립니다. 슬롯이 하나인 서버(예: GPU 하나)는 1, 여러 요청에 동시에 응답하는 클라우드 모델은 더 크게 설정할 수 있습니다.");
-        setValue(L.HELP_SEND_LORE_IMAGES, "턴이 사용하는 로어북 항목의 내용에 있는 이미지를 로어와 함께 전송합니다. 이미지를 받는 모델에만 해당합니다: 비전이 없는 모델은 요청을 거부합니다.");
-        setValue(L.HELP_LORE_IMAGES_IN_SYSTEM, "로어 블록의 이미지를 그 뒤의 별도 메시지가 아니라 시스템 메시지 자체에 넣습니다. 이미지를 거기에 받는 서버와 채팅 템플릿에만 해당하며, 대부분은 그렇지 않습니다.");
+        setValue(L.HELP_MULTIMODAL, "모델이 이미지를 받습니다: 요청에 속한 이미지가 텍스트와 함께 전송됩니다. 비전이 있는 모델에만 해당합니다: 비전이 없는 모델은 요청을 거부합니다.");
+        setValue(L.HELP_IMAGES_IN_SYSTEM, "시스템 프롬프트에 속한 이미지를 그 뒤의 별도 메시지가 아니라 시스템 메시지 자체에 넣습니다. 거기에서 이미지를 받는 서버와 채팅 템플릿에만 해당하며, 대부분은 받지 않습니다.");
         setValue(L.HELP_AI_GPU_LOCK, "다른 모델이나 이미지·음성 서버와 공유하는 GPU에서 이 모델이 동작할 때 설정합니다. 각 요청은 GPU 차례를 기다리고 먼저 이 잠금으로 GPU를 로드합니다.");
         setValue(L.HELP_GPUS, "GPU는 한 번에 하나의 모델만 담습니다. 잠금은 그것을 로드하는 방법(획득 단계)과 다른 잠금을 위해 비우는 방법(해제 단계)을 정합니다. AI와 확장 기능의 백엔드가 잠금을 고릅니다. 작업이 끝나도 다른 잠금의 작업이 올 때까지 GPU는 로드된 상태로 남습니다.");
         setValue(L.HELP_GPU_LOCK_MAX_CONCURRENT, "이 잠금의 작업을 GPU에서 동시에 몇 개 실행할지. 0이면 제한 없음.");

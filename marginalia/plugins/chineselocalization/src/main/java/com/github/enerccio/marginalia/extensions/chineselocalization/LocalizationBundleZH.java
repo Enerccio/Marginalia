@@ -287,8 +287,8 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_TEXT_ONLY, "仅文本");
         setValue(L.LABEL_TEXT_AND_PREVIEW, "文本和预览");
         setValue(L.LABEL_PREVIEW_ONLY, "仅预览");
-        setValue(L.LABEL_SEND_LORE_IMAGES, "发送设定图片");
-        setValue(L.LABEL_LORE_IMAGES_IN_SYSTEM, "将图片放入系统消息");
+        setValue(L.LABEL_MULTIMODAL, "多模态（接受图片）");
+        setValue(L.LABEL_IMAGES_IN_SYSTEM, "将图片放入系统消息");
         setValue(L.LABEL_GPU_LOCK, "GPU 锁");
         setValue(L.LABEL_NO_GPU_LOCK, "无 GPU 锁");
         setValue(L.LABEL_GPUS, "GPU");
@@ -540,8 +540,8 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_JOBS_ADMIN, "所有与外部 AI 通信的作业（生成、摘要、有声书章节、图像）都会记录在这里，包括用户、开始和结束时间，以及它对模型或语音、图像后端发出的每次调用。只保存元数据，不保存任何文本。不会自动删除：请设置筛选条件，然后删除匹配的作业。");
         setValue(L.HELP_UPDATE, "无需登录服务器即可从 Git 检出更新 Docker 安装：拉取分支的最新版本，连同插件一起构建，然后重启 Marginalia。");
         setValue(L.HELP_AI_CONNECTIONS, "可同时发往该模型的请求数：所有用户、所有类型的请求（您的生成、侧边查询、智能体、插件）。超出的请求按到达顺序排队等待。只有一个槽位的服务器（例如一块 GPU）设为 1；能同时回答多个请求的云端模型可以设得更多。");
-        setValue(L.HELP_SEND_LORE_IMAGES, "将本轮使用的设定集条目内容中的图片与设定一起发送。仅适用于接受图片的模型：不支持视觉的模型会拒绝请求。");
-        setValue(L.HELP_LORE_IMAGES_IN_SYSTEM, "将设定块的图片直接放入系统消息，而不是放在其后的单独消息中。仅适用于在系统消息中接受图片的服务器和聊天模板；大多数都不支持。");
+        setValue(L.HELP_MULTIMODAL, "模型接受图片：属于请求的图片会与文本一起发送。仅适用于具备视觉能力的模型：不具备的模型会拒绝请求。");
+        setValue(L.HELP_IMAGES_IN_SYSTEM, "将属于系统提示的图片直接放入系统消息，而不是放在其后的单独消息中。仅适用于在那里接受图片的服务器和聊天模板；大多数不支持。");
         setValue(L.HELP_AI_GPU_LOCK, "当此模型所在的 GPU 与其他模型或图像、语音服务器共享时设置：每个请求都会等待轮到自己使用 GPU，并先用此锁加载 GPU。");
         setValue(L.HELP_GPUS, "一块 GPU 一次只容纳一个模型。锁规定如何加载它（获取步骤）以及如何为另一个锁腾出 GPU（释放步骤）。AI 和扩展的后端选择一个锁；作业结束后 GPU 保持加载，直到另一个锁的作业到来。");
         setValue(L.HELP_GPU_LOCK_MAX_CONCURRENT, "此锁的作业在 GPU 上同时运行的数量；0 表示不限。");

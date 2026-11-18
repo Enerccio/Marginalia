@@ -40,7 +40,7 @@ public class PreparePayloadStep extends GenerationStepBase {
                     .filter(image -> image.insertion() == InsertionMode.IN_LORE_BLOCK).toList(), null);
             if (loreBlockImages != null) {
                 AI ai = controller.getAi();
-                if (ai != null && ai.isLoreImagesInSystem() && ai.getAiType() == AIType.OPEN_AI_COMPATIBLE) {
+                if (ai != null && ai.isImagesInSystem() && ai.getAiType() == AIType.OPEN_AI_COMPATIBLE) {
                     // the model's chat template takes images in the system message: they go where the text of the lore block is
                     system.setContent(StringUtils.isBlank(system.getContent()) ? loreBlockImages.getContent()
                             : system.getContent() + "\n\n" + loreBlockImages.getContent());

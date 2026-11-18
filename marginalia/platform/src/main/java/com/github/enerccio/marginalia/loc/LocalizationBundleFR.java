@@ -278,8 +278,8 @@ public class LocalizationBundleFR extends LocalizationBundleBase {
         setValue(L.LABEL_TEXT_ONLY, "Texte seulement");
         setValue(L.LABEL_TEXT_AND_PREVIEW, "Texte et aperçu");
         setValue(L.LABEL_PREVIEW_ONLY, "Aperçu seulement");
-        setValue(L.LABEL_SEND_LORE_IMAGES, "Envoyer les images du lore");
-        setValue(L.LABEL_LORE_IMAGES_IN_SYSTEM, "Images dans le message système");
+        setValue(L.LABEL_MULTIMODAL, "Multimodal (accepte les images)");
+        setValue(L.LABEL_IMAGES_IN_SYSTEM, "Images dans le message système");
         setValue(L.LABEL_GPU_LOCK, "Verrou GPU");
         setValue(L.LABEL_NO_GPU_LOCK, "Aucun verrou GPU");
         setValue(L.LABEL_GPUS, "GPU");
@@ -531,8 +531,8 @@ public class LocalizationBundleFR extends LocalizationBundleBase {
         setValue(L.HELP_JOBS_ADMIN, "Chaque tâche qui communique avec une IA externe (une génération, un résumé, un chapitre de livre audio, une image) est consignée ici avec l'utilisateur, son début et sa fin et chaque appel qu'elle a fait à un modèle ou à un moteur de synthèse vocale ou d'image. Seules les métadonnées sont gardées, jamais le texte. Rien n'est supprimé automatiquement : réglez le filtre et supprimez les tâches correspondantes.");
         setValue(L.HELP_UPDATE, "Met à jour une installation Docker depuis son dépôt Git sans se connecter au serveur : la version la plus récente de la branche est récupérée et construite, avec les plugins, et Marginalia est redémarré.");
         setValue(L.HELP_AI_CONNECTIONS, "Combien de requêtes peuvent être en route vers ce modèle à la fois : toutes les requêtes, de tous les utilisateurs et de tous types (votre génération, une requête annexe, un agent, un plugin). Les autres attendent leur tour, dans l'ordre d'arrivée. 1 pour un serveur avec un seul slot (par exemple un seul GPU) ; un modèle cloud qui répond à plusieurs requêtes à la fois peut en avoir plus.");
-        setValue(L.HELP_SEND_LORE_IMAGES, "Envoyer les images contenues dans les entrées de lorebook utilisées par le tour avec le lore. Seulement pour un modèle qui accepte les images : un modèle sans vision refuse la requête.");
-        setValue(L.HELP_LORE_IMAGES_IN_SYSTEM, "Mettre les images du bloc de lore dans le message système lui-même au lieu d'un message à part après lui. Seulement pour un serveur et un modèle de chat qui les acceptent à cet endroit ; la plupart ne le font pas.");
+        setValue(L.HELP_MULTIMODAL, "Le modèle accepte les images : les images qui appartiennent à une requête sont envoyées avec le texte. Seulement pour un modèle avec vision : un modèle sans vision refuse la requête.");
+        setValue(L.HELP_IMAGES_IN_SYSTEM, "Mettre les images qui appartiennent au prompt système dans le message système lui-même au lieu d'un message à part après lui. Seulement pour un serveur et un modèle de chat qui y acceptent des images ; la plupart ne le font pas.");
         setValue(L.HELP_AI_GPU_LOCK, "Le GPU sur lequel tourne ce modèle, s'il est partagé avec d'autres modèles ou serveurs d'images et de voix : chaque requête attend son tour sur le GPU et le charge d'abord avec ce verrou.");
         setValue(L.HELP_GPUS, "Un GPU contient un modèle à la fois. Un verrou indique comment le charger (étapes d'acquisition) et comment le libérer pour un autre verrou (étapes de libération). Les IA et les serveurs des extensions choisissent un verrou ; après une tâche, le GPU reste chargé jusqu'à ce qu'une tâche d'un autre verrou arrive.");
         setValue(L.HELP_GPU_LOCK_MAX_CONCURRENT, "Combien de tâches de ce verrou tournent en même temps sur le GPU ; 0 pour aucune limite.");

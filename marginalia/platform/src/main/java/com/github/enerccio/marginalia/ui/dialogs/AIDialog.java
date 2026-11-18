@@ -82,8 +82,8 @@ public class AIDialog extends Dialog implements LLMInteract {
     private IntegerField maxConcurrentField;
     private GpuLockSelect gpuLockSelect;
     private Checkbox needsJailbreakCheckbox;
-    private Checkbox sendLoreImagesCheckbox;
-    private Checkbox loreImagesInSystemCheckbox;
+    private Checkbox multimodalCheckbox;
+    private Checkbox imagesInSystemCheckbox;
     private TextArea jailbreakField;
     private Checkbox enabledReasoningCheckbox;
     private ComboBox<ReasoningEffort> reasoningEffortCombo;
@@ -150,6 +150,7 @@ public class AIDialog extends Dialog implements LLMInteract {
         FormLayout baseFormLayout = new FormLayout();
         baseFormLayout.setWidthFull();
         baseFormLayout.add(nameField, typeCombo);
+        createApplicationFields(ai).forEach(field -> baseFormLayout.add(field, 2));
         if (sharedCheckbox.isVisible()) {
             baseFormLayout.add(sharedCheckbox, 2);
         }
@@ -169,8 +170,8 @@ public class AIDialog extends Dialog implements LLMInteract {
         generalFormLayout.add(enabledReasoningCheckbox, reasoningEffortCombo);
         generalFormLayout.add(maxConcurrentField, 2);
         generalFormLayout.add(gpuLockSelect, 2);
-        generalFormLayout.add(sendLoreImagesCheckbox, 2);
-        generalFormLayout.add(loreImagesInSystemCheckbox, 2);
+        generalFormLayout.add(multimodalCheckbox, 2);
+        generalFormLayout.add(imagesInSystemCheckbox, 2);
 
         tabSheet.add(loc.getValue(L.LABEL_GENERAL_SETTINGS), generalFormLayout);
 
@@ -319,12 +320,12 @@ public class AIDialog extends Dialog implements LLMInteract {
         gpuLockSelect = new GpuLockSelect();
         gpuLockSelect.setHelperText(loc.getValue(L.HELP_AI_GPU_LOCK));
 
-        sendLoreImagesCheckbox = new Checkbox(loc.getValue(L.LABEL_SEND_LORE_IMAGES));
-        sendLoreImagesCheckbox.setHelperText(loc.getValue(L.HELP_SEND_LORE_IMAGES));
-        loreImagesInSystemCheckbox = new Checkbox(loc.getValue(L.LABEL_LORE_IMAGES_IN_SYSTEM));
-        loreImagesInSystemCheckbox.setHelperText(loc.getValue(L.HELP_LORE_IMAGES_IN_SYSTEM));
-        loreImagesInSystemCheckbox.setEnabled(false);
-        sendLoreImagesCheckbox.addValueChangeListener(event -> loreImagesInSystemCheckbox.setEnabled(Boolean.TRUE.equals(event.getValue())));
+        multimodalCheckbox = new Checkbox(loc.getValue(L.LABEL_MULTIMODAL));
+        multimodalCheckbox.setHelperText(loc.getValue(L.HELP_MULTIMODAL));
+        imagesInSystemCheckbox = new Checkbox(loc.getValue(L.LABEL_IMAGES_IN_SYSTEM));
+        imagesInSystemCheckbox.setHelperText(loc.getValue(L.HELP_IMAGES_IN_SYSTEM));
+        imagesInSystemCheckbox.setEnabled(false);
+        multimodalCheckbox.addValueChangeListener(event -> imagesInSystemCheckbox.setEnabled(Boolean.TRUE.equals(event.getValue())));
 
         needsJailbreakCheckbox = new Checkbox(loc.getValue(L.LABEL_NEEDS_JAILBREAK));
         jailbreakField = new TextArea(loc.getValue(L.LABEL_JAILBREAK));
@@ -415,7 +416,7 @@ public class AIDialog extends Dialog implements LLMInteract {
                     @APILocals(name = "factories", type = List.class)})
     private void updateDynamicFields(AIType type) {
         dynamicFormLayout.removeAll();
-        loreImagesInSystemCheckbox.setVisible(type == AIType.OPEN_AI_COMPATIBLE);
+        imagesInSystemCheckbox.setVisible(type == AIType.OPEN_AI_COMPATIBLE);
         if (type == AIType.OPEN_AI_COMPATIBLE) {
             HorizontalLayout apiKeyLayout = new HorizontalLayout();
             apiKeyLayout.setWidthFull();
@@ -528,8 +529,8 @@ public class AIDialog extends Dialog implements LLMInteract {
         gpuLockSelect.setLockUuid(ai.getGpuLock());
         // a lock that is chosen shows even when the administrator removed all of them meanwhile
         gpuLockSelect.setVisible(gpuLockSelect.isVisible() || ai.getGpuLock() != null);
-        sendLoreImagesCheckbox.setValue(ai.isSendLoreImages());
-        loreImagesInSystemCheckbox.setValue(ai.isLoreImagesInSystem());
+        multimodalCheckbox.setValue(ai.isMultimodal());
+        imagesInSystemCheckbox.setValue(ai.isImagesInSystem());
         jailbreakField.setValue(StringUtils.defaultString(ai.getJailbreak()));
         needsJailbreakCheckbox.setValue(Boolean.TRUE.equals(ai.getNeedsJailbreak()));
         jailbreakField.setEnabled(Boolean.TRUE.equals(ai.getNeedsJailbreak()));
@@ -952,9 +953,9 @@ public class AIDialog extends Dialog implements LLMInteract {
             if (gpuLockSelect.isVisible()) {
                 ai.setGpuLock(gpuLockSelect.getLockUuid());
             }
-            ai.setSendLoreImages(sendLoreImagesCheckbox.getValue());
+            ai.setMultimodal(multimodalCheckbox.getValue());
             // only the OpenAI-compatible request carries images in the system message
-            ai.setLoreImagesInSystem(type == AIType.OPEN_AI_COMPATIBLE && loreImagesInSystemCheckbox.getValue());
+            ai.setImagesInSystem(type == AIType.OPEN_AI_COMPATIBLE && imagesInSystemCheckbox.getValue());
             ai.setJailbreak(jailbreakField.getValue());
             ai.setNeedsJailbreak(needsJailbreakCheckbox.getValue());
             ai.setEnabledReasoning(enabledReasoningCheckbox.getValue());
@@ -981,6 +982,8 @@ public class AIDialog extends Dialog implements LLMInteract {
                 extensionForm.apply(extensionAI);
             }
 
+            applyApplicationFields(ai);
+
             ai = aiService.save(ai);
             tokenizerService.invalidateCache(ai.getId());
             close();
@@ -991,6 +994,30 @@ public class AIDialog extends Dialog implements LLMInteract {
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
+    }
+
+    /**
+     * The fields an application adds to the dialog (a subclass), shown under the name and the type over the full width.
+     * Called once by {@link #create()}; the application fills them from the AI itself. Its own data goes into the AI's
+     * attributes ({@code getAttributes()}), so it needs no column. None by default.
+     *
+     * @param ai the AI being edited, null for a new one
+     */
+    @PublicAPI(from = "1.9.0",
+            returns = @APIReturn(type = List.class),
+            parameters = {@APIParameter(name = "ai", type = AI.class)})
+    protected List<Component> createApplicationFields(AI ai) {
+        return List.of();
+    }
+
+    /**
+     * Copies the fields of {@link #createApplicationFields(AI)} onto the AI, right before it is saved (a new AI is
+     * already of its type). Nothing by default.
+     */
+    @PublicAPI(from = "1.9.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "ai", type = AI.class)})
+    protected void applyApplicationFields(AI ai) {
     }
 
     @PublicAPI(from = "1.1.0",

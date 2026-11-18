@@ -278,8 +278,8 @@ public class LocalizationBundleDE extends LocalizationBundleBase {
         setValue(L.LABEL_TEXT_ONLY, "Nur Text");
         setValue(L.LABEL_TEXT_AND_PREVIEW, "Text und Vorschau");
         setValue(L.LABEL_PREVIEW_ONLY, "Nur Vorschau");
-        setValue(L.LABEL_SEND_LORE_IMAGES, "Lore-Bilder senden");
-        setValue(L.LABEL_LORE_IMAGES_IN_SYSTEM, "Bilder in der Systemnachricht");
+        setValue(L.LABEL_MULTIMODAL, "Multimodal (nimmt Bilder an)");
+        setValue(L.LABEL_IMAGES_IN_SYSTEM, "Bilder in der Systemnachricht");
         setValue(L.LABEL_GPU_LOCK, "GPU-Sperre");
         setValue(L.LABEL_NO_GPU_LOCK, "Keine GPU-Sperre");
         setValue(L.LABEL_GPUS, "GPUs");
@@ -527,8 +527,8 @@ public class LocalizationBundleDE extends LocalizationBundleBase {
         setValue(L.HELP_JOBS_ADMIN, "Jeder Job, der mit einer externen KI spricht (eine Generierung, eine Zusammenfassung, ein Hörbuchkapitel, ein Bild), wird hier mit dem Benutzer, seinem Start und Ende und jedem Aufruf, den er an ein Modell oder ein Sprach- oder Bild-Backend gemacht hat, protokolliert. Es werden nur Metadaten aufbewahrt, nie der Text. Nichts wird automatisch gelöscht: Setze den Filter und lösche die passenden Jobs.");
         setValue(L.HELP_UPDATE, "Aktualisiert eine Docker-Installation aus ihrem Git-Checkout, ohne sich am Server anzumelden: Die neueste Version des Zweigs wird geholt und mit den Plugins gebaut, und Marginalia wird neu gestartet.");
         setValue(L.HELP_AI_CONNECTIONS, "Wie viele Anfragen gleichzeitig zu diesem Modell unterwegs sein dürfen: jede Anfrage, von jedem Benutzer und jeder Art (deine Generierung, eine Nebenabfrage, ein Agent, ein Plugin). Die anderen warten in der Reihenfolge, in der sie kamen, auf ihren Zug. 1 für einen Server mit einem Slot (zum Beispiel eine GPU); ein Cloud-Modell, das mehrere Anfragen gleichzeitig beantwortet, kann mehr haben.");
-        setValue(L.HELP_SEND_LORE_IMAGES, "Die Bilder im Inhalt der Lorebook-Einträge, die der Zug verwendet, zusammen mit der Lore senden. Nur für ein Modell, das Bilder akzeptiert: Ein Modell ohne Bildverständnis lehnt die Anfrage ab.");
-        setValue(L.HELP_LORE_IMAGES_IN_SYSTEM, "Die Bilder des Lore-Blocks in die Systemnachricht selbst legen statt in eine eigene Nachricht danach. Nur für einen Server und ein Chat-Template, die dort Bilder annehmen; die meisten tun das nicht.");
+        setValue(L.HELP_MULTIMODAL, "Das Modell nimmt Bilder an: Bilder, die zu einer Anfrage gehören, werden mit dem Text gesendet. Nur für ein Modell mit Bildverständnis: ein Modell ohne lehnt die Anfrage ab.");
+        setValue(L.HELP_IMAGES_IN_SYSTEM, "Die Bilder, die zum System-Prompt gehören, in die Systemnachricht selbst legen statt in eine eigene Nachricht danach. Nur für Server und Chat-Templates, die dort Bilder annehmen; die meisten tun es nicht.");
         setValue(L.HELP_AI_GPU_LOCK, "Die GPU, auf der dieses Modell läuft, wenn andere Modelle oder Bild- und Sprachserver sie teilen: Jede Anfrage wartet, bis sie an der Reihe ist, und lädt die GPU zuerst mit dieser Sperre.");
         setValue(L.HELP_GPUS, "Eine GPU hält jeweils ein Modell. Eine Sperre legt fest, wie es geladen wird (Schritte beim Belegen) und wie die GPU für eine andere Sperre freigegeben wird (Schritte beim Freigeben). KIs und die Backends der Erweiterungen wählen eine Sperre; nach einem Auftrag bleibt die GPU geladen, bis ein Auftrag einer anderen Sperre kommt.");
         setValue(L.HELP_GPU_LOCK_MAX_CONCURRENT, "Wie viele Aufträge dieser Sperre gleichzeitig auf der GPU laufen; 0 für unbegrenzt.");

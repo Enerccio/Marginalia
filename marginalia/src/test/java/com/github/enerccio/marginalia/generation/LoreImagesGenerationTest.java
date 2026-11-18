@@ -70,8 +70,8 @@ class LoreImagesGenerationTest extends GenerationTestBase {
     }
 
     private void aiTakes(boolean images, boolean inSystem) throws Exception {
-        ai.setSendLoreImages(images);
-        ai.setLoreImagesInSystem(inSystem);
+        ai.setMultimodal(images);
+        ai.setImagesInSystem(inSystem);
         aiService.save(ai);
     }
 

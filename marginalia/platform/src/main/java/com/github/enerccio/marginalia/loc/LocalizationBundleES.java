@@ -278,8 +278,8 @@ public class LocalizationBundleES extends LocalizationBundleBase {
         setValue(L.LABEL_TEXT_ONLY, "Solo texto");
         setValue(L.LABEL_TEXT_AND_PREVIEW, "Texto y vista previa");
         setValue(L.LABEL_PREVIEW_ONLY, "Solo vista previa");
-        setValue(L.LABEL_SEND_LORE_IMAGES, "Enviar las imágenes del lore");
-        setValue(L.LABEL_LORE_IMAGES_IN_SYSTEM, "Imágenes en el mensaje del sistema");
+        setValue(L.LABEL_MULTIMODAL, "Multimodal (acepta imágenes)");
+        setValue(L.LABEL_IMAGES_IN_SYSTEM, "Imágenes en el mensaje del sistema");
         setValue(L.LABEL_GPU_LOCK, "Bloqueo de GPU");
         setValue(L.LABEL_NO_GPU_LOCK, "Sin bloqueo de GPU");
         setValue(L.LABEL_GPUS, "GPU");
@@ -527,8 +527,8 @@ public class LocalizationBundleES extends LocalizationBundleBase {
         setValue(L.HELP_JOBS_ADMIN, "Cada tarea que habla con una IA externa (una generación, un resumen, un capítulo de audiolibro, una imagen) se registra aquí con el usuario, su inicio y su fin y cada llamada que hizo a un modelo o a un backend de voz o de imagen. Solo se guardan metadatos, nunca el texto. No se elimina nada automáticamente: define el filtro y elimina las tareas que coincidan.");
         setValue(L.HELP_UPDATE, "Actualiza una instalación de Docker desde su copia de trabajo de Git sin iniciar sesión en el servidor: se descarga y compila la versión más reciente de la rama, con los plugins, y se reinicia Marginalia.");
         setValue(L.HELP_AI_CONNECTIONS, "Cuántas solicitudes pueden estar en camino a este modelo a la vez: todas las solicitudes, de todos los usuarios y de todo tipo (tu generación, una consulta lateral, un agente, un plugin). Las demás esperan su turno, en el orden en que llegaron. 1 para un servidor con un solo slot (por ejemplo una GPU); un modelo en la nube que responde a varias solicitudes a la vez puede tener más.");
-        setValue(L.HELP_SEND_LORE_IMAGES, "Envía las imágenes del contenido de las entradas de lorebook que usa el turno junto con el lore. Solo para un modelo que acepte imágenes: un modelo sin visión rechaza la solicitud.");
-        setValue(L.HELP_LORE_IMAGES_IN_SYSTEM, "Pone las imágenes del bloque de lore en el propio mensaje del sistema en lugar de en un mensaje propio a continuación. Solo para un servidor y una plantilla de chat que las admitan ahí; la mayoría no.");
+        setValue(L.HELP_MULTIMODAL, "El modelo acepta imágenes: las imágenes que pertenecen a una petición se envían junto con el texto. Solo para un modelo con visión: un modelo sin visión rechaza la petición.");
+        setValue(L.HELP_IMAGES_IN_SYSTEM, "Pone las imágenes que pertenecen al prompt del sistema en el propio mensaje del sistema en lugar de en un mensaje aparte después de él. Solo para un servidor y una plantilla de chat que acepten imágenes ahí; la mayoría no lo hace.");
         setValue(L.HELP_AI_GPU_LOCK, "La GPU en la que funciona este modelo, si la comparte con otros modelos o servidores de imagen y voz: cada petición espera su turno en la GPU y primero la carga con este bloqueo.");
         setValue(L.HELP_GPUS, "Una GPU tiene un modelo a la vez. Un bloqueo indica cómo cargarla (pasos de adquisición) y cómo liberarla para otro bloqueo (pasos de liberación). Las IA y los servidores de las extensiones eligen un bloqueo; tras un trabajo, la GPU sigue cargada hasta que llega un trabajo de otro bloqueo.");
         setValue(L.HELP_GPU_LOCK_MAX_CONCURRENT, "Cuántos trabajos de este bloqueo se ejecutan a la vez en la GPU; 0 para sin límite.");

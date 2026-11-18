@@ -88,8 +88,8 @@ Docker 版本的 Marginalia 同样使用端口 8080。如果你在同一台机�
 | **Max Response Tokens** | 必填。模型可以写出的最长响应。它会以 `max_completion_tokens` 发送给 API，并且会从上下文中预留同样多的空间给响应。必须小于 *Max Context Size*。 |
 | **Connections** | 同时有多少个请求可以发往该模型：所有用户、所有类型的请求（你的生成、辅助查询、翻译、注释、[智能体](agents.md#one-model-several-agents)、插件）都计算在内。其余请求按到达顺序等待；需要等待的生成会显示 *Waiting for the model: N requests before this one*，**Stop** 可以将其移出队列。默认值为 **1**，适用于只有一个插槽（一块 GPU）的本地服务器；能同时处理多个请求的云端模型可以设置更大的值，以便辅助查询与生成同时运行。 |
 | **GPU lock** | 仅当管理员设置了 [GPU](administration/gpus.md) 时可用：当该模型运行的显卡与其他模型或图像、语音服务器共享时，此处为该显卡的锁。此后每个请求都会排队等待其在 GPU 上的轮次（与其前面的请求一同计算），并且，当 GPU 上运行着其他内容时，会先释放它，然后按锁的步骤加载此模型。留空则不使用锁。 |
-| **Send lore images** | 将一个轮次使用的[lorebook 条目图片](lorebooks/lorebooks.md#editing-in-full-screen)连同文本一起发送。默认关闭：只有在模型支持图像时才应开启，不支持视觉的模型会拒绝请求，导致该轮次失败。位于 lore 块中的条目图片会放在一条独立消息中，紧接在系统提示之后（模型会给出简短回答），其他图片则随你的提示一起发送。 |
-| **Images in the system message** | （OpenAI 兼容，且已启用 *Send lore images*）将 lore 块的图片放入系统消息本身，与 lore 文本放在一起。仅适用于在那里接受图片的服务器和聊天模板；大多数不支持，请求会失败。 |
+| **Multimodal (accepts images)** | 将一个轮次使用的[lorebook 条目图片](lorebooks/lorebooks.md#editing-in-full-screen)连同文本一起发送。默认关闭：只有在模型支持图像时才应开启，不支持视觉的模型会拒绝请求，导致该轮次失败。位于 lore 块中的条目图片会放在一条独立消息中，紧接在系统提示之后（模型会给出简短回答），其他图片则随你的提示一起发送。 |
+| **Images in the system message** | （OpenAI 兼容，且已启用 *Multimodal*）将 lore 块的图片放入系统消息本身，与 lore 文本放在一起。仅适用于在那里接受图片的服务器和聊天模板；大多数不支持，请求会失败。 |
 | **Needs Jailbreak**、**Jailbreak Prompt** | 用于会拒绝编写某些内容的模型的额外提示。勾选后，越狱提示会被放在整个提示的最前面。 |
 | **Enable Reasoning**、**Reasoning Effort** | 用于推理（“思考”）模型，参见[推理模型](#reasoning-models)。 |
 

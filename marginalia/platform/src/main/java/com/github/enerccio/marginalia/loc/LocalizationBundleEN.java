@@ -278,8 +278,8 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_TEXT_ONLY, "Text only");
         setValue(L.LABEL_TEXT_AND_PREVIEW, "Text and preview");
         setValue(L.LABEL_PREVIEW_ONLY, "Preview only");
-        setValue(L.LABEL_SEND_LORE_IMAGES, "Send lore images");
-        setValue(L.LABEL_LORE_IMAGES_IN_SYSTEM, "Images in the system message");
+        setValue(L.LABEL_MULTIMODAL, "Multimodal (accepts images)");
+        setValue(L.LABEL_IMAGES_IN_SYSTEM, "Images in the system message");
         setValue(L.LABEL_GPU_LOCK, "GPU lock");
         setValue(L.LABEL_NO_GPU_LOCK, "No GPU lock");
         setValue(L.LABEL_GPUS, "GPUs");
@@ -531,8 +531,8 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_JOBS_ADMIN, "Every job that talks to an external AI (a generation, a summary, an audiobook chapter, an image) is logged here with the user, its start and end and each call it made to a model or a speech or image backend. Only metadata is kept, never the text. Nothing is deleted automatically: set the filter and delete the matching jobs.");
         setValue(L.HELP_UPDATE, "Updates a Docker installation from its Git checkout without logging in to the server: the newest version of the branch is pulled and built, with the plugins, and Marginalia is restarted.");
         setValue(L.HELP_AI_CONNECTIONS, "How many requests may be on the way to this model at once: every request, of every user and of every kind (your generation, a side query, an agent, a plugin). The others wait their turn, in the order they came. 1 for a server with one slot (for example one GPU); a cloud model that answers several requests at once can have more.");
-        setValue(L.HELP_SEND_LORE_IMAGES, "Send the images in the content of the lorebook entries the turn uses along with the lore. Only for a model that accepts images: a model without vision refuses the request.");
-        setValue(L.HELP_LORE_IMAGES_IN_SYSTEM, "Put the images of the lore block into the system message itself instead of a message of their own after it. Only for a server and chat template that take images there; most do not.");
+        setValue(L.HELP_MULTIMODAL, "The model accepts images: the images that belong to a request are sent along with the text. Only for a model with vision: a model without it refuses the request.");
+        setValue(L.HELP_IMAGES_IN_SYSTEM, "Put the images that belong to the system prompt into the system message itself instead of a message of their own after it. Only for a server and chat template that take images there; most do not.");
         setValue(L.HELP_AI_GPU_LOCK, "The GPU this model runs on, when other models or image and speech servers share it: every request waits for its turn on the GPU and loads it with this lock first.");
         setValue(L.HELP_GPUS, "A GPU holds one model at a time. A lock says how to load it (acquire steps) and how to free it for another lock (release steps). AIs and the backends of extensions pick a lock; after a job the GPU stays loaded until a job of another lock comes.");
         setValue(L.HELP_GPU_LOCK_MAX_CONCURRENT, "How many jobs of this lock run at once on the GPU; 0 for no limit.");

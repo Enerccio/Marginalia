@@ -70,36 +70,37 @@ public class AI extends ExtendableEntity {
     private Integer maxConcurrentRequests;
 
     /**
-     * Whether the images in the content of the lorebook entries go to this model with the lore (the model must take images:
-     * a model without vision refuses the request). Off when never set.
+     * Whether the model is multimodal (takes images): the application sends it the images that belong to a request. A
+     * model without vision refuses such a request. Off when never set. The field keeps its old name because it is the key of the stored extended attribute.
      */
     @Transient
     @ExtendedAttribute
     private Boolean sendLoreImages;
 
-    public boolean isSendLoreImages() {
+    public boolean isMultimodal() {
         return Boolean.TRUE.equals(sendLoreImages);
     }
 
-    public void setSendLoreImages(boolean sendLoreImages) {
-        this.sendLoreImages = sendLoreImages ? Boolean.TRUE : null;
+    public void setMultimodal(boolean multimodal) {
+        this.sendLoreImages = multimodal ? Boolean.TRUE : null;
     }
 
     /**
-     * The images of the entries of the lore block go into the system message itself (OpenAI-compatible models whose chat template
-     * takes images there), not into a user message of their own after it. Off when never set; used only with
-     * {@link #isSendLoreImages()}.
+     * The images that belong to the system prompt go into the system message itself
+     * (OpenAI-compatible models whose chat template takes images there), not into a user message of their own after it.
+     * Off when never set; used only with {@link #isMultimodal()}. The field keeps its old name, the key of the stored
+     * extended attribute.
      */
     @Transient
     @ExtendedAttribute
     private Boolean loreImagesInSystem;
 
-    public boolean isLoreImagesInSystem() {
+    public boolean isImagesInSystem() {
         return Boolean.TRUE.equals(loreImagesInSystem);
     }
 
-    public void setLoreImagesInSystem(boolean loreImagesInSystem) {
-        this.loreImagesInSystem = loreImagesInSystem ? Boolean.TRUE : null;
+    public void setImagesInSystem(boolean imagesInSystem) {
+        this.loreImagesInSystem = imagesInSystem ? Boolean.TRUE : null;
     }
 
     /**

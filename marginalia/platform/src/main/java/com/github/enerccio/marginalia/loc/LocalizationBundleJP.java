@@ -278,8 +278,8 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_TEXT_ONLY, "テキストのみ");
         setValue(L.LABEL_TEXT_AND_PREVIEW, "テキストとプレビュー");
         setValue(L.LABEL_PREVIEW_ONLY, "プレビューのみ");
-        setValue(L.LABEL_SEND_LORE_IMAGES, "ロア画像を送る");
-        setValue(L.LABEL_LORE_IMAGES_IN_SYSTEM, "画像をシステムメッセージに入れる");
+        setValue(L.LABEL_MULTIMODAL, "マルチモーダル（画像を受け付ける）");
+        setValue(L.LABEL_IMAGES_IN_SYSTEM, "画像をシステムメッセージに入れる");
         setValue(L.LABEL_GPU_LOCK, "GPU ロック");
         setValue(L.LABEL_NO_GPU_LOCK, "GPU ロックなし");
         setValue(L.LABEL_GPUS, "GPU");
@@ -531,8 +531,8 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_JOBS_ADMIN, "外部 AI と通信するすべてのジョブ（生成、要約、オーディオブックの章、画像など）が、ユーザー、開始・終了時刻、モデルや音声・画像バックエンドへの各呼び出しとともにここに記録されます。保存されるのはメタデータのみで、本文は保存されません。自動的には削除されません。フィルターを設定して、一致するジョブを削除してください。");
         setValue(L.HELP_UPDATE, "サーバーにログインせずに、Docker インストールを Git チェックアウトからアップデートします。ブランチの最新バージョンを取得してプラグインとともにビルドし、Marginalia を再起動します。");
         setValue(L.HELP_AI_CONNECTIONS, "このモデルへ同時に送れるリクエストの数です。すべてのユーザー、すべての種類のリクエスト（あなたの生成、サイドクエリ、エージェント、プラグイン）が対象で、超えた分は来た順に順番待ちになります。スロットが1つのサーバー（例：GPU 1枚）では1、同時に複数のリクエストに答えられるクラウドのモデルではそれ以上にしてください。");
-        setValue(L.HELP_SEND_LORE_IMAGES, "そのターンで使われるロアブック項目の本文中の画像を、ロアと一緒に送ります。画像を受け付けるモデル専用です。画像に対応していないモデルはリクエストを拒否します。");
-        setValue(L.HELP_LORE_IMAGES_IN_SYSTEM, "ロアブロックの画像を、後に続く専用のメッセージではなくシステムメッセージ自体に入れます。システムメッセージで画像を受け付けるサーバーとチャットテンプレート専用です。多くは対応していません。");
+        setValue(L.HELP_MULTIMODAL, "モデルが画像を受け付けます。リクエストに属する画像がテキストと一緒に送られます。ビジョン対応モデル専用です。対応していないモデルはリクエストを拒否します。");
+        setValue(L.HELP_IMAGES_IN_SYSTEM, "システムプロンプトに属する画像を、後に続く専用のメッセージではなくシステムメッセージ自体に入れます。システムメッセージで画像を受け付けるサーバーとチャットテンプレート専用です。ほとんどは対応していません。");
         setValue(L.HELP_AI_GPU_LOCK, "他のモデルや画像・音声サーバーと共有する GPU で動くモデルの場合に設定します。各リクエストは GPU の順番を待ち、先にこのロックで GPU をロードします。");
         setValue(L.HELP_GPUS, "GPU は一度に一つのモデルを保持します。ロックはそれをロードする方法（取得ステップ）と、別のロックのために解放する方法（解放ステップ）を定めます。AI と拡張機能のバックエンドがロックを選びます。ジョブの後も、別のロックのジョブが来るまで GPU はロードされたままです。");
         setValue(L.HELP_GPU_LOCK_MAX_CONCURRENT, "このロックのジョブを GPU で同時にいくつ実行するか。0 で無制限。");
