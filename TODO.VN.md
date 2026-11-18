@@ -114,7 +114,8 @@ against.
 - Vaadin frontend resources (`src/main/frontend`, `shared-styles.css`) served from a module JAR.
 - Whether the plugins that are useful to both applications need anything besides the platform (most name story
   classes today).
-- One Flyway history per module, or one per application that includes the platform's migrations.
+- Flyway: decided (`TODO.REFACTOR.md`, Phase 2): one history per application, the platform ships no migrations;
+  the VN writes its own, platform tables included.
 
 ## Later: named branches as choices, export to Ren'Py
 

@@ -180,11 +180,15 @@ Found on the way, to decide:
 - [ ] **Entities.** `persistence.xml` (40 classes): the app lists its own, a platform `PersistenceUnitPostProcessor`
       adds the platform ones, so Joi does not copy the list. A test checks every `@Entity` on the class path is in
       the unit.
-- [ ] **Flyway.** Existing installs have one history (V1 to V31) that created both kinds of tables, and its versions
-      and checksums must not change. Proposal: the 31 migrations stay in the app; the platform gets its own location
-      and history table (`flyway_schema_history_platform`), starting with a V1 that creates the platform tables with
-      `IF NOT EXISTS` (a no-op on Marginalia, the schema for Joi). The platform history runs first, new platform
-      schema changes go there. Decide before writing it; test on a copy of a real database and on an empty one.
+- [x] **Flyway.** Decided: the migrations stay with each final application, the platform ships none. Marginalia
+      keeps its one history (V1 to V31 and on), unchanged in versions and checksums, so existing installs need nothing.
+      Joi (or any other app on the platform) writes its own migrations, platform tables included; the SQL for those
+      tables is duplicated, but each application changes its schema in its own migrations anyway. When a platform
+      entity changes, every application on it needs a migration of its own; `hbm2ddl=validate` at startup and in each
+      app's tests catches a missing one. The Flyway bean and the migration location stay in the app's Spring XML.
+      Open for the Tests item: the platform's own tests need a schema without an app, so the platform's test
+      resources get test-only migrations of the platform tables (kept in step with Marginalia's by a test that
+      compares the two schemas), or those tests run with `hbm2ddl=create`.
 - [ ] **Styles and frontend.** `CssStyles` is used by 43 classes, platform widgets among them. Either the platform
       ships its part of `shared-styles.css` as a JAR resource (`META-INF/resources/frontend/...`) and the app keeps
       the rest, or the stylesheet stays in the app for now and Joi copies it. Check how Vaadin picks up frontend files
