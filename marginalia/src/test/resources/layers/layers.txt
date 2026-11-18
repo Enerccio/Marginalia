@@ -170,6 +170,7 @@ platform domain.service.RequestActivity
 platform domain.service.ResourceGarbageService
 platform domain.service.ResourceService
 platform domain.service.SettingService
+platform domain.service.SharedResources
 platform domain.service.TagRelationService
 platform domain.service.TagService
 platform domain.service.TemplateService
@@ -307,6 +308,7 @@ app ui.dialogs.permissions.VersionHistoryPermissionComponent
 
 app ui.main
 platform ui.main.ApiServlet
+platform ui.main.ApplicationEntryPoint
 platform ui.main.CssRegistry
 platform ui.main.HealthServlet
 platform ui.main.JobsView

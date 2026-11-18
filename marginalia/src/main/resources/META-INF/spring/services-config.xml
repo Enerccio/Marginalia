@@ -57,6 +57,11 @@
         <property name="repository" ref="resourceRepository" />
     </bean>
 
+    <!-- the files of the parts of a book its readers may see -->
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.BookSharedResources">
+        <property name="entityManager" ref="em" />
+    </bean>
+
     <bean class="com.github.enerccio.marginalia.domain.service.impl.ResourceGarbageServiceImpl" />
 
     <bean id="aiRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaAIRepository">

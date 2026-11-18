@@ -1,11 +1,10 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
-import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Resource;
-import com.github.enerccio.marginalia.domain.repository.ManuscriptRepository;
 import com.github.enerccio.marginalia.domain.repository.ResourceRepository;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.ResourceService;
+import com.github.enerccio.marginalia.domain.service.SharedResources;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import com.github.enerccio.marginalia.domain.traits.NoTx;
@@ -28,8 +27,9 @@ public class ResourceServiceImpl extends OwnedServiceImpl<Resource, ResourceRepo
 
     private static final long MAX_IMAGE_PIXELS = 50_000_000L;
 
-    @Autowired
-    private ManuscriptRepository manuscriptRepository;
+    /** What others share with the user (the files of a published book); may be missing. */
+    @Autowired(required = false)
+    private SharedResources sharedResources;
 
     @Override
     @CommonTx
@@ -312,12 +312,8 @@ public class ResourceServiceImpl extends OwnedServiceImpl<Resource, ResourceRepo
         if (own != null || StringUtils.isAnyBlank(uuid, manuscriptUuid)) {
             return own;
         }
-        Resource resource = getRepository().findOfViewableBook(uuid, manuscriptUuid, currentUser);
-        if (resource == null || resource.getMimeType() == null || !resource.getMimeType().startsWith("image/")) {
-            return null;
-        }
-        Manuscript book = manuscriptRepository.findViewable(manuscriptUuid, currentUser);
-        if (book == null || !book.isShowImagesToReaders()) {
+        Resource resource = sharedResources == null ? null : sharedResources.findForReader(uuid, manuscriptUuid, currentUser, true);
+        if (resource == null) {
             return null;
         }
         // the reader's request, not the owner's, asks for the file later: tell where it is
@@ -332,9 +328,9 @@ public class ResourceServiceImpl extends OwnedServiceImpl<Resource, ResourceRepo
         if (StringUtils.isAnyBlank(resourceUuid, manuscriptUuid)) {
             return null;
         }
-        Resource resource = getRepository().findOfViewableBook(resourceUuid, manuscriptUuid, currentUser);
         // the images have their own way, which looks at the setting of the book
-        if (resource == null || resource.getPath() == null || resource.getMimeType() == null || resource.getMimeType().startsWith("image/")) {
+        Resource resource = sharedResources == null ? null : sharedResources.findForReader(resourceUuid, manuscriptUuid, currentUser, false);
+        if (resource == null || resource.getPath() == null) {
             return null;
         }
         return FileUtils.readFileToByteArray(fileOf(resource, resource.getOwner()));

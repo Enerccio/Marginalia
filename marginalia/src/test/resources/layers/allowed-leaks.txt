@@ -19,7 +19,6 @@ domain.model.impl.settings.UserSetting -> domain.collections.WebhookFormat
 domain.model.impl.settings.UserSetting -> domain.model.AnnotationTemplate
 domain.model.impl.settings.UserSetting -> domain.model.WatchedPhrase
 domain.model.impl.settings.UserSetting -> domain.service.BackupService
-domain.repository.impl.JpaResourceRepository -> domain.model.impl.ChatMessage
 domain.service.command.CommandScope -> domain.model.impl.AgentRun
 domain.service.command.CommandScope -> domain.model.impl.Annotation
 domain.service.command.CommandScope -> domain.model.impl.ChatMessage
@@ -80,9 +79,6 @@ domain.service.impl.OsgiServiceImpl -> Defaults
 domain.service.impl.OsgiServiceImpl -> domain.service.IPCService
 domain.service.impl.OsgiServiceImpl -> extensions.InheritedSettingRegistry
 domain.service.impl.OsgiServiceImpl -> ui.menu.StoryMenuRegistry
-domain.service.impl.ResourceServiceImpl -> domain.model.impl.Manuscript
-domain.service.impl.ResourceServiceImpl -> domain.repository.ManuscriptRepository
-extensions.ExtensionHasCss -> ui.main.ApplicationEntryPoint
 extensions.ExtensionHasLocalization -> Defaults
 loc.Localization -> Defaults
 loc.Localization -> domain.collections.ActivationContext
@@ -123,8 +119,6 @@ ui.dialogs.CommandProgressDialog -> ui.widgets.FloatingWindow
 ui.dialogs.permissions.PermissionUIFactoryImpl -> ui.dialogs.permissions.AgentsPermissionComponent
 ui.dialogs.permissions.PermissionUIFactoryImpl -> ui.dialogs.permissions.HelperPermissionComponent
 ui.dialogs.permissions.PermissionUIFactoryImpl -> ui.dialogs.permissions.VersionHistoryPermissionComponent
-ui.main.CssRegistry -> ui.main.ApplicationEntryPoint
-ui.main.LoginCheckRoute -> ui.main.ApplicationEntryPoint
 ui.menu.BuiltMenu -> ui.dialogs.story.StoryCard
 ui.menu.BuiltMenu -> ui.dialogs.story.StoryEditor
 ui.menu.BuiltMenu -> ui.menu.StoryMenuItem
