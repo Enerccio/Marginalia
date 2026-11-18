@@ -75,11 +75,8 @@ class OsgiServiceImplTest {
         ReflectionTestUtils.setField(service, "configuration", configuration);
         ReflectionTestUtils.setField(service, "extensionService", new ExtensionServiceImpl());
         ipc = new IPCServiceImpl();
-        ReflectionTestUtils.setField(service, "ipcService", ipc);
-        ReflectionTestUtils.setField(service, "toolService", new ToolServiceImpl());
-        ReflectionTestUtils.setField(service, "storyMenuRegistry", new StoryMenuRegistry());
-        ReflectionTestUtils.setField(service, "inheritedSettingRegistry", new InheritedSettingRegistry());
-        ReflectionTestUtils.setField(service, "notificationService", new NotificationServiceImpl());
+        ReflectionTestUtils.setField(service, "registrations", List.of(ipc, new ToolServiceImpl(), new StoryMenuRegistry(),
+                new InheritedSettingRegistry(), new NotificationServiceImpl()));
         localization = new LocalizationImpl();
         localization.setBundles(List.of(new LocalizationBundleEN()));
         ReflectionTestUtils.setField(service, "localization", localization);

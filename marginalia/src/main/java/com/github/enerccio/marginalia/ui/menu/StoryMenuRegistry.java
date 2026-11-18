@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.menu;
 
+import com.github.enerccio.marginalia.extensions.ExtensionRegistrations;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.loc.L;
@@ -32,7 +33,7 @@ import java.util.stream.Collectors;
  * {@link StoryMenuItem#position positions} order the entries of a level. {@link #children} and {@link #positionOf} tell where things
  * are now, for an extension that wants its item somewhere.
  */
-public class StoryMenuRegistry implements InitializingBean {
+public class StoryMenuRegistry implements InitializingBean, ExtensionRegistrations {
 
     private static final String APPLICATION = "marginalia";
 
@@ -128,6 +129,7 @@ public class StoryMenuRegistry implements InitializingBean {
     /**
      * Removes the items an owner registered.
      */
+    @Override
     public synchronized void unregisterAll(String owner) {
         new ArrayList<>(owners.entrySet()).stream().filter(entry -> Objects.equals(owner, entry.getValue()))
                 .map(Map.Entry::getKey).forEach(this::unregister);

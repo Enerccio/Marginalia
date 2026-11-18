@@ -252,6 +252,9 @@ app utils.docimport
 platform ui
 platform ui.jobs
 platform ui.menu
+app ui.menu.BuiltMenu
+app ui.menu.MenuDefinition
+app ui.menu.MenuNode
 app ui.menu.StoryMenuItem
 app ui.menu.StoryMenuRegistry
 platform ui.notifications

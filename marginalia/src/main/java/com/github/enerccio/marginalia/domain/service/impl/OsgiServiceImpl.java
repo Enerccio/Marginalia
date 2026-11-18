@@ -4,13 +4,12 @@ import com.github.enerccio.marginalia.Configuration;
 import com.github.enerccio.marginalia.domain.security.AdminGuard;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.extensions.ExtensionHasLocalization;
-import com.github.enerccio.marginalia.extensions.InheritedSettingRegistry;
+import com.github.enerccio.marginalia.extensions.ExtensionRegistrations;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
 import com.github.enerccio.marginalia.instruct.verify.ExtensionVerification;
 import com.github.enerccio.marginalia.instruct.verify.ExtensionVerifier;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.loc.LocalizationBundle;
-import com.github.enerccio.marginalia.ui.menu.StoryMenuRegistry;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.shared.Registration;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -65,20 +64,9 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
     @Autowired
     private Configuration configuration;
 
-    @Autowired
-    private IPCService ipcService;
-
-    @Autowired
-    private ToolService toolService;
-
-    @Autowired
-    private StoryMenuRegistry storyMenuRegistry;
-
-    @Autowired
-    private InheritedSettingRegistry inheritedSettingRegistry;
-
-    @Autowired
-    private NotificationService notificationService;
+    /** The registries of what extensions registered, cleared by the owner when an extension is unloaded. */
+    @Autowired(required = false)
+    private List<ExtensionRegistrations> registrations = List.of();
 
     @Autowired
     private ExtensionService extensionService;
@@ -722,11 +710,9 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
         } finally {
             // the providers of the bundle go with it, whatever the extension did in onExtensionUnload
             if (b.getSymbolicName() != null) {
-                ipcService.unregisterAll(b.getSymbolicName());
-                toolService.unregisterAll(b.getSymbolicName());
-                storyMenuRegistry.unregisterAll(b.getSymbolicName());
-                inheritedSettingRegistry.unregisterAll(b.getSymbolicName());
-                notificationService.unregisterAll(b.getSymbolicName());
+                for (ExtensionRegistrations registration : registrations) {
+                    registration.unregisterAll(b.getSymbolicName());
+                }
             }
             getContext().ungetService(sr);
             if (reported) {

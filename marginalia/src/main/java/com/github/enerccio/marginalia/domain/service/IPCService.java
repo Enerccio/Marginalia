@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.domain.service;
 
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.extensions.ExtensionRegistrations;
 import org.osgi.framework.Bundle;
 
 import java.util.Map;
@@ -19,7 +20,7 @@ import java.util.Map;
  * The callbacks run on the thread of the caller, so the caller's session and transaction are the ones in use. A provider
  * must not assume it is called only for books of the current user's choosing - check what it needs.
  */
-public interface IPCService {
+public interface IPCService extends ExtensionRegistrations {
 
     /**
      * Data about a book, as text for a prompt.

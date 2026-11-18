@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.domain.service;
 
 import com.github.enerccio.marginalia.domain.service.tool.*;
+import com.github.enerccio.marginalia.extensions.ExtensionRegistrations;
 
 import java.util.List;
 
@@ -16,7 +17,7 @@ import java.util.List;
  * registered) when the extension is unloaded. Registering a key that is registered already replaces the provider and
  * keeps its place in the order. The key is part of what callers save, so don't rename it.
  */
-public interface ToolService {
+public interface ToolService extends ExtensionRegistrations {
 
     /**
      * @param bundleIdentifier the symbolic name of the bundle of the provider

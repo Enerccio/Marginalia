@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service;
 
+import com.github.enerccio.marginalia.extensions.ExtensionRegistrations;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -19,7 +20,7 @@ import java.util.function.Supplier;
  * The sources of an extension are removed when the extension is unloaded ({@link #unregisterAll}); what the user chose for them stays in
  * their settings and applies again when the extension is back.
  */
-public interface NotificationService {
+public interface NotificationService extends ExtensionRegistrations {
 
     /**
      * The id of the source of the generation of the next part of the story.

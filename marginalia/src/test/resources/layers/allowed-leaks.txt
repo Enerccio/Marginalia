@@ -71,9 +71,6 @@ domain.service.impl.CommandServiceImpl -> domain.service.impl.commands.manuscrip
 domain.service.impl.CommandServiceImpl -> domain.service.impl.commands.manuscript.write.StoryGenerationCommands
 domain.service.impl.CommandServiceImpl -> domain.service.impl.commands.manuscript.write.SummaryGenerationCommands
 domain.service.impl.CommandServiceImpl -> domain.service.impl.commands.manuscript.write.SummaryWriteCommands
-domain.service.impl.OsgiServiceImpl -> domain.service.IPCService
-domain.service.impl.OsgiServiceImpl -> extensions.InheritedSettingRegistry
-domain.service.impl.OsgiServiceImpl -> ui.menu.StoryMenuRegistry
 loc.Localization -> Defaults
 loc.Localization -> domain.collections.ActivationContext
 loc.Localization -> domain.collections.AgentRunStatus
@@ -110,15 +107,6 @@ ui.components.CommandBar -> domain.model.impl.Manuscript
 ui.components.CommandBar -> domain.service.CommandScopes
 ui.components.CommandBar -> domain.service.GenerationView
 ui.dialogs.CommandProgressDialog -> ui.widgets.FloatingWindow
-ui.menu.BuiltMenu -> ui.dialogs.story.StoryCard
-ui.menu.BuiltMenu -> ui.dialogs.story.StoryEditor
-ui.menu.BuiltMenu -> ui.menu.StoryMenuItem
-ui.menu.MenuDefinition -> ui.dialogs.story.StoryCard
-ui.menu.MenuDefinition -> ui.dialogs.story.StoryEditor
-ui.menu.MenuDefinition -> ui.menu.StoryMenuItem
-ui.menu.MenuNode -> ui.dialogs.story.StoryCard
-ui.menu.MenuNode -> ui.dialogs.story.StoryEditor
-ui.menu.MenuNode -> ui.menu.StoryMenuItem
 ui.widgets.ExtensionSettingsForm -> domain.model.impl.Folder
 ui.widgets.ExtensionSettingsForm -> domain.service.EffectiveSetting
 ui.widgets.ExtensionSettingsForm -> domain.service.ManuscriptService

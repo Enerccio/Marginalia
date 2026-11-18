@@ -149,8 +149,9 @@ public interface MarginaliaExtension {
 - `onExtensionUnload` undoes all of it: unregister every decorator and listener, remove the components the plugin
   added to open screens ([Unloading](ui-extensions.md#unloading)), stop background work. Nothing is removed
   automatically - a decorator left registered keeps running, from a bundle that no longer exists. The one exception:
-  the data providers registered with `IPCService`, the tool providers (with their commands) registered with `ToolService` and the settings registered with `InheritedSettingRegistry` ([Inherited settings](inherited-settings.md)) and the sources registered with `NotificationService` ([Desktop notifications](notifications.md)) under the symbolic name of the bundle are removed by the
-  application when the extension is unloaded ([Sharing data between extensions](ipc.md)).
+  the data providers registered with `IPCService`, the tool providers (with their commands) registered with `ToolService`, the story menu items of `StoryMenuRegistry`, the settings registered with `InheritedSettingRegistry` ([Inherited settings](inherited-settings.md)) and the sources registered with `NotificationService` ([Desktop notifications](notifications.md)) under the symbolic name of the bundle are removed by the
+  application when the extension is unloaded ([Sharing data between extensions](ipc.md)). These are the beans that implement
+  `ExtensionRegistrations` (`extensions` package): after `onExtensionUnload`, `OsgiServiceImpl` calls `unregisterAll` of each.
 
 Annotate the extension `@Configurable` and inject what you need:
 

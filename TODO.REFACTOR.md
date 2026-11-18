@@ -103,11 +103,17 @@ classes; each item is a registration point or an interface in place of a hard re
 8. [ ] **Session.** `SessionPoint` holds the open book, window and section; `ApplicationPoint` / `SessionInformation`
        name `Workspace`. Split into a platform `SessionPoint` (user, language, generic attributes) and an app
        `ManuscriptSessionPoint` (or a typed attribute the app stores in it).
-9. [ ] **OSGi and menus.** `OsgiServiceImpl` names `StoryMenuRegistry`; `ui.menu` (`BuiltMenu`, `MenuDefinition`,
+9. [x] **OSGi and menus.** `OsgiServiceImpl` names `StoryMenuRegistry`; `ui.menu` (`BuiltMenu`, `MenuDefinition`,
        `MenuNode`) names `StoryCard` / `StoryEditor` / `StoryMenuItem`: the menu mechanism takes registered menu
        kinds, the story menus are the app's.
-10. [ ] **Extensions registries.** `AnnotationFactsRegistry`, `ExportTextRegistry`, `PartTextRegistry` go to `app`
+       Done: `BuiltMenu`, `MenuDefinition`, `MenuNode` are the story editor's menu and went to `app` in the map; the
+       platform keeps the positions, groups and paths. `OsgiServiceImpl` clears the registries of an unloaded bundle
+       through the beans that implement `ExtensionRegistrations` (IPC, tools, notifications, story menus, inherited
+       settings), so it names none of them.
+10. [x] **Extensions registries.** `AnnotationFactsRegistry`, `ExportTextRegistry`, `PartTextRegistry` go to `app`
         (same package, map entry), and whatever registers them in `OsgiServiceImpl` goes through a hook.
+        Done: they were `app` in the map already and `OsgiServiceImpl` does not name them (extensions unregister
+        themselves); the hook is `ExtensionRegistrations` of item 9.
 11. [ ] **Localization.** `Localization` / `LocalizationImpl` name `AgentRunStatus`, `Lorebook*` and entity classes
         (labels of story enums and entity kinds): the app registers those label providers.
 12. [ ] **Widgets and the rest.** `AuthorshipField`, `FloatingWindow`, `ExtensionSettingsForm`, `ReaderStyleChooser`,
@@ -117,15 +123,18 @@ classes; each item is a registration point or an interface in place of a hard re
         `MockLLMServer`, the CRUD contracts) and the app's story helpers on top.
 
 Done when the allow list of `LayerDependencyTest` is empty. Progress: 153 references from 33 classes at the start,
-133 from 21 after items 1, 2, 3, 7 and parts of 6 and 12 (2026-11-19).
+133 from 21 after items 1, 2, 3, 7 and parts of 6 and 12 (2026-11-19), 115 from 15 after the settings split and items 9, 10.
 
 Found on the way, to decide:
 
-- **`UserSetting`** holds settings of the application (`WebhookFormat` of agents, `WatchedPhrase`, `AnnotationTemplate`,
+- [x] **`UserSetting`** holds settings of the application (`WebhookFormat` of agents, `WatchedPhrase`, `AnnotationTemplate`,
   `BackupStrategy`). The platform needs its own user settings and the application's settings on top (extended
   attributes of an app-side part, or a second entity). A design choice, not a quick fix.
-- **`ExtensionHasLocalization.getPromptDefaults()`** returns `Defaults` (the story prompts): the plugin API mixes the
+  Done: the platform part is the mapped superclass `BaseUserSetting` (language, prompt language, theme, keys, workspace
+  state, default AI and protocol), `SettingService.getUserSetting()` returns the configured subclass (`userSettingClass`).
+- [x] **`ExtensionHasLocalization.getPromptDefaults()`** returns `Defaults` (the story prompts): the plugin API mixes the
   UI language with the prompts. Splitting it changes the API of the `chineselocalization` plugin; do it with item 11.
+  Done: `ExtensionHasLocalizedPrompts` (app), registered by the app's `ExtensionPromptsRegistrar`.
 - **Building the WAR with `-Dbuild.dir` outside the project fails** in `build-frontend` (Vite can't resolve
   `@rollup/pluginutils` from `/tmp/...`). Tests are fine there. To build plugins against such a build, a classes JAR of
   `<build.dir>/classes` was installed with `mvn install:install-file -Dclassifier=classes -DpomFile=marginalia/pom.xml`.
