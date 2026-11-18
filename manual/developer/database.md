@@ -5,10 +5,10 @@ verified: f337fe83d
 covers:
   - marginalia/src/main/resources/migration
   - marginalia/src/main/java/com/github/enerccio/marginalia/bound/migration
-  - marginalia/src/main/java/com/github/enerccio/marginalia/Configuration.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/DatabaseCheck.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/SaneSQLiteDialect.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/DatabaseBackupServiceImpl.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/Configuration.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/DatabaseCheck.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/SaneSQLiteDialect.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/impl/DatabaseBackupServiceImpl.java
   - marginalia/src/main/resources/META-INF/spring/datasources-config.xml
   - marginalia/src/main/webapp/config/persistence.xml
   - marginalia/src/main/java/com/github/enerccio/tools

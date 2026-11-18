@@ -22,6 +22,7 @@ something. [Architecture](architecture.md) explains how the parts work together;
 ```
 Marginalia/
 ├── marginalia/              the application - a Maven project (see below)
+│   ├── platform/            the platform module (marginalia-platform JAR): the classes without a story concept, same packages
 │   ├── libs/                code that plugins share, one Maven project each (`translator-common`, `story-tracker-common` and `http-hooks`, embedded in the bundles that use them)
 │   └── plugins/             bundled extensions, one Maven project each
 ├── manual/                  sources of this manual (Retype, Markdown)

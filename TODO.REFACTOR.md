@@ -167,14 +167,23 @@ Found on the way, to decide:
 
 ## Phase 2: extract the platform module
 
-- [ ] **Layout.** `marginalia/platform` (packaging `jar`, artifact `marginalia-platform`), listed before `marginalia`
-      in the root `pom.xml`. The app depends on it. Plugins keep depending on the app's `classes` JAR; check that the
-      platform comes in transitively, or add it to the plugin parent.
-- [ ] **Weaving (the main risk, try it first with a spike).** The platform has `@Configurable` classes, so it needs
-      its own `aspectj-maven-plugin` with `spring-aspects` as aspect library, and its own `BuildTimeWeaver` run in
-      `process-classes` on its output folder. The app must not weave the platform again (no `weaveDependencies`).
-      Check: injected fields not null in platform widgets, `@Woven` marks in the platform JAR, the ByteBuddy agent of
-      dev runs still covering the platform classes, `PublicAPISignatureTest` reading classes from both modules.
+- [x] **Layout.** `marginalia/platform` (packaging `jar`, artifact `marginalia-platform`), listed before `marginalia`
+      in the root `pom.xml`; the app depends on it. Done: the 479 platform sources of `layers.txt` (and
+      `com.github.enerccio.tools.Pair`/`Pointer`) moved there with `git mv`, packages unchanged; the app compiled
+      against it without a change of code (two javadoc imports of `M_L` in platform files were left, the bytecode check
+      could not see them). The libraries moved to the platform's POM as they were (the app keeps `vaadin-dev`, the
+      servlet API and its test libraries); the story-only ones (POI, OpenPDF, commonmark for the export...) go back to
+      the app when someone trims the list. Plugins get the platform transitively through the app's `classes` JAR
+      (provided scope passes it on). `-Dbuild.dir=X` builds the platform in `X-platform` (a profile activated by the
+      property; inside `X` the app's `clean` would delete it).
+- [x] **Weaving (spike).** The platform has its own `aspectj-maven-plugin` (`spring-aspects`) and its own
+      `BuildTimeWeaver` in `process-classes`; the app weaves only its own folder. Checked: `GpuPanel` implements
+      `ConfigurableObject`, the platform's `@Extendable` classes carry `@Woven`; `BuildTimeWeaverTest`,
+      `RuntimeInstrumentationTest` (the ByteBuddy agent), `ExtensionVerifierTest`, `OsgiServiceImplTest` pass (Felix
+      boot-delegates `*`, so classes from the platform JAR are seen by plugins as before). `PublicAPISignatureTest` and
+      `LayerDependencyTest` read both modules (`architecture.ModuleClasses`: a classes folder in a reactor build, the
+      installed JAR when the app is built alone); `LayerDependencyTest` also fails for a class compiled into the module
+      of the other layer.
 - [ ] **Spring XML.** `services-config.xml` (125 beans) split into a platform file shipped in the platform JAR
       (`META-INF/spring/platform/*.xml`) and the app's; `application-config.xml` imports both.
 - [ ] **Entities.** `persistence.xml` (40 classes): the app lists its own, a platform `PersistenceUnitPostProcessor`
@@ -186,9 +195,8 @@ Found on the way, to decide:
       tables is duplicated, but each application changes its schema in its own migrations anyway. When a platform
       entity changes, every application on it needs a migration of its own; `hbm2ddl=validate` at startup and in each
       app's tests catches a missing one. The Flyway bean and the migration location stay in the app's Spring XML.
-      Open for the Tests item: the platform's own tests need a schema without an app, so the platform's test
-      resources get test-only migrations of the platform tables (kept in step with Marginalia's by a test that
-      compares the two schemas), or those tests run with `hbm2ddl=create`.
+      The platform's own tests (Tests item) get test-only migrations of the platform tables in the platform's test
+      resources, kept in step with Marginalia's by a test that compares the two schemas.
 - [ ] **Styles and frontend.** `CssStyles` is used by 43 classes, platform widgets among them. Either the platform
       ships its part of `shared-styles.css` as a JAR resource (`META-INF/resources/frontend/...`) and the app keeps
       the rest, or the stylesheet stays in the app for now and Joi copies it. Check how Vaadin picks up frontend files
@@ -203,9 +211,18 @@ Found on the way, to decide:
       is left in `L`. The layer-2 core enum (and `TODO.VN.MD`) is one more enum with its bundles and annotations.
 - [ ] **Tests.** The platform base from Phase 1 as a `test-jar` of the platform module; the platform's own tests
       move with it (inference, templates, function/tool, gpu, jobs, security, instruct, CRUD of platform entities).
+      The tests are all still in the app and test the platform through the dependency. Schema of the platform's own
+      tests: decided, test-only migrations of the platform tables in the platform's test resources (Flyway item).
+      The coverage profile (JaCoCo) reports the app's classes only until then (`report-aggregate` or the platform's
+      own report).
 - [ ] **Packaging.** The WAR has the platform JAR in `WEB-INF/lib`; the desktop app and Docker image unchanged in
       behaviour. Check the release workflows and `bin/` scripts that call `mvn install` of the app (they must install
-      the platform first, the root build does it).
+      the platform first, the root build does it). Done with the spike, not run yet: the workflows build the app from
+      the root with `-pl marginalia -am`; the Dockerfile installs the platform before the app (and downloads only the
+      platform's dependencies in its cache layer, the app's POM can't be resolved before); `install-plugins.sh`
+      already uses `-am`. Building the app on its own in `marginalia/` (`mvn jetty:run`, the screenshot scripts) needs
+      the platform installed first. To check: the WAR and the Docker image start, Vaadin finds `JobsView` (`@Route`)
+      and the `@JsModule`s of platform widgets in the JAR.
 - [ ] **Docs.** `CLAUDE.md` (commands, module layout), `manual/developer/building.md`, architecture and plugin pages;
       `tools/check_dev_docs.py` `covers` paths that moved.
 

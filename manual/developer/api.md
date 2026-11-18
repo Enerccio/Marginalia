@@ -2,23 +2,23 @@
 label: HTTP API
 order: 952
 covers:
-  - marginalia/src/main/java/com/github/enerccio/marginalia/api/ApiDispatcher.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/api/ApiDocs.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/api/ApiDispatcher.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/api/ApiDocs.java
   - marginalia/src/main/resources/api-docs/index.html
   - marginalia/src/main/resources/api-docs/api-docs.js
-  - marginalia/src/main/java/com/github/enerccio/marginalia/api/ApiRequest.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/api/ApiResponse.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/api/ApiException.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/ui/main/ApiServlet.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/security/model/ApiKey.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/security/model/ApiScope.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/security/repository/ApiKeyRepository.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/security/repository/impl/JpaApiKeyRepository.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/security/service/ApiKeyService.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/security/service/impl/ApiKeyServiceImpl.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/bound/DetachedRequestAttributes.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/bound/ApiRequestAttributes.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/ui/components/ApiKeysView.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/api/ApiRequest.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/api/ApiResponse.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/api/ApiException.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/ui/main/ApiServlet.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/security/model/ApiKey.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/security/model/ApiScope.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/security/repository/ApiKeyRepository.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/security/repository/impl/JpaApiKeyRepository.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/security/service/ApiKeyService.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/security/service/impl/ApiKeyServiceImpl.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/bound/DetachedRequestAttributes.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/bound/ApiRequestAttributes.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/ui/components/ApiKeysView.java
   - tools/marginalia_api.py
 ---
 

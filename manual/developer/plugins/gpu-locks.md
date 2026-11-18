@@ -2,15 +2,15 @@
 label: GPU locks
 order: 63
 covers:
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/GpuService.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/GpuService.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/gpu
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/GpuServiceImpl.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/model/impl/Gpu.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/model/impl/GpuLock.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/model/impl/GpuStep.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/ui/widgets/GpuLockSelect.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/ui/workspace/parts/admin/GpuPanel.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/inference/GatedInferenceService.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/impl/GpuServiceImpl.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/model/impl/Gpu.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/model/impl/GpuLock.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/model/impl/GpuStep.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/ui/widgets/GpuLockSelect.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/ui/workspace/parts/admin/GpuPanel.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/impl/inference/GatedInferenceService.java
 verified: f337fe83d
 ---
 

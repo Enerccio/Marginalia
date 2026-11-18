@@ -37,10 +37,19 @@ are faster.
 
 The repository root holds the parent POM (`pom.xml`): it carries the version, which the application and all plugins
 inherit, the servlet API (`provided`) every module compiles against, and lists them as modules, so `mvn package` there builds the application and every plugin in one go. The
-application is the Maven project in `marginalia/`:
+application is the Maven project in `marginalia/`. It depends on the **platform** module `marginalia/platform`
+(artifact `marginalia-platform`, a JAR): the classes without a story concept that other applications can build on,
+in the same packages (see `TODO.REFACTOR.md`). The platform weaves its own classes (AspectJ for `@Configurable`, the
+`BuildTimeWeaver` for `@Extendable`), so the application weaves only its own. From the root, `-pl marginalia -am`
+builds the platform first; a build in `marginalia/` alone takes the platform from `~/.m2`, so install it first when
+it changed:
 
 ```sh
+mvn install -DskipTests -pl marginalia -am   # (repository root) the parent POM, the platform and the application
+mvn test -pl marginalia -am                  # (repository root) the tests, all in the application, after the platform build
+
 cd marginalia
+mvn install -DskipTests -f platform/pom.xml  # the platform alone into ~/.m2, before the builds below
 mvn package                  # builds and tests, WAR in target/marginalia-1.9.0.war
 mvn package -DskipTests      # the same without tests
 mvn install -DskipTests      # also installs the WAR and the classes JAR into ~/.m2 (needed by plugins)
@@ -141,7 +150,7 @@ both kinds works. To weave by hand, `mvn process-classes` does it (woven classes
 The IDE (with the `ajc` compiler) compiles into the same `target/` as Maven, and a class compiled by the other one is overwritten (or
 left unwoven, with `null` `@Autowired` fields). To keep a Maven run apart from an open IDE, move the output with `-Dbuild.dir=/tmp/marginalia-build`
 (the property `build.dir` of the POM, default `${project.basedir}/target`): the classes, the woven classes, the test home
-(`<build.dir>/test-home`) and the WAR go there. Use the same folder for the whole sequence (`mvn install` of the app and the plugins read
+(`<build.dir>/test-home`) and the WAR go there, the platform module's output into `<build.dir>-platform` (a profile of its POM that the property switches on; inside `<build.dir>` the application's `clean` would delete it). Use the same folder for the whole sequence (`mvn install` of the app and the plugins read
 from the local repository, not from it), delete it for a clean build, and never run two builds on the same folder.
 
 ## Running locally
@@ -296,12 +305,12 @@ options. [Testing](testing.md) describes the test base and how to write tests.
 ## Building the plugins
 
 The bundled extensions in `marginalia/plugins/` are separate Maven projects. They compile against the classes
-JAR of the application, so install the parent POM and the application first:
+JAR of the application (which brings the platform JAR with it), so install the parent POM, the platform and the
+application first:
 
 ```sh
-mvn -N install                    # in the repository root
+mvn install -DskipTests -pl marginalia -am   # in the repository root
 cd marginalia
-mvn install -DskipTests
 
 cd plugins/chaptermarker          # or anthropic, arc-outline, audiobook, authorsnote, beta-readers, book-description-generator, character-tracker, conlang-translator, gemma4toolsfix, google-genai, image-generator, instructionexporter, knowledge-tracker, lore-generator, lorebookvcs, manga-generator, name-generator, name-provider, place-provider, prompt-history, prompt-inspector, reallang-translator, reviewer, sidequery, sillytavern-converter, story-notes, tts-reader, chineselocalization
 mvn package                       # target/chaptermarker-1.9.0.jar
@@ -379,6 +388,6 @@ Images go into `manual/images/`; most are taken by the scripts in
 | `couldn't find aspectjrt.jar on classpath` warning | Printed by the AspectJ plugin on every build; harmless. |
 | `Schema-validation: missing column ...` on start | An entity was changed without a Flyway migration. Add one ([Database schema changes](#database-schema-changes)). |
 | The frontend build fails downloading Node.js or npm packages | It needs internet access on the first build. Behind a proxy, configure it for Maven and npm, or delete `~/.vaadin` and `node_modules` and try again. |
-| A plugin fails with `NoSuchMethodError` / `ClassNotFoundException` | It was built against another version of the application. Run `mvn install` in `marginalia/` (and `mvn -N install` in the root) and rebuild the plugin. |
+| A plugin fails with `NoSuchMethodError` / `ClassNotFoundException` | It was built against another version of the application. Run `mvn install -DskipTests -pl marginalia -am` in the root and rebuild the plugin. |
 | `WARNING: A Java agent has been loaded dynamically` | A development run installed the agent for classes the build did not weave. Add the [JVM options](#jvm-options). |
 | `The instrumentation agent could not be installed` in the log, extensions do nothing on some screens | The JVM refused the agent and some `@Extendable` classes were compiled by the IDE. Add the [JVM options](#jvm-options) or run `mvn process-classes` ([Extension hooks](#extension-hooks)). |

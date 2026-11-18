@@ -133,8 +133,10 @@ jobs:
           cache: maven
 
       - name: Test with coverage
-        # a failing test is the Desktop workflow's to report; here it must not stop the report of what ran
-        run: mvn -Pcoverage -Dmaven.test.failure.ignore=true test
+        # a failing test is the Desktop workflow's to report; here it must not stop the report of what ran. From the
+        # root with -am, so the platform module is built first (the report covers the application's classes only)
+        working-directory: .
+        run: mvn -Pcoverage -Dmaven.test.failure.ignore=true test -pl marginalia -am
 
       - name: Summary
         if: always()

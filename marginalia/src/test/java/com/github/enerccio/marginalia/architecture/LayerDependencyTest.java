@@ -1,6 +1,5 @@
 package com.github.enerccio.marginalia.architecture;
 
-import com.github.enerccio.marginalia.Configuration;
 import org.junit.jupiter.api.Test;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.commons.ClassRemapper;
@@ -27,8 +26,10 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * The platform (layer 1 of {@code TODO.VN.md}, see {@code TODO.REFACTOR.md}) must not name a class of the application.
- * Every main class gets its layer from {@code layers/layers.txt}; the compiled classes are read with ASM and every
- * class a platform class refers to (in signatures, bodies, annotations, constants) is checked.
+ * Every main class gets its layer from {@code layers/layers.txt}; the compiled classes of both modules are read with
+ * ASM, every class must be in the module of its layer ({@code marginalia/platform} or the application) and every class
+ * a platform class refers to (in signatures, bodies, annotations, constants) is checked. The module border makes the
+ * compiler refuse most of these references already; the test still catches a class compiled into the wrong module.
  * <p>
  * The references that exist today are listed in {@code layers/allowed-leaks.txt}. The list may only shrink: a new
  * reference fails, and so does a listed one that is gone (delete its line). {@code -Dlayers.update=true} rewrites the
@@ -45,7 +46,22 @@ class LayerDependencyTest {
     @Test
     void platformDoesNotNameApplicationClasses() throws Exception {
         Map<String, String> rules = readRules(MAP);
-        Map<String, Set<String>> references = readReferences(mainClasses());
+        Map<String, Set<String>> references = new TreeMap<>();
+        Set<String> misplaced = new TreeSet<>();
+        for (Map.Entry<String, Path> module : ModuleClasses.roots().entrySet()) {
+            Map<String, Set<String>> found = readReferences(module.getValue());
+            for (String name : found.keySet()) {
+                String layer = layerOf(rules, name);
+                if (layer != null && !layer.equals(module.getKey())) {
+                    misplaced.add(name + " (" + layer + ") is in the module of the " + module.getKey());
+                }
+            }
+            references.putAll(found);
+        }
+        if (!misplaced.isEmpty()) {
+            fail("Classes in the module of the other layer (move the source to marginalia/platform or back, or fix "
+                    + MAP + "):\n  " + String.join("\n  ", misplaced));
+        }
 
         Set<String> unmapped = new TreeSet<>();
         Set<String> leaks = new TreeSet<>();
@@ -125,11 +141,6 @@ class LayerDependencyTest {
     /** The folder the test classes were compiled to. */
     private static Path testClasses() throws URISyntaxException {
         return Path.of(LayerDependencyTest.class.getProtectionDomain().getCodeSource().getLocation().toURI());
-    }
-
-    /** The folder the main classes were compiled to (also with {@code -Dbuild.dir}). */
-    private static Path mainClasses() throws URISyntaxException {
-        return Path.of(Configuration.class.getProtectionDomain().getCodeSource().getLocation().toURI());
     }
 
     /** Main class (outer, relative to the base package) to the classes of the base package it refers to. */

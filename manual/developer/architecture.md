@@ -4,11 +4,11 @@ order: 980
 verified: f337fe83d
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/bound
-  - marginalia/src/main/java/com/github/enerccio/marginalia/Configuration.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/Configuration.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/extensions
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/ToolService.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/ToolService.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/tool
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/ToolServiceImpl.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/impl/ToolServiceImpl.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/instruct
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/main
   - marginalia/src/main/resources/META-INF/spring

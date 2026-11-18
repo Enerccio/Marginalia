@@ -64,7 +64,9 @@ jobs:
         run: tools/version_from_tag.sh
 
       - name: Test
-        run: mvn test
+        # from the root with -am: the platform module (marginalia/platform) is built first, the tests are the application's
+        working-directory: .
+        run: mvn test -pl marginalia -am
 
       - name: Upload test reports
         if: failure()
@@ -100,8 +102,10 @@ jobs:
         run: mvn -N install
 
       - name: Install the application
-        # the plugins compile against the classes JAR of the application, the frontend is not needed for that
-        run: mvn -DskipTests -Dvaadin.skip=true install
+        # the plugins compile against the classes JAR of the application, the frontend is not needed for that; -am
+        # installs the platform module (marginalia/platform) first
+        working-directory: .
+        run: mvn -DskipTests -Dvaadin.skip=true install -pl marginalia -am
 
       - name: Build and install the libraries
         # what plugins share (marginalia/libs); a plugin embeds the library, so it must be in the local repository first
@@ -195,8 +199,9 @@ jobs:
 
       - name: Build desktop distribution
         # tests ran in the test job; quoted for PowerShell on Windows. The full installer takes the JARs of
-        # target/desktop-plugins (desktop.pluginsDir)
-        run: mvn "-Pdesktop" "-DskipTests" "-Ddesktop.installerRequired=true" "-Ddesktop.skipFull=false" package
+        # target/desktop-plugins (desktop.pluginsDir). From the root with -am, so the platform module is built first
+        working-directory: .
+        run: mvn "-Pdesktop" "-DskipTests" "-Ddesktop.installerRequired=true" "-Ddesktop.skipFull=false" "-pl" "marginalia" "-am" package
 
       - name: Smoke test
         # the native app and the portable launcher script must start the bundled server and serve Marginalia

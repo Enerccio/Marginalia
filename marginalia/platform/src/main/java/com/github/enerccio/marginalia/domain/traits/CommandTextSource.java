@@ -2,7 +2,6 @@ package com.github.enerccio.marginalia.domain.traits;
 
 import java.lang.annotation.Documented;
 import com.github.enerccio.marginalia.loc.L;
-import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.LocalizationKey;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

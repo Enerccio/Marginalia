@@ -4,12 +4,12 @@ order: 100
 verified: f337fe83d
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/extensions
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/ExtensionService.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/ToolService.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/ExtensionService.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/ToolService.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/tool
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/ToolServiceImpl.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/OsgiService.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/OsgiServiceImpl.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/impl/ToolServiceImpl.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/OsgiService.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/impl/OsgiServiceImpl.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/instruct
 ---
 

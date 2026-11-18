@@ -11,12 +11,12 @@ Marginalia: a self-hosted tool for co-writing long fiction with OpenAI-compatibl
 
 ## Commands
 
-All from `marginalia/` (the Maven project; needs JDK 25 + Maven 3.9, build from a git clone — the build reads git info):
+All from `marginalia/` (the Maven project; needs JDK 25 + Maven 3.9, build from a git clone — the build reads git info). The app depends on the platform module `marginalia/platform` (artifact `marginalia-platform`, the classes without a story concept, same packages; `layers.txt` says which class goes where): a build in `marginalia/` takes it from `~/.m2`, so after a change of the platform build from the root with `mvn ... -pl marginalia -am` (it builds the platform first) or `mvn install -DskipTests -f platform/pom.xml` first. The tests are all in the app.
 
 ```sh
 mvn package                  # build + tests; production WAR in target/marginalia-1.9.0.war
 mvn package -DskipTests
-mvn install -DskipTests      # also installs the classes JAR into ~/.m2 (required before building plugins)
+mvn install -DskipTests      # also installs the classes JAR into ~/.m2 (required before building plugins; the platform JAR too: from the root, -pl marginalia -am)
 mvn clean test                                # ALWAYS run tests with clean (see Testing notes)
 mvn clean test -Dtest=LorebookActivationTest  # one class
 mvn clean test -Dtest='MacroRenderingTest#name'  # one method
@@ -33,7 +33,7 @@ Use a separate `-Duser.home` for dev runs: data lives in `~/.marginalia` (also t
 
 Plugins (`marginalia/plugins/*`: anthropic, arc-outline, audiobook, authorsnote, beta-readers, book-description-generator, chaptermarker, character-tracker, chineselocalization, conlang-translator, gemma4toolsfix, google-genai, image-generator, instructionexporter, knowledge-tracker, lore-generator, lorebookvcs, manga-generator, name-generator, name-provider, place-provider, prompt-history, prompt-inspector, reallang-translator, reviewer, sidequery, sillytavern-converter, state-tracker, story-notes, tts-reader; the list is in the `<modules>` of the root `pom.xml`) are separate Maven projects (OSGi bundles): after `mvn install` of the app, run `mvn package` in the plugin dir, then load the JAR in Admin → Extensions. They must be built from the same source tree as the app. Code two plugins share is a **library** in `marginalia/libs/` (`translator-common`, used by `conlang-translator` and `reallang-translator`; `story-tracker-common`, used by `knowledge-tracker` and `state-tracker`; `http-hooks`, used by `image-generator`): a plain jar the plugins embed in their bundles (`Embed-Dependency ...;inline=true`), never loaded as an extension and kept out of `marginalia/plugins/` on purpose (the scripts and workflows collect `plugins/*/target/*.jar`); `mvn install -DskipTests` in the library folder before building a plugin on its own (the scripts, the plugins `Dockerfile` and the workflows do it).
 
-The IDE (IntelliJ with the Ajc compiler) compiles into the same `target/` as Maven, and a class compiled by the other one is overwritten (or left unwoven: `@Configurable` fields `null`). When it is open, or to keep a run apart from it, build elsewhere: `-Dbuild.dir=/tmp/marginalia-build` moves the classes, the test home (`<build.dir>/test-home`) and the WAR. Use the same folder for the whole sequence (`mvn install` of the app and the plugins read from the local repository, not from it); `rm -rf` it for a clean build. Do not run two Maven builds on the same folder.
+The IDE (IntelliJ with the Ajc compiler) compiles into the same `target/` as Maven, and a class compiled by the other one is overwritten (or left unwoven: `@Configurable` fields `null`). When it is open, or to keep a run apart from it, build elsewhere: `-Dbuild.dir=/tmp/marginalia-build` moves the classes, the test home (`<build.dir>/test-home`) and the WAR; the platform module then builds in `<build.dir>-platform` (inside it the app's `clean` would delete it). Use the same folder for the whole sequence (`mvn install` of the app and the plugins read from the local repository, not from it); `rm -rf` it for a clean build. Do not run two Maven builds on the same folder.
 
 There is no lint step. First build is slow (Vaadin downloads Node.js and npm packages).
 
@@ -41,7 +41,7 @@ There is no lint step. First build is slow (Vaadin downloads Node.js and npm pac
 
 - **No REST API / separate frontend.** Vaadin components live server-side and call Spring services directly. UI code is under `ui.*`, services in `domain.service(.impl)`, JPA repositories in `domain.repository`, entities in `domain.model`, all in `com.github.enerccio.marginalia`.
 - **Spring wiring is explicit XML** (`src/main/resources/META-INF/spring/*.xml`, `webapp/config/`). A new service/repository needs a bean in `services-config.xml` — component scan does not pick up service impls. A new entity must be added to `webapp/config/persistence.xml` and needs a Flyway migration.
-- **UI classes are created with `new`**, annotated `@Configurable`, and get `@Autowired` fields via **compile-time AspectJ weaving** (`aspectj-maven-plugin`/`ajc`). Plain javac (e.g. an IDE not set to Ajc) compiles fine but every injected field is `null` at runtime. Keep the `-parameters` and `preserveAllLocals` compiler options: extensions read method args/locals by name.
+- **UI classes are created with `new`**, annotated `@Configurable`, and get `@Autowired` fields via **compile-time AspectJ weaving** (`aspectj-maven-plugin`/`ajc`; the platform module weaves its own classes, the app only its own). Plain javac (e.g. an IDE not set to Ajc) compiles fine but every injected field is `null` at runtime. Keep the `-parameters` and `preserveAllLocals` compiler options: extensions read method args/locals by name.
 - **Transactions** come from Spring CGLIB proxies via `@CommonTx` / `@CommonTxReadOnly` / `@NoTx` — self-calls within a service are not transactional.
 - **Ownership:** every entity belongs to a user (`OwnedEntity`); use `findAllForUser()` / `findForUser(uuid)` from `OwnedService`, never trust raw ids. Deletes are soft (`deleted=true`); admin Cleanup purges following `@CleanupReference`. Entities have `id` plus a stable `uuid` used in URLs/backups/exports.
 - **Schema:** Flyway migrations in `src/main/resources/migration/V<n>__*.sql`; Hibernate only validates (`hbm2ddl=validate`), so entity changes without a migration break startup. Reuse same migration file (rename it if necessary) if it has not been commited yet.

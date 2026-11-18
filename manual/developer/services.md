@@ -5,7 +5,7 @@ verified: 9860afee8
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/security/service
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/security/AdminGuard.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/security/AdminGuard.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/export
 ---
 

@@ -13,6 +13,7 @@
   <name>marginalia-parent</name>
 
   <modules>
+    <module>marginalia/platform</module>
     <module>marginalia</module>
     <module>marginalia/libs/http-hooks</module>
     <module>marginalia/libs/story-tracker-common</module>

@@ -11,7 +11,7 @@ covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/DefaultsDE.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/DefaultsIT.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/DefaultsKO.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/TemplateServiceImpl.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/impl/TemplateServiceImpl.java
 ---
 
 {%{

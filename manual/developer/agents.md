@@ -14,14 +14,14 @@ covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/AgentVirtualFileSystemService.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/AgentRunPairService.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/AgentWebhookService.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/AIGate.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/AIGate.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/AgentWebhookServiceImpl.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/AIGateImpl.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/impl/AIGateImpl.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/AgentMergeService.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/AgentCopyService.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/AgentCopyServiceImpl.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/utils/WordDiff.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/ui/widgets/WordDiffView.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/utils/WordDiff.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/ui/widgets/WordDiffView.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/AgentMergeServiceImpl.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/AgentRunPairServiceImpl.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/AgentRunnerImpl.java

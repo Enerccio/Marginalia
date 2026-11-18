@@ -3,23 +3,23 @@ label: Commands
 icon: terminal
 order: 935
 covers:
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/CommandService.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/CommandService.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/command
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/CommandServiceImpl.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/CommandContextImpl.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/CommandRunImpl.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/CommandValues.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/traits/Command.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/traits/CommandDataSeverity.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/traits/CommandParameter.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/traits/CommandParameterSignature.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/traits/CommandReturn.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/impl/CommandServiceImpl.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/impl/CommandContextImpl.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/impl/CommandRunImpl.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/impl/CommandValues.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/traits/Command.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/traits/CommandDataSeverity.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/traits/CommandParameter.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/traits/CommandParameterSignature.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/traits/CommandReturn.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/commands/manuscript/read
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/commands/lorebook/read
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/commands/manuscript/write
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/commands/lorebook/write
   - marginalia/src/main/java/com/github/enerccio/marginalia/bound/AgenticSessionPoint.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/utils/TextDiff.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/utils/TextDiff.java
 verified: f7e7de02b
 ---
 

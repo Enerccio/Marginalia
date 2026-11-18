@@ -62,9 +62,10 @@ jobs:
         run: mvn -N install
 
       - name: Build and install the application
-        # install, not package: the plugins depend on the classes JAR in the local repository
-        working-directory: marginalia
-        run: mvn -DskipTests install
+        # install, not package: the plugins depend on the classes JAR in the local repository. From the root with -am,
+        # so the platform module (marginalia/platform) the application depends on is built and installed first
+        working-directory: .
+        run: mvn -DskipTests install -pl marginalia -am
 
       - name: Build and install the libraries
         # what plugins share (marginalia/libs); a plugin embeds the library, so it must be in the local repository first

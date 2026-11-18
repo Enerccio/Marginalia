@@ -129,7 +129,7 @@ class ApiDocsTest extends MarginaliaTestBase {
 
     @Test
     void theDescriptionListsExactlyTheCallsOfTheDispatcher() throws Exception {
-        String source = Files.readString(Path.of("src/main/java/com/github/enerccio/marginalia/api/ApiDispatcher.java"));
+        String source = Files.readString(Path.of("platform/src/main/java/com/github/enerccio/marginalia/api/ApiDispatcher.java"));
         Matcher m = Pattern.compile("call\\.is\\(\"(\\w+)\"((?:,\\s*\"[^\"]*\")*)\\)").matcher(source);
         Set<String> answered = new TreeSet<>();
         while (m.find()) {

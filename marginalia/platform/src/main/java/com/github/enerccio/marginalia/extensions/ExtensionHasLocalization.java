@@ -1,7 +1,6 @@
 package com.github.enerccio.marginalia.extensions;
 
 import com.github.enerccio.marginalia.loc.LocalizationBundle;
-import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.TextBundle;
 

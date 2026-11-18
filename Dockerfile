@@ -7,26 +7,31 @@ FROM maven:3.9-eclipse-temurin-25 AS builder
 
 WORKDIR /build/marginalia
 
-# Cache dependencies (the application's POM inherits from the parent POM in the repository root)
+# Cache dependencies (the POMs inherit from the parent POM in the repository root). The platform module
+# (marginalia/platform) brings the libraries; the application's own POM can't be resolved before the platform is
+# installed, so what only it needs (its build plugins, the test libraries) is downloaded by the build below
 COPY pom.xml /build/pom.xml
+COPY marginalia/platform/pom.xml ./platform/pom.xml
 COPY marginalia/pom.xml .
-RUN mvn dependency:go-offline -B
+RUN mvn install -N -B -f /build/pom.xml \
+    && mvn dependency:go-offline -B -f platform/pom.xml
 
-# Copy source code and build the application
+# Copy source code and build the platform, then the application
+COPY marginalia/platform/src ./platform/src
 COPY marginalia/src ./src
 # the user manual (Markdown) is packed into the WAR for the in-app help, see <resources> in marginalia/pom.xml
 COPY manual/user /build/manual/user
 # and its translations (translations/<language>/user), read by the help in the language of the user
 COPY translations /build/translations
 COPY .git /build/.git
-# install, not just package: the classes JAR and the parent POM go into the local Maven repository, where the plugins
+# install, not just package: the platform JAR, the classes JAR and the parent POM go into the local Maven repository, where the plugins
 # find them (plugins-build starts from this stage). Then everything the later stages don't need is deleted in the
 # same step, so it never gets into the layer: the frontend tooling (node_modules, Node.js in ~/.vaadin, the npm
 # cache), target/ except the WAR, and the WAR's copy in the local repository. Tens of thousands of files that the
 # classic builder would otherwise write into the layer after the build, a long pause before the next step.
-RUN mvn clean install -DskipTests -B \
-    && mvn install -N -B -f /build/pom.xml \
-    && rm -rf node_modules "$HOME/.vaadin" "$HOME/.npm" "$HOME/.cache" \
+RUN mvn clean install -DskipTests -B -f platform/pom.xml \
+    && mvn clean install -DskipTests -B \
+    && rm -rf node_modules "$HOME/.vaadin" "$HOME/.npm" "$HOME/.cache" platform/target \
     && find target -mindepth 1 -maxdepth 1 ! -name '*.war' -exec rm -rf {} + \
     && find "$HOME/.m2/repository/io/github/enerccio/marginalia" -name '*.war' -delete
 

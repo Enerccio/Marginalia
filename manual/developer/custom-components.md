@@ -2,11 +2,11 @@
 label: Custom components
 order: 905
 covers:
-  - marginalia/src/main/java/com/github/enerccio/marginalia/ui/components/TreantTree.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/ui/widgets/ChartJs.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/ui/widgets/GraphView.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/ui/widgets/MarkdownEditor.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/ui/JavascriptLibrary.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/ui/components/TreantTree.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/ui/widgets/ChartJs.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/ui/widgets/GraphView.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/ui/widgets/MarkdownEditor.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/ui/JavascriptLibrary.java
   - marginalia/src/main/frontend
 verified: f337fe83d
 ---

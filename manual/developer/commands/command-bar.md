@@ -2,13 +2,13 @@
 label: The command bar
 order: 80
 covers:
-  - marginalia/src/main/java/com/github/enerccio/marginalia/ui/components/CommandBar.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/ui/components/CommandResult.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/ui/components/CommandResultTarget.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/ui/components/CommandResultView.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/ui/dialogs/CommandProgressDialog.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/command/CommandHelp.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/command/CommandLine.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/ui/components/CommandBar.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/ui/components/CommandResult.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/ui/components/CommandResultTarget.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/ui/components/CommandResultView.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/ui/dialogs/CommandProgressDialog.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/command/CommandHelp.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/command/CommandLine.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/dialogs/manuscript/ManuscriptStoryPart.java
 verified: 8095daeae
 ---

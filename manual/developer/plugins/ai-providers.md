@@ -2,15 +2,15 @@
 label: Inference providers from a plugin
 order: 62
 covers:
-  - marginalia/src/main/java/com/github/enerccio/marginalia/extensions/ExtensionAIFactory.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/extensions/ExtensionAIForm.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/model/impl/ExtensionAI.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/InferenceServices.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/InferenceSession.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/UsageContext.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/InferenceServicesImpl.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/ui/dialogs/AIDialog.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/utils/AITypes.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/extensions/ExtensionAIFactory.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/extensions/ExtensionAIForm.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/model/impl/ExtensionAI.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/InferenceServices.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/InferenceSession.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/UsageContext.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/impl/InferenceServicesImpl.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/ui/dialogs/AIDialog.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/utils/AITypes.java
   - marginalia/src/main/resources/migration/V14__extension_ai.sql
   - marginalia/plugins/google-genai
   - marginalia/plugins/anthropic

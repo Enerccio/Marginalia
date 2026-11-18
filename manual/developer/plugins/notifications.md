@@ -2,13 +2,13 @@
 label: Desktop notifications
 order: 70
 covers:
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/NotificationService.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/NotificationServiceImpl.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/model/impl/settings/NotificationSettings.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/ui/widgets/DesktopNotifier.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/ui/notifications/NotificationSettingsEditor.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/ui/JavascriptLibrary.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/OsgiServiceImpl.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/NotificationService.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/impl/NotificationServiceImpl.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/model/impl/settings/NotificationSettings.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/ui/widgets/DesktopNotifier.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/ui/notifications/NotificationSettingsEditor.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/ui/JavascriptLibrary.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/impl/OsgiServiceImpl.java
 verified: f337fe83d
 ---
 

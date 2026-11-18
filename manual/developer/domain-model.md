@@ -8,7 +8,7 @@ covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/listener
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/security/model
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/SummaryServiceImpl.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/CleanupServiceImpl.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/impl/CleanupServiceImpl.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/BackupServiceImpl.java
 ---
 

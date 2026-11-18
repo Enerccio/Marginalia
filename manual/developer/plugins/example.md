@@ -4,7 +4,7 @@ order: 60
 verified: f337fe83d
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/extensions
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/ExtensionService.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/ExtensionService.java
   - marginalia/plugins/chaptermarker
   - marginalia/plugins/chineselocalization
   - marginalia/src/main/java/com/github/enerccio/marginalia/loc

@@ -11,7 +11,7 @@ covers:
   - rebuild.sh
   - rebuild.bat
   - tools/update-watcher
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/UpdateServiceImpl.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/impl/UpdateServiceImpl.java
   - .github
   - marginalia/src/desktop
   - marginalia/pom.xml
