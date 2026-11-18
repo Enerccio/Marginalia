@@ -10,6 +10,7 @@ import com.github.enerccio.marginalia.extensions.knowledgetracker.block.Knowledg
 import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.*;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.model.BookSettings;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.model.KnowledgeState;
+import com.github.enerccio.marginalia.extensions.storytracker.checkpoint.Checkpoint;
 import com.github.enerccio.marginalia.extensions.storytracker.llm.Live;
 import com.github.enerccio.marginalia.extensions.storytracker.llm.ModelCall;
 import com.github.enerccio.marginalia.extensions.storytracker.llm.StoryLore;
@@ -226,6 +227,7 @@ public class ExtractionService {
                 throw new StaleProposalException("The story changed while the changes were being reviewed");
             }
             stateService.save(manuscript, state);
+            processService.checkpoint(manuscript, state, Checkpoint.Kind.RUN, result.added(), result.retracted());
             stateService.changed(manuscript);
             return result;
         }
@@ -299,6 +301,7 @@ public class ExtractionService {
             state.tidied();
             ChangeApplier.Result result = ChangeApplier.apply(state, proposal.changes(), logged, System.currentTimeMillis());
             stateService.save(manuscript, state);
+            processService.checkpoint(manuscript, state, Checkpoint.Kind.TIDY, result.added(), result.retracted());
             stateService.changed(manuscript);
             return result;
         }

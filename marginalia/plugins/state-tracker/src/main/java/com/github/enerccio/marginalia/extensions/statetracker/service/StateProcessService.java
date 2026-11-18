@@ -3,10 +3,15 @@ package com.github.enerccio.marginalia.extensions.statetracker.service;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
+import com.github.enerccio.marginalia.domain.service.ResourceService;
 import com.github.enerccio.marginalia.extensions.PartTextRegistry;
 import com.github.enerccio.marginalia.extensions.statetracker.block.StateBlockBuilder;
 import com.github.enerccio.marginalia.extensions.statetracker.extract.StateLog;
 import com.github.enerccio.marginalia.extensions.statetracker.model.StateBook;
+import com.github.enerccio.marginalia.extensions.storytracker.checkpoint.Checkpoint;
+import com.github.enerccio.marginalia.extensions.storytracker.checkpoint.CheckpointFiles;
+import com.github.enerccio.marginalia.extensions.storytracker.checkpoint.ResourceCheckpointFiles;
+import com.github.enerccio.marginalia.extensions.storytracker.checkpoint.TrackerCheckpoints;
 import com.github.enerccio.marginalia.extensions.storytracker.log.TrackerChangeLog;
 import com.github.enerccio.marginalia.extensions.storytracker.process.BranchProcessor;
 import com.github.enerccio.marginalia.extensions.storytracker.process.BranchProcessor.Report;
@@ -39,7 +44,11 @@ public class StateProcessService {
     @Autowired
     private ManuscriptService manuscriptService;
 
+    @Autowired
+    private ResourceService resourceService;
+
     private final StateService stateService;
+    private final TrackerCheckpoints checkpoints = new TrackerCheckpoints(StateExtractionService.SOURCE);
     private final Map<String, Object> locks = new ConcurrentHashMap<>();
 
     public StateProcessService(StateService stateService) {
@@ -169,6 +178,58 @@ public class StateProcessService {
             }
             return outcome;
         }
+    }
+
+    // --- checkpoints ---
+
+    /**
+     * Takes a checkpoint of the state as it was just stored (see {@link TrackerCheckpoints}); called by the commits of the runs with the
+     * lock of the book held. A failure is logged, the run stays committed.
+     *
+     * @param changes how many changes the run applied
+     */
+    void checkpoint(Manuscript manuscript, StateBook state, Checkpoint.Kind kind, int changes) {
+        try {
+            checkpoints.take(files(manuscript), stateService.toJson(state), state.getCursor(), kind, changes, 0);
+        } catch (Exception e) {
+            // the book is gone or not stored; there is nothing to return to then
+        }
+    }
+
+    /** The checkpoints of the book whose part is on the active branch, newest first. */
+    public List<TrackerCheckpoints.Placed> checkpoints(Manuscript manuscript, List<Part> branch) throws Exception {
+        return TrackerCheckpoints.onBranch(checkpoints.list(files(manuscript)), branch);
+    }
+
+    /**
+     * Returns the tracker to a checkpoint: the characters with their values, the cursor, the processed parts, the marks of the clock and
+     * the log are the checkpoint's, the settings, the start point and the categories stay. The next run reads the parts after the part
+     * of the checkpoint.
+     */
+    public TrackerCheckpoints.Restore restoreCheckpoint(Manuscript manuscript, String checkpointId) throws Exception {
+        synchronized (lockOf(manuscript)) {
+            List<Part> branch = branch(manuscript);
+            TrackerCheckpoints.Restore outcome = checkpoints.restore(files(manuscript), checkpointId, branch, json -> {
+                StateBook restored = restore(stateService.load(manuscript), stateService.fromJson(json), branch);
+                stateService.save(manuscript, restored);
+            });
+            if (outcome == TrackerCheckpoints.Restore.RESTORED) {
+                stateService.changed(manuscript);
+            }
+            return outcome;
+        }
+    }
+
+    /** The state of a checkpoint in the place of the current one, in line with the branch. */
+    public static StateBook restore(StateBook current, StateBook checkpoint, List<Part> branch) {
+        checkpoint.keepSetupOf(current);
+        BranchProcessor.align(checkpoint, branch);
+        return checkpoint;
+    }
+
+    private CheckpointFiles files(Manuscript manuscript) throws Exception {
+        Manuscript stored = manuscript.getId() != null ? manuscript : manuscriptService.find(manuscript);
+        return new ResourceCheckpointFiles(resourceService, stored != null ? stored : manuscript);
     }
 
     public Object lockOf(Manuscript manuscript) {

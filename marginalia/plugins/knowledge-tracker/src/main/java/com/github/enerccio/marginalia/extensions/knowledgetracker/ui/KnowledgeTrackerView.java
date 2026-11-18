@@ -25,7 +25,11 @@ import com.github.enerccio.marginalia.extensions.storytracker.run.TrackerRun;
 import com.github.enerccio.marginalia.extensions.storytracker.run.TrackerRun.Phase;
 import com.github.enerccio.marginalia.extensions.storytracker.run.TrackerRuns;
 import com.github.enerccio.marginalia.extensions.storytracker.scene.SeparatorText;
+import com.github.enerccio.marginalia.extensions.storytracker.checkpoint.Checkpoint;
+import com.github.enerccio.marginalia.extensions.storytracker.checkpoint.TrackerCheckpoints;
 import com.github.enerccio.marginalia.extensions.storytracker.ui.ChangeLogPanel;
+import com.github.enerccio.marginalia.extensions.storytracker.ui.CheckpointsPanel;
+import com.github.enerccio.marginalia.extensions.storytracker.ui.StoryTrackerLocalization;
 import com.github.enerccio.marginalia.extensions.storytracker.ui.ImportCharactersDialog;
 import com.github.enerccio.marginalia.extensions.storytracker.ui.ProgressPanel;
 import com.github.enerccio.marginalia.extensions.storytracker.ui.UiAccess;
@@ -102,6 +106,7 @@ public class KnowledgeTrackerView extends VerticalLayout {
     private Div processButtons;
     private boolean processedOpen;
     private boolean logOpen;
+    private boolean checkpointsOpen;
     /** The progress panel of the run that is shown, and the listener that keeps this view in line with that run. */
     private ProgressPanel<Proposal> progressPanel;
     private TrackerRun<Proposal> watched;
@@ -608,7 +613,44 @@ public class KnowledgeTrackerView extends VerticalLayout {
         if (log != null) {
             panel.add(log);
         }
+        Component checkpoints = createCheckpoints(branch, running == null);
+        if (checkpoints != null) {
+            panel.add(checkpoints);
+        }
         return panel;
+    }
+
+    /** The checkpoints the runs took whose part is on the active branch, each with a button that returns the tracker to it. */
+    private Component createCheckpoints(List<Part> branch, boolean enabled) {
+        try {
+            return CheckpointsPanel.create(processService.checkpoints(manuscript, branch), true, enabled, this::restoreCheckpoint,
+                    checkpointsOpen, opened -> checkpointsOpen = opened);
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+            return null;
+        }
+    }
+
+    private void restoreCheckpoint(Checkpoint checkpoint) {
+        try {
+            if (runs.running(manuscript) != null) {
+                return;
+            }
+            TrackerCheckpoints.Restore outcome = processService.restoreCheckpoint(manuscript, checkpoint.id());
+            switch (outcome) {
+                case RESTORED -> Notification.success(StoryTrackerLocalization.T.localized(StoryTrackerLocalization.THE_TRACKER_IS_BACK_AT_PART_N)
+                        .formatted(positions.getOrDefault(checkpoint.partUuid(), 0)));
+                case NOT_ON_BRANCH -> Notification.warning(StoryTrackerLocalization.T.localized(
+                        StoryTrackerLocalization.THE_PART_OF_THE_CHECKPOINT_IS_NOT_ON_THE_ACTIVE_BRANCH));
+                case GONE -> Notification.warning(StoryTrackerLocalization.T.localized(StoryTrackerLocalization.THE_CHECKPOINT_CAN_NOT_BE_READ));
+            }
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+        state = loadState();
+        showSettingsState();
+        refresh();
+        reloadMassChanges();
     }
 
     /**

@@ -190,4 +190,9 @@ public class StoryClock {
         }
         return marks;
     }
+
+    /** The marks the runs set are those of {@code checkpoint} (a return to a checkpoint); the settings of the clock stay. */
+    public void takeMarksOf(StoryClock checkpoint) {
+        marks = new LinkedHashMap<>(checkpoint.getMarks());
+    }
 }

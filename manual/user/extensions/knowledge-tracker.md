@@ -160,6 +160,23 @@ editable, but every row has a **Revert** button: an added item is declined (it s
 addition does in the review), a retracted item becomes active again. A row whose item you edited, deleted or retracted
 by hand since is left alone. The log keeps the last 200 changes.
 
+### Returning to an earlier point
+
+After every run that changes the knowledge (a run of the tab with or without a review, the automatic reading of new parts, the
+`knowledge-process` and `knowledge-tidy` commands, a tidy, and a reading without the model) the tracker takes a **checkpoint**: the
+whole state of its characters as that run left it, with the place it had read up to. **Checkpoints** in the Processing panel lists
+them, newest first: the part, the time, what kind of run it was and how much it added and retracted. Only checkpoints whose part is
+on the active branch are listed.
+
+**Return to this point** on a row puts the tracker back as it was after that run: the characters and their knowledge, the processed
+parts and the log of automatic changes are those of the checkpoint, and the next run reads the parts after its part again. Your
+settings and the start point stay as they are now. It asks first, because everything learned after the checkpoint is undone,
+the changes you made by hand since then too. Use it when a series of runs went wrong, or after you restored an older backup of the
+book and want the tracker to catch up from a point you trust.
+
+The tracker keeps the last 20 checkpoints of a book. They are kept among your files (*Resources*, grouped by the book), not in the
+book, so book backups and copies do not include them.
+
 With **Ask before applying** off the new part is read as soon as it is final: when the generation is over, or, if the
 book has the automatic annotation (and redraft) or a translation on, when that is done, so the model reads the text you keep and works
 while you read it. It is a step of [what follows the part](../books/story-editor.md#what-follows-a-generated-part). The next generation then finds the knowledge up to date and does not wait. What is left (a run you
@@ -329,4 +346,5 @@ The command line splits its arguments at spaces: put a list of characters in quo
 
 ## Storage
 
-Everything is stored with the book (in its attributes), so it is part of [book backups](../books/backups.md) and copies.
+Everything is stored with the book (in its attributes), so it is part of [book backups](../books/backups.md) and copies. The
+[checkpoints](#returning-to-an-earlier-point) are not: they are files of yours linked to the book.
