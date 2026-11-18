@@ -18,6 +18,7 @@ import com.github.enerccio.marginalia.extensions.storytracker.process.BranchProc
 import com.github.enerccio.marginalia.extensions.storytracker.process.Part;
 import com.github.enerccio.marginalia.extensions.storytracker.process.RunEstimate;
 import com.github.enerccio.marginalia.extensions.storytracker.process.StoryBranch;
+import com.google.gson.JsonElement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
@@ -84,6 +85,7 @@ public class KnowledgeProcessService {
     public Report process(Manuscript manuscript, boolean lastSettled, String excludeFrom, int max) throws Exception {
         synchronized (lock(manuscript)) {
             KnowledgeState state = stateService.load(manuscript);
+            Before before = before(state);
             List<Part> branch = branch(manuscript);
             Report report = BranchProcessor.process(state, branch, BranchProcessor.settledCount(branch, lastSettled, excludeFrom),
                     separators(state), System.currentTimeMillis(), max);
@@ -91,7 +93,7 @@ public class KnowledgeProcessService {
                 stateService.save(manuscript, state);
                 if (report.processed() > 0 && !state.getSettings().isExtractWithModel()) {
                     // a book that reads with the model takes its checkpoints after the runs of the model
-                    checkpoint(manuscript, state, Checkpoint.Kind.READ, 0, 0);
+                    checkpoint(manuscript, before, Checkpoint.Kind.READ, 0, 0);
                 }
                 stateService.changed(manuscript);
             }
@@ -192,13 +194,23 @@ public class KnowledgeProcessService {
 
     // --- checkpoints ---
 
+    /** The state as a run found it, kept until the run knows what it changed, see {@link #checkpoint}. */
+    record Before(JsonElement state, String cursor) {
+    }
+
+    /** The state as it was loaded, before the run changes it (a copy: the run goes on changing the state). */
+    Before before(KnowledgeState state) {
+        return new Before(stateService.toJson(state), state.getCursor());
+    }
+
     /**
-     * Takes a checkpoint of the state as it was just stored (see {@link TrackerCheckpoints}); called by the commits of the runs with the
-     * lock of the book held. A failure is logged, the run stays committed.
+     * Takes a checkpoint of the state as the run found it (see {@link TrackerCheckpoints}), so that the run can be undone and its parts
+     * read again; called by the commits of the runs with the lock of the book held, after the run was stored. A failure is logged, the
+     * run stays committed.
      */
-    void checkpoint(Manuscript manuscript, KnowledgeState state, Checkpoint.Kind kind, int added, int retracted) {
+    void checkpoint(Manuscript manuscript, Before before, Checkpoint.Kind kind, int added, int retracted) {
         try {
-            checkpoints.take(files(manuscript), stateService.toJson(state), state.getCursor(), kind, added, retracted);
+            checkpoints.take(files(manuscript), before.state(), before.cursor(), kind, added, retracted);
         } catch (Exception e) {
             // the book is gone or not stored; there is nothing to return to then
         }
@@ -216,10 +228,12 @@ public class KnowledgeProcessService {
     public TrackerCheckpoints.Restore restoreCheckpoint(Manuscript manuscript, String checkpointId) throws Exception {
         synchronized (lock(manuscript)) {
             List<Part> branch = branch(manuscript);
-            TrackerCheckpoints.Restore outcome = checkpoints.restore(files(manuscript), checkpointId, branch, json -> {
-                KnowledgeState restored = restore(stateService.load(manuscript), stateService.fromJson(json), branch);
-                stateService.save(manuscript, restored);
-            });
+            KnowledgeState current = stateService.load(manuscript);
+            TrackerCheckpoints.Restore outcome = checkpoints.restore(files(manuscript), checkpointId, branch, stateService.toJson(current),
+                    current.getCursor(), json -> {
+                        KnowledgeState restored = restore(current, stateService.fromJson(json), branch);
+                        stateService.save(manuscript, restored);
+                    });
             if (outcome == TrackerCheckpoints.Restore.RESTORED) {
                 stateService.changed(manuscript);
             }

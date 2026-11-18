@@ -103,6 +103,16 @@ public class StateTrackerView extends VerticalLayout {
 
     private final VerticalLayout list = new VerticalLayout();
     private Button settingsButton;
+    /** The bar at the top and the list's scroller: the bar shows {@link #dock} while the buttons of the Processing panel are scrolled away. */
+    private HorizontalLayout toolbar;
+    private Scroller scroller;
+    /** Icon-only copies of Process now, Process next part and Tidy the state, in the top bar. */
+    private final Div dock = new Div();
+    private final Button dockProcess = iconButton(Solid.PLAY, T.localized(PROCESS_NOW), () -> process(0));
+    private final Button dockNext = iconButton(Solid.FORWARD_STEP, T.localized(PROCESS_NEXT_PART), () -> process(1));
+    private final Button dockTidy = iconButton(Solid.BROOM, T.localized(TIDY_THE_STATE), this::tidy);
+    /** The row of the processing buttons the last refresh made, {@code null} when it has none. */
+    private Div processButtons;
     /** Ids of the characters whose card is shown open (collapsed by default); kept over a refresh. */
     private final Set<String> open = new HashSet<>();
     /** The categories (character id + category id) whose history is shown open; kept over a refresh. */
@@ -141,6 +151,7 @@ public class StateTrackerView extends VerticalLayout {
         super.onAttach(attachEvent);
         // a command (the command bar, an agent) stores the state behind the back of the view
         changeRegistration = service.onChange(manuscript, changeRefresh);
+        watchProcessButtons();
         TrackerRun<Proposal> running = runs.running(manuscript);
         if (running != null) {
             watch(running);
@@ -193,19 +204,52 @@ public class StateTrackerView extends VerticalLayout {
         popover.add(createSettings());
         showSettingsState();
 
-        HorizontalLayout toolbar = new HorizontalLayout(add, importCharacters, categories, reload, settingsButton);
+        dock.add(dockProcess, dockNext, dockTidy);
+        dock.addClassName(StateTrackerStyles.DOCK);
+        toolbar = new HorizontalLayout(add, importCharacters, categories, reload, settingsButton, dock);
         toolbar.setAlignItems(Alignment.CENTER);
         toolbar.setPadding(true);
         toolbar.setSpacing(false);
+        toolbar.setWidthFull();
+        toolbar.addClassName(StateTrackerStyles.TOOLBAR);
 
         list.setPadding(false);
         list.setSpacing(false);
         list.addClassName(StateTrackerStyles.LIST);
-        Scroller scroller = new Scroller(list);
+        scroller = new Scroller(list);
         scroller.setSizeFull();
 
         add(toolbar, scroller);
         setFlexGrow(1, scroller);
+    }
+
+    /**
+     * Docks the processing buttons into the top bar while their row in the Processing panel is scrolled out of sight above the
+     * list: an observer in the browser sets the attribute {@code docked} on the bar and the CSS shows the icon buttons then, so
+     * scrolling sends nothing to the server. Called after every refresh (the panel is made again) and when the view is attached.
+     */
+    private void watchProcessButtons() {
+        if (toolbar == null) {
+            return;
+        }
+        if (processButtons == null) {
+            toolbar.getElement().executeJs("""
+                    if (this.__stDock) { this.__stDock.disconnect(); this.__stDock = null; }
+                    this.removeAttribute('docked');""");
+            return;
+        }
+        toolbar.getElement().executeJs("""
+                const bar = this, row = $0, root = $1;
+                if (bar.__stDock) { bar.__stDock.disconnect(); }
+                bar.removeAttribute('docked');
+                if (!row || typeof IntersectionObserver === 'undefined') { bar.__stDock = null; return; }
+                bar.__stDock = new IntersectionObserver(entries => {
+                    for (const e of entries) {
+                        const top = e.rootBounds ? e.rootBounds.top : 0;
+                        bar.toggleAttribute('docked', !e.isIntersecting && e.boundingClientRect.bottom <= top + 1);
+                    }
+                }, {root: root, threshold: 0});
+                bar.__stDock.observe(row);""", processButtons.getElement(), scroller.getElement());
     }
 
     // --- settings ---
@@ -457,6 +501,9 @@ public class StateTrackerView extends VerticalLayout {
             panel.add(createClockLine(branch));
         }
         if (branch.isEmpty()) {
+            dockProcess.setEnabled(false);
+            dockNext.setEnabled(false);
+            dockTidy.setEnabled(false);
             return panel;
         }
 
@@ -473,7 +520,11 @@ public class StateTrackerView extends VerticalLayout {
         tidy.addThemeVariants(ButtonVariant.LUMO_SMALL);
         tidy.setTooltipText(T.localized(ASK_THE_MODEL_WHICH_VALUES_FADED));
         tidy.setEnabled(status.cursor() > 0 && running == null);
-        panel.add(new Div(process, next, tidy));
+        processButtons = new Div(process, next, tidy);
+        panel.add(processButtons);
+        dockProcess.setEnabled(process.isEnabled());
+        dockNext.setEnabled(next.isEnabled());
+        dockTidy.setEnabled(tidy.isEnabled());
         if (running != null) {
             panel.add(createRunButton(running));
         }
@@ -526,8 +577,7 @@ public class StateTrackerView extends VerticalLayout {
             }
             TrackerCheckpoints.Restore outcome = processService.restoreCheckpoint(manuscript, checkpoint.id());
             switch (outcome) {
-                case RESTORED -> Notification.success(StoryTrackerLocalization.T.localized(StoryTrackerLocalization.THE_TRACKER_IS_BACK_AT_PART_N)
-                        .formatted(positions.getOrDefault(checkpoint.partUuid(), 0)));
+                case RESTORED -> Notification.success(CheckpointsPanel.restoredMessage(checkpoint, positions.getOrDefault(checkpoint.partUuid(), 0)));
                 case NOT_ON_BRANCH -> Notification.warning(StoryTrackerLocalization.T.localized(
                         StoryTrackerLocalization.THE_PART_OF_THE_CHECKPOINT_IS_NOT_ON_THE_ACTIVE_BRANCH));
                 case GONE -> Notification.warning(StoryTrackerLocalization.T.localized(StoryTrackerLocalization.THE_CHECKPOINT_CAN_NOT_BE_READ));
@@ -839,7 +889,9 @@ public class StateTrackerView extends VerticalLayout {
 
     private void refresh() {
         list.removeAll();
+        processButtons = null;
         list.add(createProcessingPanel());
+        watchProcessButtons();
         if (state.getCharacters().isEmpty()) {
             Div empty = new Div(new Span(T.localized(NO_CHARACTER_IS_TRACKED_YET)));
             empty.addClassName(StateTrackerStyles.MUTED);

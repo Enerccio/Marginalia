@@ -16,12 +16,14 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 /**
- * Checkpoints of a tracker: after every committed run the whole state of the tracker in the book (with its cursor) is stored as a
- * gzipped JSON file, and the author can return the tracker to one of them and run again from its part. A tracker keeps the last
- * {@link #KEEP} of a book, the oldest go first.
+ * Checkpoints of a tracker: before a run commits what it found, the whole state of the tracker in the book (with its cursor) as the
+ * run found it is stored as a gzipped JSON file, so the author can undo the run (and all after it) by returning the tracker to it:
+ * the next run reads the parts of the undone run again. A return to a checkpoint stores the state it replaces first, so it can be
+ * undone too. A tracker keeps the last {@link #KEEP} of a book, the oldest go first.
  * <p>
  * What a checkpoint says about itself (the part, the kind of run, the counts) is in the name of its file, so the list is read without
- * opening the files: {@code <tracker>.checkpoint.<kind>.<added>.<retracted>.<part uuid>.json.gz}. The content is
+ * opening the files: {@code <tracker>.checkpoint.<kind>.<added>.<retracted>.<part uuid>.before.json.gz}, the part {@link #START} when
+ * the tracker had read nothing. Older files have no {@code .before}: they hold the state after the run. The content is
  * {@code {"part": uuid, "state": the state as the tracker stores it}}. How a state is serialized and put back is the tracker's.
  */
 public final class TrackerCheckpoints {
@@ -31,7 +33,11 @@ public final class TrackerCheckpoints {
     /** How many checkpoints of a book a tracker keeps. */
     public static final int KEEP = 20;
 
+    /** The part of a checkpoint of a state that had read nothing yet: the start of the book, always on the branch. */
+    public static final String START = "start";
+
     private static final String INFIX = ".checkpoint.";
+    private static final String BEFORE = "before";
     private static final String SUFFIX = ".json.gz";
 
     /** What came of a restore. */
@@ -64,26 +70,31 @@ public final class TrackerCheckpoints {
     }
 
     /**
-     * Stores a checkpoint and drops the oldest over {@link #KEEP}. A checkpoint is a convenience: when it can't be stored the run that
-     * was committed stays as it is, so the failure is logged, not thrown.
+     * Stores a checkpoint of the state before a run (or a restore) changed it and drops the oldest over {@link #KEEP}. A checkpoint is
+     * a convenience: when it can't be stored the run that was committed stays as it is, so the failure is logged, not thrown.
      *
-     * @param state    the state as the tracker stores it
-     * @param partUuid the cursor of the state; nothing is stored without one (nothing was read yet)
+     * @param state    the state as the tracker stores it, as the run found it
+     * @param partUuid the cursor of that state, {@code null} when it had read nothing yet
+     * @param kind     what changed the state after it
+     * @param added    what the run added (or all its changes)
+     * @param retracted what the run took back
      * @return the checkpoint, {@code null} when none was stored
      */
     public Checkpoint take(CheckpointFiles files, JsonElement state, String partUuid, Checkpoint.Kind kind, int added, int retracted) {
-        if (partUuid == null || partUuid.isBlank() || partUuid.contains(".")) {
+        String part = partUuid == null || partUuid.isBlank() ? START : partUuid;
+        if (part.contains(".")) {
             return null;
         }
         try {
             JsonObject content = new JsonObject();
-            content.addProperty("part", partUuid);
+            content.addProperty("part", part);
             content.add("state", state);
             int a = Math.max(0, added);
             int r = Math.max(0, retracted);
-            String id = files.write(prefix + kind.name() + "." + a + "." + r + "." + partUuid + SUFFIX, gzip(content.toString()));
+            String id = files.write(prefix + kind.name() + "." + a + "." + r + "." + part + "." + BEFORE + SUFFIX,
+                    gzip(content.toString()));
             retain(files);
-            return new Checkpoint(id, partUuid, System.currentTimeMillis(), kind, a, r);
+            return new Checkpoint(id, part, System.currentTimeMillis(), kind, a, r, true);
         } catch (Exception e) {
             log.warn("A checkpoint of {} can't be stored", prefix, e);
             return null;
@@ -143,6 +154,18 @@ public final class TrackerCheckpoints {
      * @param branch the active branch
      */
     public Restore restore(CheckpointFiles files, String checkpointId, List<Part> branch, Restorer restorer) throws Exception {
+        return restore(files, checkpointId, branch, null, null, restorer);
+    }
+
+    /**
+     * The restore flow, keeping the state it replaces: when the checkpoint can be restored, {@code current} is stored first as a
+     * checkpoint of the kind {@link Checkpoint.Kind#RESTORE}, so the return can be undone.
+     *
+     * @param current       the state of the tracker now, as it stores it; {@code null} keeps nothing
+     * @param currentCursor the cursor of that state, {@code null} when it had read nothing
+     */
+    public Restore restore(CheckpointFiles files, String checkpointId, List<Part> branch, JsonElement current, String currentCursor,
+                           Restorer restorer) throws Exception {
         Checkpoint checkpoint = find(files, checkpointId);
         if (checkpoint == null) {
             return Restore.GONE;
@@ -154,16 +177,23 @@ public final class TrackerCheckpoints {
         if (state == null) {
             return Restore.GONE;
         }
+        if (current != null) {
+            take(files, current, currentCursor, Checkpoint.Kind.RESTORE, 0, 0);
+        }
         restorer.restore(state);
         return Restore.RESTORED;
     }
 
-    /** The checkpoints whose part is on the branch, in the order given, with the position of the part. */
+    /**
+     * The checkpoints whose part is on the branch, in the order given, with the position of the part (0 for the ones of the start of
+     * the book).
+     */
     public static List<Placed> onBranch(List<Checkpoint> checkpoints, List<Part> branch) {
         Map<String, Integer> index = new HashMap<>();
         for (int i = 0; i < branch.size(); i++) {
             index.put(branch.get(i).uuid(), i + 1);
         }
+        index.put(START, 0);
         List<Placed> placed = new ArrayList<>();
         for (Checkpoint checkpoint : checkpoints) {
             Integer position = index.get(checkpoint.partUuid());
@@ -176,7 +206,7 @@ public final class TrackerCheckpoints {
 
     /** Whether the part of the checkpoint is on the branch. */
     public static boolean isOnBranch(Checkpoint checkpoint, List<Part> branch) {
-        return branch.stream().anyMatch(p -> p.uuid().equals(checkpoint.partUuid()));
+        return checkpoint.isStart() || branch.stream().anyMatch(p -> p.uuid().equals(checkpoint.partUuid()));
     }
 
     // --- internals ---
@@ -195,12 +225,13 @@ public final class TrackerCheckpoints {
             return null;
         }
         String[] fields = name.substring(prefix.length(), name.length() - SUFFIX.length()).split("\\.");
-        if (fields.length != 4) {
+        boolean before = fields.length == 5 && BEFORE.equals(fields[4]);
+        if (fields.length != 4 && !before) {
             return null;
         }
         try {
             return new Checkpoint(file.id(), fields[3], file.time(), Checkpoint.Kind.valueOf(fields[0]), Integer.parseInt(fields[1]),
-                    Integer.parseInt(fields[2]));
+                    Integer.parseInt(fields[2]), before);
         } catch (IllegalArgumentException e) {
             return null;
         }

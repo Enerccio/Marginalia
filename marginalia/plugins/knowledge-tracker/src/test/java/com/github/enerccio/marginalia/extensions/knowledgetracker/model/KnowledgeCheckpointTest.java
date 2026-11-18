@@ -97,6 +97,28 @@ class KnowledgeCheckpointTest {
     }
 
     @Test
+    void theCheckpointBeforeTheFirstRunReadsTheStoryAgain() throws Exception {
+        List<Part> branch = branch();
+        KnowledgeState state = new KnowledgeState();
+        state.getCharacters().add(new TrackedCharacter("Fiora"));
+        // taken before the first run, as the commit does: the state had read nothing
+        Checkpoint beforeFirst = take(state);
+        run(state, branch, 3);
+
+        assertTrue(beforeFirst.isStart());
+        assertEquals(TrackerCheckpoints.Restore.RESTORED, checkpoints.restore(files, beforeFirst.id(), branch, gson.toJsonTree(state),
+                state.getCursor(), json -> {
+                    KnowledgeState restored = KnowledgeProcessService.restore(state, gson.fromJson(json, KnowledgeState.class), branch);
+                    assertNull(restored.getCursor());
+                    assertTrue(restored.getCharacters().getFirst().getItems().isEmpty());
+                    assertEquals(List.of("m1", "m2", "m3", "m4", "m5"),
+                            BranchProcessor.pending(restored, branch, 5, 10).stream().map(Part::uuid).toList());
+                }));
+        assertTrue(checkpoints.list(files).stream().anyMatch(c -> c.kind() == Checkpoint.Kind.RESTORE && "m3".equals(c.partUuid())),
+                "what the tracker had before the return is kept");
+    }
+
+    @Test
     void theStartPointStaysAsItIsNow() throws Exception {
         List<Part> branch = branch();
         KnowledgeState state = new KnowledgeState();

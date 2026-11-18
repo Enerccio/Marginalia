@@ -177,3 +177,14 @@
     text-decoration: none;
 }
 
+/* The icon-only Process now / Process next part / Tidy the state in the top bar: shown only while the buttons of the Processing
+   panel are scrolled out of sight (the view's observer sets the attribute "docked" on the bar) */
+.state-tracker-dock {
+    display: none;
+    margin-inline-start: auto;
+    align-items: center;
+}
+
+.state-tracker-toolbar[docked] .state-tracker-dock {
+    display: flex;
+}

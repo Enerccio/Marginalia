@@ -22,7 +22,8 @@ import static com.github.enerccio.marginalia.extensions.storytracker.ui.StoryTra
 
 /**
  * The checkpoints of the tracker in the book whose part is on the active branch, newest first, each with a button that returns the
- * tracker to that point after a confirmation (what was done after it, by runs or by hand, is lost).
+ * tracker to that point after a confirmation: what was done after it, by runs or by hand, is undone (and kept as a checkpoint of its
+ * own), and the next run reads the parts after it again.
  */
 public final class CheckpointsPanel {
 
@@ -53,8 +54,10 @@ public final class CheckpointsPanel {
             text.addClassName(StoryTrackerStyles.LOG_TEXT);
             Div row = new Div(text);
             row.addClassName(StoryTrackerStyles.LOG_ROW);
-            Button button = new Button(Solid.CLOCK_ROTATE_LEFT.create(), _ -> ConfirmDialog.show(
-                    T.localized(RETURN_TO_PART_N_CONFIRM).formatted(placed.position()), () -> restore.accept(placed.checkpoint())));
+            String confirm = placed.checkpoint().isStart() ? T.localized(RETURN_TO_THE_START_CONFIRM)
+                    : T.localized(RETURN_TO_PART_N_CONFIRM).formatted(placed.position());
+            Button button = new Button(Solid.CLOCK_ROTATE_LEFT.create(), _ -> ConfirmDialog.show(confirm,
+                    () -> restore.accept(placed.checkpoint())));
             button.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_SMALL);
             button.setAriaLabel(T.localized(RETURN_TO_THIS_POINT));
             button.setTooltipText(T.localized(RETURN_TO_THIS_POINT));
@@ -68,18 +71,32 @@ public final class CheckpointsPanel {
         return details;
     }
 
-    /** "Part 12 · 2026-11-18 10:42 · run: 3 added, 1 retracted" */
+    /**
+     * What a restore of the checkpoint tells the author: where the tracker is now, and that what it had is kept.
+     *
+     * @param position the position of the part of the checkpoint on the branch (0 for the start)
+     */
+    public static String restoredMessage(Checkpoint checkpoint, int position) {
+        String where = checkpoint.isStart() ? T.localized(THE_TRACKER_IS_BACK_AT_THE_START)
+                : T.localized(THE_TRACKER_IS_BACK_AT_PART_N).formatted(position);
+        return where + ". " + T.localized(THE_STATE_BEFORE_IS_KEPT_AS_A_CHECKPOINT);
+    }
+
+    /** "Part 12 · 2026-11-18 10:42 · before a run: 3 added, 1 retracted" */
     static String describe(Placed placed, boolean splitCounts) {
         Checkpoint checkpoint = placed.checkpoint();
         String kind = switch (checkpoint.kind()) {
-            case RUN -> T.localized(AFTER_A_RUN);
-            case TIDY -> T.localized(AFTER_A_TIDY);
-            case READ -> T.localized(AFTER_A_READING_WITHOUT_THE_MODEL);
+            case RUN -> T.localized(checkpoint.before() ? BEFORE_A_RUN : AFTER_A_RUN);
+            case TIDY -> T.localized(checkpoint.before() ? BEFORE_A_TIDY : AFTER_A_TIDY);
+            case READ -> T.localized(checkpoint.before() ? BEFORE_A_READING_WITHOUT_THE_MODEL : AFTER_A_READING_WITHOUT_THE_MODEL);
+            case RESTORE -> T.localized(BEFORE_A_RETURN_TO_A_CHECKPOINT);
         };
-        String counts = checkpoint.kind() == Checkpoint.Kind.READ ? ""
+        boolean counted = checkpoint.kind() == Checkpoint.Kind.RUN || checkpoint.kind() == Checkpoint.Kind.TIDY;
+        String counts = !counted ? ""
                 : ": " + (splitCounts ? T.localized(N_ADDED_N_RETRACTED).formatted(checkpoint.added(), checkpoint.retracted())
                 : T.localized(N_CHANGES).formatted(checkpoint.added()));
-        return T.localized(CHECKPOINT_PART_N).formatted(placed.position()) + " · "
-                + TIME.format(Instant.ofEpochMilli(checkpoint.time()).atZone(ZoneId.systemDefault())) + " · " + kind + counts;
+        String where = checkpoint.isStart() ? T.localized(CHECKPOINT_START_OF_THE_BOOK)
+                : T.localized(CHECKPOINT_PART_N).formatted(placed.position());
+        return where + " · " + TIME.format(Instant.ofEpochMilli(checkpoint.time()).atZone(ZoneId.systemDefault())) + " · " + kind + counts;
     }
 }

@@ -54,9 +54,48 @@ class TrackerCheckpointsTest {
     }
 
     @Test
-    void nothingIsTakenWithoutACursor() throws Exception {
-        assertNull(checkpoints.take(files, state(null), null, Checkpoint.Kind.READ, 0, 0));
-        assertEquals(0, files.size());
+    void aStateThatReadNothingIsTheStartOfTheBook() throws Exception {
+        Checkpoint taken = checkpoints.take(files, state(null), null, Checkpoint.Kind.RUN, 2, 0);
+
+        assertTrue(taken.isStart());
+        assertTrue(taken.before());
+        List<TrackerCheckpoints.Placed> placed = TrackerCheckpoints.onBranch(checkpoints.list(files), branch("p1", "p2"));
+        assertEquals(1, placed.size());
+        assertEquals(0, placed.getFirst().position());
+        AtomicReference<JsonElement> restored = new AtomicReference<>();
+        assertEquals(TrackerCheckpoints.Restore.RESTORED, checkpoints.restore(files, taken.id(), branch("x1"), restored::set),
+                "the start is on every branch");
+        assertEquals(state(null), restored.get());
+    }
+
+    @Test
+    void aCheckpointOfAnOlderBuildIsTheStateAfterItsRun() throws Exception {
+        files.writeOther("knowledge-tracker.checkpoint.RUN.2.1.p1.json.gz");
+
+        Checkpoint old = checkpoints.list(files).getFirst();
+        assertFalse(old.before());
+        assertEquals("p1", old.partUuid());
+        assertEquals(2, old.added());
+    }
+
+    @Test
+    void aRestoreKeepsTheStateItReplaces() throws Exception {
+        Checkpoint taken = checkpoints.take(files, state("p1"), "p1", Checkpoint.Kind.RUN, 1, 0);
+
+        assertEquals(TrackerCheckpoints.Restore.RESTORED,
+                checkpoints.restore(files, taken.id(), branch("p1", "p2", "p3"), state("p3"), "p3", _ -> { }));
+
+        Checkpoint kept = checkpoints.list(files).stream().filter(c -> c.kind() == Checkpoint.Kind.RESTORE).findFirst().orElseThrow();
+        assertEquals("p3", kept.partUuid());
+        assertEquals(state("p3"), checkpoints.read(files, kept));
+    }
+
+    @Test
+    void aFailedRestoreKeepsNothing() throws Exception {
+        Checkpoint taken = checkpoints.take(files, state("x2"), "x2", Checkpoint.Kind.RUN, 1, 0);
+
+        checkpoints.restore(files, taken.id(), branch("p1"), state("p1"), "p1", _ -> fail());
+        assertEquals(1, checkpoints.list(files).size());
     }
 
     @Test

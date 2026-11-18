@@ -643,8 +643,7 @@ public class KnowledgeTrackerView extends VerticalLayout {
             }
             TrackerCheckpoints.Restore outcome = processService.restoreCheckpoint(manuscript, checkpoint.id());
             switch (outcome) {
-                case RESTORED -> Notification.success(StoryTrackerLocalization.T.localized(StoryTrackerLocalization.THE_TRACKER_IS_BACK_AT_PART_N)
-                        .formatted(positions.getOrDefault(checkpoint.partUuid(), 0)));
+                case RESTORED -> Notification.success(CheckpointsPanel.restoredMessage(checkpoint, positions.getOrDefault(checkpoint.partUuid(), 0)));
                 case NOT_ON_BRANCH -> Notification.warning(StoryTrackerLocalization.T.localized(
                         StoryTrackerLocalization.THE_PART_OF_THE_CHECKPOINT_IS_NOT_ON_THE_ACTIVE_BRANCH));
                 case GONE -> Notification.warning(StoryTrackerLocalization.T.localized(StoryTrackerLocalization.THE_CHECKPOINT_CAN_NOT_BE_READ));

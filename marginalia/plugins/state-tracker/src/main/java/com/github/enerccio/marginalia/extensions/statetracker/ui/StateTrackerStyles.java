@@ -29,6 +29,8 @@ public final class StateTrackerStyles {
     public static final String DIALOG_ACTIONS = "state-tracker-dialog-actions";
     public static final String PANEL = "state-tracker-panel";
     public static final String SOURCE = "state-tracker-source";
+    public static final String TOOLBAR = "state-tracker-toolbar";
+    public static final String DOCK = "state-tracker-dock";
 
     private static final String RESOURCE = "/statetracker.css";
 

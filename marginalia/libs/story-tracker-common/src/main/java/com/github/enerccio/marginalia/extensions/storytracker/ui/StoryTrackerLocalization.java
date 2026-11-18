@@ -56,6 +56,15 @@ public class StoryTrackerLocalization extends PluginLocalizationBundle {
     public static final String THE_CHECKPOINT_CAN_NOT_BE_READ = "The checkpoint can't be read any more";
     public static final String THE_PART_OF_THE_CHECKPOINT_IS_NOT_ON_THE_ACTIVE_BRANCH = "The part of this checkpoint is not on the active branch any more";
 
+    public static final String BEFORE_A_RUN = "before a run";
+    public static final String BEFORE_A_TIDY = "before a tidy";
+    public static final String BEFORE_A_READING_WITHOUT_THE_MODEL = "before a reading without the model";
+    public static final String BEFORE_A_RETURN_TO_A_CHECKPOINT = "before a return to a checkpoint";
+    public static final String CHECKPOINT_START_OF_THE_BOOK = "Start of the book";
+    public static final String RETURN_TO_THE_START_CONFIRM = "Return the tracker to how it was before it read anything? Everything it learned since is undone, and so are the changes you made by hand since then. The next run reads the story from the start point again.";
+    public static final String THE_TRACKER_IS_BACK_AT_THE_START = "The tracker is back at the start";
+    public static final String THE_STATE_BEFORE_IS_KEPT_AS_A_CHECKPOINT = "What the tracker had before is kept as a checkpoint.";
+
     @Override
     protected void loadKeys() {
         ja(LOG, "ログ");
@@ -396,5 +405,61 @@ public class StoryTrackerLocalization extends PluginLocalizationBundle {
         de(THE_PART_OF_THE_CHECKPOINT_IS_NOT_ON_THE_ACTIVE_BRANCH, "Der Teil dieses Prüfpunkts ist nicht mehr im aktiven Zweig");
         ko(THE_PART_OF_THE_CHECKPOINT_IS_NOT_ON_THE_ACTIVE_BRANCH, "이 체크포인트의 파트가 더 이상 활성 분기에 없습니다");
         it(THE_PART_OF_THE_CHECKPOINT_IS_NOT_ON_THE_ACTIVE_BRANCH, "La parte di questo punto di controllo non è più sul ramo attivo");
+        ja(BEFORE_A_RUN, "実行の前");
+        zh(BEFORE_A_RUN, "运行之前");
+        fr(BEFORE_A_RUN, "avant une exécution");
+        es(BEFORE_A_RUN, "antes de una ejecución");
+        de(BEFORE_A_RUN, "vor einem Lauf");
+        ko(BEFORE_A_RUN, "실행 전");
+        it(BEFORE_A_RUN, "prima di un'esecuzione");
+        ja(BEFORE_A_TIDY, "整理の前");
+        zh(BEFORE_A_TIDY, "整理之前");
+        fr(BEFORE_A_TIDY, "avant un rangement");
+        es(BEFORE_A_TIDY, "antes de una limpieza");
+        de(BEFORE_A_TIDY, "vor einem Aufräumen");
+        ko(BEFORE_A_TIDY, "정리 전");
+        it(BEFORE_A_TIDY, "prima di un riordino");
+        ja(BEFORE_A_READING_WITHOUT_THE_MODEL, "モデルなしの読み取りの前");
+        zh(BEFORE_A_READING_WITHOUT_THE_MODEL, "不用模型读取之前");
+        fr(BEFORE_A_READING_WITHOUT_THE_MODEL, "avant une lecture sans le modèle");
+        es(BEFORE_A_READING_WITHOUT_THE_MODEL, "antes de una lectura sin el modelo");
+        de(BEFORE_A_READING_WITHOUT_THE_MODEL, "vor einem Lesen ohne Modell");
+        ko(BEFORE_A_READING_WITHOUT_THE_MODEL, "모델 없이 읽기 전");
+        it(BEFORE_A_READING_WITHOUT_THE_MODEL, "prima di una lettura senza il modello");
+        ja(BEFORE_A_RETURN_TO_A_CHECKPOINT, "チェックポイントに戻す前");
+        zh(BEFORE_A_RETURN_TO_A_CHECKPOINT, "回到检查点之前");
+        fr(BEFORE_A_RETURN_TO_A_CHECKPOINT, "avant un retour à un point de contrôle");
+        es(BEFORE_A_RETURN_TO_A_CHECKPOINT, "antes de volver a un punto de control");
+        de(BEFORE_A_RETURN_TO_A_CHECKPOINT, "vor einer Rückkehr zu einem Prüfpunkt");
+        ko(BEFORE_A_RETURN_TO_A_CHECKPOINT, "체크포인트로 돌아가기 전");
+        it(BEFORE_A_RETURN_TO_A_CHECKPOINT, "prima di un ritorno a un punto di controllo");
+        ja(CHECKPOINT_START_OF_THE_BOOK, "本の最初");
+        zh(CHECKPOINT_START_OF_THE_BOOK, "书的开头");
+        fr(CHECKPOINT_START_OF_THE_BOOK, "Début du livre");
+        es(CHECKPOINT_START_OF_THE_BOOK, "Inicio del libro");
+        de(CHECKPOINT_START_OF_THE_BOOK, "Anfang des Buchs");
+        ko(CHECKPOINT_START_OF_THE_BOOK, "책의 처음");
+        it(CHECKPOINT_START_OF_THE_BOOK, "Inizio del libro");
+        ja(RETURN_TO_THE_START_CONFIRM, "トラッカーを何も読んでいない状態に戻しますか？ それ以降に学んだことはすべて取り消され、その後に手で行った変更も失われます。次の実行は開始点から物語を読み直します。");
+        zh(RETURN_TO_THE_START_CONFIRM, "要把追踪器恢复到尚未读取任何内容时的状态吗？此后学到的一切都会撤销，之后手动所做的更改也会丢失。下一次运行将从起点重新读取故事。");
+        fr(RETURN_TO_THE_START_CONFIRM, "Ramener le suivi à son état d'avant toute lecture ? Tout ce qu'il a appris depuis est annulé, de même que les modifications faites à la main depuis. La prochaine exécution relit l'histoire depuis le point de départ.");
+        es(RETURN_TO_THE_START_CONFIRM, "¿Devolver el seguimiento a como estaba antes de leer nada? Se deshace todo lo que aprendió desde entonces, y también los cambios que hiciste a mano. La próxima ejecución vuelve a leer la historia desde el punto de inicio.");
+        de(RETURN_TO_THE_START_CONFIRM, "Den Tracker auf den Stand zurücksetzen, bevor er etwas gelesen hat? Alles, was er seitdem gelernt hat, wird rückgängig gemacht, ebenso die Änderungen, die du seitdem von Hand gemacht hast. Der nächste Lauf liest die Geschichte wieder ab dem Startpunkt.");
+        ko(RETURN_TO_THE_START_CONFIRM, "추적기를 아무것도 읽기 전 상태로 되돌릴까요? 그 이후에 알게 된 모든 것이 취소되고, 그 뒤에 직접 한 변경도 사라집니다. 다음 실행은 시작 지점부터 이야기를 다시 읽습니다.");
+        it(RETURN_TO_THE_START_CONFIRM, "Riportare il tracciatore a com'era prima di leggere qualsiasi cosa? Tutto ciò che ha appreso da allora viene annullato, e così le modifiche fatte a mano. La prossima esecuzione rilegge la storia dal punto di partenza.");
+        ja(THE_TRACKER_IS_BACK_AT_THE_START, "トラッカーは最初に戻りました");
+        zh(THE_TRACKER_IS_BACK_AT_THE_START, "追踪器已回到开头");
+        fr(THE_TRACKER_IS_BACK_AT_THE_START, "Le suivi est revenu au début");
+        es(THE_TRACKER_IS_BACK_AT_THE_START, "El seguimiento ha vuelto al inicio");
+        de(THE_TRACKER_IS_BACK_AT_THE_START, "Der Tracker steht wieder am Anfang");
+        ko(THE_TRACKER_IS_BACK_AT_THE_START, "추적기가 처음으로 돌아갔습니다");
+        it(THE_TRACKER_IS_BACK_AT_THE_START, "Il tracciatore è tornato all'inizio");
+        ja(THE_STATE_BEFORE_IS_KEPT_AS_A_CHECKPOINT, "それまでの状態はチェックポイントとして残されています。");
+        zh(THE_STATE_BEFORE_IS_KEPT_AS_A_CHECKPOINT, "此前的状态已保存为检查点。");
+        fr(THE_STATE_BEFORE_IS_KEPT_AS_A_CHECKPOINT, "L'état d'avant est gardé comme point de contrôle.");
+        es(THE_STATE_BEFORE_IS_KEPT_AS_A_CHECKPOINT, "El estado anterior se guarda como punto de control.");
+        de(THE_STATE_BEFORE_IS_KEPT_AS_A_CHECKPOINT, "Der vorherige Stand bleibt als Prüfpunkt erhalten.");
+        ko(THE_STATE_BEFORE_IS_KEPT_AS_A_CHECKPOINT, "이전 상태는 체크포인트로 남아 있습니다.");
+        it(THE_STATE_BEFORE_IS_KEPT_AS_A_CHECKPOINT, "Lo stato precedente è conservato come punto di controllo.");
     }
 }

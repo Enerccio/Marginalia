@@ -43,8 +43,8 @@ flowchart LR
 | `ui` | `ProgressPanel`, `ReviewDialog`, `StoryTrackerStyles`, `StoryTrackerLocalization` | The non-modal progress panel of a run (the plugin gives its texts for done and stopped, and makes the review); the review of the changes, grouped by character, a row per change whose body the plugin makes (`ReviewDialog.Row`); their CSS (`storytracker.css`, the plugin returns it from `getCss` with its own) and texts. |
 | `log` | `LogEntry`, `TrackerChangeLog` | The log of what runs applied without asking: the shared fields of an entry (character, item, text, part, quote, reverted; a tracker extends it, stored with Gson in its state), `add` (the newest `KEEP` = 200), `canRevert` and `revert` (once, and only when the tracker's `Undo.check` says the state is still as the run left it; `Undo.undo` does it). |
 | `ui` | `ChangeLogPanel` | The collapsible *Applied automatically* list of the Processing panel: the newest 30 entries, each with the line the tracker writes and a revert button (enabled when it can still be reverted) or *Reverted*. |
-| `checkpoint` | `Checkpoint`, `TrackerCheckpoints`, `CheckpointFiles`, `ResourceCheckpointFiles` | Checkpoints: the whole state of a tracker in a book after a committed run, to return to it and run again from its part (see [Checkpoints](#checkpoints)). |
-| `ui` | `CheckpointsPanel` | The collapsible *Checkpoints* list of the Processing panel: the checkpoints on the active branch, newest first, each with *Return to this point* behind a confirmation. |
+| `checkpoint` | `Checkpoint`, `TrackerCheckpoints`, `CheckpointFiles`, `ResourceCheckpointFiles` | Checkpoints: the whole state of a tracker in a book as a run found it, to undo the run and read its parts again (see [Checkpoints](#checkpoints)). |
+| `ui` | `CheckpointsPanel` | The collapsible *Checkpoints* list of the Processing panel: the checkpoints on the active branch, newest first, each with *Return to this point* behind a confirmation; `restoredMessage` is the notification of a restore. |
 | `characters` | `CharacterTrackerCharacters` | The characters of the Character Tracker plugin in a book (name, tagline, the names it is related to), read as plain JSON from the book's attributes, so a tracker imports them without depending on that plugin. |
 | `ui` | `ImportCharactersDialog` | *Import from the Character Tracker*: the characters the book does not track yet, all checked, with the tracker's own options below (the Knowledge Tracker's relationships as meetings, the State Tracker's categories) and a check that they allow the import. |
 | `ui` | `UiAccess` | Changes a component from a worker thread through `ui.access` and a push; `coalesced` never queues more than one update. |
@@ -59,22 +59,27 @@ flowchart LR
 ## Checkpoints
 
 The per-entry undo of the log cannot move the cursor back, and it only reverts items still as the run left them. A **checkpoint** is the whole state of
-the tracker in the book (as the tracker serializes it with Gson for the book's attributes, cursor and processed parts included), taken after every
-committed run and keyed by the uuid of the cursor's part. `TrackerCheckpoints` (one per tracker, named after it, `KEEP` = 20 per book):
+the tracker in the book (as the tracker serializes it with Gson for the book's attributes, cursor and processed parts included) **as a run found it**,
+taken when the run commits and keyed by the uuid of the cursor's part, `TrackerCheckpoints.START` when the state had read nothing. Restoring it undoes
+that run: the run's parts are after the cursor again. (A checkpoint taken after its run would be the state the tracker is already in, the newest one
+would undo nothing and the first run could never be undone.) `TrackerCheckpoints` (one per tracker, named after it, `KEEP` = 20 per book):
 
 - `take(files, state, cursor, kind, added, retracted)` stores `{"part", "state"}` gzipped and drops the oldest over the limit. It never throws (a
-  failure is logged; the run stays committed) and stores nothing without a cursor. `Kind` is `RUN`, `TIDY` or `READ` (without the model).
-- The metadata is in the file name, `<tracker>.checkpoint.<kind>.<added>.<retracted>.<part uuid>.json.gz`, so `list` (newest first) opens no file and
-  ignores the other files of the book. `onBranch` keeps those whose part is on the active branch, with its position.
-- `restore(files, id, branch, restorer)`: `GONE` (no such checkpoint, or the file is unreadable or does not name the part), `NOT_ON_BRANCH`, else it
-  hands the stored state to the tracker's `Restorer` and returns `RESTORED`. The tracker holds its lock of the book around it.
+  failure is logged; the run stays committed); a `null` cursor is `START`. `Kind` is `RUN`, `TIDY`, `READ` (without the model) or `RESTORE`.
+- The metadata is in the file name, `<tracker>.checkpoint.<kind>.<added>.<retracted>.<part uuid>.before.json.gz`, so `list` (newest first) opens no
+  file and ignores the other files of the book. Files without `.before` (earlier 1.9.0 builds) hold the state after their run, `Checkpoint.before`
+  is `false` for them. `onBranch` keeps those whose part is on the active branch, with its position (0 for `START`, on every branch).
+- `restore(files, id, branch, current, currentCursor, restorer)`: `GONE` (no such checkpoint, or the file is unreadable or does not name the part),
+  `NOT_ON_BRANCH`, else it stores `current` as a `RESTORE` checkpoint (so the return can be undone), hands the stored state to the tracker's
+  `Restorer` and returns `RESTORED`. The tracker holds its lock of the book around it. The overload without `current` keeps nothing.
 
 `CheckpointFiles` is where they live: `ResourceCheckpointFiles` keeps them as resources of the current user linked to the book (`ResourceService.link`
 with `Manuscript` and the book's id, listed with `findPageOfGroupForUser`). Nothing in the book names them, so a book save stays small and
 `BackupResources.collect` (which follows the uuids in the book's JSON) never puts them into a backup or copy; the user sees them in *Resources*.
 Tests use an in-memory implementation.
 
-The tracker side: the commits of its runs call `take` after the save, inside the lock (the Knowledge Tracker in `ExtractionService.commit`/`commitTidy`
+The tracker side: the commits of its runs copy the state right after loading it (`before(state)`: its JSON and cursor, a `Before` record) and call
+`take` with that copy after the save, when the counts are known, inside the lock (the Knowledge Tracker in `ExtractionService.commit`/`commitTidy`
 and in `KnowledgeProcessService.process` when the book reads without the model; the State Tracker in `StateExtractionService.commit`/`commitTidy`).
 The restore reads the checkpoint's state, lets it keep the current setup (`KnowledgeState.keepSetupOf`: settings and start point; `StateBook.keepSetupOf`:
 also the categories, adding back those the values use, and the settings of the clock while the marks come from the checkpoint), aligns it with the

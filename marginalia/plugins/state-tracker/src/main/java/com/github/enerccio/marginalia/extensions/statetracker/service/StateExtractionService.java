@@ -191,6 +191,7 @@ public class StateExtractionService {
     public StateApplier.Result commit(Manuscript manuscript, Proposal proposal, boolean logged) throws Exception {
         synchronized (processService.lockOf(manuscript)) {
             StateBook state = stateService.load(manuscript);
+            StateProcessService.Before before = processService.before(state);
             List<Part> branch = processService.branch(manuscript);
             List<Part> next = BranchProcessor.pending(state, branch, branch.size(), proposal.parts().size());
             if (!sameParts(next, proposal.parts())) {
@@ -206,7 +207,7 @@ public class StateExtractionService {
             }
             StateApplier.Result result = StateApplier.apply(state, proposal.changes(), System.currentTimeMillis(), logged);
             stateService.save(manuscript, state);
-            processService.checkpoint(manuscript, state, Checkpoint.Kind.RUN, result.applied());
+            processService.checkpoint(manuscript, before, Checkpoint.Kind.RUN, result.applied());
             stateService.changed(manuscript);
             return result;
         }
@@ -277,10 +278,11 @@ public class StateExtractionService {
     public StateApplier.Result commitTidy(Manuscript manuscript, Proposal proposal, boolean logged) throws Exception {
         synchronized (processService.lockOf(manuscript)) {
             StateBook state = stateService.load(manuscript);
+            StateProcessService.Before before = processService.before(state);
             state.tidied();
             StateApplier.Result result = StateApplier.apply(state, proposal.changes(), System.currentTimeMillis(), logged);
             stateService.save(manuscript, state);
-            processService.checkpoint(manuscript, state, Checkpoint.Kind.TIDY, result.applied());
+            processService.checkpoint(manuscript, before, Checkpoint.Kind.TIDY, result.applied());
             stateService.changed(manuscript);
             return result;
         }

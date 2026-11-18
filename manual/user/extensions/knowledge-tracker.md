@@ -169,17 +169,18 @@ by hand since is left alone. The log keeps the last 200 changes.
 
 ### Returning to an earlier point
 
-After every run that changes the knowledge (a run of the tab with or without a review, the automatic reading of new parts, the
+Before every run that changes the knowledge (a run of the tab with or without a review, the automatic reading of new parts, the
 `knowledge-process` and `knowledge-tidy` commands, a tidy, and a reading without the model) the tracker takes a **checkpoint**: the
-whole state of its characters as that run left it, with the place it had read up to. **Checkpoints** in the Processing panel lists
-them, newest first: the part, the time, what kind of run it was and how much it added and retracted. Only checkpoints whose part is
-on the active branch are listed.
+whole state of its characters as the run found it, with the place it had read up to (*Start of the book* before the first run).
+**Checkpoints** in the Processing panel lists them, newest first: the part the tracker had read up to, the time, what kind of run
+came next and how much it added and retracted. Only checkpoints whose part is on the active branch are listed.
 
-**Return to this point** on a row puts the tracker back as it was after that run: the characters and their knowledge, the processed
-parts and the log of automatic changes are those of the checkpoint, and the next run reads the parts after its part again. Your
-settings and the start point stay as they are now. It asks first, because everything learned after the checkpoint is undone,
-the changes you made by hand since then too. Use it when a series of runs went wrong, or after you restored an older backup of the
-book and want the tracker to catch up from a point you trust.
+**Return to this point** on a row undoes that run and everything after it: the characters and their knowledge, the processed
+parts and the log of automatic changes are those of the checkpoint, and the next run reads the parts after its part again, the
+ones of the undone run too. Your settings and the start point stay as they are now. It asks first, because everything learned
+after the checkpoint is undone, the changes you made by hand since then too; what the tracker had is kept as a checkpoint
+(*before a return to a checkpoint*), so you can go back to it. Use it when a run or a series of runs went wrong, or after you
+restored an older backup of the book and want the tracker to catch up from a point you trust.
 
 The tracker keeps the last 20 checkpoints of a book. They are kept among your files (*Resources*, grouped by the book), not in the
 book, so book backups and copies do not include them.

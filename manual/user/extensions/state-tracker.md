@@ -90,7 +90,8 @@ the river, a lantern handed to someone else, a sword drawn, a letter lost. It re
 from the **Start point** (the start of the book by default; parts before it are never read), and remembers how far it got.
 
 - **Process now** reads the parts that are not processed yet, **Process next part** only the next one. A long series asks
-  first how many requests it will take.
+  first how many requests it will take. When you scroll down the list of characters past these buttons, **Process now**,
+  **Process next part** and **Tidy the state** are also offered in the bar at the top of the tab.
 - The model gets the tracked characters that are present in the parts, with their categories, the instruction of each and the
   current values, and answers with the changes. Every change needs a quote from the part. Changes that do not fit (a category the
   character does not track, a value it has already, a quote from a part that does not exist) are left out.
@@ -139,14 +140,16 @@ category another value). The log keeps the last 200 changes.
 
 ### Returning to an earlier point
 
-After every run that applies changes (a run of the tab with or without a review, the automatic reading of new parts, the
-commands, a tidy) the tracker takes a **checkpoint**: the whole state of its characters as that run left it, with the story
-clock and the place it had read up to. **Checkpoints** in the Processing panel lists them, newest first: the part, the time,
-what kind of run it was and how many changes it applied. Only checkpoints whose part is on the active branch are listed.
+Before every run that applies changes (a run of the tab with or without a review, the automatic reading of new parts, the
+commands, a tidy) the tracker takes a **checkpoint**: the whole state of its characters as the run found it, with the story
+clock and the place it had read up to (*Start of the book* before the first run). **Checkpoints** in the Processing panel lists
+them, newest first: the part the tracker had read up to, the time, what kind of run came next and how many changes it applied.
+Only checkpoints whose part is on the active branch are listed.
 
-**Return to this point** on a row puts the tracker back as it was after that run: the values of the characters (current and past),
+**Return to this point** on a row undoes that run and everything after it: the values of the characters (current and past),
 the marks of the story clock, the processed parts and the log of automatic changes are those of the checkpoint, and the next run
-reads the parts after its part again. Your settings, the start point, the settings of the clock and the categories of the book stay
+reads the parts after its part again, the ones of the undone run too. What the tracker had is kept as a checkpoint
+(*before a return to a checkpoint*), so you can go back to it. Your settings, the start point, the settings of the clock and the categories of the book stay
 as they are now (a category you deleted since comes back when the values of the checkpoint use it). It asks first, because
 everything read after the checkpoint is undone, the changes you made by hand since then too. Use it when a series of runs went
 wrong, or after you restored an older backup of the book and want the tracker to catch up from a point you trust.

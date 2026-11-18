@@ -220,6 +220,7 @@ public class ExtractionService {
     public ChangeApplier.Result commit(Manuscript manuscript, Proposal proposal, boolean logged) throws Exception {
         synchronized (processService.lockOf(manuscript)) {
             KnowledgeState state = stateService.load(manuscript);
+            KnowledgeProcessService.Before before = processService.before(state);
             List<Part> branch = processService.branch(manuscript);
             ChangeApplier.Result result = RunCommit.commit(state, branch, proposal.parts(), proposal.changes(),
                     KnowledgeBlockBuilder.effectiveSeparators(state, stateService.getUserSeparators()), System.currentTimeMillis(), logged);
@@ -227,7 +228,7 @@ public class ExtractionService {
                 throw new StaleProposalException("The story changed while the changes were being reviewed");
             }
             stateService.save(manuscript, state);
-            processService.checkpoint(manuscript, state, Checkpoint.Kind.RUN, result.added(), result.retracted());
+            processService.checkpoint(manuscript, before, Checkpoint.Kind.RUN, result.added(), result.retracted());
             stateService.changed(manuscript);
             return result;
         }
@@ -298,10 +299,11 @@ public class ExtractionService {
     public ChangeApplier.Result commitTidy(Manuscript manuscript, Proposal proposal, boolean logged) throws Exception {
         synchronized (processService.lockOf(manuscript)) {
             KnowledgeState state = stateService.load(manuscript);
+            KnowledgeProcessService.Before before = processService.before(state);
             state.tidied();
             ChangeApplier.Result result = ChangeApplier.apply(state, proposal.changes(), logged, System.currentTimeMillis());
             stateService.save(manuscript, state);
-            processService.checkpoint(manuscript, state, Checkpoint.Kind.TIDY, result.added(), result.retracted());
+            processService.checkpoint(manuscript, before, Checkpoint.Kind.TIDY, result.added(), result.retracted());
             stateService.changed(manuscript);
             return result;
         }
