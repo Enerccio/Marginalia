@@ -54,6 +54,9 @@ class DatabaseBackupScheduleTest extends MarginaliaTestBase {
         loginAs(createUser(uniqueName("admin"), DEFAULT_PASSWORD, true));
         backupService.updateSchedule(false, "0 3 * * *", 7);
         backupService.setCatchUpDelay(Duration.ofSeconds(30));
+        // a backup still running saves the settings when it ends: the next test would read them before that and its
+        // own save would be stale
+        backupService.awaitIdle(Duration.ofSeconds(30));
     }
 
     private List<DatabaseBackup> scheduledBackups() throws Exception {
@@ -325,6 +328,19 @@ class DatabaseBackupScheduleTest extends MarginaliaTestBase {
 
         assertThat(scheduledCount()).isZero();
         assertThat(backupService.getNextScheduledBackup()).isNull();
+    }
+
+    @Test
+    void turningTheScheduleOffCancelsAPendingCatchUp() throws Exception {
+        backupService.setCatchUpDelay(Duration.ofMillis(500));
+        backupService.updateSchedule(true, "0 3 * * *", 0);
+        pretendLastRun(daysAgo(2), daysAgo(3));
+        backupService.restartSchedule(true);
+
+        backupService.updateSchedule(false, "0 3 * * *", 0);
+        Thread.sleep(1500);
+
+        assertThat(scheduledCount()).isZero();
     }
 
     @Test

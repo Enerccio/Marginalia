@@ -33,6 +33,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -69,6 +70,8 @@ public class DatabaseBackupServiceImpl implements DatabaseBackupService, Applica
     private final AtomicBoolean started = new AtomicBoolean();
     private ThreadPoolTaskScheduler scheduler;
     private ScheduledFuture<?> scheduledJob;
+    /** The one-off backup of a missed run, cancelled with the job when the schedule changes or is turned off. */
+    private ScheduledFuture<?> catchUpJob;
     private CronSchedule activeSchedule;
     private Duration catchUpDelay = Duration.ofSeconds(30);
 
@@ -295,6 +298,10 @@ public class DatabaseBackupServiceImpl implements DatabaseBackupService, Applica
                 scheduledJob.cancel(false);
                 scheduledJob = null;
             }
+            if (catchUpJob != null) {
+                catchUpJob.cancel(false);
+                catchUpJob = null;
+            }
             activeSchedule = null;
 
             AppSettings settings = settingService.getOrCreateApp(AppSettings.class);
@@ -317,7 +324,7 @@ public class DatabaseBackupServiceImpl implements DatabaseBackupService, Applica
 
             if (catchUp && wasMissed(schedule, settings)) {
                 log.info("A scheduled database backup was missed, creating one in {}", catchUpDelay);
-                taskScheduler.schedule(this::runScheduledBackup, Instant.now().plus(catchUpDelay));
+                catchUpJob = taskScheduler.schedule(this::runScheduledBackup, Instant.now().plus(catchUpDelay));
             }
         }
     }
@@ -363,7 +370,23 @@ public class DatabaseBackupServiceImpl implements DatabaseBackupService, Applica
                 scheduler = null;
             }
             scheduledJob = null;
+            catchUpJob = null;
             activeSchedule = null;
+        }
+    }
+
+    /**
+     * Waits until a scheduled backup that is running has ended, with what it saves (the time of the last scheduled
+     * backup in {@link AppSettings}). The scheduler has one thread, so a task queued now runs after it. For tests: a
+     * cancelled job does not stop a backup already running.
+     */
+    public void awaitIdle(Duration timeout) throws Exception {
+        ThreadPoolTaskScheduler taskScheduler;
+        synchronized (scheduleLock) {
+            taskScheduler = scheduler;
+        }
+        if (taskScheduler != null) {
+            taskScheduler.submit(() -> { }).get(timeout.toMillis(), TimeUnit.MILLISECONDS);
         }
     }
 
