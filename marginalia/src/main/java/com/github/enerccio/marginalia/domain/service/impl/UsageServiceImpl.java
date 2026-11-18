@@ -2,9 +2,7 @@ package com.github.enerccio.marginalia.domain.service.impl;
 
 import com.github.enerccio.marginalia.domain.collections.LimitStrategy;
 import com.github.enerccio.marginalia.domain.components.AILimit;
-import com.github.enerccio.marginalia.domain.components.StatisticCounts;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
-import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Usage;
 import com.github.enerccio.marginalia.domain.repository.UsageRepository;
 import com.github.enerccio.marginalia.domain.security.AdminGuard;
@@ -15,6 +13,7 @@ import com.github.enerccio.marginalia.domain.traits.NoTx;
 import com.github.enerccio.marginalia.utils.AppClock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 
@@ -46,13 +45,9 @@ public class UsageServiceImpl extends OwnedServiceImpl<Usage, UsageRepository> i
     @Autowired
     private AdminGuard adminGuard;
 
+    /** Told of every counted request (the statistics of a book), looked up at each use. */
     @Autowired
-    @Lazy
-    private ManuscriptService manuscriptService;
-
-    @Autowired
-    @Lazy
-    private ManuscriptStatisticService statisticService;
+    private ObjectProvider<UsageListener> listeners;
 
     @Override
     @NoTx
@@ -67,25 +62,14 @@ public class UsageServiceImpl extends OwnedServiceImpl<Usage, UsageRepository> i
         } catch (Exception e) {
             log.warn("Failed to count the usage of AI {}", ai.getId(), e);
         }
-        countForBook(UsageContext.current(), prefillTokens, generatedTokens);
-    }
-
-    /**
-     * The same request counts for the book it was made for, in the writing statistics of the owner of the book (which may not be
-     * the user of a shared AI, and a thread without a user can count it too). Never throws.
-     */
-    private void countForBook(Long manuscriptId, long prefillTokens, long generatedTokens) {
-        if (manuscriptId == null) {
-            return;
-        }
-        try {
-            Manuscript book = manuscriptService.find(manuscriptId);
-            if (book != null) {
-                statisticService.count(book, StatisticCounts.tokens(prefillTokens, generatedTokens));
+        Long context = UsageContext.current();
+        listeners.orderedStream().forEach(listener -> {
+            try {
+                listener.counted(context, prefillTokens, generatedTokens);
+            } catch (RuntimeException e) {
+                log.warn("A listener of the usage failed for {}", context, e);
             }
-        } catch (Exception e) {
-            log.warn("Failed to count the tokens of book {}", manuscriptId, e);
-        }
+        });
     }
 
     @Override

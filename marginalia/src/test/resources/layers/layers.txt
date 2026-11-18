@@ -166,6 +166,7 @@ platform domain.service.NotificationService
 platform domain.service.OsgiService
 platform domain.service.OwnedService
 platform domain.service.ProtocolService
+platform domain.service.RequestActivity
 platform domain.service.ResourceGarbageService
 platform domain.service.ResourceService
 platform domain.service.SettingService
@@ -179,6 +180,7 @@ platform domain.service.TrashService
 platform domain.service.UnmeteredScope
 platform domain.service.UpdateService
 platform domain.service.UsageContext
+platform domain.service.UsageListener
 platform domain.service.UsageService
 
 platform domain.service.command

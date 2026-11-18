@@ -1,7 +1,6 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
 import com.github.enerccio.marginalia.domain.model.BaseEntity;
-import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Tag;
 import com.github.enerccio.marginalia.domain.model.impl.TagRelation;
 import com.github.enerccio.marginalia.domain.repository.TagRelationRepository;
@@ -30,12 +29,6 @@ public class TagRelationServiceImpl extends ExtendableServiceImpl<TagRelation, T
             throw new IllegalArgumentException("Tag and Object with valid ID must not be null");
         }
         return createRelation(tag, object.getId(), Hibernate.getClass(object), negative);
-    }
-
-    @Override
-    @CommonTx
-    public TagRelation createRelation(Tag tag, Manuscript manuscript) throws Exception {
-        return createRelation(tag, (BaseEntity) manuscript, false);
     }
 
     @Override

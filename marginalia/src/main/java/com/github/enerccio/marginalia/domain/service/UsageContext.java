@@ -1,11 +1,11 @@
 package com.github.enerccio.marginalia.domain.service;
 
-import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.model.BaseEntity;
 
 /**
  * Says which book the requests an inference service starts on this thread are made for, so that the tokens they cost are
- * counted for the book as well as for the user and the AI ({@link UsageService#record}, the writing statistics of the book,
- * {@link ManuscriptStatisticService}). Without it a request counts for the AI only.
+ * counted for the book as well as for the user and the AI ({@link UsageService#record}, the writing statistics of the book
+ * through a {@link UsageListener}). Without it a request counts for the AI only.
  * <pre>
  * try (UsageContext _ = UsageContext.open(book)) {
  *     service.stream(payload, protocol, callback);
@@ -27,10 +27,10 @@ public final class UsageContext implements AutoCloseable {
     }
 
     /**
-     * Starts the scope on this thread for the book; close it (try-with-resources) in the same thread. A book that is not
-     * saved is no book.
+     * Starts the scope on this thread for the book (any entity the {@link UsageListener}s count for); close it
+     * (try-with-resources) in the same thread. A book that is not saved is no book.
      */
-    public static UsageContext open(Manuscript book) {
+    public static UsageContext open(BaseEntity book) {
         return open(book == null ? null : book.getId());
     }
 

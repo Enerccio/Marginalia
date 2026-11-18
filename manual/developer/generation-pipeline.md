@@ -371,7 +371,8 @@ the `ThreadCopyRequestAttributes` of the thread that called `stream` and records
 The same request is counted for the **book** it was made for (the tokens column of the [writing statistics](domain-model.md#writing-statistics-manuscriptstatistic-activityinterval-manuscriptsize)):
 the caller opens a `UsageContext` (a thread-local scope like `UnmeteredScope`, `try (UsageContext _ = UsageContext.open(book)) { service.stream(...); }`)
 around the call that starts the request; `OpenAICompatibleInferenceService` reads `UsageContext.current()` once in that thread, keeps the id of the
-book in its `Request` and opens it again around `UsageService.record` in the stream threads. `UsageServiceImpl.record` then adds the tokens
+book in its `Request` and opens it again around `UsageService.record` in the stream threads. `UsageServiceImpl.record` then tells the
+`UsageListener` beans (the platform knows no books), and `BookUsageCounter` adds the tokens
 (`StatisticCounts.tokens`, one request) to the day's row of the book through `ManuscriptStatisticService.count`, whoever the user is: the row is
 the owner's of the book, and a thread without a user counts for the book too. A call without a context counts for the AI only. The generation
 (`InferenceStep`), summaries, impersonate, redraft, annotate (all its stages) and the agent runs (the working copy, see the agents note

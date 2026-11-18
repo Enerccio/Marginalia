@@ -78,8 +78,8 @@ public class AnthropicInferenceService implements InferenceService, AutoCloseabl
     @Autowired
     private AILimitService limitService;
 
-    @Autowired
-    private ActivityTracker activityTracker;
+    @Autowired(required = false)
+    private RequestActivity activityTracker;
 
     private final ExtensionAI ai;
     private final AnthropicSettings settings;
@@ -140,8 +140,8 @@ public class AnthropicInferenceService implements InferenceService, AutoCloseabl
      * The time the request of the book is on the wire, for the generation time of the writing statistics; nothing for a request that
      * is not metered or has no book (and in a test without the application).
      */
-    private ActivityTracker.Registration generating(Run run) {
-        return run.metered && activityTracker != null ? activityTracker.generate(run.book) : ActivityTracker.NONE;
+    private RequestActivity.Registration generating(Run run) {
+        return run.metered && activityTracker != null ? activityTracker.generate(run.book) : RequestActivity.NONE;
     }
 
     // ---- models and connection
@@ -247,7 +247,7 @@ public class AnthropicInferenceService implements InferenceService, AutoCloseabl
                     }
                     long began = System.nanoTime();
                     Answer answer;
-                    try (ActivityTracker.Registration generating = generating(run)) {
+                    try (RequestActivity.Registration generating = generating(run)) {
                         answer = collect(sdk, run, params, piece -> {
                             try {
                                 callback.onChunk(piece.reasoning() ? ChunkType.REASONING : ChunkType.RESPONSE, piece.text());
@@ -360,7 +360,7 @@ public class AnthropicInferenceService implements InferenceService, AutoCloseabl
                         return;
                     }
                     // from the moment the request is sent to the end of the answer (the recorder below is called whichever way it ends)
-                    ActivityTracker.Registration generating = generating(run);
+                    RequestActivity.Registration generating = generating(run);
                     StreamResponse<RawMessageStreamEvent> stream;
                     try {
                         stream = open(sdk, run, params);
@@ -422,7 +422,7 @@ public class AnthropicInferenceService implements InferenceService, AutoCloseabl
                         return;
                     }
                     Answer answer;
-                    try (ActivityTracker.Registration generating = generating(run)) {
+                    try (RequestActivity.Registration generating = generating(run)) {
                         answer = collect(sdk, run, params, null);
                     }
                     if (run.metered) {

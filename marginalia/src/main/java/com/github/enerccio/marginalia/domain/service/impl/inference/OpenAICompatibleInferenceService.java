@@ -83,8 +83,9 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
     @Autowired
     private AILimitService limitService;
 
-    @Autowired
-    private ActivityTracker activityTracker;
+    /** The generating time of a book (Marginalia's {@code ActivityTracker}); may be missing. */
+    @Autowired(required = false)
+    private RequestActivity activityTracker;
 
     @Autowired
     private InferenceServices inferenceServices;
@@ -242,7 +243,7 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                     boolean stopped = false;
                     RoundStatsCollector stats = new RoundStatsCollector();
                     // only the time of the request counts, not what the caller does with the answer
-                    ActivityTracker.Registration generating = metered ? activityTracker.generate(book) : ActivityTracker.NONE;
+                    RequestActivity.Registration generating = metered ? activity(book) : RequestActivity.NONE;
                     Runnable endWait = interruptOnCancel(token);
                     try (StreamResponse<ChatCompletionChunk> stream = client.chat().completions().createStreaming(params)) {
                         Iterator<ChatCompletionChunk> chunks = stream.stream().iterator();
@@ -344,7 +345,7 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                     }
                     ChatCompletion completion;
                     Runnable endWait = interruptOnCancel(request.cancellationToken());
-                    try (ActivityTracker.Registration generating = generating(request)) {
+                    try (RequestActivity.Registration generating = generating(request)) {
                         completion = request.client().chat().completions().create(params);
                     } finally {
                         endWait.run();
@@ -405,8 +406,12 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
     /**
      * The registration of the time the request of the book is on the wire; nothing for a request that is not metered or has no book.
      */
-    private ActivityTracker.Registration generating(Request request) {
-        return request.metered() ? activityTracker.generate(request.book()) : ActivityTracker.NONE;
+    private RequestActivity.Registration generating(Request request) {
+        return request.metered() ? activity(request.book()) : RequestActivity.NONE;
+    }
+
+    private RequestActivity.Registration activity(Long book) {
+        return activityTracker == null ? RequestActivity.NONE : activityTracker.generate(book);
     }
 
     private record Request(OpenAIClient client, Protocol protocol, FunctionSet functions, InferenceAsyncCallback callback,
@@ -455,7 +460,7 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                         return;
                     }
                     // from the moment the request is sent to the end of the answer (the recorder below is called whichever way it ends)
-                    ActivityTracker.Registration generating = generating(request);
+                    RequestActivity.Registration generating = generating(request);
                     StreamResponse<ChatCompletionChunk> streamResponse;
                     try {
                         streamResponse = openStream(request, paramsBuilder.build());

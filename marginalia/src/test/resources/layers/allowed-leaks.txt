@@ -20,8 +20,6 @@ domain.model.impl.settings.UserSetting -> domain.model.AnnotationTemplate
 domain.model.impl.settings.UserSetting -> domain.model.WatchedPhrase
 domain.model.impl.settings.UserSetting -> domain.service.BackupService
 domain.repository.impl.JpaResourceRepository -> domain.model.impl.ChatMessage
-domain.service.TagRelationService -> domain.model.impl.Manuscript
-domain.service.UsageContext -> domain.model.impl.Manuscript
 domain.service.command.CommandScope -> domain.model.impl.AgentRun
 domain.service.command.CommandScope -> domain.model.impl.Annotation
 domain.service.command.CommandScope -> domain.model.impl.ChatMessage
@@ -84,12 +82,6 @@ domain.service.impl.OsgiServiceImpl -> extensions.InheritedSettingRegistry
 domain.service.impl.OsgiServiceImpl -> ui.menu.StoryMenuRegistry
 domain.service.impl.ResourceServiceImpl -> domain.model.impl.Manuscript
 domain.service.impl.ResourceServiceImpl -> domain.repository.ManuscriptRepository
-domain.service.impl.TagRelationServiceImpl -> domain.model.impl.Manuscript
-domain.service.impl.UsageServiceImpl -> domain.components.StatisticCounts
-domain.service.impl.UsageServiceImpl -> domain.model.impl.Manuscript
-domain.service.impl.UsageServiceImpl -> domain.service.ManuscriptService
-domain.service.impl.UsageServiceImpl -> domain.service.ManuscriptStatisticService
-domain.service.impl.inference.OpenAICompatibleInferenceService -> domain.service.ActivityTracker
 extensions.ExtensionHasCss -> ui.main.ApplicationEntryPoint
 extensions.ExtensionHasLocalization -> Defaults
 loc.Localization -> Defaults

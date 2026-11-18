@@ -435,7 +435,7 @@ Saves are per field: `LorebookEntryEditor.saveField(getter, setter, value, guard
 shows the stored state in the fields (`showFields`) when another field differed (changed elsewhere). The content and the note are `guarded`: when the stored
 value is neither what the tab had nor what was typed, nothing is saved and the footer's conflict bar offers *Keep my text*
 (the save again, unguarded) and *Load the saved text* (`reloadFromDatabase`). A deleted entry calls `setOnGone` (the dialog
-closes the tab), a save refused with a `ManuscriptLockedException` calls `setOnLocked`. The dialog's `checkLock`
+closes the tab), a save refused with a `LockedException` (an agent's lock or a run's hold) calls `setOnLocked`. The dialog's `checkLock`
 (`AgentRunService.findLockingRun`; in `create`, on every tab switch, before *Add Entry* and *Delete*, and from the lock bar's
 *Check again*) shows the lock bar and makes every tab `setReadOnly(true)` (the header but *Show note*, the settings, the
 content, the note), and when the run is gone makes them editable and calls `refresh`.

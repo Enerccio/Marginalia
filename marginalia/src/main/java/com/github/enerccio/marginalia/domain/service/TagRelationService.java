@@ -1,7 +1,6 @@
 package com.github.enerccio.marginalia.domain.service;
 
 import com.github.enerccio.marginalia.domain.model.BaseEntity;
-import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Tag;
 import com.github.enerccio.marginalia.domain.model.impl.TagRelation;
 import com.github.enerccio.marginalia.domain.repository.TagRelationRepository;
@@ -15,8 +14,6 @@ public interface TagRelationService extends ExtendableService<TagRelation, TagRe
     TagRelation createRelation(Tag tag, BaseEntity object) throws Exception;
 
     TagRelation createRelation(Tag tag, BaseEntity object, boolean negative) throws Exception;
-
-    TagRelation createRelation(Tag tag, Manuscript manuscript) throws Exception;
 
     TagRelation createRelation(Tag tag, Long objectId, Class<?> clazz) throws Exception;
 
