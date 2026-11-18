@@ -2,7 +2,7 @@ package com.github.enerccio.marginalia.ui.widgets;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.domain.collections.ThemeMode;
-import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
+import com.github.enerccio.marginalia.domain.model.impl.settings.BaseUserSetting;
 import com.github.enerccio.marginalia.domain.service.SettingService;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
@@ -43,7 +43,7 @@ public class ThemeSwitch extends Button {
 
     private ThemeMode load() {
         try {
-            return settingService.getOrCreate(UserSetting.class).getThemeMode();
+            return settingService.getUserSetting().getThemeMode();
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
             return ThemeMode.DARK;
@@ -53,7 +53,7 @@ public class ThemeSwitch extends Button {
     private void change() {
         try {
             mode = mode.toggled();
-            UserSetting setting = settingService.getOrCreate(UserSetting.class);
+            BaseUserSetting setting = settingService.getUserSetting();
             setting.setThemeMode(mode);
             settingService.save(setting);
             apply(mode);

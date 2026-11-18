@@ -114,7 +114,7 @@ public interface Localization {
 
     /**
      * Adds the built-in prompts of a language an extension brings (see
-     * {@link com.github.enerccio.marginalia.extensions.ExtensionHasLocalization#getPromptDefaults()}).
+     * {@link com.github.enerccio.marginalia.extensions.ExtensionHasLocalizedPrompts#getPromptDefaults()}).
      *
      * @throws IllegalArgumentException when the language already has prompts
      */

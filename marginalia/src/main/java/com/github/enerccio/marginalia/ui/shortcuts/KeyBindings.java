@@ -1,6 +1,6 @@
 package com.github.enerccio.marginalia.ui.shortcuts;
 
-import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
+import com.github.enerccio.marginalia.domain.model.impl.settings.BaseUserSetting;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
@@ -21,7 +21,7 @@ public final class KeyBindings {
     /**
      * The bindings of the user for all registered actions (a stored key that is not a valid combination counts as not set).
      */
-    public static KeyBindings of(UserSetting setting) {
+    public static KeyBindings of(BaseUserSetting setting) {
         KeyBindings bindings = new KeyBindings();
         JsonObject stored = setting == null ? null : setting.getKeyBindings();
         for (ShortcutAction action : ShortcutRegistry.getActions()) {

@@ -73,6 +73,7 @@ platform domain.model.impl.Usage
 platform domain.model.impl.settings
 app domain.model.impl.settings.ExportSettings
 app domain.model.impl.settings.StylesSetting
+app domain.model.impl.settings.UserSetting
 
 platform domain.collections
 app domain.collections.ActivationContext
@@ -238,6 +239,7 @@ platform domain.service.impl.job
 platform extensions
 app extensions.AnnotationFactsRegistry
 app extensions.ExportTextRegistry
+app extensions.ExtensionHasLocalizedPrompts
 app extensions.InheritedSetting
 app extensions.InheritedSettingRegistry
 app extensions.InheritedSettingValues

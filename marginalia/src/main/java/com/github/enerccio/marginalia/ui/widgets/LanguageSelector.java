@@ -2,7 +2,7 @@ package com.github.enerccio.marginalia.ui.widgets;
 
 import com.github.enerccio.marginalia.bound.SessionManager;
 import com.github.enerccio.marginalia.bound.SessionPoint;
-import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
+import com.github.enerccio.marginalia.domain.model.impl.settings.BaseUserSetting;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.SettingService;
 import com.github.enerccio.marginalia.domain.traits.*;
@@ -68,14 +68,14 @@ public class LanguageSelector extends ComboBox<Language> {
         setValue(loc.getCurrentLanguage());
     }
 
-    @PublicAPI(from = "1.4.0",
+    @PublicAPI(from = "1.9.0",
             returns = @APIReturn(type = void.class),
             parameters = {@APIParameter(name = "language", type = Language.class)},
-            locals = {@APILocals(name = "setting", type = UserSetting.class),
+            locals = {@APILocals(name = "setting", type = BaseUserSetting.class),
                     @APILocals(name = "ex", type = Exception.class)})
     private void change(Language language) {
         try {
-            UserSetting setting = settingService.getOrCreate(UserSetting.class);
+            BaseUserSetting setting = settingService.getUserSetting();
             setting.setLanguage(language.code());
             settingService.save(setting);
             sessionPoint.setLanguage(language);

@@ -47,6 +47,8 @@
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.SettingServiceImpl">
         <property name="repository" ref="settingRepository" />
+        <!-- the user settings of Marginalia (BaseUserSetting is what the platform reads) -->
+        <property name="userSettingClass" value="com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting" />
     </bean>
 
     <bean id="resourceRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaResourceRepository">
@@ -388,6 +390,9 @@
     </bean>
 
     <bean class="com.github.enerccio.marginalia.instruct.RuntimeInstrumentationInitializer" />
+
+    <!-- the prompts in other languages that extensions bring -->
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.ExtensionPromptsRegistrar" init-method="install" />
 
     <!-- the editors of the permission types in the permissions dialog -->
     <bean class="com.github.enerccio.marginalia.ui.dialogs.permissions.PermissionUIFactoryImpl" />

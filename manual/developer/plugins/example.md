@@ -420,7 +420,7 @@ detail.
 
 `marginalia/plugins/chineselocalization` adds Simplified Chinese to the language selector of the workspace. It is the
 smallest possible plugin - no decorators, no UI, no data - and shows the third optional interface of an extension
-besides `ExtensionHasCss`: `ExtensionHasLocalization`.
+besides `ExtensionHasCss`: `ExtensionHasLocalization`, with `ExtensionHasLocalizedPrompts` for the prompts.
 
 ```
 chineselocalization/
@@ -437,10 +437,10 @@ The `pom.xml` is the one of the other plugins without what the plugin doesn't us
 since there is no `@Configurable` class, and no Vaadin.
 
 **The extension** implements `MarginaliaExtension` as always - both methods stay empty, there is nothing to set up -
-and `ExtensionHasLocalization`:
+and `ExtensionHasLocalization` (the languages of the interface) and `ExtensionHasLocalizedPrompts` (the built-in prompts):
 
 ```java
-public class ChineseLocalizationExtension implements MarginaliaExtension, ExtensionHasLocalization {
+public class ChineseLocalizationExtension implements MarginaliaExtension, ExtensionHasLocalization, ExtensionHasLocalizedPrompts {
 
     @Override
     public void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
@@ -462,9 +462,11 @@ public class ChineseLocalizationExtension implements MarginaliaExtension, Extens
 }
 ```
 
-Marginalia calls `getLocalizationBundles()` and `getPromptDefaults()` right after `onExtensionLoad` and registers the
-bundles and the prompts in `Localization` (`registerBundle`, `registerDefaults`); when the extension is unloaded they are
-removed again. `getPromptDefaults()` is optional (none by default): `DefaultsZH` extends the application's `Defaults` and
+Marginalia calls `getLocalizationBundles()` right after `onExtensionLoad`, and `getPromptDefaults()` once the extension is
+loaded, and registers the bundles and the prompts in `Localization` (`registerBundle`, `registerDefaults`); when the
+extension is unloaded they are removed again. The prompts are a separate interface, `ExtensionHasLocalizedPrompts`
+(the prompts belong to Marginalia's writing, not to the platform its interface languages are part of), so an extension
+without prompts leaves it out: `DefaultsZH` extends the application's `Defaults` and
 overrides every text with its Chinese prompt, which adds Chinese to the *Prompt language* of the settings, independent of
 the language of the interface. `DefaultsZHTest` checks that it translates every text and keeps the Handlebars tags and the
 placeholders of the English one. Nothing else is needed: the language shows

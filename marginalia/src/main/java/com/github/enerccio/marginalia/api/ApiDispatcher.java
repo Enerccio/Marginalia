@@ -4,7 +4,7 @@ import com.github.enerccio.marginalia.bound.AgenticSessionPoint;
 import com.github.enerccio.marginalia.bound.ApiRequestAttributes;
 import com.github.enerccio.marginalia.domain.model.impl.Folder;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
-import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
+import com.github.enerccio.marginalia.domain.model.impl.settings.BaseUserSetting;
 import com.github.enerccio.marginalia.domain.security.model.ApiScope;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.service.ApiKeyService;
@@ -641,7 +641,7 @@ public class ApiDispatcher {
     }
 
     private void setLanguage(AgenticSessionPoint sessionPoint) throws Exception {
-        UserSetting setting = settingService.getOrCreate(UserSetting.class);
+        BaseUserSetting setting = settingService.getUserSetting();
         sessionPoint.setLanguage(loc.resolveLanguage(setting.getLanguage()));
         sessionPoint.setPromptLanguage(loc.resolvePromptLanguage(setting.getPromptLanguage()));
     }

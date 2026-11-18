@@ -15,10 +15,6 @@ bound.SessionPoint -> domain.model.impl.Manuscript
 bound.SessionPoint -> ui.dialogs.ManuscriptWindow
 bound.SessionPoint -> ui.workspace.ManuscriptSection
 bound.SessionPoint -> ui.workspace.Workspace
-domain.model.impl.settings.UserSetting -> domain.collections.WebhookFormat
-domain.model.impl.settings.UserSetting -> domain.model.AnnotationTemplate
-domain.model.impl.settings.UserSetting -> domain.model.WatchedPhrase
-domain.model.impl.settings.UserSetting -> domain.service.BackupService
 domain.service.command.CommandScope -> domain.model.impl.AgentRun
 domain.service.command.CommandScope -> domain.model.impl.Annotation
 domain.service.command.CommandScope -> domain.model.impl.ChatMessage
@@ -75,11 +71,9 @@ domain.service.impl.CommandServiceImpl -> domain.service.impl.commands.manuscrip
 domain.service.impl.CommandServiceImpl -> domain.service.impl.commands.manuscript.write.StoryGenerationCommands
 domain.service.impl.CommandServiceImpl -> domain.service.impl.commands.manuscript.write.SummaryGenerationCommands
 domain.service.impl.CommandServiceImpl -> domain.service.impl.commands.manuscript.write.SummaryWriteCommands
-domain.service.impl.OsgiServiceImpl -> Defaults
 domain.service.impl.OsgiServiceImpl -> domain.service.IPCService
 domain.service.impl.OsgiServiceImpl -> extensions.InheritedSettingRegistry
 domain.service.impl.OsgiServiceImpl -> ui.menu.StoryMenuRegistry
-extensions.ExtensionHasLocalization -> Defaults
 loc.Localization -> Defaults
 loc.Localization -> domain.collections.ActivationContext
 loc.Localization -> domain.collections.AgentRunStatus

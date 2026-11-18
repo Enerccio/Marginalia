@@ -16,7 +16,7 @@ import java.util.Map;
  * translations in {@link #loadKeys()} with {@link #ja}, {@link #zh}, {@link #fr}, {@link #es}, {@link #de}, {@link #ko}, {@link #it} or {@link #add}; text with values uses
  * {@code String.format} placeholders in the key ({@code localized(FAILED).formatted(reason)}).
  * <p>
- * The built-in prompts of a plugin follow the prompt language of the user ({@code UserSetting.promptLanguage}, see
+ * The built-in prompts of a plugin follow the prompt language of the user ({@code BaseUserSetting.promptLanguage}, see
  * {@link #getPromptLanguage()}), not the language of the interface: the plugin keeps them in an object per language (the
  * English class and a subclass per translation, like the application's {@code Defaults}) and picks one with
  * {@link #forPromptLanguage}.
