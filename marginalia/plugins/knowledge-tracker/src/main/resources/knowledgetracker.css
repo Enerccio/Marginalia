@@ -308,3 +308,39 @@
 .knowledge-tracker-toolbar[docked] .knowledge-tracker-dock {
     display: flex;
 }
+
+/* Who has met whom: the tracked characters on the left, the others with check boxes on the right; one under the other on a
+   phone */
+.knowledge-tracker-met-dialog-content {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--lumo-space-m);
+    align-items: flex-start;
+}
+
+.knowledge-tracker-met-dialog-characters {
+    flex: 1 1 200px;
+    max-height: 60vh;
+    overflow-y: auto;
+    border: 1px solid var(--lumo-contrast-10pct);
+    border-radius: var(--lumo-border-radius-m);
+}
+
+.knowledge-tracker-met-dialog-others {
+    flex: 2 1 260px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--lumo-space-xs);
+    max-height: 60vh;
+    overflow-y: auto;
+    min-width: 0;
+}
+
+.knowledge-tracker-met-dialog-hint {
+    color: var(--lumo-secondary-text-color);
+    font-size: var(--lumo-font-size-s);
+}
+
+.knowledge-tracker-met-dialog-row {
+    display: flex;
+}

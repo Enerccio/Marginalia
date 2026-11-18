@@ -47,6 +47,12 @@ public final class KnowledgeTrackerStyles {
     public static final String SETTINGS_TITLE = "knowledge-tracker-settings-title";
     public static final String TOOLBAR = "knowledge-tracker-toolbar";
     public static final String DOCK = "knowledge-tracker-dock";
+    public static final String MET_DIALOG = "knowledge-tracker-met-dialog";
+    public static final String MET_DIALOG_CONTENT = "knowledge-tracker-met-dialog-content";
+    public static final String MET_DIALOG_CHARACTERS = "knowledge-tracker-met-dialog-characters";
+    public static final String MET_DIALOG_OTHERS = "knowledge-tracker-met-dialog-others";
+    public static final String MET_DIALOG_HINT = "knowledge-tracker-met-dialog-hint";
+    public static final String MET_DIALOG_ROW = "knowledge-tracker-met-dialog-row";
 
     private static final String RESOURCE = "/knowledgetracker.css";
 

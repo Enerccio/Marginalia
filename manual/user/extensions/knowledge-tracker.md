@@ -31,6 +31,13 @@ taken: the tagline and the note describe a character, they are not something it 
 meetings** an imported character has met the people it is related to in the Character Tracker (they are written into its
 **Has met** list as if you had written them, so processing keeps them).
 
+**Who has met whom** (the handshake icon, next to the import) sets the meetings between tracked characters at once, without
+writing names. Pick a character on the left; on the right every other tracked character has a check box, ticked when the
+picked one has met them. Tick to add the meeting, untick to remove it; each change is saved at once and the cards show it
+when you close the window. A meeting goes one way: ticking Thomas for Fiora does not tick Fiora for Thomas. A ticked meeting
+counts as yours (processing keeps it); one you untick that the story shows comes back if that part is read again. It needs
+at least two tracked characters.
+
 Open a character with the arrow on its card to see what it knows:
 
 | | |
