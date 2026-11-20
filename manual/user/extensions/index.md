@@ -10,6 +10,7 @@ Extensions add features to Marginalia without changing the application itself. T
 
 | Extension | What it adds |
 |---|---|
+| [xAI Grok](grok.md) | xAI's Grok models as an inference provider, over xAI's own API, with the reasoning shown apart from the answer. |
 | [Arc Outline](arc-outline.md) | The arcs of the book and their chapters, with their state, in the sidebar; the model can write an arc for you. |
 | [Anthropic Claude](anthropic.md) | Anthropic's Claude models as an inference provider, over Anthropic's own API, with the thinking summaries shown as reasoning. |
 | [Audiobook](audiobook.md) | Turns a book into an audiobook with a speech server: a voice for the narrator and each character, a studio for the final version, export as mp3 with chapter marks. [Setting up the speech server](audiobook-server.md). |

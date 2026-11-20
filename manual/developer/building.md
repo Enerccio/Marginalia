@@ -312,7 +312,7 @@ application first:
 mvn install -DskipTests -pl marginalia -am   # in the repository root
 cd marginalia
 
-cd plugins/chaptermarker          # or anthropic, arc-outline, audiobook, authorsnote, beta-readers, book-description-generator, character-tracker, conlang-translator, gemma4toolsfix, google-genai, image-generator, instructionexporter, knowledge-tracker, lore-generator, lorebookvcs, manga-generator, name-generator, name-provider, place-provider, prompt-history, prompt-inspector, reallang-translator, reviewer, sidequery, sillytavern-converter, story-notes, tts-reader, chineselocalization
+cd plugins/chaptermarker          # or anthropic, arc-outline, audiobook, authorsnote, beta-readers, book-description-generator, character-tracker, conlang-translator, gemma4toolsfix, google-genai, grok, image-generator, instructionexporter, knowledge-tracker, lore-generator, lorebookvcs, manga-generator, name-generator, name-provider, place-provider, prompt-history, prompt-inspector, reallang-translator, reviewer, sidequery, sillytavern-converter, story-notes, tts-reader, chineselocalization
 mvn package                       # target/chaptermarker-1.9.0.jar
 ```
 

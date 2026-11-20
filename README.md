@@ -223,6 +223,8 @@ Extensions are OSGi bundles (JAR files). Administrators install them in *Admin â
 built separately with Maven, or in Docker (see the plugins README):
 
 - [Anthropic Claude](marginalia/plugins/anthropic/README.md) - Anthropic's Claude models as an inference provider, over the Anthropic Java SDK,
+- [xAI Grok](marginalia/plugins/grok/README.md) - xAI's Grok models as an inference provider, over the xAI REST API,
+  with the reasoning shown apart from the answer and the usage xAI reports.
 - [Arc Outline](marginalia/plugins/arc-outline/README.md) - the arcs of the book and their chapters in the story sidebar, written by the model if you want,
 - [Audiobook](marginalia/plugins/audiobook/README.md) - (stub) a book as an audiobook with a text-to-speech server and a voice per character,
 - [Author's Note](marginalia/plugins/authorsnote/README.md) - a note to the model inserted into every generation,

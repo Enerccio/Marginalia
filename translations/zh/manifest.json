@@ -259,6 +259,12 @@
       "source_sha": "5962eb82b4a1d25bc25bc75193caa54d3839934285095b482c1522b1f7bd00ac",
       "translated_at": "2026-11-13T23:11:02Z"
     },
+    "user/extensions/grok.md": {
+      "chunks": 1,
+      "model": "haiku",
+      "source_sha": "3006bf21b804987a36af4394dbe8ad4a6021058a2106508b69d7147f177ac2fc",
+      "translated_at": "2026-11-20T05:51:03Z"
+    },
     "user/extensions/image-generator.md": {
       "chunks": 2,
       "model": "haiku",

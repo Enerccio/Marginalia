@@ -14,6 +14,7 @@ covers:
   - marginalia/src/main/resources/migration/V14__extension_ai.sql
   - marginalia/plugins/google-genai
   - marginalia/plugins/anthropic
+  - marginalia/plugins/grok
 verified: f337fe83d
 ---
 
@@ -23,7 +24,7 @@ A plugin can bring a model API of its own. The user then creates an AI of the ty
 provider of the plugin in the AI dialog, and the AI works like an OpenAI-compatible one: books use it, it is shared and
 limited, its usage is counted. The bundled
 [Google Gemini](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/google-genai) plugin is the
-worked example, [Anthropic Claude](#the-anthropic-claude-plugin) a second one.
+worked example, [Anthropic Claude](#the-anthropic-claude-plugin) a second one and [xAI Grok](#the-xai-grok-plugin) a third, without an SDK.
 
 ```mermaid
 flowchart LR
@@ -266,3 +267,20 @@ does not, come along. Where it differs from the Google plugin:
 - **Tests.** `AnthropicServiceTest` runs the real SDK against `FakeAnthropicServer` (a JDK `HttpServer` that streams scripted
   server-sent events): chunks, usage, the request bodies, the function loop with signed thinking, `infer` with a schema, `round`,
   the error statuses, and a stalled stream that is cancelled. That is the way to test a provider without an API key.
+
+## The xAI Grok plugin
+
+`marginalia/plugins/grok` has the same classes as the other two (`GrokActivator`, `GrokExtension`, `GrokFactory`, `GrokSettings`,
+`GrokForm`, `GrokInferenceService`, `GrokMessages`, `GrokErrors`) and embeds nothing: the xAI API is OpenAI-shaped REST, so
+`GrokClient` talks to it with the OkHttp and Jackson of the application (provided, boot-delegated). Where it differs:
+
+- **Own HTTP client.** `GrokClient` sends JSON, retries 408/409/429/5xx and connection errors with growing waits, and reads the
+  streamed answer as server-sent events (`GrokClient.Stream`: `data:` lines up to `[DONE]`). Cancelling the OkHttp `Call` (the
+  `CancellationToken` of the run) fails a read that waits for the next chunk. A body that ends without `[DONE]` or a
+  `finish_reason` is a cut connection (`Type.CONNECTION`).
+- **Usage.** xAI reports `reasoning_tokens` apart from `completion_tokens` and bills both, so `TokenUsage.of` adds them (when
+  `total_tokens` says they are not already inside).
+- **Reasoning effort** is `reasoning_effort`, which only `grok-3-mini` takes (`GrokSettings.EffortMode`: auto / always / never).
+- **Tokens** are counted by `POST /tokenize-text` through the `TokenizerResolver` (`GROK_TOKENIZE_TEXT`), cached per text, with a
+  one minute pause on the estimate after a failure.
+- **Tests.** `GrokServiceTest` runs the service against `FakeGrokServer` (a JDK `HttpServer` with scripted SSE chunks).
