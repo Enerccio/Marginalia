@@ -34,7 +34,9 @@ meetings** an imported character has met the people it is related to in the Char
 **Who has met whom** (the handshake icon, next to the import) sets the meetings between tracked characters at once, without
 writing names. Pick a character on the left; on the right every other tracked character has a check box, ticked when the
 picked one has met them. Tick to add the meeting, untick to remove it; each change is saved at once and the cards show it
-when you close the window. A meeting goes one way: ticking Thomas for Fiora does not tick Fiora for Thomas. A ticked meeting
+when you close the window. A meeting goes one way: ticking Thomas for Fiora does not tick Fiora for Thomas, unless **Mutual** is ticked: then every tick
+or untick is made on both sides at once, which is quicker when the two know each other already (it applies to the changes you
+make while it is ticked, not to meetings that are set already). A ticked meeting
 counts as yours (processing keeps it); one you untick that the story shows comes back if that part is read again. It needs
 at least two tracked characters.
 

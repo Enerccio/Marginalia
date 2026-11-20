@@ -18,7 +18,8 @@ import static com.github.enerccio.marginalia.extensions.knowledgetracker.Knowled
 /**
  * <b>Who has met whom</b>: on the left the tracked characters, on the right the other tracked characters with a check box
  * each, ticked when the character picked on the left has met them. Ticking records the meeting by hand, unticking forgets
- * it; every change is stored at once.
+ * it; every change is stored at once. With <b>Mutual</b> ticked a change is made on both sides, so the other character
+ * has met the picked one too (or forgets it); it applies to the changes made while it is ticked, not to what is set.
  */
 public class MetCharactersDialog extends Dialog {
 
@@ -26,6 +27,7 @@ public class MetCharactersDialog extends Dialog {
     private final Runnable onChanged;
 
     private final ListBox<TrackedCharacter> characters = new ListBox<>();
+    private final Checkbox mutual = new Checkbox(T.localized(MUTUAL_BOTH_HAVE_MET_EACH_OTHER));
     private final Span hint = new Span();
     private final Div others = new Div();
     private boolean changed;
@@ -50,7 +52,7 @@ public class MetCharactersDialog extends Dialog {
         characters.addValueChangeListener(e -> showOthers(e.getValue()));
 
         hint.addClassName(KnowledgeTrackerStyles.MET_DIALOG_HINT);
-        Div right = new Div(hint, others);
+        Div right = new Div(mutual, hint, others);
         right.addClassName(KnowledgeTrackerStyles.MET_DIALOG_OTHERS);
         Div content = new Div(characters, right);
         content.addClassName(KnowledgeTrackerStyles.MET_DIALOG_CONTENT);
@@ -93,7 +95,15 @@ public class MetCharactersDialog extends Dialog {
                 KnowledgeState current = state.get();
                 TrackedCharacter who = current.findCharacter(selected.getId());
                 TrackedCharacter whom = current.findCharacter(other.getId());
-                if (who != null && whom != null && who.setMet(whom, e.getValue())) {
+                if (who == null || whom == null) {
+                    return;
+                }
+                boolean changedHere = who.setMet(whom, e.getValue());
+                if (mutual.getValue()) {
+                    // both know each other: the same change on the other side (it may be so there already)
+                    changedHere |= whom.setMet(who, e.getValue());
+                }
+                if (changedHere) {
                     changed = true;
                     onChanged.run();
                 }

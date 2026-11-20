@@ -221,6 +221,7 @@ public class KnowledgeTrackerLocalization extends PluginLocalizationBundle {
     public static final String WHO_HAS_MET_WHOM = "Who has met whom";
     public static final String TICK_THE_CHARACTERS_THIS_ONE_HAS_MET = "Tick the characters %s has met. A change is saved at once; a meeting you untick that the story shows comes back when the story is read again.";
     public static final String TRACK_AT_LEAST_TWO_CHARACTERS = "Track at least two characters to set who has met whom";
+    public static final String MUTUAL_BOTH_HAVE_MET_EACH_OTHER = "Mutual: both have met each other";
 
     public static final String USE_THESE_SETTINGS_FOR_NEW_BOOKS = "Use these settings for new books";
     public static final String A_BOOK_WHERE_THE_TRACKER_WAS_NEVER_USED_STARTS_WITH_THEM = "A book where the tracker was never used starts with the settings of this book, the model and the reading with it included (the separators stay with this book)";
@@ -1758,6 +1759,13 @@ public class KnowledgeTrackerLocalization extends PluginLocalizationBundle {
         de(TRACK_AT_LEAST_TWO_CHARACTERS, "Verfolge mindestens zwei Figuren, um festzulegen, wer wem begegnet ist");
         ko(TRACK_AT_LEAST_TWO_CHARACTERS, "누가 누구를 만났는지 정하려면 캐릭터를 두 명 이상 추적하세요");
         it(TRACK_AT_LEAST_TWO_CHARACTERS, "Traccia almeno due personaggi per indicare chi ha incontrato chi");
+        ja(MUTUAL_BOTH_HAVE_MET_EACH_OTHER, "相互: 二人とも互いに会っている");
+        zh(MUTUAL_BOTH_HAVE_MET_EACH_OTHER, "双向：双方互相见过");
+        fr(MUTUAL_BOTH_HAVE_MET_EACH_OTHER, "Réciproque : ils se sont rencontrés l'un l'autre");
+        es(MUTUAL_BOTH_HAVE_MET_EACH_OTHER, "Mutuo: ambos se han conocido");
+        de(MUTUAL_BOTH_HAVE_MET_EACH_OTHER, "Gegenseitig: beide sind sich begegnet");
+        ko(MUTUAL_BOTH_HAVE_MET_EACH_OTHER, "상호: 서로 만났음");
+        it(MUTUAL_BOTH_HAVE_MET_EACH_OTHER, "Reciproco: si sono incontrati a vicenda");
 
         ja(USE_THESE_SETTINGS_FOR_NEW_BOOKS, "これらの設定を新しい本に使う");
         zh(USE_THESE_SETTINGS_FOR_NEW_BOOKS, "将这些设置用于新书");
