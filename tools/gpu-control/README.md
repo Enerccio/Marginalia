@@ -13,10 +13,30 @@ LiteLLM, so that one key is all a plugin needs: see *Freeing the GPU for another
 | `GET /<name>/status` | `{"name", "status", "ready"}` |
 | `POST /llama/unload` | unloads every model of the `llama-server` routers of `GPU_CONTROL_LLAMA` **except** the ones in `keep`, answers 200 `{"unloaded": [...], "kept": [...]}` once the router reports them out of memory (504 after `UNLOAD_TIMEOUT`, 502 when a router refuses or can't be reached) |
 | `GET /llama/models` | `{"models": [{"server", "id", "status"}]}`, what the routers report |
+| `POST /<name>/restart` | restarts the container, 200 when the service is ready again |
+| `POST /llama/load` with `{"models": ["a"]}` | loads the named models and answers 200 `{"loaded": [...]}` once the router reports them loaded (404 for a name no router lists, 504 after `LOAD_TIMEOUT`, 300 s); it unloads nothing to make room |
+| `POST /llama/unload` with `{"only": ["a"]}` | unloads just the named models and leaves every other one as it is |
+| `GET /overview` | the containers, the llama models and the video memory in one answer |
+| `GET /` | the [web page](#web-page) (needs no token itself) |
 
 Every call needs the header `X-Control-Token`. Only the containers of `GPU_CONTROL_CONTAINERS` can be touched (`name` or `name=http://host:port/health`, the
 address that answers 200 when the service is ready; without one the container's own health check is used, else a running container is ready).
 `gpu_control.py` documents the environment. Tests (a stand-in for the Docker daemon): `cd tools/gpu-control && python3 -m unittest test_gpu_control`.
+
+## Web page
+
+`GET /` is a page for doing by hand what the calls above do: **containers** (state, ready; Start, Ensure, Restart, Stop), the **models** of the llama-server
+routers (state; Load and Unload of one model, Unload all) and the **video memory** of the card, refreshed every 5 seconds. It is one static file (`ui.html`, no
+dependencies, no data in it): it asks for `GPU_CONTROL_TOKEN`, keeps it in the tab's `sessionStorage` (gone when the tab is closed or on *Sign out*) and
+sends it as `X-Control-Token` with every call, so the page itself is the only thing reachable without it. Stop, and Unload all, ask for confirmation.
+
+The video memory is read from sysfs (`/sys/class/drm/card*/device/mem_info_vram_used`, the amdgpu driver, which a container sees without any setting);
+a card that does not show it there (NVIDIA) is left out, the rest of the page works the same.
+
+To reach it over the network the compose file publishes port 8000 on `GPU_CONTROL_BIND` (default `127.0.0.1`: from another machine use
+`ssh -L 8000:localhost:8000 server` and open `http://localhost:8000/`; `0.0.0.0` or a LAN address publishes it to the network). The service speaks plain
+HTTP, so on a network you do not trust the token travels in the clear: put it behind a reverse proxy with TLS, or keep the tunnel. Whoever has the token
+controls the containers in `GPU_CONTROL_CONTAINERS`, nothing else (see *Safety*).
 
 ## Unloading the other models of a llama-server router
 
@@ -59,7 +79,7 @@ The LiteLLM pass-through is one more entry like the others (`/gpu/comfy/ensure` 
 
 ## Safety
 
-The Docker socket is **root on the host**. Keep this service on the internal network of the compose project (no `ports:`), give it a long random
+The Docker socket is **root on the host**. Keep this service on the internal network of the compose project (the compose file publishes only the web page, on the host itself unless you set `GPU_CONTROL_BIND`), give it a long random
 `GPU_CONTROL_TOKEN`, and name only the containers it may touch. Better than mounting the socket into it: a socket proxy that allows only what is needed.
 
 ## Running it (compose)

@@ -1,6 +1,6 @@
 # The container controller of tools/gpu-control: stops and starts the containers that share the GPU (ComfyUI, the Chatterbox TTS server), on request,
 # and unloads the models of a llama-server router except the ones a caller keeps.
-# Used through LiteLLM (pass_through_endpoints, see README.md); nothing here is published on the host.
+# Used through LiteLLM (pass_through_endpoints, see README.md). Nothing is published on the host unless GPU_CONTROL_BIND is set (the web page, see README.md).
 #
 #   docker network create ai                  # once: the network that LiteLLM, ComfyUI, the TTS server and this controller share
 #   cp .env.example .env  && edit .env        # the token and the containers
@@ -38,10 +38,15 @@ services:
       GPU_CONTROL_LLAMA: ${GPU_CONTROL_LLAMA:-}
       GPU_CONTROL_LLAMA_KEY: ${GPU_CONTROL_LLAMA_KEY:-}
       UNLOAD_TIMEOUT: ${UNLOAD_TIMEOUT:-120}
+      LOAD_TIMEOUT: ${LOAD_TIMEOUT:-300}
       START_TIMEOUT: ${START_TIMEOUT:-180}
       STOP_TIMEOUT: ${STOP_TIMEOUT:-30}
       ENSURE_GRACE: ${ENSURE_GRACE:-30}
     networks: [control, ai]
+    # the web page (GET /): published only on this address, by default on the host itself (use an SSH tunnel), GPU_CONTROL_BIND=0.0.0.0 or
+    # a LAN address for the network (plain HTTP: the token travels in the clear, see README.md)
+    ports:
+      - "${GPU_CONTROL_BIND:-127.0.0.1}:${GPU_CONTROL_PUBLISH_PORT:-8000}:8000"
 
 networks:
   control:

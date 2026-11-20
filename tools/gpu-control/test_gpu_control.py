@@ -94,6 +94,7 @@ class FakeRouter(ThreadingHTTPServer):
     def __init__(self):
         self.models = {}
         self.unloads = []
+        self.loads = []
         self.refuse = False
         self.lock = threading.Lock()
         super().__init__(("127.0.0.1", 0), FakeRouterHandler)
@@ -103,6 +104,8 @@ class FakeRouter(ThreadingHTTPServer):
             m = self.models[name]
             if m["status"] == "unloading" and time.monotonic() >= m["gone_at"]:
                 m["status"] = "unloaded"
+            if m["status"] == "loading" and "ready_at" in m and time.monotonic() >= m["ready_at"]:
+                m["status"] = "loaded"
             return m["status"]
 
 
@@ -125,6 +128,11 @@ class FakeRouterHandler(BaseHTTPRequestHandler):
     def do_POST(self):
         body = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
         name = body["model"]
+        if self.path == "/models/load":
+            self.server.loads.append(name)
+            with self.server.lock:
+                self.server.models[name].update(status="loading", ready_at=time.monotonic() + 0.3)
+            return self.answer(200, {"success": True})
         self.server.unloads.append((name, self.headers.get("Authorization")))
         if self.server.refuse:
             return self.answer(500, {"error": "no"})
@@ -175,6 +183,7 @@ class GpuControlTest(unittest.TestCase):
         self.router.models = {"big-32b": {"status": "loaded"}, "joi-4b": {"status": "loaded"},
                               "embed": {"status": "unloaded"}, "other": {"status": "loading"}}
         self.router.unloads.clear()
+        self.router.loads.clear()
         self.router.refuse = False
         os.environ.pop("GPU_CONTROL_LLAMA_KEY", None)
 
@@ -340,6 +349,102 @@ class GpuControlTest(unittest.TestCase):
         self.assertEqual("loaded", {m["id"]: m["status"] for m in body["models"]}["joi-4b"])
         self.assertEqual(401, self.call("POST", "/llama/unload", token="nope")[0])
         self.assertEqual([], self.router.unloads)
+
+    def test_llama_only_unloads_just_the_named_models(self):
+        code, body = self.call("POST", "/llama/unload", body={"only": ["joi-4b"]})
+        self.assertEqual((200, ["joi-4b"]), (code, body["unloaded"]))
+        self.assertEqual(["joi-4b"], [name for name, _ in self.router.unloads])      # big-32b and other stay as they were
+        self.assertEqual("loaded", self.router.state("big-32b"))
+
+    def test_llama_only_with_an_empty_list_unloads_nothing(self):
+        code, body = self.call("POST", "/llama/unload", body={"only": []})
+        self.assertEqual((200, []), (code, body["unloaded"]))
+        self.assertEqual([], self.router.unloads)
+
+    def test_restart_waits_until_the_service_answers(self):
+        self.call("POST", "/chatterbox/start")
+        code, body = self.call("POST", "/chatterbox/restart")
+        self.assertEqual((200, True), (code, body["ready"]))
+        self.assertIn(("POST", "/containers/chatterbox/restart?t=%d" % gpu_control.STOP_TIMEOUT), self.docker.calls)
+
+    def test_overview_shows_everything_the_page_needs(self):
+        self.call("POST", "/chatterbox/start")
+        code, body = self.call("GET", "/overview")
+        self.assertEqual(200, code)
+        self.assertEqual([("chatterbox", "running", True)], [(c["name"], c["status"], c["ready"]) for c in body["containers"]])
+        self.assertTrue(body["llama"]["configured"])
+        self.assertEqual("loaded", {m["id"]: m["status"] for m in body["llama"]["models"]}["joi-4b"])
+        self.assertEqual(401, self.call("GET", "/overview", token="nope")[0])
+
+    def test_overview_survives_an_unreachable_router(self):
+        old = os.environ["GPU_CONTROL_LLAMA"]
+        os.environ["GPU_CONTROL_LLAMA"] = "http://127.0.0.1:1"
+        try:
+            code, body = self.call("GET", "/overview")
+        finally:
+            os.environ["GPU_CONTROL_LLAMA"] = old
+        self.assertEqual(200, code)
+        self.assertEqual(1, len(body["llama"]["errors"]))
+        self.assertEqual(1, len(body["containers"]))
+
+    def test_vram_is_read_from_sysfs(self):
+        root = tempfile.mkdtemp()
+        for card, used in (("card0", 1073741824), ("card1", None)):
+            device = os.path.join(root, card, "device")
+            os.makedirs(device)
+            if used is not None:
+                for name, value in (("mem_info_vram_used", used), ("mem_info_vram_total", 4 * used)):
+                    with open(os.path.join(device, name), "w") as f:
+                        f.write(f"{value}\n")
+        old = gpu_control.SYSFS_DRM
+        gpu_control.SYSFS_DRM = root
+        try:
+            self.assertEqual([{"card": "card0", "used": 1073741824, "total": 4294967296}], gpu_control.vram())
+        finally:
+            gpu_control.SYSFS_DRM = old
+
+    def test_the_page_needs_no_token_and_holds_no_data(self):
+        with urllib.request.urlopen(self.base + "/") as response:
+            html = response.read().decode()
+            self.assertEqual(200, response.status)
+            self.assertIn("text/html", response.headers["Content-Type"])
+            self.assertIn("default-src 'none'", response.headers["Content-Security-Policy"])
+        self.assertIn("X-Control-Token", html)
+        self.assertNotIn("secret", html)
+        self.assertEqual([], self.docker.calls)
+
+    def test_llama_load_waits_until_the_model_is_loaded(self):
+        started = time.monotonic()
+        code, body = self.call("POST", "/llama/load", body={"models": ["embed"]})
+        self.assertEqual((200, ["embed"]), (code, body["loaded"]))
+        self.assertEqual("loaded", self.router.state("embed"))
+        self.assertGreaterEqual(time.monotonic() - started, 0.3)
+        self.assertEqual([], self.router.unloads)             # it unloads nothing
+
+    def test_llama_load_of_a_loaded_model_asks_the_router_nothing(self):
+        code, body = self.call("POST", "/llama/load", body={"models": ["joi-4b"]})
+        self.assertEqual((200, []), (code, body["loaded"]))
+        self.assertEqual([], self.router.loads)
+
+    def test_llama_load_of_an_unknown_model_is_a_404_and_loads_nothing(self):
+        self.assertEqual(404, self.call("POST", "/llama/load", body={"models": ["embed", "nope"]})[0])
+        self.assertEqual([], self.router.loads)
+        self.assertEqual(400, self.call("POST", "/llama/load", body={})[0])
+
+    def test_llama_load_that_never_finishes_is_a_504(self):
+        old = gpu_control.LOAD_TIMEOUT
+        gpu_control.LOAD_TIMEOUT = 0.5
+        self.router.models["embed"] = {"status": "unloaded"}
+        self.router.models["embed"].pop("ready_at", None)
+        orig = self.router.state
+        try:
+            self.router.state = lambda name: "loading" if name == "embed" else orig(name)
+            self.call("POST", "/llama/unload", body={"only": []})
+            code, _ = self.call("POST", "/llama/load", body={"models": ["embed"]})
+        finally:
+            self.router.state = orig
+            gpu_control.LOAD_TIMEOUT = old
+        self.assertEqual(504, code)
 
 
 if __name__ == "__main__":
