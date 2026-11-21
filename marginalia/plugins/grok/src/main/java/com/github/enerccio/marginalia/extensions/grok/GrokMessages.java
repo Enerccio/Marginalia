@@ -60,10 +60,14 @@ final class GrokMessages {
             return node;
         }
         ArrayNode parts = node.putArray("content");
+        // the images of an AI that wants them before the text (its image placement) come first
+        for (LLMAttachment attachment : message.getAttachmentsBeforeText()) {
+            parts.add(attachmentPart(attachment));
+        }
         if (StringUtils.isNotEmpty(message.getContent())) {
             parts.addObject().put("type", "text").put("text", message.getContent());
         }
-        for (LLMAttachment attachment : message.getAttachments()) {
+        for (LLMAttachment attachment : message.getAttachmentsAfterText()) {
             parts.add(attachmentPart(attachment));
         }
         return node;

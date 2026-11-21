@@ -279,7 +279,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_TEXT_AND_PREVIEW, "テキストとプレビュー");
         setValue(L.LABEL_PREVIEW_ONLY, "プレビューのみ");
         setValue(L.LABEL_MULTIMODAL, "マルチモーダル（画像を受け付ける）");
-        setValue(L.LABEL_IMAGES_IN_SYSTEM, "画像をシステムメッセージに入れる");
+        setValue(L.LABEL_IMAGE_PLACEMENT, "画像の配置");
         setValue(L.LABEL_GPU_LOCK, "GPU ロック");
         setValue(L.LABEL_NO_GPU_LOCK, "GPU ロックなし");
         setValue(L.LABEL_GPUS, "GPU");
@@ -311,6 +311,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_EXPIRES_AFTER_DAYS, "有効期間（日）");
         setValue(L.LABEL_REVOKE, "失効させる");
         setValue(L.LABEL_ALWAYS_STEPS, "毎回のジョブ前のステップ");
+        setValue(L.LABEL_FUNCTIONS_PLACEMENT, "関数定義の配置");
+        setValue(L.LABEL_FUNCTION_RULE, "関数呼び出しのルール");
+        setValue(L.LABEL_FUNCTION_RULE_PLACEMENT, "ルールの配置");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -358,6 +361,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ENUM_API_SCOPE_WRITE, "書き込み：すべてのコマンド");
         setValue(L.ENUM_API_SCOPE_UPDATE, "インストールの更新");
         setValue(L.ENUM_API_SCOPE_EXTENSIONS, "拡張機能の管理");
+        setValue(L.ENUM_PROMPT_PLACEMENT_SYSTEM, "システムメッセージ内");
+        setValue(L.ENUM_PROMPT_PLACEMENT_BEFORE, "ユーザーメッセージの本文の前");
+        setValue(L.ENUM_PROMPT_PLACEMENT_AFTER, "ユーザーメッセージの本文の後");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部サーバーエラー");
@@ -533,7 +539,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_UPDATE, "サーバーにログインせずに、Docker インストールを Git チェックアウトからアップデートします。ブランチの最新バージョンを取得してプラグインとともにビルドし、Marginalia を再起動します。");
         setValue(L.HELP_AI_CONNECTIONS, "このモデルへ同時に送れるリクエストの数です。すべてのユーザー、すべての種類のリクエスト（あなたの生成、サイドクエリ、エージェント、プラグイン）が対象で、超えた分は来た順に順番待ちになります。スロットが1つのサーバー（例：GPU 1枚）では1、同時に複数のリクエストに答えられるクラウドのモデルではそれ以上にしてください。");
         setValue(L.HELP_MULTIMODAL, "モデルが画像を受け付けます。リクエストに属する画像がテキストと一緒に送られます。ビジョン対応モデル専用です。対応していないモデルはリクエストを拒否します。");
-        setValue(L.HELP_IMAGES_IN_SYSTEM, "システムプロンプトに属する画像を、後に続く専用のメッセージではなくシステムメッセージ自体に入れます。システムメッセージで画像を受け付けるサーバーとチャットテンプレート専用です。ほとんどは対応していません。");
+        setValue(L.HELP_IMAGE_PLACEMENT, "画像の入れ場所。システムメッセージ内：システムプロンプトの画像をシステムメッセージ自体に入れます。そこで画像を受け付けるサーバーとチャットテンプレート専用です（ほとんどは非対応）。本文の前／後：画像が属するメッセージの本文の前または後に入れます。Gemma 4 は前を求めます。音声とファイルは常に本文の後です。");
         setValue(L.HELP_AI_GPU_LOCK, "他のモデルや画像・音声サーバーと共有する GPU で動くモデルの場合に設定します。各リクエストは GPU の順番を待ち、先にこのロックで GPU をロードします。");
         setValue(L.HELP_GPUS, "GPU は一度に一つのモデルを保持します。ロックはそれをロードする方法（取得ステップ）と、別のロックのために解放する方法（解放ステップ）を定めます。AI と拡張機能のバックエンドがロックを選びます。ジョブの後も、別のロックのジョブが来るまで GPU はロードされたままです。");
         setValue(L.HELP_GPU_LOCK_MAX_CONCURRENT, "このロックのジョブを GPU で同時にいくつ実行するか。0 で無制限。");
@@ -545,6 +551,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_EXPIRES_AFTER_DAYS, "空欄：キーは期限切れになりません。");
         setValue(L.HELP_GPU_ALWAYS_STEPS, "このロックのすべてのジョブの前に順番に実行されます。GPU がすでにこのロックを保持しているときも実行され、保持していないときは取得ステップの前に実行されます。最初の失敗でジョブは止まります。他のプログラムのモデルを自分のもの以外アンロードするなど、毎回確かめる必要があるステップ向けです。");
         setValue(L.HELP_GPU_STEP_VARIABLES, "アドレス、ヘッダー、本文ではジョブの変数を使えます: {{model}} はジョブが使うモデル（AI のモデル ID、バックエンドのモデル）、{{lock}} はロックの名前です。フィルター: {{model | strip:openai/}} は接頭辞を取り除き、{{model | last}} は最後の / の後ろを残し、json と url は値をエスケープします。解放ステップにはそのロックの最後のジョブのモデルが入ります。テストでは変数は空で実行されます。");
+        setValue(L.HELP_FUNCTIONS_PLACEMENT, "モデルが呼び出せる関数を読む場所。システムメッセージ内：リクエストの tools のみで、チャットテンプレートがそこに入れます。本文の前／後：最新のユーザーメッセージにも書き出します。サーバーが呼び出しを認識するため、リクエストの tools は常に送られます。");
+        setValue(L.HELP_FUNCTION_RULE, "関数を提供するすべてのリクエストに追加されます。例：あなたは関数呼び出しによってのみ行動します。返答に呼び出しをテキストとして書かず、関数を使うときは呼び出してください。呼び出す代わりにテキストとして書いてしまうモデル（Gemma 4）に役立ちます。空欄：なし。");
+        setValue(L.HELP_FUNCTION_RULE_PLACEMENT, "ルールの入れ場所。Gemma 4 はシステムメッセージより最新のユーザーメッセージにある方がよく従います。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_NARRATIVE_POV, "語りの視点（POV）。");

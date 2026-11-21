@@ -86,6 +86,17 @@ class GoogleGenAiMessagesTest {
     }
 
     @Test
+    void imagesGoBeforeTheTextWhenTheMessageSaysSo() {
+        LLMChatMessage user = message(LLMRole.USER, "look").addAttachment(LLMAttachment.of("image/png", new byte[]{1, 2, 3}));
+        user.setImagesFirst(true);
+
+        Content content = GoogleGenAiMessages.prepare(List.of(user)).contents().get(0);
+
+        assertEquals("image/png", parts(content).get(0).inlineData().orElseThrow().mimeType().orElseThrow());
+        assertEquals("look", parts(content).get(1).text().orElseThrow());
+    }
+
+    @Test
     void callsAndTheirResultsGoBackWithTheNamesOfTheFunctions() {
         LLMChatMessage calls = LLMChatMessage.ofToolCalls("checking", List.of(
                 LLMToolCall.of("call_1", "weather", "{\"city\":\"Prague\"}"),

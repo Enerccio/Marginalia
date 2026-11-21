@@ -18,6 +18,10 @@ import java.util.Locale;
  * Some APIs of Gemma 4 expect the results of function calls in messages with the role {@code tool_responses} instead
  * of {@code tool}. Port of the SillyTavern extension SillyTavern-Gemma4-Tools-Fix: when the model of the AI is a
  * Gemma 4, the role of the tool messages is changed.
+ * <p>
+ * Not needed with a current chat template: Google's Gemma 4 template reads {@code role: tool} since 2026-04-10 and knows no
+ * {@code tool_responses} role (it renders a stray turn), and llama.cpp drops the old field. Only a GGUF made with the release
+ * template of 2026-04-02 needs it.
  */
 @Configurable
 public class Gemma4ToolsFixExtension implements MarginaliaExtension, ToolRoleResolver {

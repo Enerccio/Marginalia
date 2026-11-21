@@ -20,7 +20,7 @@ Extensions add features to Marginalia without changing the application itself. T
 | [Chapter Marker](chapter-marker.md) | Chapter titles in the story outline, from Markdown headings in the parts. |
 | [Character Tracker](character-tracker.md) | The characters of the book with their relationships, and a map of them. |
 | [Conlang Translator](conlang-translator.md) | The speech of your characters in a constructed language you describe, with the English kept behind it for the models and a click for the reader. |
-| [Gemma 4 tools fix](gemma-4-tools-fix.md) | Makes function calling work with Gemma 4 models whose API wants another role for tool results. |
+| [Gemma 4 tools fix](gemma-4-tools-fix.md) | Makes function calling work with old Gemma 4 models whose API wants another role for tool results; not needed with a current chat template. |
 | [Google Gemini](google-genai.md) | Google's Gemini models as an inference provider, over Google's own API, with the thinking summaries shown as reasoning. |
 | [Image Generator](image-generator.md) | Makes an image for a part of the story: the model writes the prompt, ComfyUI or an OpenAI-style images API draws it, you reroll and accept it. |
 | [Prompt History](prompt-history.md) | Keeps the last 20 requests sent to the models in your session (and per agent run), with the answers and the reasoning, for debugging plugins and checking prompts; opened from Settings → Extension Settings or the console of an agent. |

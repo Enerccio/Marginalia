@@ -124,10 +124,14 @@ final class AnthropicMessages {
                 case USER -> {
                     leading = false;
                     List<ContentBlockParam> blocks = new ArrayList<>();
+                    // the images of an AI that wants them before the text (its image placement) come first
+                    for (LLMAttachment attachment : message.getAttachmentsBeforeText()) {
+                        blocks.add(attachmentBlock(attachment));
+                    }
                     if (StringUtils.isNotBlank(message.getContent())) {
                         blocks.add(ContentBlockParam.ofText(message.getContent()));
                     }
-                    for (LLMAttachment attachment : message.getAttachments()) {
+                    for (LLMAttachment attachment : message.getAttachmentsAfterText()) {
                         blocks.add(attachmentBlock(attachment));
                     }
                     if (!blocks.isEmpty()) {

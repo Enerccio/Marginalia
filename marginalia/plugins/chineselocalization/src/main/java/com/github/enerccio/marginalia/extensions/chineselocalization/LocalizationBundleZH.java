@@ -288,7 +288,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_TEXT_AND_PREVIEW, "文本和预览");
         setValue(L.LABEL_PREVIEW_ONLY, "仅预览");
         setValue(L.LABEL_MULTIMODAL, "多模态（接受图片）");
-        setValue(L.LABEL_IMAGES_IN_SYSTEM, "将图片放入系统消息");
+        setValue(L.LABEL_IMAGE_PLACEMENT, "图片位置");
         setValue(L.LABEL_GPU_LOCK, "GPU 锁");
         setValue(L.LABEL_NO_GPU_LOCK, "无 GPU 锁");
         setValue(L.LABEL_GPUS, "GPU");
@@ -320,6 +320,9 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_EXPIRES_AFTER_DAYS, "有效天数");
         setValue(L.LABEL_REVOKE, "吊销");
         setValue(L.LABEL_ALWAYS_STEPS, "每个作业前的步骤");
+        setValue(L.LABEL_FUNCTIONS_PLACEMENT, "函数定义位置");
+        setValue(L.LABEL_FUNCTION_RULE, "函数调用规则");
+        setValue(L.LABEL_FUNCTION_RULE_PLACEMENT, "规则位置");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -367,6 +370,9 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ENUM_API_SCOPE_WRITE, "写入：所有命令");
         setValue(L.ENUM_API_SCOPE_UPDATE, "更新安装");
         setValue(L.ENUM_API_SCOPE_EXTENSIONS, "管理扩展");
+        setValue(L.ENUM_PROMPT_PLACEMENT_SYSTEM, "在系统消息中");
+        setValue(L.ENUM_PROMPT_PLACEMENT_BEFORE, "在用户消息正文之前");
+        setValue(L.ENUM_PROMPT_PLACEMENT_AFTER, "在用户消息正文之后");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部服务器错误");
@@ -542,7 +548,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_UPDATE, "无需登录服务器即可从 Git 检出更新 Docker 安装：拉取分支的最新版本，连同插件一起构建，然后重启 Marginalia。");
         setValue(L.HELP_AI_CONNECTIONS, "可同时发往该模型的请求数：所有用户、所有类型的请求（您的生成、侧边查询、智能体、插件）。超出的请求按到达顺序排队等待。只有一个槽位的服务器（例如一块 GPU）设为 1；能同时回答多个请求的云端模型可以设得更多。");
         setValue(L.HELP_MULTIMODAL, "模型接受图片：属于请求的图片会与文本一起发送。仅适用于具备视觉能力的模型：不具备的模型会拒绝请求。");
-        setValue(L.HELP_IMAGES_IN_SYSTEM, "将属于系统提示的图片直接放入系统消息，而不是放在其后的单独消息中。仅适用于在那里接受图片的服务器和聊天模板；大多数不支持。");
+        setValue(L.HELP_IMAGE_PLACEMENT, "图片放在哪里。在系统消息中：系统提示的图片直接放入系统消息，仅适用于在那里接受图片的服务器和聊天模板（大多数不支持）。在正文之前或之后：放在图片所属消息的正文之前或之后；Gemma 4 需要放在之前。音频和文件始终在正文之后。");
         setValue(L.HELP_AI_GPU_LOCK, "当此模型所在的 GPU 与其他模型或图像、语音服务器共享时设置：每个请求都会等待轮到自己使用 GPU，并先用此锁加载 GPU。");
         setValue(L.HELP_GPUS, "一块 GPU 一次只容纳一个模型。锁规定如何加载它（获取步骤）以及如何为另一个锁腾出 GPU（释放步骤）。AI 和扩展的后端选择一个锁；作业结束后 GPU 保持加载，直到另一个锁的作业到来。");
         setValue(L.HELP_GPU_LOCK_MAX_CONCURRENT, "此锁的作业在 GPU 上同时运行的数量；0 表示不限。");
@@ -554,6 +560,9 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_EXPIRES_AFTER_DAYS, "留空：密钥不会过期。");
         setValue(L.HELP_GPU_ALWAYS_STEPS, "在此锁的每个作业之前按顺序运行，即使 GPU 已持有此锁也会运行；未持有时在获取步骤之前运行。第一次失败会停止作业。用于每次都必须确保的步骤，例如卸载其他程序的模型（保留您自己的）。");
         setValue(L.HELP_GPU_STEP_VARIABLES, "地址、请求头和正文可以使用作业的变量：{{model}} 是作业使用的模型（AI 的模型 ID、后端的模型），{{lock}} 是锁的名称。过滤器：{{model | strip:openai/}} 去掉前缀，{{model | last}} 保留最后一个 / 之后的部分，json 和 url 对值进行转义。释放步骤使用该锁最后一个作业的模型；测试时变量为空。");
+        setValue(L.HELP_FUNCTIONS_PLACEMENT, "模型在哪里读取它可以调用的函数。在系统消息中：只在请求的 tools 中，由聊天模板放到那里。在正文之前或之后：同时写入最新的用户消息。请求的 tools 始终会发送，服务器需要它们来识别调用。");
+        setValue(L.HELP_FUNCTION_RULE, "添加到每个提供函数的请求中，例如：你只能通过函数调用来行动。不要在回复中把调用写成文本；要使用函数，就调用它。适用于把调用写成文本而不是真正调用的模型（Gemma 4）。留空：不添加。");
+        setValue(L.HELP_FUNCTION_RULE_PLACEMENT, "规则放在哪里。Gemma 4 在最新用户消息中比在系统消息中更能遵守它。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_NARRATIVE_POV, "叙事视角（POV）。");

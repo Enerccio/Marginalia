@@ -279,7 +279,7 @@ public class LocalizationBundleDE extends LocalizationBundleBase {
         setValue(L.LABEL_TEXT_AND_PREVIEW, "Text und Vorschau");
         setValue(L.LABEL_PREVIEW_ONLY, "Nur Vorschau");
         setValue(L.LABEL_MULTIMODAL, "Multimodal (nimmt Bilder an)");
-        setValue(L.LABEL_IMAGES_IN_SYSTEM, "Bilder in der Systemnachricht");
+        setValue(L.LABEL_IMAGE_PLACEMENT, "Position der Bilder");
         setValue(L.LABEL_GPU_LOCK, "GPU-Sperre");
         setValue(L.LABEL_NO_GPU_LOCK, "Keine GPU-Sperre");
         setValue(L.LABEL_GPUS, "GPUs");
@@ -311,6 +311,9 @@ public class LocalizationBundleDE extends LocalizationBundleBase {
         setValue(L.LABEL_EXPIRES_AFTER_DAYS, "Läuft ab nach (Tagen)");
         setValue(L.LABEL_REVOKE, "Widerrufen");
         setValue(L.LABEL_ALWAYS_STEPS, "Schritte vor jedem Auftrag");
+        setValue(L.LABEL_FUNCTIONS_PLACEMENT, "Funktionsdefinitionen");
+        setValue(L.LABEL_FUNCTION_RULE, "Regel für Funktionsaufrufe");
+        setValue(L.LABEL_FUNCTION_RULE_PLACEMENT, "Position der Regel");
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI-kompatibel");
         setValue(L.ENUM_PROTOCOL_TYPE_OPEN_CHAT_COMPLETION, "Chat Completion");
@@ -357,6 +360,9 @@ public class LocalizationBundleDE extends LocalizationBundleBase {
         setValue(L.ENUM_API_SCOPE_WRITE, "Schreiben: alle Befehle");
         setValue(L.ENUM_API_SCOPE_UPDATE, "Die Installation aktualisieren");
         setValue(L.ENUM_API_SCOPE_EXTENSIONS, "Die Erweiterungen verwalten");
+        setValue(L.ENUM_PROMPT_PLACEMENT_SYSTEM, "In der Systemnachricht");
+        setValue(L.ENUM_PROMPT_PLACEMENT_BEFORE, "Vor dem Text der Benutzernachricht");
+        setValue(L.ENUM_PROMPT_PLACEMENT_AFTER, "Nach dem Text der Benutzernachricht");
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Interner Serverfehler");
         setValue(L.ERROR_INFERENCE_DETAILS, "%s Der Anbieter meldet: %s");
@@ -529,7 +535,7 @@ public class LocalizationBundleDE extends LocalizationBundleBase {
         setValue(L.HELP_UPDATE, "Aktualisiert eine Docker-Installation aus ihrem Git-Checkout, ohne sich am Server anzumelden: Die neueste Version des Zweigs wird geholt und mit den Plugins gebaut, und Marginalia wird neu gestartet.");
         setValue(L.HELP_AI_CONNECTIONS, "Wie viele Anfragen gleichzeitig zu diesem Modell unterwegs sein dürfen: jede Anfrage, von jedem Benutzer und jeder Art (deine Generierung, eine Nebenabfrage, ein Agent, ein Plugin). Die anderen warten in der Reihenfolge, in der sie kamen, auf ihren Zug. 1 für einen Server mit einem Slot (zum Beispiel eine GPU); ein Cloud-Modell, das mehrere Anfragen gleichzeitig beantwortet, kann mehr haben.");
         setValue(L.HELP_MULTIMODAL, "Das Modell nimmt Bilder an: Bilder, die zu einer Anfrage gehören, werden mit dem Text gesendet. Nur für ein Modell mit Bildverständnis: ein Modell ohne lehnt die Anfrage ab.");
-        setValue(L.HELP_IMAGES_IN_SYSTEM, "Die Bilder, die zum System-Prompt gehören, in die Systemnachricht selbst legen statt in eine eigene Nachricht danach. Nur für Server und Chat-Templates, die dort Bilder annehmen; die meisten tun es nicht.");
+        setValue(L.HELP_IMAGE_PLACEMENT, "Wohin die Bilder kommen. In der Systemnachricht: Die Bilder des System-Prompts kommen in die Systemnachricht selbst, nur für Server und Chat-Templates, die dort Bilder annehmen (die meisten nicht). Vor oder nach dem Text: in ihrer Nachricht, vor oder nach deren Text; Gemma 4 will sie davor. Audio und Dateien folgen immer dem Text.");
         setValue(L.HELP_AI_GPU_LOCK, "Die GPU, auf der dieses Modell läuft, wenn andere Modelle oder Bild- und Sprachserver sie teilen: Jede Anfrage wartet, bis sie an der Reihe ist, und lädt die GPU zuerst mit dieser Sperre.");
         setValue(L.HELP_GPUS, "Eine GPU hält jeweils ein Modell. Eine Sperre legt fest, wie es geladen wird (Schritte beim Belegen) und wie die GPU für eine andere Sperre freigegeben wird (Schritte beim Freigeben). KIs und die Backends der Erweiterungen wählen eine Sperre; nach einem Auftrag bleibt die GPU geladen, bis ein Auftrag einer anderen Sperre kommt.");
         setValue(L.HELP_GPU_LOCK_MAX_CONCURRENT, "Wie viele Aufträge dieser Sperre gleichzeitig auf der GPU laufen; 0 für unbegrenzt.");
@@ -541,6 +547,9 @@ public class LocalizationBundleDE extends LocalizationBundleBase {
         setValue(L.HELP_EXPIRES_AFTER_DAYS, "Leer: Der Schlüssel läuft nicht ab.");
         setValue(L.HELP_GPU_ALWAYS_STEPS, "Laufen der Reihe nach vor jedem Auftrag dieser Sperre, auch wenn die GPU sie schon hält, sonst vor den Schritten beim Belegen; der erste Fehler stoppt den Auftrag. Für einen Schritt, der jedes Mal sichergestellt werden muss, etwa die Modelle eines anderen Programms außer dem eigenen zu entladen.");
         setValue(L.HELP_GPU_STEP_VARIABLES, "Adresse, Header und Body können Variablen des Auftrags nennen: {{model}} ist das Modell, das er nutzt (die Modell-ID der KI, das Modell des Backends), {{lock}} der Name der Sperre. Filter: {{model | strip:openai/}} entfernt ein Präfix, {{model | last}} behält, was nach dem letzten / steht, json und url maskieren den Wert. Schritte beim Freigeben erhalten das Modell des letzten Auftrags der Sperre; Testen führt den Schritt mit leeren Variablen aus.");
+        setValue(L.HELP_FUNCTIONS_PLACEMENT, "Wo das Modell die Funktionen liest, die es aufrufen kann. In der Systemnachricht: nur in den tools der Anfrage, die das Chat-Template dorthin setzt. Vor oder nach dem Text: zusätzlich ausgeschrieben in der letzten Benutzernachricht. Die tools der Anfrage werden immer gesendet, der Server braucht sie, um die Aufrufe zu erkennen.");
+        setValue(L.HELP_FUNCTION_RULE, "Wird jeder Anfrage hinzugefügt, die Funktionen anbietet, zum Beispiel: Du handelst nur durch Funktionsaufrufe. Schreib nie einen Aufruf als Text in deine Antwort; um eine Funktion zu nutzen, ruf sie auf. Hilft Modellen, die den Aufruf als Text schreiben, statt ihn auszuführen (Gemma 4). Leer: keine.");
+        setValue(L.HELP_FUNCTION_RULE_PLACEMENT, "Wohin die Regel kommt. Gemma 4 befolgt sie in der letzten Benutzernachricht besser als in der Systemnachricht.");
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_NARRATIVE_POV, "Erzählperspektive (POV) der Erzählung.");
         setValue(L.DESC_TEMPLATE_NARRATIVE_TENSE, "In der Erzählung verwendete Zeitform.");

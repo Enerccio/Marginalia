@@ -291,10 +291,11 @@ user message carries the instructions.
 `resourceService.findImage` and scaled by `ImageFiles.prepare` (an image that is gone or can't be read is left out with a
 warning), with a caption line `[ Images of the lore, in order: 1. Entry (caption); ... ]`. The images of `IN_LORE_BLOCK`
 entries go into a user message of their own right after the system message, answered by an assistant message
-(`LORE_IMAGES_ACKNOWLEDGED`), since the system role of most APIs takes text only; with `AI.isImagesInSystem()` (OpenAI
+(`LORE_IMAGES_ACKNOWLEDGED`), since the system role of most APIs takes text only; with `AI.getImagePlacement()` `SYSTEM` (OpenAI
 compatible only) they are attachments of the system message instead, which `OpenAICompatibleInferenceService.toSystemMessage`
 writes as untyped JSON parts (`text`, `image_url`). The images of `BEFORE_USER_PROMPT` entries are attachments of the final
-user message, the caption after the prompt. Only the text of the parts is sent: the images attached to a part are not part of
+user message, the caption after the prompt. With the placement `BEFORE` every provider sends the images of a message
+before its text (`PlacedInferenceService` marks the copy that is sent, see [Services](services.md#models)). Only the text of the parts is sent: the images attached to a part are not part of
 it and the model never sees them.
 
 An `LLMChatMessage` can carry `LLMAttachment`s (images, audio, files) for models that accept them, and the OpenAI

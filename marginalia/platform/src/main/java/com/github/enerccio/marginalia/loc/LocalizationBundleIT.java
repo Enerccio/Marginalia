@@ -279,7 +279,7 @@ public class LocalizationBundleIT extends LocalizationBundleBase {
         setValue(L.LABEL_TEXT_AND_PREVIEW, "Testo e anteprima");
         setValue(L.LABEL_PREVIEW_ONLY, "Solo anteprima");
         setValue(L.LABEL_MULTIMODAL, "Multimodale (accetta immagini)");
-        setValue(L.LABEL_IMAGES_IN_SYSTEM, "Immagini nel messaggio di sistema");
+        setValue(L.LABEL_IMAGE_PLACEMENT, "Posizione delle immagini");
         setValue(L.LABEL_GPU_LOCK, "Blocco GPU");
         setValue(L.LABEL_NO_GPU_LOCK, "Nessun blocco GPU");
         setValue(L.LABEL_GPUS, "GPU");
@@ -311,6 +311,9 @@ public class LocalizationBundleIT extends LocalizationBundleBase {
         setValue(L.LABEL_EXPIRES_AFTER_DAYS, "Scade dopo (giorni)");
         setValue(L.LABEL_REVOKE, "Revoca");
         setValue(L.LABEL_ALWAYS_STEPS, "Passi prima di ogni lavoro");
+        setValue(L.LABEL_FUNCTIONS_PLACEMENT, "Definizioni delle funzioni");
+        setValue(L.LABEL_FUNCTION_RULE, "Regola delle chiamate di funzione");
+        setValue(L.LABEL_FUNCTION_RULE_PLACEMENT, "Posizione della regola");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "Compatibile con OpenAI");
@@ -358,6 +361,9 @@ public class LocalizationBundleIT extends LocalizationBundleBase {
         setValue(L.ENUM_API_SCOPE_WRITE, "Scrittura: tutti i comandi");
         setValue(L.ENUM_API_SCOPE_UPDATE, "Aggiornare l'installazione");
         setValue(L.ENUM_API_SCOPE_EXTENSIONS, "Gestire le estensioni");
+        setValue(L.ENUM_PROMPT_PLACEMENT_SYSTEM, "Nel messaggio di sistema");
+        setValue(L.ENUM_PROMPT_PLACEMENT_BEFORE, "Prima del testo del messaggio dell'utente");
+        setValue(L.ENUM_PROMPT_PLACEMENT_AFTER, "Dopo il testo del messaggio dell'utente");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Errore interno del server");
@@ -533,7 +539,7 @@ public class LocalizationBundleIT extends LocalizationBundleBase {
         setValue(L.HELP_UPDATE, "Aggiorna un'installazione Docker dal suo checkout Git senza accedere al server: viene scaricata e compilata la versione più recente del ramo, con i plugin, e Marginalia viene riavviata.");
         setValue(L.HELP_AI_CONNECTIONS, "Quante richieste possono essere in corso verso questo modello contemporaneamente: ogni richiesta, di ogni utente e di ogni tipo (la tua generazione, una query laterale, un agente, un plugin). Le altre attendono il loro turno, nell'ordine in cui sono arrivate. 1 per un server con uno slot (ad esempio una GPU); un modello cloud che risponde a più richieste insieme può averne di più.");
         setValue(L.HELP_MULTIMODAL, "Il modello accetta immagini: le immagini che appartengono a una richiesta vengono inviate insieme al testo. Solo per un modello con visione: un modello senza la rifiuta.");
-        setValue(L.HELP_IMAGES_IN_SYSTEM, "Inserisce le immagini che appartengono al prompt di sistema nel messaggio di sistema stesso invece che in un messaggio a parte dopo di esso. Solo per un server e un template di chat che vi accettano immagini; la maggior parte no.");
+        setValue(L.HELP_IMAGE_PLACEMENT, "Dove vanno le immagini. Nel messaggio di sistema: le immagini del prompt di sistema vanno nel messaggio di sistema stesso, solo per un server e un template di chat che vi accettano immagini (la maggior parte no). Prima o dopo il testo: nel loro messaggio, prima o dopo il suo testo; Gemma 4 le vuole prima. Audio e file seguono sempre il testo.");
         setValue(L.HELP_AI_GPU_LOCK, "La GPU su cui gira questo modello, se condivisa con altri modelli o server di immagini e voce: ogni richiesta attende il suo turno sulla GPU e prima la carica con questo blocco.");
         setValue(L.HELP_GPUS, "Una GPU contiene un modello alla volta. Un blocco dice come caricarlo (passi di acquisizione) e come liberarla per un altro blocco (passi di rilascio). Le IA e i server delle estensioni scelgono un blocco; dopo un lavoro la GPU resta caricata finché non arriva un lavoro di un altro blocco.");
         setValue(L.HELP_GPU_LOCK_MAX_CONCURRENT, "Quanti lavori di questo blocco girano insieme sulla GPU; 0 per nessun limite.");
@@ -545,6 +551,9 @@ public class LocalizationBundleIT extends LocalizationBundleBase {
         setValue(L.HELP_EXPIRES_AFTER_DAYS, "Vuoto: la chiave non scade.");
         setValue(L.HELP_GPU_ALWAYS_STEPS, "Eseguiti in ordine prima di ogni lavoro di questo blocco, anche quando la GPU lo tiene già, prima dei passi di acquisizione quando non lo tiene; il primo errore ferma il lavoro. Per un passo da garantire ogni volta, per esempio scaricare i modelli di un altro programma tranne il proprio.");
         setValue(L.HELP_GPU_STEP_VARIABLES, "L'indirizzo, le intestazioni e il corpo possono nominare variabili del lavoro: {{model}} è il modello che usa (l'id del modello dell'IA, il modello del backend), {{lock}} il nome del blocco. Filtri: {{model | strip:openai/}} toglie un prefisso, {{model | last}} tiene ciò che segue l'ultima /, json e url codificano il valore. I passi di rilascio ricevono il modello dell'ultimo lavoro del blocco; Prova esegue il passo con le variabili vuote.");
+        setValue(L.HELP_FUNCTIONS_PLACEMENT, "Dove il modello legge le funzioni che può chiamare. Nel messaggio di sistema: solo nei tools della richiesta, che il template di chat mette lì. Prima o dopo il testo: scritte anche nell'ultimo messaggio dell'utente. I tools della richiesta vengono sempre inviati, il server ne ha bisogno per riconoscere le chiamate.");
+        setValue(L.HELP_FUNCTION_RULE, "Aggiunta a ogni richiesta che offre funzioni, per esempio: Agisci solo tramite chiamate di funzione. Non scrivere mai una chiamata come testo nella risposta; per usare una funzione, chiamala. Aiuta i modelli che scrivono la chiamata come testo invece di farla (Gemma 4). Vuoto: nessuna.");
+        setValue(L.HELP_FUNCTION_RULE_PLACEMENT, "Dove va la regola. Gemma 4 la segue meglio nell'ultimo messaggio dell'utente che nel messaggio di sistema.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_NARRATIVE_POV, "Punto di vista (POV) della narrazione.");

@@ -279,7 +279,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_TEXT_AND_PREVIEW, "Text and preview");
         setValue(L.LABEL_PREVIEW_ONLY, "Preview only");
         setValue(L.LABEL_MULTIMODAL, "Multimodal (accepts images)");
-        setValue(L.LABEL_IMAGES_IN_SYSTEM, "Images in the system message");
+        setValue(L.LABEL_IMAGE_PLACEMENT, "Image placement");
         setValue(L.LABEL_GPU_LOCK, "GPU lock");
         setValue(L.LABEL_NO_GPU_LOCK, "No GPU lock");
         setValue(L.LABEL_GPUS, "GPUs");
@@ -311,6 +311,9 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_EXPIRES_AFTER_DAYS, "Expires after (days)");
         setValue(L.LABEL_REVOKE, "Revoke");
         setValue(L.LABEL_ALWAYS_STEPS, "Steps before every job");
+        setValue(L.LABEL_FUNCTIONS_PLACEMENT, "Function definitions");
+        setValue(L.LABEL_FUNCTION_RULE, "Function call rule");
+        setValue(L.LABEL_FUNCTION_RULE_PLACEMENT, "Rule placement");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -358,6 +361,9 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ENUM_API_SCOPE_WRITE, "Write: every command");
         setValue(L.ENUM_API_SCOPE_UPDATE, "Update the installation");
         setValue(L.ENUM_API_SCOPE_EXTENSIONS, "Manage the extensions");
+        setValue(L.ENUM_PROMPT_PLACEMENT_SYSTEM, "In the system message");
+        setValue(L.ENUM_PROMPT_PLACEMENT_BEFORE, "Before the text of the user message");
+        setValue(L.ENUM_PROMPT_PLACEMENT_AFTER, "After the text of the user message");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
@@ -533,7 +539,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_UPDATE, "Updates a Docker installation from its Git checkout without logging in to the server: the newest version of the branch is pulled and built, with the plugins, and Marginalia is restarted.");
         setValue(L.HELP_AI_CONNECTIONS, "How many requests may be on the way to this model at once: every request, of every user and of every kind (your generation, a side query, an agent, a plugin). The others wait their turn, in the order they came. 1 for a server with one slot (for example one GPU); a cloud model that answers several requests at once can have more.");
         setValue(L.HELP_MULTIMODAL, "The model accepts images: the images that belong to a request are sent along with the text. Only for a model with vision: a model without it refuses the request.");
-        setValue(L.HELP_IMAGES_IN_SYSTEM, "Put the images that belong to the system prompt into the system message itself instead of a message of their own after it. Only for a server and chat template that take images there; most do not.");
+        setValue(L.HELP_IMAGE_PLACEMENT, "Where the images go. In the system message: the images of the system prompt go into the system message itself, only for a server and chat template that take images there (most do not). Before or after the text: in their message, before or after its text; Gemma 4 wants them before. Audio and files always follow the text.");
         setValue(L.HELP_AI_GPU_LOCK, "The GPU this model runs on, when other models or image and speech servers share it: every request waits for its turn on the GPU and loads it with this lock first.");
         setValue(L.HELP_GPUS, "A GPU holds one model at a time. A lock says how to load it (acquire steps) and how to free it for another lock (release steps). AIs and the backends of extensions pick a lock; after a job the GPU stays loaded until a job of another lock comes.");
         setValue(L.HELP_GPU_LOCK_MAX_CONCURRENT, "How many jobs of this lock run at once on the GPU; 0 for no limit.");
@@ -545,6 +551,9 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_EXPIRES_AFTER_DAYS, "Empty: the key does not expire.");
         setValue(L.HELP_GPU_ALWAYS_STEPS, "Run in order before every job of this lock, also when the GPU already holds it, before the acquire steps when it does not; the first failure stops the job. For a step that must always be made sure of, for example unloading the models of another program except your own.");
         setValue(L.HELP_GPU_STEP_VARIABLES, "The address, headers and body can name variables of the job: {{model}} is the model it uses (the model id of the AI, the model of the backend), {{lock}} the name of the lock. Filters: {{model | strip:openai/}} removes a prefix, {{model | last}} keeps what follows the last /, json and url escape the value. Release steps get the model of the last job of the lock; Test runs the step with the variables empty.");
+        setValue(L.HELP_FUNCTIONS_PLACEMENT, "Where the model reads the functions it can call. In the system message: only in the tools of the request, which the chat template puts there. Before or after the text: also written out in the latest user message. The tools of the request are always sent, the server needs them to recognise the calls.");
+        setValue(L.HELP_FUNCTION_RULE, "Added to every request that offers functions, for example: You act only through function calls. Never write a call as text in your reply; to use a function, call it. Helps models that write the call as text instead of making it (Gemma 4). Empty: none.");
+        setValue(L.HELP_FUNCTION_RULE_PLACEMENT, "Where the rule goes. Gemma 4 follows it better in the latest user message than in the system message.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_NARRATIVE_POV, "Point of view (POV) for the narrative.");

@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui;
 
 import com.github.enerccio.marginalia.domain.collections.AIType;
+import com.github.enerccio.marginalia.domain.collections.PromptPlacement;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.test.ComponentTree;
 import com.github.enerccio.marginalia.test.PlatformTestBase;
@@ -123,14 +124,32 @@ class AIDialogApplicationFieldsTest extends PlatformTestBase {
     }
 
     @Test
-    void imageFlagsAreKeptBySave() throws Exception {
+    void imageAndFunctionSettingsAreKeptBySave() throws Exception {
         AI ai = createAI();
         ai.setMultimodal(true);
-        ai.setImagesInSystem(true);
+        ai.setImagePlacement(PromptPlacement.SYSTEM);
+        ai.setFunctionsPlacement(PromptPlacement.BEFORE);
+        ai.setFunctionRule("Act through calls.");
+        ai.setFunctionRulePlacement(PromptPlacement.BEFORE);
         ai = aiService.save(ai);
 
         AI stored = aiService.findForUser(ai.getUuid());
         assertThat(stored.isMultimodal()).isTrue();
-        assertThat(stored.isImagesInSystem()).isTrue();
+        assertThat(stored.getImagePlacement()).isEqualTo(PromptPlacement.SYSTEM);
+        assertThat(stored.getFunctionsPlacement()).isEqualTo(PromptPlacement.BEFORE);
+        assertThat(stored.getFunctionRule()).isEqualTo("Act through calls.");
+        assertThat(stored.getFunctionRulePlacement()).isEqualTo(PromptPlacement.BEFORE);
+    }
+
+    @Test
+    void theOldImagesInSystemCheckboxReadsAsSystemPlacement() throws Exception {
+        AI ai = createAI();
+        java.lang.reflect.Field old = AI.class.getDeclaredField("loreImagesInSystem");
+        old.setAccessible(true);
+        old.set(ai, Boolean.TRUE);
+        ai = aiService.save(ai);
+
+        assertThat(aiService.findForUser(ai.getUuid()).getImagePlacement()).isEqualTo(PromptPlacement.SYSTEM);
+        assertThat(createAI().getImagePlacement()).isEqualTo(PromptPlacement.AFTER);
     }
 }

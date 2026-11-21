@@ -8,6 +8,8 @@ import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.impl.inference.GatedInferenceService;
 import com.github.enerccio.marginalia.domain.service.impl.inference.ObservedInferenceService;
+import com.github.enerccio.marginalia.domain.service.impl.inference.PlacedInferenceService;
+import com.github.enerccio.marginalia.domain.service.impl.inference.PromptPlacements;
 import com.github.enerccio.marginalia.domain.traits.SupportedAI;
 import com.github.enerccio.marginalia.extensions.ExtensionAIFactory;
 import org.apache.commons.lang3.StringUtils;
@@ -122,8 +124,10 @@ public class InferenceServicesImpl implements InferenceServices, InitializingBea
         // listeners (see InferenceSession.addListener) see the requests of the wrapper, the cached service stays plain
         List<InferenceListener> listeners = InferenceSession.listeners();
         InferenceService observed = listeners.isEmpty() ? service : new ObservedInferenceService(service, ai, listeners);
+        // the parts of the request where the AI wants them (images, function definitions, the rule), before the listeners see it
+        InferenceService placed = PromptPlacements.needed(ai) ? new PlacedInferenceService(observed, ai) : observed;
         // every request takes a connection of the AI (outside the observation: the time in the queue is not the request's)
-        return aiGate == null ? observed : new GatedInferenceService(observed, ai, aiGate, gpuService);
+        return aiGate == null ? placed : new GatedInferenceService(placed, ai, aiGate, gpuService);
     }
 
     private InferenceService cachedOrCreate(AI ai) throws Exception {

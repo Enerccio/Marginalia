@@ -279,7 +279,7 @@ public class LocalizationBundleFR extends LocalizationBundleBase {
         setValue(L.LABEL_TEXT_AND_PREVIEW, "Texte et aperçu");
         setValue(L.LABEL_PREVIEW_ONLY, "Aperçu seulement");
         setValue(L.LABEL_MULTIMODAL, "Multimodal (accepte les images)");
-        setValue(L.LABEL_IMAGES_IN_SYSTEM, "Images dans le message système");
+        setValue(L.LABEL_IMAGE_PLACEMENT, "Placement des images");
         setValue(L.LABEL_GPU_LOCK, "Verrou GPU");
         setValue(L.LABEL_NO_GPU_LOCK, "Aucun verrou GPU");
         setValue(L.LABEL_GPUS, "GPU");
@@ -311,6 +311,9 @@ public class LocalizationBundleFR extends LocalizationBundleBase {
         setValue(L.LABEL_EXPIRES_AFTER_DAYS, "Expire après (jours)");
         setValue(L.LABEL_REVOKE, "Révoquer");
         setValue(L.LABEL_ALWAYS_STEPS, "Étapes avant chaque tâche");
+        setValue(L.LABEL_FUNCTIONS_PLACEMENT, "Définitions des fonctions");
+        setValue(L.LABEL_FUNCTION_RULE, "Règle des appels de fonction");
+        setValue(L.LABEL_FUNCTION_RULE_PLACEMENT, "Placement de la règle");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "Compatible OpenAI");
@@ -358,6 +361,9 @@ public class LocalizationBundleFR extends LocalizationBundleBase {
         setValue(L.ENUM_API_SCOPE_WRITE, "Écriture : toutes les commandes");
         setValue(L.ENUM_API_SCOPE_UPDATE, "Mettre à jour l'installation");
         setValue(L.ENUM_API_SCOPE_EXTENSIONS, "Gérer les extensions");
+        setValue(L.ENUM_PROMPT_PLACEMENT_SYSTEM, "Dans le message système");
+        setValue(L.ENUM_PROMPT_PLACEMENT_BEFORE, "Avant le texte du message de l'utilisateur");
+        setValue(L.ENUM_PROMPT_PLACEMENT_AFTER, "Après le texte du message de l'utilisateur");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Erreur interne du serveur");
@@ -533,7 +539,7 @@ public class LocalizationBundleFR extends LocalizationBundleBase {
         setValue(L.HELP_UPDATE, "Met à jour une installation Docker depuis son dépôt Git sans se connecter au serveur : la version la plus récente de la branche est récupérée et construite, avec les plugins, et Marginalia est redémarré.");
         setValue(L.HELP_AI_CONNECTIONS, "Combien de requêtes peuvent être en route vers ce modèle à la fois : toutes les requêtes, de tous les utilisateurs et de tous types (votre génération, une requête annexe, un agent, un plugin). Les autres attendent leur tour, dans l'ordre d'arrivée. 1 pour un serveur avec un seul slot (par exemple un seul GPU) ; un modèle cloud qui répond à plusieurs requêtes à la fois peut en avoir plus.");
         setValue(L.HELP_MULTIMODAL, "Le modèle accepte les images : les images qui appartiennent à une requête sont envoyées avec le texte. Seulement pour un modèle avec vision : un modèle sans vision refuse la requête.");
-        setValue(L.HELP_IMAGES_IN_SYSTEM, "Mettre les images qui appartiennent au prompt système dans le message système lui-même au lieu d'un message à part après lui. Seulement pour un serveur et un modèle de chat qui y acceptent des images ; la plupart ne le font pas.");
+        setValue(L.HELP_IMAGE_PLACEMENT, "Où vont les images. Dans le message système : les images du prompt système vont dans le message système lui-même, seulement pour un serveur et un modèle de chat qui y acceptent des images (la plupart non). Avant ou après le texte : dans leur message, avant ou après son texte ; Gemma 4 les veut avant. L'audio et les fichiers suivent toujours le texte.");
         setValue(L.HELP_AI_GPU_LOCK, "Le GPU sur lequel tourne ce modèle, s'il est partagé avec d'autres modèles ou serveurs d'images et de voix : chaque requête attend son tour sur le GPU et le charge d'abord avec ce verrou.");
         setValue(L.HELP_GPUS, "Un GPU contient un modèle à la fois. Un verrou indique comment le charger (étapes d'acquisition) et comment le libérer pour un autre verrou (étapes de libération). Les IA et les serveurs des extensions choisissent un verrou ; après une tâche, le GPU reste chargé jusqu'à ce qu'une tâche d'un autre verrou arrive.");
         setValue(L.HELP_GPU_LOCK_MAX_CONCURRENT, "Combien de tâches de ce verrou tournent en même temps sur le GPU ; 0 pour aucune limite.");
@@ -545,6 +551,9 @@ public class LocalizationBundleFR extends LocalizationBundleBase {
         setValue(L.HELP_EXPIRES_AFTER_DAYS, "Vide : la clé n'expire pas.");
         setValue(L.HELP_GPU_ALWAYS_STEPS, "Exécutées dans l'ordre avant chaque tâche de ce verrou, même quand le GPU le détient déjà, avant les étapes d'acquisition quand il ne le détient pas ; le premier échec arrête la tâche. Pour une étape à garantir à chaque fois, par exemple décharger les modèles d'un autre programme sauf le vôtre.");
         setValue(L.HELP_GPU_STEP_VARIABLES, "L'adresse, les en-têtes et le corps peuvent nommer des variables de la tâche : {{model}} est le modèle qu'elle utilise (l'identifiant du modèle de l'IA, le modèle du backend), {{lock}} le nom du verrou. Filtres : {{model | strip:openai/}} retire un préfixe, {{model | last}} garde ce qui suit le dernier /, json et url échappent la valeur. Les étapes de libération reçoivent le modèle de la dernière tâche du verrou ; Tester exécute l'étape avec les variables vides.");
+        setValue(L.HELP_FUNCTIONS_PLACEMENT, "Où le modèle lit les fonctions qu'il peut appeler. Dans le message système : seulement dans les tools de la requête, que le modèle de chat y place. Avant ou après le texte : écrites aussi dans le dernier message de l'utilisateur. Les tools de la requête sont toujours envoyés, le serveur en a besoin pour reconnaître les appels.");
+        setValue(L.HELP_FUNCTION_RULE, "Ajoutée à chaque requête qui offre des fonctions, par exemple : Tu agis uniquement par des appels de fonction. N'écris jamais un appel comme texte dans ta réponse ; pour utiliser une fonction, appelle-la. Aide les modèles qui écrivent l'appel comme texte au lieu de le faire (Gemma 4). Vide : aucune.");
+        setValue(L.HELP_FUNCTION_RULE_PLACEMENT, "Où va la règle. Gemma 4 la suit mieux dans le dernier message de l'utilisateur que dans le message système.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_NARRATIVE_POV, "Point de vue (POV) du récit.");

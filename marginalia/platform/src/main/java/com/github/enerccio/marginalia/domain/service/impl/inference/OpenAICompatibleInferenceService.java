@@ -795,8 +795,9 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
     }
 
     /**
-     * A plain string content when the message has no attachments, otherwise the array of content parts: the text
-     * first, then the attachments in their order.
+     * A plain string content when the message has no attachments, otherwise the array of content parts: the attachments that go
+     * before the text (the images of an AI that wants them first, {@link LLMChatMessage#getAttachmentsBeforeText()}), the text,
+     * then the others in their order.
      */
     private static ChatCompletionUserMessageParam toUserMessage(LLMChatMessage msg) {
         ChatCompletionUserMessageParam.Builder builder = ChatCompletionUserMessageParam.builder();
@@ -805,11 +806,14 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
         }
 
         List<ChatCompletionContentPart> parts = new ArrayList<>();
+        for (LLMAttachment attachment : msg.getAttachmentsBeforeText()) {
+            parts.add(toContentPart(attachment));
+        }
         if (StringUtils.isNotEmpty(msg.getContent())) {
             parts.add(ChatCompletionContentPart.ofText(
                     ChatCompletionContentPartText.builder().text(msg.getContent()).build()));
         }
-        for (LLMAttachment attachment : msg.getAttachments()) {
+        for (LLMAttachment attachment : msg.getAttachmentsAfterText()) {
             parts.add(toContentPart(attachment));
         }
         return builder.contentOfArrayOfContentParts(parts).build();
@@ -817,7 +821,7 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
 
     /**
      * The system message: its text, and when it has images (the lore images of an AI set to send them there,
-     * {@code AI.isImagesInSystem}) the text and the images as parts. The API types the parts of a system message as text
+     * {@code AI.getImagePlacement()} {@code SYSTEM}) the text and the images as parts. The API types the parts of a system message as text
      * only, so they are written as JSON; chat templates that take images there (and servers that pass them on) read them, the
      * others refuse the request. Attachments that are not images are left out.
      */

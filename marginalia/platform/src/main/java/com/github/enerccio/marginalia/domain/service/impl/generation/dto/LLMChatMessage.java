@@ -16,6 +16,8 @@ public class LLMChatMessage {
     private transient String reasoning;
     // the thinking belongs to the turn that is going on: the calls of the loop that runs now, not an answer of an earlier turn
     private transient boolean reasoningInTurn;
+    // the images go before the text (the AI's image placement, set on the copy that is sent, see PromptPlacements)
+    private transient boolean imagesFirst;
 
     public LLMRole getRole() {
         return role;
@@ -101,6 +103,53 @@ public class LLMChatMessage {
         setReasoning(reasoning);
         this.reasoningInTurn = inTurn;
         return this;
+    }
+
+    /** Whether the images of this message go before its text, see {@link #getAttachmentsBeforeText()}. */
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    public boolean isImagesFirst() {
+        return imagesFirst;
+    }
+
+    public void setImagesFirst(boolean imagesFirst) {
+        this.imagesFirst = imagesFirst;
+    }
+
+    /**
+     * The attachments a provider puts before the text of the message: the images when {@link #isImagesFirst()}, otherwise none.
+     * Together with {@link #getAttachmentsAfterText()} they are all the attachments, each in its order.
+     */
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    public List<LLMAttachment> getAttachmentsBeforeText() {
+        return imagesFirst ? attachments.stream().filter(LLMChatMessage::isImage).toList() : List.of();
+    }
+
+    /** The attachments a provider puts after the text: all of them, or all but the images when {@link #isImagesFirst()}. */
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    public List<LLMAttachment> getAttachmentsAfterText() {
+        return imagesFirst ? attachments.stream().filter(attachment -> !isImage(attachment)).toList() : attachments;
+    }
+
+    private static boolean isImage(LLMAttachment attachment) {
+        LLMAttachment.Kind kind = attachment.getKind() != null ? attachment.getKind() : LLMAttachment.Kind.fromMimeType(attachment.getMimeType());
+        return kind == LLMAttachment.Kind.IMAGE;
+    }
+
+    /**
+     * A shallow copy to change before a request: the same role, text, tool calls, reasoning and the same attachment objects in a
+     * list of its own.
+     */
+    public LLMChatMessage copy() {
+        LLMChatMessage copy = new LLMChatMessage();
+        copy.role = role;
+        copy.content = content;
+        copy.attachments = new ArrayList<>(attachments);
+        copy.toolCalls = toolCalls != null ? new ArrayList<>(toolCalls) : null;
+        copy.toolCallId = toolCallId;
+        copy.reasoning = reasoning;
+        copy.reasoningInTurn = reasoningInTurn;
+        copy.imagesFirst = imagesFirst;
+        return copy;
     }
 
     public static LLMChatMessage of(LLMRole role, String content) {

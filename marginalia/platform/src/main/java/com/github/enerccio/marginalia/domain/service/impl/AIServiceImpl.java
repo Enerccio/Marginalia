@@ -109,7 +109,10 @@ public class AIServiceImpl extends ExtendableServiceImpl<AI, AIRepository> imple
         copy.setMaxContext(original.getMaxContext());
         copy.setMaxConcurrentRequests(original.getMaxConcurrentRequests());
         copy.setMultimodal(original.isMultimodal());
-        copy.setImagesInSystem(original.isImagesInSystem());
+        copy.setImagePlacement(original.getImagePlacement());
+        copy.setFunctionsPlacement(original.getFunctionsPlacement());
+        copy.setFunctionRule(original.getFunctionRule());
+        copy.setFunctionRulePlacement(original.getFunctionRulePlacement());
         if (original.getAttributes() != null) {
             copy.setAttributes(original.getAttributes().deepCopy());
         }

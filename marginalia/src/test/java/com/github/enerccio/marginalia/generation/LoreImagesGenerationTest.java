@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.generation;
 
 import com.github.enerccio.marginalia.domain.collections.InsertionMode;
+import com.github.enerccio.marginalia.domain.collections.PromptPlacement;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
@@ -69,9 +70,9 @@ class LoreImagesGenerationTest extends GenerationTestBase {
         return manuscriptService.save(manuscript);
     }
 
-    private void aiTakes(boolean images, boolean inSystem) throws Exception {
+    private void aiTakes(boolean images, PromptPlacement placement) throws Exception {
         ai.setMultimodal(images);
-        ai.setImagesInSystem(inSystem);
+        ai.setImagePlacement(placement);
         aiService.save(ai);
     }
 
@@ -126,7 +127,7 @@ class LoreImagesGenerationTest extends GenerationTestBase {
 
     @Test
     void theImagesOfTheLoreBlockGoIntoAnAnsweredMessageAfterTheSystemPrompt() throws Exception {
-        aiTakes(true, false);
+        aiTakes(true, PromptPlacement.AFTER);
 
         JsonArray messages = sent(book(InsertionMode.IN_LORE_BLOCK));
 
@@ -141,7 +142,7 @@ class LoreImagesGenerationTest extends GenerationTestBase {
 
     @Test
     void theImagesOfTheLoreBlockCanGoIntoTheSystemMessage() throws Exception {
-        aiTakes(true, true);
+        aiTakes(true, PromptPlacement.SYSTEM);
 
         JsonArray messages = sent(book(InsertionMode.IN_LORE_BLOCK));
 
@@ -153,7 +154,7 @@ class LoreImagesGenerationTest extends GenerationTestBase {
 
     @Test
     void theImagesOfAnEntryBeforeTheUserPromptGoWithThePrompt() throws Exception {
-        aiTakes(true, false);
+        aiTakes(true, PromptPlacement.AFTER);
 
         JsonArray messages = sent(book(InsertionMode.BEFORE_USER_PROMPT));
 
@@ -164,8 +165,19 @@ class LoreImagesGenerationTest extends GenerationTestBase {
     }
 
     @Test
+    void anAiThatWantsTheImagesFirstGetsThemBeforeTheText() throws Exception {
+        aiTakes(true, PromptPlacement.BEFORE);
+
+        JsonArray messages = sent(book(InsertionMode.BEFORE_USER_PROMPT));
+
+        JsonArray parts = messages.get(1).getAsJsonObject().getAsJsonArray("content");
+        assertThat(parts.get(0).getAsJsonObject().get("type").getAsString()).isEqualTo("image_url");
+        assertThat(parts.get(1).getAsJsonObject().get("type").getAsString()).isEqualTo("text");
+    }
+
+    @Test
     void anImageThatIsGoneIsLeftOut() throws Exception {
-        aiTakes(true, false);
+        aiTakes(true, PromptPlacement.AFTER);
         Manuscript manuscript = book(InsertionMode.IN_LORE_BLOCK);
         resourceService.softDelete(List.of(image.getUuid()));
 

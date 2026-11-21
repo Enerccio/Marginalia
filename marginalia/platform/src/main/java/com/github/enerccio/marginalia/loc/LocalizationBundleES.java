@@ -279,7 +279,7 @@ public class LocalizationBundleES extends LocalizationBundleBase {
         setValue(L.LABEL_TEXT_AND_PREVIEW, "Texto y vista previa");
         setValue(L.LABEL_PREVIEW_ONLY, "Solo vista previa");
         setValue(L.LABEL_MULTIMODAL, "Multimodal (acepta imágenes)");
-        setValue(L.LABEL_IMAGES_IN_SYSTEM, "Imágenes en el mensaje del sistema");
+        setValue(L.LABEL_IMAGE_PLACEMENT, "Posición de las imágenes");
         setValue(L.LABEL_GPU_LOCK, "Bloqueo de GPU");
         setValue(L.LABEL_NO_GPU_LOCK, "Sin bloqueo de GPU");
         setValue(L.LABEL_GPUS, "GPU");
@@ -311,6 +311,9 @@ public class LocalizationBundleES extends LocalizationBundleBase {
         setValue(L.LABEL_EXPIRES_AFTER_DAYS, "Caduca tras (días)");
         setValue(L.LABEL_REVOKE, "Revocar");
         setValue(L.LABEL_ALWAYS_STEPS, "Pasos antes de cada trabajo");
+        setValue(L.LABEL_FUNCTIONS_PLACEMENT, "Definiciones de funciones");
+        setValue(L.LABEL_FUNCTION_RULE, "Regla de llamadas a funciones");
+        setValue(L.LABEL_FUNCTION_RULE_PLACEMENT, "Posición de la regla");
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "Compatible con OpenAI");
         setValue(L.ENUM_PROTOCOL_TYPE_OPEN_CHAT_COMPLETION, "Chat Completion");
@@ -357,6 +360,9 @@ public class LocalizationBundleES extends LocalizationBundleBase {
         setValue(L.ENUM_API_SCOPE_WRITE, "Escritura: todos los comandos");
         setValue(L.ENUM_API_SCOPE_UPDATE, "Actualizar la instalación");
         setValue(L.ENUM_API_SCOPE_EXTENSIONS, "Gestionar las extensiones");
+        setValue(L.ENUM_PROMPT_PLACEMENT_SYSTEM, "En el mensaje del sistema");
+        setValue(L.ENUM_PROMPT_PLACEMENT_BEFORE, "Antes del texto del mensaje del usuario");
+        setValue(L.ENUM_PROMPT_PLACEMENT_AFTER, "Después del texto del mensaje del usuario");
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Error interno del servidor");
         setValue(L.ERROR_INFERENCE_DETAILS, "%s El proveedor dice: %s");
@@ -529,7 +535,7 @@ public class LocalizationBundleES extends LocalizationBundleBase {
         setValue(L.HELP_UPDATE, "Actualiza una instalación de Docker desde su copia de trabajo de Git sin iniciar sesión en el servidor: se descarga y compila la versión más reciente de la rama, con los plugins, y se reinicia Marginalia.");
         setValue(L.HELP_AI_CONNECTIONS, "Cuántas solicitudes pueden estar en camino a este modelo a la vez: todas las solicitudes, de todos los usuarios y de todo tipo (tu generación, una consulta lateral, un agente, un plugin). Las demás esperan su turno, en el orden en que llegaron. 1 para un servidor con un solo slot (por ejemplo una GPU); un modelo en la nube que responde a varias solicitudes a la vez puede tener más.");
         setValue(L.HELP_MULTIMODAL, "El modelo acepta imágenes: las imágenes que pertenecen a una petición se envían junto con el texto. Solo para un modelo con visión: un modelo sin visión rechaza la petición.");
-        setValue(L.HELP_IMAGES_IN_SYSTEM, "Pone las imágenes que pertenecen al prompt del sistema en el propio mensaje del sistema en lugar de en un mensaje aparte después de él. Solo para un servidor y una plantilla de chat que acepten imágenes ahí; la mayoría no lo hace.");
+        setValue(L.HELP_IMAGE_PLACEMENT, "Dónde van las imágenes. En el mensaje del sistema: las imágenes del prompt del sistema van en el propio mensaje del sistema, solo para un servidor y una plantilla de chat que acepten imágenes ahí (la mayoría no). Antes o después del texto: en su mensaje, antes o después de su texto; Gemma 4 las quiere antes. El audio y los archivos siempre van después del texto.");
         setValue(L.HELP_AI_GPU_LOCK, "La GPU en la que funciona este modelo, si la comparte con otros modelos o servidores de imagen y voz: cada petición espera su turno en la GPU y primero la carga con este bloqueo.");
         setValue(L.HELP_GPUS, "Una GPU tiene un modelo a la vez. Un bloqueo indica cómo cargarla (pasos de adquisición) y cómo liberarla para otro bloqueo (pasos de liberación). Las IA y los servidores de las extensiones eligen un bloqueo; tras un trabajo, la GPU sigue cargada hasta que llega un trabajo de otro bloqueo.");
         setValue(L.HELP_GPU_LOCK_MAX_CONCURRENT, "Cuántos trabajos de este bloqueo se ejecutan a la vez en la GPU; 0 para sin límite.");
@@ -541,6 +547,9 @@ public class LocalizationBundleES extends LocalizationBundleBase {
         setValue(L.HELP_EXPIRES_AFTER_DAYS, "Vacío: la clave no caduca.");
         setValue(L.HELP_GPU_ALWAYS_STEPS, "Se ejecutan en orden antes de cada trabajo de este bloqueo, también cuando la GPU ya lo tiene, antes de los pasos de adquisición cuando no lo tiene; el primer fallo detiene el trabajo. Para un paso que hay que asegurar siempre, por ejemplo descargar los modelos de otro programa salvo el suyo.");
         setValue(L.HELP_GPU_STEP_VARIABLES, "La dirección, las cabeceras y el cuerpo pueden nombrar variables del trabajo: {{model}} es el modelo que usa (el id del modelo de la IA, el modelo del backend), {{lock}} el nombre del bloqueo. Filtros: {{model | strip:openai/}} quita un prefijo, {{model | last}} deja lo que sigue a la última /, json y url escapan el valor. Los pasos de liberación reciben el modelo del último trabajo del bloqueo; Probar ejecuta el paso con las variables vacías.");
+        setValue(L.HELP_FUNCTIONS_PLACEMENT, "Dónde lee el modelo las funciones que puede llamar. En el mensaje del sistema: solo en los tools de la petición, que la plantilla de chat pone ahí. Antes o después del texto: también escritas en el último mensaje del usuario. Los tools de la petición se envían siempre, el servidor los necesita para reconocer las llamadas.");
+        setValue(L.HELP_FUNCTION_RULE, "Se añade a cada petición que ofrece funciones, por ejemplo: Actúas solo mediante llamadas a funciones. Nunca escribas una llamada como texto en tu respuesta; para usar una función, llámala. Ayuda a los modelos que escriben la llamada como texto en lugar de hacerla (Gemma 4). Vacío: ninguna.");
+        setValue(L.HELP_FUNCTION_RULE_PLACEMENT, "Dónde va la regla. Gemma 4 la sigue mejor en el último mensaje del usuario que en el mensaje del sistema.");
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_NARRATIVE_POV, "Punto de vista (POV) de la narración.");
         setValue(L.DESC_TEMPLATE_NARRATIVE_TENSE, "Tiempo verbal usado en la narración.");

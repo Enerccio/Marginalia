@@ -67,6 +67,18 @@ class GrokMessagesTest {
     }
 
     @Test
+    void picturesGoBeforeTheTextWhenTheMessageSaysSo() {
+        LLMChatMessage user = LLMChatMessage.of(LLMRole.USER, "Look.");
+        user.addAttachment(LLMAttachment.of("image/png", new byte[]{1, 2, 3}));
+        user.setImagesFirst(true);
+
+        JsonNode content = GrokMessages.messages(List.of(user)).get(0).path("content");
+
+        assertEquals("image_url", content.get(0).path("type").asText());
+        assertEquals("text", content.get(1).path("type").asText());
+    }
+
+    @Test
     void whatGrokCannotReadIsRefused() {
         LLMChatMessage user = LLMChatMessage.of(LLMRole.USER, "Read.");
         user.addAttachment(LLMAttachment.of("application/pdf", new byte[]{1}));

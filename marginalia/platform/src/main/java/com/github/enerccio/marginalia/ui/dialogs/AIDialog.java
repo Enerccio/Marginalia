@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.ui.dialogs;
 
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.collections.AIType;
+import com.github.enerccio.marginalia.domain.collections.PromptPlacement;
 import com.github.enerccio.marginalia.domain.collections.ReasoningEffort;
 import com.github.enerccio.marginalia.domain.collections.ReasoningPassthrough;
 import com.github.enerccio.marginalia.domain.components.TokenizerChoice;
@@ -83,7 +84,10 @@ public class AIDialog extends Dialog implements LLMInteract {
     private GpuLockSelect gpuLockSelect;
     private Checkbox needsJailbreakCheckbox;
     private Checkbox multimodalCheckbox;
-    private Checkbox imagesInSystemCheckbox;
+    private ComboBox<PromptPlacement> imagePlacementCombo;
+    private ComboBox<PromptPlacement> functionsPlacementCombo;
+    private TextArea functionRuleField;
+    private ComboBox<PromptPlacement> functionRulePlacementCombo;
     private TextArea jailbreakField;
     private Checkbox enabledReasoningCheckbox;
     private ComboBox<ReasoningEffort> reasoningEffortCombo;
@@ -171,7 +175,10 @@ public class AIDialog extends Dialog implements LLMInteract {
         generalFormLayout.add(maxConcurrentField, 2);
         generalFormLayout.add(gpuLockSelect, 2);
         generalFormLayout.add(multimodalCheckbox, 2);
-        generalFormLayout.add(imagesInSystemCheckbox, 2);
+        generalFormLayout.add(imagePlacementCombo, 2);
+        generalFormLayout.add(functionsPlacementCombo, 2);
+        generalFormLayout.add(functionRuleField, 2);
+        generalFormLayout.add(functionRulePlacementCombo, 2);
 
         tabSheet.add(loc.getValue(L.LABEL_GENERAL_SETTINGS), generalFormLayout);
 
@@ -322,10 +329,16 @@ public class AIDialog extends Dialog implements LLMInteract {
 
         multimodalCheckbox = new Checkbox(loc.getValue(L.LABEL_MULTIMODAL));
         multimodalCheckbox.setHelperText(loc.getValue(L.HELP_MULTIMODAL));
-        imagesInSystemCheckbox = new Checkbox(loc.getValue(L.LABEL_IMAGES_IN_SYSTEM));
-        imagesInSystemCheckbox.setHelperText(loc.getValue(L.HELP_IMAGES_IN_SYSTEM));
-        imagesInSystemCheckbox.setEnabled(false);
-        multimodalCheckbox.addValueChangeListener(event -> imagesInSystemCheckbox.setEnabled(Boolean.TRUE.equals(event.getValue())));
+        imagePlacementCombo = placementCombo(loc, L.LABEL_IMAGE_PLACEMENT, L.HELP_IMAGE_PLACEMENT, PromptPlacement.AFTER);
+        imagePlacementCombo.setEnabled(false);
+        multimodalCheckbox.addValueChangeListener(event -> imagePlacementCombo.setEnabled(Boolean.TRUE.equals(event.getValue())));
+
+        functionsPlacementCombo = placementCombo(loc, L.LABEL_FUNCTIONS_PLACEMENT, L.HELP_FUNCTIONS_PLACEMENT, PromptPlacement.SYSTEM);
+        functionRuleField = new TextArea(loc.getValue(L.LABEL_FUNCTION_RULE));
+        functionRuleField.setHelperText(loc.getValue(L.HELP_FUNCTION_RULE));
+        functionRuleField.setWidthFull();
+        ResizableTextArea.install(loc, functionRuleField, "80px");
+        functionRulePlacementCombo = placementCombo(loc, L.LABEL_FUNCTION_RULE_PLACEMENT, L.HELP_FUNCTION_RULE_PLACEMENT, PromptPlacement.AFTER);
 
         needsJailbreakCheckbox = new Checkbox(loc.getValue(L.LABEL_NEEDS_JAILBREAK));
         jailbreakField = new TextArea(loc.getValue(L.LABEL_JAILBREAK));
@@ -408,6 +421,41 @@ public class AIDialog extends Dialog implements LLMInteract {
         testTokenizerButton = new Button(loc.getValue(L.LABEL_TEST_TOKENIZER), event -> testTokenizer());
     }
 
+    /**
+     * The image placement an AI of the type can have: only the OpenAI-compatible request carries images in the system message, the
+     * others get {@link PromptPlacement#AFTER} for it (and for none).
+     */
+    private static PromptPlacement imagePlacementFor(AIType type, PromptPlacement chosen) {
+        if (chosen == null || (chosen == PromptPlacement.SYSTEM && type != AIType.OPEN_AI_COMPATIBLE)) {
+            return PromptPlacement.AFTER;
+        }
+        return chosen;
+    }
+
+    /** Offers the image placements of the type, keeping the chosen one when the type has it. */
+    private static void showImagePlacements(ComboBox<PromptPlacement> combo, AIType type) {
+        PromptPlacement chosen = combo.getValue();
+        combo.setItems(type == AIType.OPEN_AI_COMPATIBLE ? List.of(PromptPlacement.values())
+                : List.of(PromptPlacement.BEFORE, PromptPlacement.AFTER));
+        combo.setValue(imagePlacementFor(type, chosen));
+    }
+
+    /** A choice of {@link PromptPlacement}, the value set to {@code initial}. */
+    private static ComboBox<PromptPlacement> placementCombo(Localization loc, L label, L help, PromptPlacement initial) {
+        ComboBox<PromptPlacement> combo = new ComboBox<>(loc.getValue(label));
+        combo.setItems(PromptPlacement.values());
+        combo.setItemLabelGenerator(placement -> loc.getValue(switch (placement) {
+            case SYSTEM -> L.ENUM_PROMPT_PLACEMENT_SYSTEM;
+            case BEFORE -> L.ENUM_PROMPT_PLACEMENT_BEFORE;
+            case AFTER -> L.ENUM_PROMPT_PLACEMENT_AFTER;
+        }));
+        combo.setHelperText(loc.getValue(help));
+        combo.setAllowCustomValue(false);
+        combo.setValue(initial);
+        combo.setWidthFull();
+        return combo;
+    }
+
     @PublicAPI(from = "1.3.0",
             returns = @APIReturn(type = void.class),
             parameters = {@APIParameter(name = "type", type = AIType.class)},
@@ -416,7 +464,7 @@ public class AIDialog extends Dialog implements LLMInteract {
                     @APILocals(name = "factories", type = List.class)})
     private void updateDynamicFields(AIType type) {
         dynamicFormLayout.removeAll();
-        imagesInSystemCheckbox.setVisible(type == AIType.OPEN_AI_COMPATIBLE);
+        showImagePlacements(imagePlacementCombo, type);
         if (type == AIType.OPEN_AI_COMPATIBLE) {
             HorizontalLayout apiKeyLayout = new HorizontalLayout();
             apiKeyLayout.setWidthFull();
@@ -530,7 +578,10 @@ public class AIDialog extends Dialog implements LLMInteract {
         // a lock that is chosen shows even when the administrator removed all of them meanwhile
         gpuLockSelect.setVisible(gpuLockSelect.isVisible() || ai.getGpuLock() != null);
         multimodalCheckbox.setValue(ai.isMultimodal());
-        imagesInSystemCheckbox.setValue(ai.isImagesInSystem());
+        imagePlacementCombo.setValue(imagePlacementFor(ai.getAiType(), ai.getImagePlacement()));
+        functionsPlacementCombo.setValue(ai.getFunctionsPlacement());
+        functionRuleField.setValue(StringUtils.defaultString(ai.getFunctionRule()));
+        functionRulePlacementCombo.setValue(ai.getFunctionRulePlacement());
         jailbreakField.setValue(StringUtils.defaultString(ai.getJailbreak()));
         needsJailbreakCheckbox.setValue(Boolean.TRUE.equals(ai.getNeedsJailbreak()));
         jailbreakField.setEnabled(Boolean.TRUE.equals(ai.getNeedsJailbreak()));
@@ -954,8 +1005,10 @@ public class AIDialog extends Dialog implements LLMInteract {
                 ai.setGpuLock(gpuLockSelect.getLockUuid());
             }
             ai.setMultimodal(multimodalCheckbox.getValue());
-            // only the OpenAI-compatible request carries images in the system message
-            ai.setImagesInSystem(type == AIType.OPEN_AI_COMPATIBLE && imagesInSystemCheckbox.getValue());
+            ai.setImagePlacement(imagePlacementFor(type, imagePlacementCombo.getValue()));
+            ai.setFunctionsPlacement(Objects.requireNonNullElse(functionsPlacementCombo.getValue(), PromptPlacement.SYSTEM));
+            ai.setFunctionRule(functionRuleField.getValue());
+            ai.setFunctionRulePlacement(Objects.requireNonNullElse(functionRulePlacementCombo.getValue(), PromptPlacement.AFTER));
             ai.setJailbreak(jailbreakField.getValue());
             ai.setNeedsJailbreak(needsJailbreakCheckbox.getValue());
             ai.setEnabledReasoning(enabledReasoningCheckbox.getValue());

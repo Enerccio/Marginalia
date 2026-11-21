@@ -279,7 +279,7 @@ public class LocalizationBundleKO extends LocalizationBundleBase {
         setValue(L.LABEL_TEXT_AND_PREVIEW, "텍스트와 미리 보기");
         setValue(L.LABEL_PREVIEW_ONLY, "미리 보기만");
         setValue(L.LABEL_MULTIMODAL, "멀티모달 (이미지 지원)");
-        setValue(L.LABEL_IMAGES_IN_SYSTEM, "시스템 메시지의 이미지");
+        setValue(L.LABEL_IMAGE_PLACEMENT, "이미지 위치");
         setValue(L.LABEL_GPU_LOCK, "GPU 잠금");
         setValue(L.LABEL_NO_GPU_LOCK, "GPU 잠금 없음");
         setValue(L.LABEL_GPUS, "GPU");
@@ -311,6 +311,9 @@ public class LocalizationBundleKO extends LocalizationBundleBase {
         setValue(L.LABEL_EXPIRES_AFTER_DAYS, "만료까지 (일)");
         setValue(L.LABEL_REVOKE, "폐기");
         setValue(L.LABEL_ALWAYS_STEPS, "매 작업 전 단계");
+        setValue(L.LABEL_FUNCTIONS_PLACEMENT, "함수 정의 위치");
+        setValue(L.LABEL_FUNCTION_RULE, "함수 호출 규칙");
+        setValue(L.LABEL_FUNCTION_RULE_PLACEMENT, "규칙 위치");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 호환");
@@ -358,6 +361,9 @@ public class LocalizationBundleKO extends LocalizationBundleBase {
         setValue(L.ENUM_API_SCOPE_WRITE, "쓰기: 모든 명령");
         setValue(L.ENUM_API_SCOPE_UPDATE, "설치 업데이트");
         setValue(L.ENUM_API_SCOPE_EXTENSIONS, "확장 기능 관리");
+        setValue(L.ENUM_PROMPT_PLACEMENT_SYSTEM, "시스템 메시지 안");
+        setValue(L.ENUM_PROMPT_PLACEMENT_BEFORE, "사용자 메시지 본문 앞");
+        setValue(L.ENUM_PROMPT_PLACEMENT_AFTER, "사용자 메시지 본문 뒤");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "내부 서버 오류");
@@ -533,7 +539,7 @@ public class LocalizationBundleKO extends LocalizationBundleBase {
         setValue(L.HELP_UPDATE, "서버에 로그인하지 않고 Git 체크아웃에서 Docker 설치를 업데이트합니다: 브랜치의 최신 버전을 가져와 플러그인과 함께 빌드하고 Marginalia를 다시 시작합니다.");
         setValue(L.HELP_AI_CONNECTIONS, "이 모델로 동시에 진행될 수 있는 요청 수: 모든 사용자의 모든 종류의 요청(내 생성, 사이드 쿼리, 에이전트, 플러그인). 나머지는 들어온 순서대로 차례를 기다립니다. 슬롯이 하나인 서버(예: GPU 하나)는 1, 여러 요청에 동시에 응답하는 클라우드 모델은 더 크게 설정할 수 있습니다.");
         setValue(L.HELP_MULTIMODAL, "모델이 이미지를 받습니다: 요청에 속한 이미지가 텍스트와 함께 전송됩니다. 비전이 있는 모델에만 해당합니다: 비전이 없는 모델은 요청을 거부합니다.");
-        setValue(L.HELP_IMAGES_IN_SYSTEM, "시스템 프롬프트에 속한 이미지를 그 뒤의 별도 메시지가 아니라 시스템 메시지 자체에 넣습니다. 거기에서 이미지를 받는 서버와 채팅 템플릿에만 해당하며, 대부분은 받지 않습니다.");
+        setValue(L.HELP_IMAGE_PLACEMENT, "이미지가 들어갈 위치입니다. 시스템 메시지 안: 시스템 프롬프트의 이미지를 시스템 메시지 자체에 넣습니다. 거기에서 이미지를 받는 서버와 채팅 템플릿에만 해당합니다(대부분은 받지 않음). 본문 앞/뒤: 이미지가 속한 메시지의 본문 앞이나 뒤에 넣습니다. Gemma 4는 앞을 원합니다. 오디오와 파일은 항상 본문 뒤에 옵니다.");
         setValue(L.HELP_AI_GPU_LOCK, "다른 모델이나 이미지·음성 서버와 공유하는 GPU에서 이 모델이 동작할 때 설정합니다. 각 요청은 GPU 차례를 기다리고 먼저 이 잠금으로 GPU를 로드합니다.");
         setValue(L.HELP_GPUS, "GPU는 한 번에 하나의 모델만 담습니다. 잠금은 그것을 로드하는 방법(획득 단계)과 다른 잠금을 위해 비우는 방법(해제 단계)을 정합니다. AI와 확장 기능의 백엔드가 잠금을 고릅니다. 작업이 끝나도 다른 잠금의 작업이 올 때까지 GPU는 로드된 상태로 남습니다.");
         setValue(L.HELP_GPU_LOCK_MAX_CONCURRENT, "이 잠금의 작업을 GPU에서 동시에 몇 개 실행할지. 0이면 제한 없음.");
@@ -545,6 +551,9 @@ public class LocalizationBundleKO extends LocalizationBundleBase {
         setValue(L.HELP_EXPIRES_AFTER_DAYS, "비워 두면 키가 만료되지 않습니다.");
         setValue(L.HELP_GPU_ALWAYS_STEPS, "이 잠금의 모든 작업 전에 순서대로 실행됩니다. GPU가 이미 이 잠금을 가지고 있을 때도 실행되며, 그렇지 않을 때는 획득 단계 전에 실행됩니다. 첫 실패에서 작업이 멈춥니다. 다른 프로그램의 모델을 내 모델만 남기고 언로드하는 것처럼 매번 확인해야 하는 단계용입니다.");
         setValue(L.HELP_GPU_STEP_VARIABLES, "주소, 헤더, 본문에서 작업의 변수를 쓸 수 있습니다: {{model}}은 작업이 쓰는 모델(AI의 모델 ID, 백엔드의 모델), {{lock}}은 잠금의 이름입니다. 필터: {{model | strip:openai/}}는 접두사를 없애고, {{model | last}}는 마지막 / 뒤를 남기며, json과 url은 값을 이스케이프합니다. 해제 단계에는 그 잠금의 마지막 작업의 모델이 들어갑니다. 테스트는 변수를 비운 채 실행합니다.");
+        setValue(L.HELP_FUNCTIONS_PLACEMENT, "모델이 호출할 수 있는 함수를 읽는 위치입니다. 시스템 메시지 안: 요청의 tools에만 있으며 채팅 템플릿이 그곳에 넣습니다. 본문 앞/뒤: 최신 사용자 메시지에도 적어 넣습니다. 서버가 호출을 인식하려면 필요하므로 요청의 tools는 항상 보냅니다.");
+        setValue(L.HELP_FUNCTION_RULE, "함수를 제공하는 모든 요청에 추가됩니다. 예: 너는 함수 호출로만 행동한다. 답변에 호출을 텍스트로 쓰지 말고, 함수를 쓰려면 호출하라. 호출하는 대신 텍스트로 쓰는 모델(Gemma 4)에 도움이 됩니다. 비워 두면 없음.");
+        setValue(L.HELP_FUNCTION_RULE_PLACEMENT, "규칙이 들어갈 위치입니다. Gemma 4는 시스템 메시지보다 최신 사용자 메시지에 있을 때 더 잘 따릅니다.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_NARRATIVE_POV, "서술의 시점(POV).");

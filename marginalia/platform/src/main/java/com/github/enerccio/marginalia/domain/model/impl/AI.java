@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.domain.model.impl;
 
 import com.github.enerccio.marginalia.domain.collections.AIType;
+import com.github.enerccio.marginalia.domain.collections.PromptPlacement;
 import com.github.enerccio.marginalia.domain.collections.ReasoningEffort;
 import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
@@ -86,21 +87,84 @@ public class AI extends ExtendableEntity {
     }
 
     /**
-     * The images that belong to the system prompt go into the system message itself
-     * (OpenAI-compatible models whose chat template takes images there), not into a user message of their own after it.
-     * Off when never set; used only with {@link #isMultimodal()}. The field keeps its old name, the key of the stored
-     * extended attribute.
+     * The old setting "images in the system message" ({@code true} is {@link PromptPlacement#SYSTEM}), read when
+     * {@link #imagePlacement} was never set; the field keeps its name, the key of the stored extended attribute.
      */
     @Transient
     @ExtendedAttribute
     private Boolean loreImagesInSystem;
 
-    public boolean isImagesInSystem() {
-        return Boolean.TRUE.equals(loreImagesInSystem);
+    /**
+     * Where the images go, used only with {@link #isMultimodal()}: {@link PromptPlacement#SYSTEM} the images of the system prompt into
+     * the system message itself (OpenAI-compatible models whose chat template takes images there; the images of the other
+     * messages after their text), {@link PromptPlacement#BEFORE} before the text of their message (as Gemma 4 wants it, the
+     * images of the system prompt in a message of their own), {@link PromptPlacement#AFTER} after it (the default). Audio and
+     * other files always follow the text.
+     */
+    @Transient
+    @ExtendedAttribute
+    private PromptPlacement imagePlacement;
+
+    /**
+     * Where the definitions of the functions go: {@link PromptPlacement#SYSTEM} only in the {@code tools} of the request (the
+     * chat template puts them into the system turn; the default), {@link PromptPlacement#BEFORE} / {@link PromptPlacement#AFTER}
+     * written out also at the start / end of the latest user message. The {@code tools} of the request are always sent: the
+     * server needs them to recognise the calls.
+     */
+    @Transient
+    @ExtendedAttribute
+    private PromptPlacement functionsPlacement;
+
+    /**
+     * A rule added to every request that offers functions, such as "you act only through function calls, never write a call
+     * as text"; null or blank: none.
+     */
+    @Transient
+    @ExtendedAttribute
+    private String functionRule;
+
+    /** Where the {@link #functionRule} goes; {@link PromptPlacement#AFTER} when never set. */
+    @Transient
+    @ExtendedAttribute
+    private PromptPlacement functionRulePlacement;
+
+    /** Never null: the setting, or the old checkbox ({@link PromptPlacement#SYSTEM} / {@link PromptPlacement#AFTER}). */
+    public PromptPlacement getImagePlacement() {
+        if (imagePlacement != null) {
+            return imagePlacement;
+        }
+        return Boolean.TRUE.equals(loreImagesInSystem) ? PromptPlacement.SYSTEM : PromptPlacement.AFTER;
     }
 
-    public void setImagesInSystem(boolean imagesInSystem) {
-        this.loreImagesInSystem = imagesInSystem ? Boolean.TRUE : null;
+    public void setImagePlacement(PromptPlacement imagePlacement) {
+        this.imagePlacement = imagePlacement == PromptPlacement.AFTER ? null : imagePlacement;
+        this.loreImagesInSystem = null;
+    }
+
+    /** Never null, {@link PromptPlacement#SYSTEM} when it was not set. */
+    public PromptPlacement getFunctionsPlacement() {
+        return functionsPlacement == null ? PromptPlacement.SYSTEM : functionsPlacement;
+    }
+
+    public void setFunctionsPlacement(PromptPlacement functionsPlacement) {
+        this.functionsPlacement = functionsPlacement == PromptPlacement.SYSTEM ? null : functionsPlacement;
+    }
+
+    public String getFunctionRule() {
+        return functionRule;
+    }
+
+    public void setFunctionRule(String functionRule) {
+        this.functionRule = functionRule == null || functionRule.isBlank() ? null : functionRule.strip();
+    }
+
+    /** Never null, {@link PromptPlacement#AFTER} when it was not set. */
+    public PromptPlacement getFunctionRulePlacement() {
+        return functionRulePlacement == null ? PromptPlacement.AFTER : functionRulePlacement;
+    }
+
+    public void setFunctionRulePlacement(PromptPlacement functionRulePlacement) {
+        this.functionRulePlacement = functionRulePlacement == PromptPlacement.AFTER ? null : functionRulePlacement;
     }
 
     /**
