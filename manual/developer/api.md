@@ -80,7 +80,7 @@ it), `413` (too large), `422` (a command that reported an error, an extension th
 
 | Call | Scope | |
 |---|---|---|
-| `GET /api/v1/version` | any | `version`, `commit`, `commitFull`, `commitTime`, `buildTime` of the running build (`BuildInfo`), `api` (1). |
+| `GET /api/v1/version` | any | `application` (the name of `BuildInfo`, `Marginalia`), `version`, `commit`, `commitFull`, `commitTime`, `buildTime` of the running build (`BuildInfo`), `api` (1). |
 | `GET /api/v1/me` | any | The user and the key (`scopes` are the effective ones). |
 | `GET /api/v1/books` | READ | The books of the user: `uuid`, `name`, `folder`. |
 | `GET /api/v1/commands` | READ | The commands the key may run: `name`, `title`, `description`, `async`, `readOnly`, `destructive`, and `forms` (the overloads: `parameters` with `name`, `type`, `optional`, `default`, `allowed`, `min`, `max`, and `returns`). |

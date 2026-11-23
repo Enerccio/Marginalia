@@ -166,6 +166,10 @@ public abstract class LoginCheckRoute extends Div implements ApplicationEntryPoi
             }
         }
         try {
+            if (StringUtils.isAllBlank(cookieLogin, cookieIdentifier, cookieSecret)) {
+                // no saved login of this application: nothing to delete
+                return null;
+            }
             if (StringUtils.isAnyBlank(cookieLogin, cookieIdentifier, cookieSecret)) {
                 deleteRememberMeCookies();
                 return null;
@@ -234,19 +238,36 @@ public abstract class LoginCheckRoute extends Div implements ApplicationEntryPoi
         }
     }
 
-    @PublicAPI(from = "1.1.0",
+    /**
+     * Start of the names of the saved login cookies: {@code <namespace>_<context>_<page class>}, only
+     * {@code <context>_<page class>} without a namespace (Marginalia's names before 1.9.0).
+     */
+    @PublicAPI(from = "1.9.0",
             returns = @APIReturn(type = String.class),
             locals = {@APILocals(name = "rawContext", type = String.class),
-                    @APILocals(name = "context", type = String.class)})
+                    @APILocals(name = "context", type = String.class),
+                    @APILocals(name = "namespace", type = String.class)})
     private String getCookiePrefix() {
         String rawContext = VaadinRequest.getCurrent().getContextPath();
         String context = (StringUtils.isBlank(rawContext) || "/".equals(rawContext)) ? "root" : rawContext.substring(1);
-        return context + "_" + this.getClass().getSimpleName();
+        String namespace = getCookieNamespace();
+        return (StringUtils.isBlank(namespace) ? "" : namespace + "_") + context + "_" + this.getClass().getSimpleName();
     }
 
-    @PublicAPI(from = "1.1.0",
+    /**
+     * The application's name in its cookie names, {@link Configuration#getCookieNamespace()} (the setting
+     * {@code cookieNamespace} of the {@code configuration} bean); empty keeps the names without one.
+     */
+    @PublicAPI(from = "1.9.0",
+            returns = @APIReturn(type = String.class))
+    protected String getCookieNamespace() {
+        return configuration.getCookieNamespace();
+    }
+
+    @PublicAPI(from = "1.9.0",
             returns = @APIReturn(type = void.class),
-            locals = {@APILocals(name = "saveLoginCheckBox", type = Checkbox.class)})
+            locals = {@APILocals(name = "saveLoginCheckBox", type = Checkbox.class),
+                    @APILocals(name = "wasSavedCookie", type = String.class)})
     private void login() {
         if (loginOverlay == null) {
             loginOverlay = new PermissiveLoginOverlay();
@@ -257,9 +278,10 @@ public abstract class LoginCheckRoute extends Div implements ApplicationEntryPoi
 
             Checkbox saveLoginCheckBox = new Checkbox(loc.getValue(L.LABEL_SAVE_LOGIN));
             saveLoginCheckBox.setWidth("100%");
+            String wasSavedCookie = getCookiePrefix() + PERSISTED_LOGIN_COOKIE_WAS_SAVED;
             if (VaadinService.getCurrentRequest().getCookies() != null)
                 saveLoginCheckBox.setValue(Arrays.stream(VaadinService.getCurrentRequest().getCookies()).anyMatch(cookie ->
-                        cookie.getName().endsWith(this.getClass().getSimpleName() + PERSISTED_LOGIN_COOKIE_WAS_SAVED)));
+                        wasSavedCookie.equals(cookie.getName())));
 
             loginOverlay.getCustomFormArea().add(saveLoginCheckBox);
 
@@ -319,6 +341,15 @@ public abstract class LoginCheckRoute extends Div implements ApplicationEntryPoi
         return false;
     }
 
+    /**
+     * The line under the login form: the name and version of the application ({@link BuildInfo#current()}).
+     */
+    @PublicAPI(from = "1.9.0",
+            returns = @APIReturn(type = String.class))
+    protected String getAppAdditionalInformation() {
+        return BuildInfo.current().getNamedShortText();
+    }
+
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = LoginI18n.class),
             locals = {@APILocals(name = "i18n", type = LoginI18n.class)})
@@ -334,7 +365,7 @@ public abstract class LoginCheckRoute extends Div implements ApplicationEntryPoi
         i18n.getForm().setSubmit(loc.getValue(L.LABEL_LOGIN));
 
         i18n.getForm().setForgotPassword(loc.getValue(L.LABEL_FORGOT_PASSWORD));
-        i18n.setAdditionalInformation("Marginalia " + BuildInfo.current().getShortText());
+        i18n.setAdditionalInformation(getAppAdditionalInformation());
         i18n.getErrorMessage().setTitle(loc.getValue(L.LABEL_AUTHENTICATION_FAILED));
         i18n.getErrorMessage().setMessage(loc.getValue(L.MSG_AUTHENTICATION_FAILED_INFO));
 

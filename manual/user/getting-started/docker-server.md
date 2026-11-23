@@ -86,6 +86,8 @@ Marginalia's own settings are environment variables of the service, next to `JAV
 | `MARGINALIA_ALLOW_PERSISTENT_LOGIN` | `true` | `false` hides *Save login*. |
 | `MARGINALIA_PERSISTENT_LOGIN_TTL` | `2592000` | How long a saved login lasts, in seconds (30 days). |
 | `MARGINALIA_TRUSTED_PROXIES` | empty | Reverse proxies whose `X-Forwarded-For` header is believed, see [below](#https-and-reverse-proxy). Replaces `-DtrustedProxies`. |
+| `MARGINALIA_COOKIE_NAMESPACE` | empty | A name put in front of the names of the *Save login* cookies, see [Several applications on one host](#several-applications-on-one-host). Setting it logs out everyone who saved the login. |
+| `MARGINALIA_SESSION_COOKIE` | `JSESSIONID` | Name of the session cookie, see [Several applications on one host](#several-applications-on-one-host). |
 
 The same settings can be given as Java options, `-Dmarginalia.default-language=ja`, which take precedence over the
 variables. A value that does not fit (text for the number of seconds, an unknown language) stops Marginalia from
@@ -144,6 +146,15 @@ while. Keep the header in the proxy configuration (as above) and set `MARGINALIA
 in the `environment` of `docker-compose.yml`. A proxy on the Docker host reaches the container from the Docker
 network, normally `172.16.0.0/12`; several entries are separated by commas. The throttling is kept in memory,
 restarting Marginalia clears it.
+
+### Several applications on one host
+
+Browsers keep cookies per host name, **not per port**: Marginalia on `localhost:8080` and another program on
+`localhost:8090` (or two programs on one domain behind one proxy) share the cookies of `localhost`. When the other program
+is a Java web application too (another application built on Marginalia's platform, a second Marginalia), both use the
+session cookie `JSESSIONID` and every visit to one logs you out of the other. Give one of them other names:
+`MARGINALIA_SESSION_COOKIE=MARGINALIA2SESSION` and `MARGINALIA_COOKIE_NAMESPACE=second` (the *Save login* cookies). A
+separate host name for each (`marginalia.example.com`, `other.example.com`) avoids it without settings.
 
 ## Models on the same machine
 

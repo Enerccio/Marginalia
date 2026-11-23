@@ -272,7 +272,7 @@ public class ApiDispatcher {
     static JsonObject version() {
         BuildInfo info = BuildInfo.current();
         JsonObject json = new JsonObject();
-        json.addProperty("application", "Marginalia");
+        json.addProperty("application", info.getName());
         json.addProperty("version", info.getVersion());
         json.addProperty("commit", info.getCommit());
         json.addProperty("commitFull", info.getCommitFull());

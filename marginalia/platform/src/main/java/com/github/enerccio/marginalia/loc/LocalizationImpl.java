@@ -37,6 +37,7 @@ public class LocalizationImpl implements Localization, InitializingBean {
      */
     private final Map<Class<?>, Map<Language, TextBundle<?>>> texts = new ConcurrentHashMap<>();
     private Language defaultLanguage = Language.EN;
+    private final List<LocalizationOverride> overrides = new java.util.concurrent.CopyOnWriteArrayList<>();
 
     @Autowired
     private SessionPoint sessionPoint;
@@ -67,6 +68,18 @@ public class LocalizationImpl implements Localization, InitializingBean {
     public void setTexts(List<TextBundle<?>> texts) {
         for (TextBundle<?> bundle : texts) {
             registerTexts(bundle);
+        }
+    }
+
+    /**
+     * The {@link LocalizationOverride} beans of the context, the texts of the application on the platform that win over
+     * the bundles' ones.
+     */
+    @Autowired(required = false)
+    public void setOverrides(List<LocalizationOverride> overrides) {
+        this.overrides.clear();
+        if (overrides != null) {
+            this.overrides.addAll(overrides);
         }
     }
 
@@ -172,12 +185,41 @@ public class LocalizationImpl implements Localization, InitializingBean {
      * has it.
      */
     private String text(Language language, LocalizationKey key) {
-        Map<Language, TextBundle<?>> byLanguage = texts.get(key.getDeclaringClass());
-        if (byLanguage == null) {
-            return null;
+        Map<Language, TextBundle<?>> byLanguage = texts.getOrDefault(key.getDeclaringClass(), Map.of());
+        String text = null;
+        if (language != null) {
+            text = overrideText(language, key);
+            if (text == null) {
+                text = lookup(byLanguage.get(language), key);
+            }
         }
-        String text = language == null ? null : lookup(byLanguage.get(language), key);
-        return text != null ? text : lookup(byLanguage.get(defaultLanguage), key);
+        if (text == null) {
+            text = overrideText(defaultLanguage, key);
+        }
+        if (text == null) {
+            text = lookup(byLanguage.get(defaultLanguage), key);
+        }
+        if (text == null || overrides.isEmpty()) {
+            return text;
+        }
+        Language shown = language == null ? defaultLanguage : language;
+        for (LocalizationOverride override : overrides) {
+            text = override.transform(shown, key, text);
+            if (text == null) {
+                return null;
+            }
+        }
+        return text;
+    }
+
+    private String overrideText(Language language, LocalizationKey key) {
+        for (LocalizationOverride override : overrides) {
+            String text = override.text(language, key);
+            if (text != null) {
+                return text;
+            }
+        }
+        return null;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -209,9 +251,10 @@ public class LocalizationImpl implements Localization, InitializingBean {
             if (bundle == null) {
                 continue;
             }
-            for (Map.Entry<? extends LocalizationKey, String> entry : bundle.getMessages().entrySet()) {
-                if (entry.getValue().equals(text)) {
-                    return entry.getKey();
+            for (LocalizationKey key : bundle.getMessages().keySet()) {
+                // the text as getValue gives it, with the overrides
+                if (text != null && text.equals(text(language, key))) {
+                    return key;
                 }
             }
         }

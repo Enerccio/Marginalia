@@ -218,6 +218,8 @@ the older keys of `src/main/webapp/config/configuration.properties`, which stay 
 | `marginalia.allow-persistent-login` (`MARGINALIA_ALLOW_PERSISTENT_LOGIN`) | `allowPersistentLogin` | `true` | Whether *Save login* is offered. |
 | `marginalia.persistent-login-ttl` (`MARGINALIA_PERSISTENT_LOGIN_TTL`) | `persistentLoginTTL` | `2592000` | Lifetime of saved logins in seconds (30 days). |
 | `marginalia.trusted-proxies` (`MARGINALIA_TRUSTED_PROXIES`) | `trustedProxies` | empty | Reverse proxies (addresses or CIDR ranges, comma separated) whose `X-Forwarded-For` header is believed when finding the client address for [login throttling](services.md#login-throttling). Empty: the header is ignored. `-DtrustedProxies=...` still works. |
+| `marginalia.cookie-namespace` (`MARGINALIA_COOKIE_NAMESPACE`) | | empty | The application's name at the start of the *Save login* cookie names (`Configuration.cookieNamespace`, `LoginCheckRoute.getCookieNamespace`): `<namespace>_root_Main_llllm_rememberMe_login`. Empty keeps the names without it. Cookies are scoped to the host, not the port, so two applications on one host need different names. |
+| `marginalia.session-cookie` (`MARGINALIA_SESSION_COOKIE`) | | `JSESSIONID` | Name of the servlet session cookie, set by `SessionCookie.configure` in `WebappApplicationInitializer` (before the context starts, so it is read from the system property / environment, not by the placeholder). An application on the platform passes its own default name to `SessionCookie.configure`. |
 
 `Configuration.hmac(purpose, data)` is the keyed hash for identifiers that leave the application (`InferenceSession`, the `X-Session-ID`): HMAC-SHA256 with a subkey derived from `secret.key` and the purpose, the first 128 bits as 32 hex characters, so the value is stable in an installation and reveals nothing about the data. The application version in `container-config.xml` is 6 (`ExtendedContentMigration`, see [Database](database.md)).
 
@@ -584,6 +586,22 @@ flowchart LR
   `OsgiServiceImpl` registers them after `onExtensionLoad` and removes them when the extension is unloaded (see
   [Example plugin](plugins/example.md#walkthrough-chinese-localization)). A language that already has a bundle is
   refused, so an extension can't replace English.
+- **Overriding texts (an application on the platform).** A `LocalizationOverride` bean (`loc`) in the Spring XML of the
+  application changes texts without a subclass of each language's bundle; `LocalizationImpl` takes every such bean of
+  the context (`setOverrides`, autowired, optional). `texts` maps a language code, or `*` for every language, to keys
+  (`L.LABEL_CLOSE`, `M_L.LABEL_BOOK`, or the constant alone for `L`) and their texts; `replacements` maps a language
+  code or `*` to pairs of a text and its replacement applied to every text of the language (`Marginalia` → `Joi`;
+  the language's own pairs first); `transformers` (`LocalizationOverride.TextTransformer`, set in code) change a text
+  last. A text is looked up as: the override of the language, the override for `*`, the language's bundle, the override
+  of the default language, the default language's bundle; the replacements and transformers then apply to it, also in
+  `parseValue`. A language added later (by the platform or an extension) is covered by the `*` entries.
+
+  ```xml
+  <bean class="com.github.enerccio.marginalia.loc.LocalizationOverride">
+      <property name="replacements"><map><entry key="*"><map><entry key="Marginalia" value="Joi"/></map></entry></map></property>
+      <property name="texts"><map><entry key="en"><map><entry key="L.LABEL_LOGIN" value="Sign in"/></map></entry></map></property>
+  </bean>
+  ```
 - **Adding a language to the application.** Copy `LocalizationBundleEN` and `MarginaliaLocalizationBundleEN`,
   translate, add the classes as beans to the `bundles` and `texts` lists of `localization`. `BundleCompletenessTest`
   checks that the bundles have every key and the same `%s`/`%d` placeholders as the English texts.

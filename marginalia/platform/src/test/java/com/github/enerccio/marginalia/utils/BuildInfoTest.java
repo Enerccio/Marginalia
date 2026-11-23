@@ -44,4 +44,35 @@ class BuildInfoTest {
         assertThat(info.getCommit()).isNull();
     }
 
+    @Test
+    void nameAndKeysOfAnotherApplication() {
+        BuildInfo info = new BuildInfo("Joi", props("joi-version", "0.3.0", "joi-build-timestamp", "2026-11-01T10:00:00Z"),
+                "joi", props("git.commit.id.abbrev", "abc1234"));
+
+        assertThat(info.getName()).isEqualTo("Joi");
+        assertThat(info.getNamedShortText()).isEqualTo("Joi 0.3.0 (abc1234)");
+        assertThat(info.getDetailText()).startsWith("Joi 0.3.0").contains("2026-11-01T10:00:00Z");
+    }
+
+    @Test
+    void marginaliaIsTheDefaultName() {
+        BuildInfo info = new BuildInfo(props("marginalia-version", "1.4.0"), new Properties());
+
+        assertThat(info.getNamedShortText()).isEqualTo("Marginalia 1.4.0");
+    }
+
+    @Test
+    void installedBuildIsTheCurrentOne() {
+        BuildInfo previous = BuildInfo.current();
+        try {
+            BuildInfo joi = BuildInfo.load("Joi", "no/such/resource.properties", "joi", "no/such/git.properties",
+                    getClass().getClassLoader());
+            BuildInfo.install(joi);
+            assertThat(BuildInfo.current()).isSameAs(joi);
+            assertThat(BuildInfo.current().getVersion()).isEqualTo(BuildInfo.UNKNOWN_VERSION);
+        } finally {
+            BuildInfo.install(previous);
+        }
+    }
+
 }

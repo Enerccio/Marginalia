@@ -60,7 +60,11 @@ ignored with a warning, a missing variable is empty) in its name, address, heade
 them. The caller passes them with `acquire(lock, variables, cancelled)` / `acquireAsync(lock, variables, position)` (the old signatures pass
 none); the arbiter adds `lock` (the lock's name). `GpuService.model(id)` makes the map of `{{model}}` (`GpuService.VAR_MODEL`): an
 `OpenAICompatible` AI passes its model id (`GatedInferenceService`), the audiobook its backend's and recognizer's model, the image
-generator its backend's model. The acquire and always steps are filled with the job's variables; the release steps with the ones of the
+generator its backend's model. `GpuService.textModel(id)` adds `{{text_model}}` (`VAR_TEXT_MODEL`) next to it: only the text job
+(`GatedInferenceService`) passes it. The arbiter keeps `State.lastTextModel` per lock uuid, in memory: when a job is *taken* (`take`, under the
+monitor of the GPU, before any of its steps run) a non-blank `text_model` becomes the lock's value, and every job gets it as
+`{{last_text_model}}` (`VAR_LAST_TEXT_MODEL`; a value the caller passes is replaced), so a text job's own steps see its model and a speech
+job keeps it; empty before the first text job of the lock and after a start. The acquire and always steps are filled with the job's variables; the release steps with the ones of the
 last job of the loaded lock (`State.loadedVariables`), also for `unload`; `reload()` with the variables of the held job; `testStep` with none.
 
 ## Using it from a plugin

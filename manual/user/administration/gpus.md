@@ -36,6 +36,8 @@ address, the headers and the body:
 |---|---|
 | `{{model}}` | the model the job uses: the model id of the AI (as the AI settings have it, for example `openai/big-32b` through LiteLLM), the model of an audiobook backend (`higgs-audio-v3`, `chatterbox-turbo`), of the speech recognition or of the image backend; empty for a job without one (the cleanup of clips) |
 | `{{lock}}` | the name of the lock |
+| `{{text_model}}` | a text generation job only: the model id of its AI (the same as `{{model}}`); empty for speech and image jobs |
+| `{{last_text_model}}` | every job: the model of the last text generation on this lock, remembered from the moment that job starts (so a text job sees its own); empty before the first text generation and after a restart of Marginalia |
 
 Filters change the value: `{{model | strip:openai/}}` removes the prefix when the value starts with it (LiteLLM's route name, which the
 server behind it does not know), `{{model | last}}` keeps what follows the last `/`, `{{model | json}}` escapes it for a JSON string and
@@ -121,6 +123,11 @@ language model* would throw out its model too, and its own unload would throw ou
 the router **except** the ones named: a step `POST http://litellm:4000/gpu/llama/unload` with the body `{"keep": ["{{model | strip:openai/}}"]}` (its README has the
 pass-through). Make it a **step before every job** of *Language model*: every AI on that lock keeps its own model, whichever you pick; the other program does the same with its own model before each of its jobs.
 When the kept model is the only one loaded the call does nothing and answers at once, so neither program needs to know about the other.
+
+When **one lock serves the language model and the speech model** (both run side by side on the card), `{{model}}` in that step is the speech
+model during a speech job, which no router model matches, and the language model would be unloaded right after each reply. Keep
+`{{last_text_model}}` instead, `{"keep": ["{{last_text_model | strip:openai/}}"]}`: every job of the lock keeps the model of the last text
+generation, whatever kind of job it is. Before the first text generation nothing is kept, and the first one loads its model.
 
 For ComfyUI the same kind of step is `POST http://litellm:4000/gpu/comfy/ensure`: it does nothing when ComfyUI answers, starts the container when
 it is stopped, and restarts it when it runs but ComfyUI does not answer (crashed inside, hung), then waits until it is ready. As a step before every job

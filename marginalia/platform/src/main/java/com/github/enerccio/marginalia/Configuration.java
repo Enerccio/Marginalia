@@ -63,6 +63,7 @@ public class Configuration implements InitializingBean {
     private File databaseFile;
     private boolean saveAsyncStacks = false;
     private SecretKeySpec secretKey;
+    private String cookieNamespace = "";
 
     public Long getPersistentLoginInfoTTL() {
         return persistentLoginInfoTTL;
@@ -89,6 +90,19 @@ public class Configuration implements InitializingBean {
      */
     public void setTrustedProxies(String trustedProxies) {
         this.clientAddressResolver = new ClientAddressResolver(trustedProxies);
+    }
+
+    /**
+     * The name of the application in the names of its cookies (the saved login), so that two applications on the
+     * platform on one host (cookies are scoped to the host, not to the port) do not read or delete each other's.
+     * Empty (Marginalia's default) keeps the names cookies had before, so saved logins survive an update.
+     */
+    public String getCookieNamespace() {
+        return cookieNamespace;
+    }
+
+    public void setCookieNamespace(String cookieNamespace) {
+        this.cookieNamespace = cookieNamespace == null ? "" : cookieNamespace.trim();
     }
 
     public ClientAddressResolver getClientAddressResolver() {

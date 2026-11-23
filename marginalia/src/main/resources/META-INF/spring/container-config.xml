@@ -38,6 +38,8 @@
         <property name="allowPersistentLogin" value="${marginalia.allow-persistent-login:${allowPersistentLogin:true}}" />
         <property name="persistentLoginInfoTTL" value="${marginalia.persistent-login-ttl:${persistentLoginTTL:2592000}}" />
         <property name="trustedProxies" value="${marginalia.trusted-proxies:${trustedProxies:}}" />
+        <!-- the application's name in its cookie names; empty keeps Marginalia's names -->
+        <property name="cookieNamespace" value="${marginalia.cookie-namespace:}" />
     </bean>
 
     <bean name="applicationPoint" class="com.github.enerccio.marginalia.bound.ApplicationPoint" />
