@@ -21,6 +21,15 @@ public final class GpuArbiter {
     private static final Logger log = LoggerFactory.getLogger(GpuArbiter.class);
     private static final long POLL_MILLIS = 200;
 
+    /** The variable a text generation job brings next to {@code model}: the model it generates with. */
+    public static final String TEXT_MODEL = "text_model";
+
+    /**
+     * The variable every job of a lock gets: the model of the last text generation job of the lock ({@link #TEXT_MODEL}), remembered in
+     * memory from the moment that job is taken; empty before the first one.
+     */
+    public static final String LAST_TEXT_MODEL = "last_text_model";
+
     /**
      * A lock as the arbiter needs it, read from the database by the resolver.
      *
@@ -105,6 +114,8 @@ public final class GpuArbiter {
         LockDef loaded;
         /** The variables of the last job of the loaded lock: its release steps are filled with them. */
         Map<String, String> loadedVariables = Map.of();
+        /** {@link #LAST_TEXT_MODEL} per lock uuid. */
+        final Map<String, String> lastTextModel = new HashMap<>();
         int active;
         boolean switching;
         final Deque<Waiter> queue = new ArrayDeque<>();
@@ -275,12 +286,13 @@ public final class GpuArbiter {
                 }
                 state.queue.pollFirst();
                 state.active++;
-                state.loadedVariables = head.variables();
-                Held held = new Held(state, head.lock(), head.variables());
+                Map<String, String> variables = take(state, head);
+                state.loadedVariables = variables;
+                Held held = new Held(state, head.lock(), variables);
                 if (!head.lock().eachJob().isEmpty()) {
                     // the always steps, and on a GPU used outside the acquire steps too: the GPU may have been used by someone else since
                     // (they make room themselves)
-                    after.add(() -> executor.execute(() -> recheck(state, head, held)));
+                    after.add(() -> executor.execute(() -> recheck(state, head, variables, held)));
                 } else {
                     after.add(() -> grant(head, held));
                 }
@@ -294,9 +306,29 @@ public final class GpuArbiter {
             state.switching = true;
             LockDef from = state.loaded;
             Map<String, String> fromVariables = state.loadedVariables;
-            after.add(() -> executor.execute(() -> switchTo(state, from, fromVariables, head)));
+            Map<String, String> variables = head.lock() == null ? Map.of() : take(state, head);
+            after.add(() -> executor.execute(() -> switchTo(state, from, fromVariables, head, variables)));
             return;
         }
+    }
+
+    /**
+     * The variables of a job that is taken: a text job's model becomes the lock's {@link #LAST_TEXT_MODEL} first, so its own steps see it too;
+     * every job gets the remembered one. Called with the monitor of the state.
+     */
+    private static Map<String, String> take(State state, Waiter waiter) {
+        String uuid = waiter.lock().uuid();
+        String text = waiter.variables().get(TEXT_MODEL);
+        if (text != null && !text.isBlank()) {
+            state.lastTextModel.put(uuid, text);
+        }
+        Map<String, String> all = new HashMap<>(waiter.variables());
+        all.remove(LAST_TEXT_MODEL);
+        String last = state.lastTextModel.get(uuid);
+        if (last != null) {
+            all.put(LAST_TEXT_MODEL, last);
+        }
+        return Map.copyOf(all);
     }
 
     /** The places of the ones that wait. Called with the monitor of the state. */
@@ -333,7 +365,7 @@ public final class GpuArbiter {
     /**
      * Frees the GPU of the lock it is loaded with and loads the lock of the waiter (or nothing, for an unload). Runs on a thread of its own.
      */
-    private void switchTo(State state, LockDef from, Map<String, String> fromVariables, Waiter waiter) {
+    private void switchTo(State state, LockDef from, Map<String, String> fromVariables, Waiter waiter, Map<String, String> variables) {
         String releaseError = null;
         if (from != null) {
             // the steps as they are now (the administrator may have changed them since the lock was loaded)
@@ -357,15 +389,15 @@ public final class GpuArbiter {
         }
         try {
             log.info("GPU {}: acquiring \"{}\"", state.gpuUuid, waiter.lock().name());
-            runner.runAll(fill(waiter.lock().onSwitch(), waiter.variables()));
+            runner.runAll(fill(waiter.lock().onSwitch(), variables));
         } catch (GpuException | RuntimeException e) {
             log.warn("GPU {}: the acquire steps of \"{}\" failed: {}", state.gpuUuid, waiter.lock().name(), e.getMessage());
             finish(state, null, Map.of(), null);
             waiter.lease().completeExceptionally(e instanceof GpuException ? e : new GpuException(e.getMessage(), e));
             return;
         }
-        Held held = new Held(state, waiter.lock(), waiter.variables());
-        finish(state, waiter.lock(), waiter.variables(), held);
+        Held held = new Held(state, waiter.lock(), variables);
+        finish(state, waiter.lock(), variables, held);
         grant(waiter, held);
     }
 
@@ -373,11 +405,11 @@ public final class GpuArbiter {
      * The always steps of the loaded lock before a job, and its acquire steps again on a GPU that is used outside the application too; the job's
      * place is already counted. A failure fails the job and leaves the GPU unknown. Runs on a thread of its own.
      */
-    private void recheck(State state, Waiter waiter, Held held) {
+    private void recheck(State state, Waiter waiter, Map<String, String> variables, Held held) {
         LockDef current = resolver.apply(waiter.lock().uuid());
         try {
             log.debug("GPU {}: the steps of \"{}\" before a job", state.gpuUuid, waiter.lock().name());
-            runner.runAll(fill((current != null ? current : waiter.lock()).eachJob(), waiter.variables()));
+            runner.runAll(fill((current != null ? current : waiter.lock()).eachJob(), variables));
         } catch (GpuException | RuntimeException e) {
             log.warn("GPU {}: the acquire steps of \"{}\" failed: {}", state.gpuUuid, waiter.lock().name(), e.getMessage());
             synchronized (state) {

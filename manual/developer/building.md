@@ -147,6 +147,13 @@ start: outside of the packaged WAR it installs a ByteBuddy agent that instrument
 the mark (see [JVM options](#jvm-options)). Nothing has to be set up for it, and a `target/classes` with classes of
 both kinds works. To weave by hand, `mvn process-classes` does it (woven classes are skipped).
 
+Both use ByteBuddy's own ASM, never the JDK's ClassFile API (`ExtendableWeaving.useAsm` sets
+`net.bytebuddy.processor=ASM_ONLY` unless it is given on the command line). On a JDK newer than the newest Java the
+ByteBuddy of `marginalia/platform/pom.xml` knows, ByteBuddy would switch to the ClassFile API and the hooks woven that
+way fail with *Detected branch target out of bytecode range*; with ASM the build stops with *Java N is not supported
+by the current version of Byte Buddy* instead. Then raise the ByteBuddy version (`byte-buddy` and `byte-buddy-agent`)
+to one that supports that Java.
+
 The IDE (with the `ajc` compiler) compiles into the same `target/` as Maven, and a class compiled by the other one is overwritten (or
 left unwoven, with `null` `@Autowired` fields). To keep a Maven run apart from an open IDE, move the output with `-Dbuild.dir=/tmp/marginalia-build`
 (the property `build.dir` of the POM, default `${project.basedir}/target`): the classes, the woven classes, the test home

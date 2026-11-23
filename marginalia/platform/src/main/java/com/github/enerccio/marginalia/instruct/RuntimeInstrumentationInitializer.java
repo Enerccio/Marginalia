@@ -101,6 +101,7 @@ public class RuntimeInstrumentationInitializer implements InitializingBean {
      * @throws IllegalStateException when the JVM does not let an agent in
      */
     public static void install() {
+        ExtendableWeaving.useAsm();
         ByteBuddyAgent.install();
 
         new AgentBuilder.Default(ExtendableWeaving.byteBuddy())

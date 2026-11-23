@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.gpu;
 
+import com.github.enerccio.marginalia.domain.service.GpuService;
 import com.github.enerccio.marginalia.domain.service.gpu.GpuArbiter;
 import com.github.enerccio.marginalia.domain.service.gpu.GpuArbiter.LockDef;
 import com.github.enerccio.marginalia.domain.service.gpu.GpuException;
@@ -178,6 +179,35 @@ class GpuArbiterTest {
         locks.put("img", new LockDef("img", "img", "gpu", 0, List.of(step("keep [{{model}}]")), List.of()));
         get(arbiter.acquireAsync("img", null)).close();
         assertThat(log).containsExactly("keep []");
+    }
+
+    @Test
+    void theLastTextModelIsRememberedPerLockAndSetBeforeTheStepsOfTheTextJob() throws Exception {
+        locks.put("both", new LockDef("both", "both", "gpu", 0, List.of(step("load {{model}} keep [{{last_text_model}}]")), List.of(),
+                false, List.of(step("keep [{{ last_text_model | strip:openai/ }}] for {{model}}"))));
+        // a speech job before any text job: nothing to keep
+        get(arbiter.acquireAsync("both", GpuService.model("speech"), null)).close();
+        // the text job sees its own model, already remembered
+        get(arbiter.acquireAsync("both", GpuService.textModel("openai/big-32b"), null)).close();
+        // a speech job after it keeps the text model; a caller cannot pass its own value
+        get(arbiter.acquireAsync("both", Map.of("model", "speech", "last_text_model", "fake"), null)).close();
+        // a job with no variables at all keeps it too
+        get(arbiter.acquireAsync("both", null)).close();
+
+        assertThat(log).containsExactly("keep [] for speech", "load speech keep []",
+                "keep [big-32b] for openai/big-32b",
+                "keep [big-32b] for speech",
+                "keep [big-32b] for ");
+    }
+
+    @Test
+    void theLastTextModelOfOneLockIsNotSeenByAnother() throws Exception {
+        locks.put("llm", new LockDef("llm", "llm", "gpu", 0, List.of(step("load {{model}}")), List.of(step("free [{{last_text_model}}]"))));
+        locks.put("tts", new LockDef("tts", "tts", "gpu", 0, List.of(step("load tts [{{last_text_model}}]")), List.of()));
+        get(arbiter.acquireAsync("llm", GpuService.textModel("big"), null)).close();
+        get(arbiter.acquireAsync("tts", GpuService.model("voice"), null)).close();
+
+        assertThat(log).containsExactly("load big", "free [big]", "load tts []");
     }
 
     @Test

@@ -3,10 +3,7 @@ package com.github.enerccio.marginalia.domain.service;
 import com.github.enerccio.marginalia.domain.model.impl.Gpu;
 import com.github.enerccio.marginalia.domain.model.impl.GpuLock;
 import com.github.enerccio.marginalia.domain.model.impl.GpuStep;
-import com.github.enerccio.marginalia.domain.service.gpu.GpuException;
-import com.github.enerccio.marginalia.domain.service.gpu.GpuLease;
-import com.github.enerccio.marginalia.domain.service.gpu.GpuLockChoice;
-import com.github.enerccio.marginalia.domain.service.gpu.GpuStatus;
+import com.github.enerccio.marginalia.domain.service.gpu.*;
 
 import java.util.List;
 import java.util.Map;
@@ -32,7 +29,10 @@ import java.util.function.IntConsumer;
  * The state is in memory: after a start nothing is known to be loaded, the first job runs only its acquire steps.
  * <p>
  * The steps can name <b>variables</b> of the job, {@code {{name}}} in their name, address, headers and body: {@link #VAR_MODEL} (the model
- * the job uses: the model id of an AI, the model of a backend) and {@code {{lock}}} (the name of the lock), and any other a caller passes. The
+ * the job uses: the model id of an AI, the model of a backend), {@code {{lock}}} (the name of the lock), {@link #VAR_TEXT_MODEL} (a text
+ * generation job only: its model), {@link #VAR_LAST_TEXT_MODEL} (every job: the model of the lock's last text generation job, remembered in
+ * memory from the moment that job is taken, empty before the first one and after a start; a step before every job keeps the text model loaded
+ * with it while speech or image jobs run), and any other a caller passes. The
  * acquire steps and the steps before every job get the variables of the job; the release steps get the ones of the last job of the lock that
  * is loaded. A variable a job does not have is empty.
  * <p>
@@ -43,9 +43,20 @@ public interface GpuService {
     /** The variable of the model a job uses, {@code {{model}}} in a step. */
     String VAR_MODEL = "model";
 
+    /** The variable of the model a text generation job uses, {@code {{text_model}}} in a step (the job brings {@code model} too). */
+    String VAR_TEXT_MODEL = GpuArbiter.TEXT_MODEL;
+
+    /** The variable of the model of the lock's last text generation job, {@code {{last_text_model}}} in a step; set by the service. */
+    String VAR_LAST_TEXT_MODEL = GpuArbiter.LAST_TEXT_MODEL;
+
     /** The variables of a job that uses a model (null or blank: none). */
     static Map<String, String> model(String model) {
         return model == null || model.isBlank() ? Map.of() : Map.of(VAR_MODEL, model.strip());
+    }
+
+    /** The variables of a text generation job: {@code model} and {@code text_model} (null or blank: none). */
+    static Map<String, String> textModel(String model) {
+        return model == null || model.isBlank() ? Map.of() : Map.of(VAR_MODEL, model.strip(), VAR_TEXT_MODEL, model.strip());
     }
 
     // --- for everybody ---

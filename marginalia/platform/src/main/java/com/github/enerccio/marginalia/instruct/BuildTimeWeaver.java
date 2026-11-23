@@ -53,6 +53,7 @@ public final class BuildTimeWeaver {
      * @param libraries where the types the classes refer to are looked up (as resources, nothing is loaded)
      */
     public static Result weave(Path classes, ClassLoader libraries) throws IOException {
+        ExtendableWeaving.useAsm();
         List<Path> files;
         try (Stream<Path> walk = Files.walk(classes)) {
             files = walk.filter(file -> file.toString().endsWith(".class")).sorted().collect(Collectors.toList());

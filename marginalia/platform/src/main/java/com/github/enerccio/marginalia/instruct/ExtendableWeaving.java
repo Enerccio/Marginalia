@@ -5,11 +5,7 @@ import net.bytebuddy.asm.AsmVisitorWrapper;
 import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.dynamic.scaffold.MethodGraph;
-import net.bytebuddy.jar.asm.AnnotationVisitor;
-import net.bytebuddy.jar.asm.ClassReader;
-import net.bytebuddy.jar.asm.ClassVisitor;
-import net.bytebuddy.jar.asm.ClassWriter;
-import net.bytebuddy.jar.asm.Opcodes;
+import net.bytebuddy.jar.asm.*;
 import net.bytebuddy.matcher.ElementMatcher;
 import net.bytebuddy.matcher.ElementMatchers;
 
@@ -35,7 +31,25 @@ public final class ExtendableWeaving {
     private static final String EXTENDABLE_DESC = "L" + EXTENDABLE.replace('.', '/') + ";";
     private static final String WOVEN_DESC = "L" + WOVEN.replace('.', '/') + ";";
 
+    /**
+     * System property that picks how ByteBuddy reads and writes class files, read once when ByteBuddy first needs it.
+     */
+    public static final String BYTEBUDDY_PROCESSOR = "net.bytebuddy.processor";
+
     private ExtendableWeaving() {
+    }
+
+    /**
+     * Makes ByteBuddy read and write class files with its own ASM, never with the JDK's ClassFile API. ByteBuddy
+     * switches to the ClassFile API on a JVM newer than the newest Java it knows, and the hooks woven that way fail
+     * the stack map check ("branch target out of bytecode range"). With ASM such a JVM fails at once with ByteBuddy's
+     * own "Java N is not supported ... update Byte Buddy", which says what to do. Call it before ByteBuddy is used; a
+     * value given on the command line ({@code -Dnet.bytebuddy.processor=...}) is kept.
+     */
+    public static void useAsm() {
+        if (System.getProperty(BYTEBUDDY_PROCESSOR) == null) {
+            System.setProperty(BYTEBUDDY_PROCESSOR, "ASM_ONLY");
+        }
     }
 
     /**

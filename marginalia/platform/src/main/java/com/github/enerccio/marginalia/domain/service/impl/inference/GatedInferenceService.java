@@ -96,9 +96,10 @@ public class GatedInferenceService implements InferenceService {
                 permit.close();
                 return;
             }
-            // {{model}} of the steps: the model this AI asks for (one lock and its steps serve every model of a router)
+            // {{model}} and {{text_model}} of the steps: the model this AI asks for (one lock and its steps serve every model of a router); the
+            // lock remembers it as {{last_text_model}} for the jobs of other kinds
             String model = ai instanceof OpenAICompatible compatible ? compatible.getModel() : null;
-            CompletableFuture<GpuLease> lease = gpu.acquireAsync(lock, GpuService.model(model), position);
+            CompletableFuture<GpuLease> lease = gpu.acquireAsync(lock, GpuService.textModel(model), position);
             gpuWait.set(lease);
             lease.whenComplete((held, failure) -> {
                 if (failure != null) {

@@ -550,7 +550,7 @@ public class LocalizationBundleKO extends LocalizationBundleBase {
         setValue(L.HELP_API_ACCESS, "자유롭게 조합할 수 있습니다. 버전은 모든 키로 읽을 수 있습니다. 쓰기에는 읽기가 포함됩니다. 업데이트와 확장 기능은 관리자 전용입니다.");
         setValue(L.HELP_EXPIRES_AFTER_DAYS, "비워 두면 키가 만료되지 않습니다.");
         setValue(L.HELP_GPU_ALWAYS_STEPS, "이 잠금의 모든 작업 전에 순서대로 실행됩니다. GPU가 이미 이 잠금을 가지고 있을 때도 실행되며, 그렇지 않을 때는 획득 단계 전에 실행됩니다. 첫 실패에서 작업이 멈춥니다. 다른 프로그램의 모델을 내 모델만 남기고 언로드하는 것처럼 매번 확인해야 하는 단계용입니다.");
-        setValue(L.HELP_GPU_STEP_VARIABLES, "주소, 헤더, 본문에서 작업의 변수를 쓸 수 있습니다: {{model}}은 작업이 쓰는 모델(AI의 모델 ID, 백엔드의 모델), {{lock}}은 잠금의 이름입니다. 필터: {{model | strip:openai/}}는 접두사를 없애고, {{model | last}}는 마지막 / 뒤를 남기며, json과 url은 값을 이스케이프합니다. 해제 단계에는 그 잠금의 마지막 작업의 모델이 들어갑니다. 테스트는 변수를 비운 채 실행합니다.");
+        setValue(L.HELP_GPU_STEP_VARIABLES, "주소, 헤더, 본문에서 작업의 변수를 쓸 수 있습니다: {{model}}은 작업이 쓰는 모델(AI의 모델 ID, 백엔드의 모델), {{lock}}은 잠금의 이름입니다. {{last_text_model}}은 잠금의 마지막 텍스트 생성 모델(첫 생성 전에는 비어 있음)이므로, 모든 작업 전 단계가 음성이나 이미지 작업 중에도 언어 모델을 로드된 채로 둘 수 있습니다. 텍스트 작업에는 {{text_model}}도 있습니다. 필터: {{model | strip:openai/}}는 접두사를 없애고, {{model | last}}는 마지막 / 뒤를 남기며, json과 url은 값을 이스케이프합니다. 해제 단계에는 그 잠금의 마지막 작업의 모델이 들어갑니다. 테스트는 변수를 비운 채 실행합니다.");
         setValue(L.HELP_FUNCTIONS_PLACEMENT, "모델이 호출할 수 있는 함수를 읽는 위치입니다. 시스템 메시지 안: 요청의 tools에만 있으며 채팅 템플릿이 그곳에 넣습니다. 본문 앞/뒤: 최신 사용자 메시지에도 적어 넣습니다. 서버가 호출을 인식하려면 필요하므로 요청의 tools는 항상 보냅니다.");
         setValue(L.HELP_FUNCTION_RULE, "함수를 제공하는 모든 요청에 추가됩니다. 예: 너는 함수 호출로만 행동한다. 답변에 호출을 텍스트로 쓰지 말고, 함수를 쓰려면 호출하라. 호출하는 대신 텍스트로 쓰는 모델(Gemma 4)에 도움이 됩니다. 비워 두면 없음.");
         setValue(L.HELP_FUNCTION_RULE_PLACEMENT, "규칙이 들어갈 위치입니다. Gemma 4는 시스템 메시지보다 최신 사용자 메시지에 있을 때 더 잘 따릅니다.");

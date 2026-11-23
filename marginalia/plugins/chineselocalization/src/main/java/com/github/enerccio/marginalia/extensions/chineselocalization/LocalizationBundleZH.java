@@ -559,7 +559,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_API_ACCESS, "可任意组合。任何密钥都能读取版本。写入包含读取。更新和扩展仅限管理员。");
         setValue(L.HELP_EXPIRES_AFTER_DAYS, "留空：密钥不会过期。");
         setValue(L.HELP_GPU_ALWAYS_STEPS, "在此锁的每个作业之前按顺序运行，即使 GPU 已持有此锁也会运行；未持有时在获取步骤之前运行。第一次失败会停止作业。用于每次都必须确保的步骤，例如卸载其他程序的模型（保留您自己的）。");
-        setValue(L.HELP_GPU_STEP_VARIABLES, "地址、请求头和正文可以使用作业的变量：{{model}} 是作业使用的模型（AI 的模型 ID、后端的模型），{{lock}} 是锁的名称。过滤器：{{model | strip:openai/}} 去掉前缀，{{model | last}} 保留最后一个 / 之后的部分，json 和 url 对值进行转义。释放步骤使用该锁最后一个作业的模型；测试时变量为空。");
+        setValue(L.HELP_GPU_STEP_VARIABLES, "地址、请求头和正文可以使用作业的变量：{{model}} 是作业使用的模型（AI 的模型 ID、后端的模型），{{lock}} 是锁的名称。{{last_text_model}} 是该锁最后一次文本生成的模型（第一次之前为空），因此每个作业前的步骤可以在语音或图像运行时保持语言模型加载；文本作业还有 {{text_model}}。过滤器：{{model | strip:openai/}} 去掉前缀，{{model | last}} 保留最后一个 / 之后的部分，json 和 url 对值进行转义。释放步骤使用该锁最后一个作业的模型；测试时变量为空。");
         setValue(L.HELP_FUNCTIONS_PLACEMENT, "模型在哪里读取它可以调用的函数。在系统消息中：只在请求的 tools 中，由聊天模板放到那里。在正文之前或之后：同时写入最新的用户消息。请求的 tools 始终会发送，服务器需要它们来识别调用。");
         setValue(L.HELP_FUNCTION_RULE, "添加到每个提供函数的请求中，例如：你只能通过函数调用来行动。不要在回复中把调用写成文本；要使用函数，就调用它。适用于把调用写成文本而不是真正调用的模型（Gemma 4）。留空：不添加。");
         setValue(L.HELP_FUNCTION_RULE_PLACEMENT, "规则放在哪里。Gemma 4 在最新用户消息中比在系统消息中更能遵守它。");

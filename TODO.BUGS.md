@@ -1129,3 +1129,43 @@ opens the console while the agent still works, which works).
 are disabled and there is no way to decide (the approval dialog can not be closed with Esc or a click outside either).
 
 **Fixed:** `showApproval()` opens the window only when the console is open (`isOpened()`), and an opened-change listener of the console asks again when it opens, so the window is opened after the console and lies over it. `AgentConsoleDialogTest` has the case.
+
+~~## BUG-66 - GPU lock: a step before every job cannot say "keep the model of the text generation" (medium)~~
+
+Found in Joi (2026-11-23): a model loaded in a shared `llama-server` router was unloaded and loaded again between two requests.
+
+**Where:** `domain/service/gpu/GpuArbiter.java`, `GpuStepRunner.Step.with` (the variables), `domain/service/GpuService.java` (`VAR_MODEL`,
+`model(...)`), `domain/service/impl/inference/GatedInferenceService.java` (the text job), and the callers of `GpuService.acquire` that
+bring a model that is not a text one (Joi's `TtsServiceImpl`, plugin backends).
+
+**Steps:**
+1. One lock for the text model and the speech model (a lock is a way to fill a GPU, the jobs of one lock run side by side).
+2. A step *before every job*: `POST /llama/unload` of `tools/gpu-control` with `{"keep": ["{{model | strip:openai/}}"]}`, to unload the
+   other program's big model and keep this one.
+3. Generate text, then speak the reply.
+
+**Expected:** the text model stays loaded. **Actual:** `{{model}}` is the model of the job that runs, so the speech job sends
+`{"keep": ["<the speech model>"]}`, which no router model matches, and gpu-control unloads the text model right after the text job
+(about 0.3 s after the request ends in the log of the router) and the next request loads it again. A hardcoded model in the step
+works, but is the thing the variable was meant to avoid.
+
+**Idea (the author's):** the lock remembers the model of the last text generation, `last_text_model`, and every step gets it as
+`{{last_text_model}}`:
+- The text job (`GatedInferenceService`) brings it as a variable of its own (`text_model`, next to `model`); speech and backend jobs
+  bring only `model`.
+- `GpuArbiter` keeps `lastTextModel` per lock, in memory, and sets it when a text job is *taken*, before the steps run, so for a text
+  job `last_text_model == model`. Every job (and the release steps, which get the variables of the lock's last job) sees the
+  remembered value; empty until the first text job.
+- The step becomes `{"keep": ["{{last_text_model | strip:openai/}}"]}`. It does not depend on the order: when speech runs first, the
+  value is empty, nothing is kept and every other model is unloaded; the text job then sets it and the next jobs of both kinds keep it.
+- A restart empties it (the state of the arbiter is in memory anyway), which is right: nothing is known to be loaded.
+- Docs: `manual/developer/plugins/gpu-locks.md` (the variables), the user manual page of the GPU steps, `CHANGELOG.MD`
+  (Added: the variable; plugin-visible: the variable name), a test in `GpuStepVariablesTest` / `GpuArbiter` tests (the variable is
+  set before the steps, kept for a job that has none, empty before any text job).
+
+**Workaround until it is done:** name the text model in the keep list as well, `{"keep": ["{{model | strip:openai/}}", "<router id of the text model>"]}`.
+
+**Fixed:** as the idea says. `GatedInferenceService` passes `GpuService.textModel(model)` (`model` and `text_model`); `GpuArbiter.take`
+sets the lock's `lastTextModel` (per lock uuid, in memory) when a job is taken, before its steps, and gives every job `last_text_model`
+(a caller's own value is replaced). `GpuArbiterTest` has the cases (the text job sees its own model, speech before any text job gets it
+empty, after it keeps it, one lock does not see another's). Docs: *Administration → GPUs*, `gpu-locks.md`, the help of the step dialog.
