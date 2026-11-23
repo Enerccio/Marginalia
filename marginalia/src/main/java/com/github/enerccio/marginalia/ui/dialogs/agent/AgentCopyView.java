@@ -233,7 +233,7 @@ public class AgentCopyView extends VerticalLayout implements LLMInteract {
             // the copy is gone: the run ended while the view was open
             showContent(false);
         } catch (IllegalArgumentException e) {
-            Notification.warning(String.format(loc.getValue(M_L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
+            Notification.warning(String.format(loc.getValue(L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
             showContent(false);
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);

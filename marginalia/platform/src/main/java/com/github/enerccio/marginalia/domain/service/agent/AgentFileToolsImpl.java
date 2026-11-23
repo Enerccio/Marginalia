@@ -1,6 +1,5 @@
 package com.github.enerccio.marginalia.domain.service.agent;
 
-import com.github.enerccio.marginalia.Defaults;
 import com.github.enerccio.marginalia.domain.service.function.FunctionContinuation;
 import com.github.enerccio.marginalia.domain.service.search.replace.TextSearch;
 import org.slf4j.Logger;
@@ -36,11 +35,22 @@ public final class AgentFileToolsImpl implements AgentFileTools {
     public static final int MAX_REPLACED = 100;
     // how long the regular expressions of one call may run, unless told otherwise
     public static final long REGEX_MILLIS = 3_000;
+    /**
+     * The shortest file (in characters) whose {@code read_file} result gets the file hint.
+     */
+    public static final int FILE_HINT_FROM = 500;
+    /**
+     * The file hint in English: added to the result of {@code read_file} when the whole file is shown and has at least
+     * {@link #FILE_HINT_FROM} characters. The model is about to use the text in a call, and writing it out again costs it the
+     * time of every token, while the reference to the file costs nothing. {@code %s} is the path of the file.
+     */
+    public static final String FILE_HINT = "[To use this text in a command or in write_file, pass " + FILE_PREFIX + "%s as the argument "
+            + "instead of writing the text out.]";
 
     private final VirtualFileSystem fs;
     private final long regexMillis;
     private final CommandResults commandResults;
-    private final Supplier<Defaults> defaults;
+    private final Supplier<String> fileHint;
 
     public AgentFileToolsImpl(VirtualFileSystem fs) {
         this(fs, REGEX_MILLIS);
@@ -61,17 +71,17 @@ public final class AgentFileToolsImpl implements AgentFileTools {
     }
 
     public AgentFileToolsImpl(VirtualFileSystem fs, long regexMillis, CommandResults commandResults) {
-        this(fs, regexMillis, commandResults, Defaults::new);
+        this(fs, regexMillis, commandResults, () -> FILE_HINT);
     }
 
     /**
-     * @param defaults the texts the agent reads in its language ({@code Localization::getDefaults}, resolved at every call)
+     * @param fileHint the {@link #FILE_HINT} in the language of the agent (resolved at every call), null for no hint
      */
-    public AgentFileToolsImpl(VirtualFileSystem fs, long regexMillis, CommandResults commandResults, Supplier<Defaults> defaults) {
+    public AgentFileToolsImpl(VirtualFileSystem fs, long regexMillis, CommandResults commandResults, Supplier<String> fileHint) {
         this.fs = fs;
         this.regexMillis = regexMillis;
         this.commandResults = commandResults;
-        this.defaults = defaults;
+        this.fileHint = fileHint;
     }
 
     private void run(FunctionContinuation<String> done, String tool, Supplier<String> action) {
@@ -185,14 +195,15 @@ public final class AgentFileToolsImpl implements AgentFileTools {
             String result = out.toString().replaceAll("\n$", "");
             // the whole file is in front of the model: this is the moment it may copy it into a call, writing it out again at the
             // speed of its output, so it is told once more that the file itself can be passed
-            return from == 1 && shownTo == total && !lineCut && text.length() >= Defaults.AGENT_FILE_HINT_FROM
-                    ? result + "\n" + String.format(defaults.get().agentFileHint(), file) : result;
+            String hint = fileHint == null ? null : fileHint.get();
+            return hint != null && from == 1 && shownTo == total && !lineCut && text.length() >= FILE_HINT_FROM
+                    ? result + "\n" + String.format(hint, file) : result;
         });
     }
 
     /**
      * The text to write: the argument, or the text of the file when it is {@code @file:/path} (the same rule as for the
-     * arguments of the commands, see {@link CommandFunctions#FILE_PREFIX}), or {@code @result}, so a file is copied or added to another
+     * arguments of the commands, see {@link AgentFileTools#FILE_PREFIX}), or {@code @result}, so a file is copied or added to another
      * without the model writing it again.
      */
     private String textOf(String content) {
@@ -206,11 +217,11 @@ public final class AgentFileToolsImpl implements AgentFileTools {
                 throw new VirtualFileException("The argument content: " + e.getMessage(), e);
             }
         }
-        if (!content.startsWith(CommandFunctions.FILE_PREFIX)) {
+        if (!content.startsWith(FILE_PREFIX)) {
             return content;
         }
         try {
-            return fs.readText(fs.parse(content.substring(CommandFunctions.FILE_PREFIX.length()).strip()));
+            return fs.readText(fs.parse(content.substring(FILE_PREFIX.length()).strip()));
         } catch (VirtualFileException e) {
             throw new VirtualFileException("The argument content: " + e.getMessage(), e);
         }

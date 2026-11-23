@@ -76,7 +76,7 @@ public final class CommandFunctions {
     public static final int MAX_IMAGES = 8;
 
     /** A text argument that starts with this is a reference to a file, see the class description. */
-    public static final String FILE_PREFIX = "@file:";
+    public static final String FILE_PREFIX = AgentFileTools.FILE_PREFIX;
 
     private static final int MAX_NAME_LENGTH = 64;
     private static final int SUFFIX_LENGTH = 6;

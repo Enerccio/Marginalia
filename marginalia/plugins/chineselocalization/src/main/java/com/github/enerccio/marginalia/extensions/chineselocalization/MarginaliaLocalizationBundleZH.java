@@ -251,7 +251,6 @@ public class MarginaliaLocalizationBundleZH extends TextBundleBase<M_L> {
         setValue(M_L.LABEL_YOU, "你");
         setValue(M_L.LABEL_RESULT, "结果");
         setValue(M_L.LABEL_AGENT_REPORT, "智能体的报告");
-        setValue(M_L.LABEL_UP, "上一级");
         setValue(M_L.LABEL_AGENT_APPROVAL, "智能体请求批准");
         setValue(M_L.LABEL_APPROVE, "批准");
         setValue(M_L.LABEL_DENY, "拒绝");
@@ -260,8 +259,6 @@ public class MarginaliaLocalizationBundleZH extends TextBundleBase<M_L> {
         setValue(M_L.LABEL_START_IN_CONSOLE, "在控制台中开始");
         setValue(M_L.LABEL_FINISH, "完成");
         setValue(M_L.LABEL_REASONING, "推理");
-        setValue(M_L.LABEL_UPLOAD_FILE, "上传文件");
-        setValue(M_L.LABEL_FOLDER_NAME, "文件夹名称");
         setValue(M_L.LABEL_AGENT_SEES_IMAGES, "模型可以查看图片");
         setValue(M_L.LABEL_ATTACH_IMAGE, "附加图片");
         setValue(M_L.LABEL_AGENT_QUEUED, "排队中");
@@ -1042,7 +1039,6 @@ public class MarginaliaLocalizationBundleZH extends TextBundleBase<M_L> {
         setValue(M_L.ERROR_COMMAND_NO_ORIGINAL_RESPONSE, "该部分没有原始文本：它不是生成的，或是在保存原始文本之前生成的。");
         setValue(M_L.ERROR_COMMAND_TOO_LARGE_TO_COMPARE, "文本过大，无法比较。");
         setValue(M_L.ERROR_BOOK_LOCKED, "该书已被智能体“%s”锁定。请先暂停或停止其运行，再修改此书。");
-        setValue(M_L.ERROR_AGENT_ACTION_FAILED, "智能体操作失败：%s");
         setValue(M_L.ERROR_COMMAND_NO_SUCH_LOREBOOK, "没有编号为 %s 的世界书，本书有 %s 个世界书（见 list-lorebooks）。");
         setValue(M_L.ERROR_COMMAND_NO_SUCH_LORE_ENTRY, "世界书 %s 中没有条目 %s，它有 %s 个条目。");
         setValue(M_L.ERROR_REGEX_TIMEOUT, "正则表达式的处理时间超过 %s 秒，已被停止。请使用更简单的表达式。");
@@ -1161,12 +1157,6 @@ public class MarginaliaLocalizationBundleZH extends TextBundleBase<M_L> {
         setValue(M_L.MSG_CONFIRM_STOP_RUN, "智能体“%s”的运行应如何结束？");
         setValue(M_L.MSG_AGENT_BOOK_LOCKED, "该书已被智能体“%s”锁定。请先暂停或停止其运行。");
         setValue(M_L.MSG_AGENT_NO_RUN_YET, "智能体尚未运行。请在“智能体”标签页中启动它。");
-        setValue(M_L.MSG_AGENT_WORKSPACE_EMPTY, "工作区为空。");
-        setValue(M_L.MSG_AGENT_WORKSPACE_USAGE, "%d 个文件，%s / %s");
-        setValue(M_L.MSG_AGENT_CONFIRM_CLEAR_WORKSPACE, "要删除智能体工作区中的所有文件吗？智能体保存在其中的笔记将会丢失。");
-        setValue(M_L.MSG_AGENT_FILE_NOT_TEXT, "该文件不是文本。请下载后查看。");
-        setValue(M_L.MSG_AGENT_FILE_CUT, "文件较长：仅显示前 %d 个字符（共 %d 个，…已截断），其余部分请下载查看。");
-        setValue(M_L.MSG_AGENT_WORKSPACE_BUSY, "智能体正在工作。请先暂停它再修改其文件。");
         setValue(M_L.MSG_AGENT_APPROVAL_QUESTION, "智能体“%s”想运行命令 %s，该命令会更改或删除数据。它在书的副本上工作，不会影响副本之外的内容。");
         setValue(M_L.MSG_AGENT_NOTICE_IDLE, "智能体“%s”正在等待你。");
         setValue(M_L.MSG_AGENT_NOTICE_APPROVAL, "智能体“%s”请求批准命令 %s。");
@@ -1175,7 +1165,6 @@ public class MarginaliaLocalizationBundleZH extends TextBundleBase<M_L> {
         setValue(M_L.MSG_AGENT_NOTICE_PAUSED, "智能体“%s”的运行已暂停：%s");
         setValue(M_L.MSG_AGENT_CONFIRM_DELETE_RUN, "要删除此次运行吗？其步骤和报告将移入回收站。");
         setValue(M_L.MSG_AGENT_RUN_BUSY, "运行仍在进行，请先暂停或停止。");
-        setValue(M_L.MSG_AGENT_UPLOAD_NOT_TEXT, "文件 %s 不是文本文件。智能体处理文本，因此只能上传文本文件（UTF-8）、图片（PNG、JPEG、GIF、WebP）和 zip 文件。");
         setValue(M_L.MSG_AGENT_UPLOAD_NOT_IMAGE, "文件 %s 不是图片。只能附加 PNG、JPEG、GIF 和 WebP 图片。");
         setValue(M_L.MSG_AGENT_LOREBOOK_LOCKED, "该世界书已被使用它的书的智能体“%s”锁定，只能查看，在运行暂停或停止之前无法修改。可点击刷新检查。");
         setValue(M_L.MSG_COMMAND_OUTDATED_SUMMARIES_HINT, "有 %s 个摘要不再与故事相符。如果其内容仍然正确，请运行 revalidate-summaries，否则请重新生成（regenerate-summary）。");

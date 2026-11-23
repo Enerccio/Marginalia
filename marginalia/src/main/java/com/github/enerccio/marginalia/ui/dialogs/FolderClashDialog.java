@@ -65,7 +65,7 @@ public class FolderClashDialog extends Dialog {
         setCloseOnOutsideClick(false);
         UIUtils.fitPhone(this, false);
 
-        TextField newName = new TextField(loc.getValue(M_L.LABEL_FOLDER_NAME));
+        TextField newName = new TextField(loc.getValue(L.LABEL_FOLDER_NAME));
         newName.setValue(suggestedName);
         newName.setWidthFull();
         Checkbox forAll = new Checkbox(loc.getValue(M_L.LABEL_APPLY_TO_ALL));

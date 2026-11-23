@@ -125,7 +125,7 @@ public class AgentDiagnosticsView extends VerticalLayout implements LLMInteract 
         } catch (IllegalArgumentException | IllegalStateException e) {
             diagnostics = null;
             showEmpty();
-            Notification.warning(String.format(loc.getValue(M_L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
+            Notification.warning(String.format(loc.getValue(L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
             return;
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);

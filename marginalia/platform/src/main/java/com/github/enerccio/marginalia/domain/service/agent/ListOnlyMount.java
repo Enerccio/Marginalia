@@ -11,17 +11,25 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * {@code /checkpoints}: the checkpoints of the run, which can be listed and nothing else. They are restored by name
- * with the checkpoint tools of the runner, they are not files to read or change.
+ * A read only folder whose files can be listed and nothing else: the files of a folder of the disk (not its
+ * subfolders), for things the tools name but do not read, such as the checkpoints of an agent run, which are restored
+ * by name with the checkpoint tools. The folder need not exist, it then lists nothing.
  */
-final class CheckpointsMount implements VirtualMount {
+public final class ListOnlyMount implements VirtualMount {
 
     private final VirtualPath mountPoint;
     private final Path folder;
+    private final String notReadable;
 
-    CheckpointsMount(VirtualPath mountPoint, Path folder) {
+    /**
+     * @param mountPoint  where the folder is in the virtual tree
+     * @param folder      the folder of the disk whose files are listed
+     * @param notReadable the message (to the model) when a file is read
+     */
+    public ListOnlyMount(VirtualPath mountPoint, Path folder, String notReadable) {
         this.mountPoint = mountPoint;
         this.folder = folder.toAbsolutePath().normalize();
+        this.notReadable = notReadable;
     }
 
     @Override
@@ -56,12 +64,12 @@ final class CheckpointsMount implements VirtualMount {
                             entries.add(new VirtualEntry(mountPoint.resolve(child.getFileName().toString()), false,
                                     attributes.size(), attributes.lastModifiedTime().toInstant()));
                         } catch (VirtualFileException e) {
-                            // not a name of a checkpoint
+                            // not a valid virtual name
                         }
                     }
                 }
             } catch (IOException e) {
-                throw new VirtualFileException("The checkpoints can't be listed", e);
+                throw new VirtualFileException(mountPoint + " can't be listed", e);
             }
         }
         entries.sort(Comparator.comparing(e -> e.path().getName()));
@@ -70,7 +78,7 @@ final class CheckpointsMount implements VirtualMount {
 
     @Override
     public byte[] read(VirtualPath file) {
-        throw new VirtualFileException("Checkpoints can only be listed, they are restored with the checkpoint tools");
+        throw new VirtualFileException(notReadable);
     }
 
     @Override

@@ -5,18 +5,24 @@ import java.nio.file.Path;
 import java.util.List;
 
 /**
- * {@code /AGENTS.md}: the instructions of the user to the agent ("agents.md" of the agent dialog) as one read only file,
- * so the agent can read them again whenever it likes. The text is the one the run started with, the user changes it in
- * the agent dialog, never the agent.
+ * One read only text file held in memory, for example the instructions of the user to an agent, so the model can read
+ * them again whenever it likes while only the user changes them.
  */
-final class InstructionsMount implements VirtualMount {
+public final class TextFileMount implements VirtualMount {
 
     private final VirtualPath file;
     private final byte[] content;
+    private final String readOnly;
 
-    InstructionsMount(VirtualPath file, String instructions) {
+    /**
+     * @param file     where the file is in the virtual tree
+     * @param text     its content, null is empty
+     * @param readOnly the message (to the model) when the file is changed
+     */
+    public TextFileMount(VirtualPath file, String text, String readOnly) {
         this.file = file;
-        this.content = (instructions == null ? "" : instructions).getBytes(StandardCharsets.UTF_8);
+        this.content = (text == null ? "" : text).getBytes(StandardCharsets.UTF_8);
+        this.readOnly = readOnly;
     }
 
     @Override
@@ -63,7 +69,7 @@ final class InstructionsMount implements VirtualMount {
     }
 
     private VirtualFileException readOnly() {
-        return new VirtualFileException(file + " is read only, the instructions are changed by the user");
+        return new VirtualFileException(readOnly);
     }
 
 }

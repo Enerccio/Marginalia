@@ -314,6 +314,9 @@ public class LocalizationBundleDE extends LocalizationBundleBase {
         setValue(L.LABEL_FUNCTIONS_PLACEMENT, "Funktionsdefinitionen");
         setValue(L.LABEL_FUNCTION_RULE, "Regel für Funktionsaufrufe");
         setValue(L.LABEL_FUNCTION_RULE_PLACEMENT, "Position der Regel");
+        setValue(L.LABEL_UP, "Nach oben");
+        setValue(L.LABEL_UPLOAD_FILE, "Datei hochladen");
+        setValue(L.LABEL_FOLDER_NAME, "Ordnername");
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI-kompatibel");
         setValue(L.ENUM_PROTOCOL_TYPE_OPEN_CHAT_COMPLETION, "Chat Completion");
@@ -392,6 +395,7 @@ public class LocalizationBundleDE extends LocalizationBundleBase {
         setValue(L.ERROR_GPU_STEP_FAILED, "Der Schritt ist fehlgeschlagen: %s");
         setValue(L.ERROR_GPU_UNLOAD_FAILED, "Ein Freigabeschritt ist fehlgeschlagen: %s");
         setValue(L.ERROR_API_KEY_CREATE_FAILED, "Der Schlüssel konnte nicht erstellt werden: %s");
+        setValue(L.ERROR_AGENT_ACTION_FAILED, "Die Aktion des Agenten ist fehlgeschlagen: %s");
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "Das Formular kann nicht gespeichert werden.");
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE_EXT, "Das Formular kann nicht gespeichert werden. Ungültige Felder: ");
@@ -510,6 +514,13 @@ public class LocalizationBundleDE extends LocalizationBundleBase {
         setValue(L.MSG_API_KEY_CREATED, "Kopieren Sie den Schlüssel jetzt: Er wird nicht wieder angezeigt.");
         setValue(L.MSG_REVOKE_API_KEY, "Schlüssel %s widerrufen? Programme, die ihn nutzen, verlieren den Zugriff.");
         setValue(L.MSG_MODEL_NOT_ON_SERVER, "Der Server bietet das Modell %s nicht (mehr) an. Es bleibt eingestellt, aber eine Anfrage damit kann fehlschlagen: Wählen Sie eines aus der Liste.");
+        setValue(L.MSG_AGENT_WORKSPACE_EMPTY, "Der Arbeitsbereich ist leer.");
+        setValue(L.MSG_AGENT_WORKSPACE_USAGE, "%d Dateien, %s von %s");
+        setValue(L.MSG_AGENT_CONFIRM_CLEAR_WORKSPACE, "Alle Dateien im Arbeitsbereich des Agenten löschen? Die Notizen, die der Agent dort führt, gehen verloren.");
+        setValue(L.MSG_AGENT_FILE_NOT_TEXT, "Diese Datei ist kein Text. Lade sie herunter, um sie anzusehen.");
+        setValue(L.MSG_AGENT_FILE_CUT, "Die Datei ist länger: Es werden nur die ersten %d von %d Zeichen angezeigt (… gekürzt), lade sie herunter, um den Rest zu lesen.");
+        setValue(L.MSG_AGENT_WORKSPACE_BUSY, "Der Agent arbeitet. Pausiere ihn, um seine Dateien zu ändern.");
+        setValue(L.MSG_AGENT_UPLOAD_NOT_TEXT, "Die Datei %s ist keine Textdatei. Der Agent arbeitet mit Text, daher können nur Textdateien (UTF-8), Bilder (PNG, JPEG, GIF, WebP) und ZIP-Dateien hochgeladen werden.");
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "Minute Stunde Tag-des-Monats Monat Wochentag – z. B. „0 3 * * *“ jeden Tag um 3:00, „0 */6 * * *“ alle 6 Stunden, „30 2 * * 1“ montags um 2:30. @daily, @weekly und @monthly funktionieren ebenfalls.");
         setValue(L.HELP_BACKUP_KEEP, "Ältere geplante Sicherungen werden gelöscht, 0 behält alle. Manuelle Sicherungen werden nie gelöscht.");

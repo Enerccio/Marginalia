@@ -25,6 +25,7 @@ import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
+import com.github.enerccio.marginalia.ui.widgets.WorkspaceBrowser;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.button.Button;
@@ -203,7 +204,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
     private Button stopButton;
     private Button finishButton;
     private Button reviewButton;
-    private AgentWorkspaceBrowser workspaceBrowser;
+    private WorkspaceBrowser workspaceBrowser;
     private AgentCheckpointBrowser checkpointBrowser;
     private AgentRunHistory history;
     private AgentContextView contextView;
@@ -381,7 +382,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         runTab.addClassNames(CssStyles.MIN_HEIGHT_0, CssStyles.OVERFLOW_HIDDEN, CssStyles.GAP_S);
         runTab.expand(transcriptBox);
 
-        workspaceBrowser = new AgentWorkspaceBrowser(agent, this::isWorking);
+        workspaceBrowser = new WorkspaceBrowser(new AgentWorkspaceSource(fileSystemService, agent), this::isWorking);
         workspaceBrowser.setPhone(phone);
         workspaceBrowser.create();
         checkpointBrowser = new AgentCheckpointBrowser(() -> run, this::isWorking, this::refreshRun, this::rewound);
@@ -1011,7 +1012,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
             ConfirmDialog.open(String.format(loc.getValue(M_L.MSG_AGENT_CONFIRM_ROLLBACK_MESSAGE), plan.checkpoint().id(),
                     plan.checkpoint().round(), plan.forgotten()), () -> rollBackNow(messageUuid), () -> {});
         } catch (CheckpointService.CheckpointException e) {
-            Notification.warning(String.format(loc.getValue(M_L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
+            Notification.warning(String.format(loc.getValue(L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
@@ -1028,7 +1029,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
                 Notification.success(String.format(loc.getValue(M_L.MSG_AGENT_CHECKPOINT_REWOUND), result.restored().checkpoint().id(),
                         result.forgotten(), result.restored().removedFiles().size()));
             } catch (CheckpointService.CheckpointException e) {
-                Notification.warning(String.format(loc.getValue(M_L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
+                Notification.warning(String.format(loc.getValue(L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
             }
             // the rows that were shown are marked now: the transcript is made again
             shownRunId = null;
@@ -1048,7 +1049,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         }
         // deletes the notes of the agent, as the button of the workspace does
         if (line.strip().equals("/" + AgentRunner.CLEAR_WORKSPACE) || line.strip().startsWith("/" + AgentRunner.CLEAR_WORKSPACE + " ")) {
-            ConfirmDialog.open(loc.getValue(M_L.MSG_AGENT_CONFIRM_CLEAR_WORKSPACE), () -> runCommandNow(line), () -> {});
+            ConfirmDialog.open(loc.getValue(L.MSG_AGENT_CONFIRM_CLEAR_WORKSPACE), () -> runCommandNow(line), () -> {});
             return;
         }
         runCommandNow(line);
@@ -1243,7 +1244,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
             action.call();
         } catch (IllegalArgumentException | IllegalStateException | SecurityException e) {
             // the rules of the service, its text says what
-            Notification.warning(String.format(loc.getValue(M_L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
+            Notification.warning(String.format(loc.getValue(L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
@@ -1453,9 +1454,9 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         return diagnosticsView;
     }
 
-    @PublicAPI(from = "1.4.0",
-            returns = @APIReturn(type = AgentWorkspaceBrowser.class))
-    AgentWorkspaceBrowser getWorkspaceBrowser() {
+    @PublicAPI(from = "1.9.0",
+            returns = @APIReturn(type = WorkspaceBrowser.class))
+    WorkspaceBrowser getWorkspaceBrowser() {
         return workspaceBrowser;
     }
 }

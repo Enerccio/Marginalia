@@ -56,13 +56,13 @@ class ZipUnpackTest {
     @TempDir
     Path home;
 
-    private RunFolder folder;
+    private TestRunFolder folder;
     private VirtualFileSystem fs;
     private AgentFileTools tools;
 
     private void open(WorkspaceLimits limits) {
-        folder = RunFolder.of(home, UUID.randomUUID().toString(), UUID.randomUUID().toString());
-        fs = VirtualFileSystem.ofRun(folder, limits, new ReentrantLock());
+        folder = TestRunFolder.of(home, UUID.randomUUID().toString(), UUID.randomUUID().toString());
+        fs = folder.fileSystem(limits, new ReentrantLock());
         tools = new AgentFileToolsImpl(fs);
     }
 

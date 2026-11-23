@@ -314,6 +314,9 @@ public class LocalizationBundleFR extends LocalizationBundleBase {
         setValue(L.LABEL_FUNCTIONS_PLACEMENT, "Définitions des fonctions");
         setValue(L.LABEL_FUNCTION_RULE, "Règle des appels de fonction");
         setValue(L.LABEL_FUNCTION_RULE_PLACEMENT, "Placement de la règle");
+        setValue(L.LABEL_UP, "Haut");
+        setValue(L.LABEL_UPLOAD_FILE, "Téléverser un fichier");
+        setValue(L.LABEL_FOLDER_NAME, "Nom du dossier");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "Compatible OpenAI");
@@ -394,6 +397,7 @@ public class LocalizationBundleFR extends LocalizationBundleBase {
         setValue(L.ERROR_GPU_STEP_FAILED, "L'étape a échoué : %s");
         setValue(L.ERROR_GPU_UNLOAD_FAILED, "Une étape de libération a échoué : %s");
         setValue(L.ERROR_API_KEY_CREATE_FAILED, "La clé n'a pas pu être créée : %s");
+        setValue(L.ERROR_AGENT_ACTION_FAILED, "L'action de l'agent a échoué : %s");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "Impossible d'enregistrer le formulaire.");
@@ -513,6 +517,13 @@ public class LocalizationBundleFR extends LocalizationBundleBase {
         setValue(L.MSG_API_KEY_CREATED, "Copiez la clé maintenant : elle ne sera plus affichée.");
         setValue(L.MSG_REVOKE_API_KEY, "Révoquer la clé %s ? Les programmes qui l'utilisent perdent l'accès.");
         setValue(L.MSG_MODEL_NOT_ON_SERVER, "Le serveur ne propose pas (ou plus) le modèle %s. Il est conservé, mais une requête avec lui peut échouer : choisissez-en un dans la liste.");
+        setValue(L.MSG_AGENT_WORKSPACE_EMPTY, "L'espace de travail est vide.");
+        setValue(L.MSG_AGENT_WORKSPACE_USAGE, "%d fichiers, %s sur %s");
+        setValue(L.MSG_AGENT_CONFIRM_CLEAR_WORKSPACE, "Supprimer tous les fichiers de l'espace de travail de l'agent ? Les notes que l'agent y garde seront perdues.");
+        setValue(L.MSG_AGENT_FILE_NOT_TEXT, "Ce fichier n'est pas du texte. Téléchargez-le pour le voir.");
+        setValue(L.MSG_AGENT_FILE_CUT, "Le fichier est plus long : seuls les %d premiers caractères sur %d sont affichés (… tronqué), téléchargez-le pour lire la suite.");
+        setValue(L.MSG_AGENT_WORKSPACE_BUSY, "L'agent travaille. Mettez-le en pause pour modifier ses fichiers.");
+        setValue(L.MSG_AGENT_UPLOAD_NOT_TEXT, "Le fichier %s n'est pas un fichier texte. L'agent travaille avec du texte, seuls les fichiers texte (UTF-8), les images (PNG, JPEG, GIF, WebP) et les fichiers zip peuvent donc être téléversés.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute heure jour-du-mois mois jour-de-la-semaine - p. ex. \"0 3 * * *\" tous les jours à 3 h 00, \"0 */6 * * *\" toutes les 6 heures, \"30 2 * * 1\" le lundi à 2 h 30. @daily, @weekly et @monthly fonctionnent aussi.");

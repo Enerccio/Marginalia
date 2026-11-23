@@ -323,6 +323,9 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_FUNCTIONS_PLACEMENT, "函数定义位置");
         setValue(L.LABEL_FUNCTION_RULE, "函数调用规则");
         setValue(L.LABEL_FUNCTION_RULE_PLACEMENT, "规则位置");
+        setValue(L.LABEL_UP, "上一级");
+        setValue(L.LABEL_UPLOAD_FILE, "上传文件");
+        setValue(L.LABEL_FOLDER_NAME, "文件夹名称");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -403,6 +406,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ERROR_GPU_STEP_FAILED, "步骤失败：%s");
         setValue(L.ERROR_GPU_UNLOAD_FAILED, "释放步骤失败：%s");
         setValue(L.ERROR_API_KEY_CREATE_FAILED, "无法创建密钥：%s");
+        setValue(L.ERROR_AGENT_ACTION_FAILED, "智能体操作失败：%s");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "无法保存表单。");
@@ -522,6 +526,13 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_API_KEY_CREATED, "请立即复制密钥：它不会再次显示。");
         setValue(L.MSG_REVOKE_API_KEY, "吊销密钥 %s？使用它的程序将失去访问权限。");
         setValue(L.MSG_MODEL_NOT_ON_SERVER, "服务器（已）不再提供模型 %s。它会被保留，但用它发出的请求可能会失败：请从列表中选择一个。");
+        setValue(L.MSG_AGENT_WORKSPACE_EMPTY, "工作区为空。");
+        setValue(L.MSG_AGENT_WORKSPACE_USAGE, "%d 个文件，%s / %s");
+        setValue(L.MSG_AGENT_CONFIRM_CLEAR_WORKSPACE, "要删除智能体工作区中的所有文件吗？智能体保存在其中的笔记将会丢失。");
+        setValue(L.MSG_AGENT_FILE_NOT_TEXT, "该文件不是文本。请下载后查看。");
+        setValue(L.MSG_AGENT_FILE_CUT, "文件较长：仅显示前 %d 个字符（共 %d 个，…已截断），其余部分请下载查看。");
+        setValue(L.MSG_AGENT_WORKSPACE_BUSY, "智能体正在工作。请先暂停它再修改其文件。");
+        setValue(L.MSG_AGENT_UPLOAD_NOT_TEXT, "文件 %s 不是文本文件。智能体处理文本，因此只能上传文本文件（UTF-8）、图片（PNG、JPEG、GIF、WebP）和 zip 文件。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");

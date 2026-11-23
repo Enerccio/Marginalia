@@ -246,7 +246,6 @@ public class MarginaliaLocalizationBundleJP extends TextBundleBase<M_L> {
         setValue(M_L.LABEL_YOU, "あなた");
         setValue(M_L.LABEL_RESULT, "結果");
         setValue(M_L.LABEL_AGENT_REPORT, "エージェントの報告");
-        setValue(M_L.LABEL_UP, "上へ");
         setValue(M_L.LABEL_AGENT_APPROVAL, "エージェントが承認を求めています");
         setValue(M_L.LABEL_APPROVE, "承認");
         setValue(M_L.LABEL_DENY, "拒否");
@@ -255,8 +254,6 @@ public class MarginaliaLocalizationBundleJP extends TextBundleBase<M_L> {
         setValue(M_L.LABEL_START_IN_CONSOLE, "コンソールで開始");
         setValue(M_L.LABEL_FINISH, "終了");
         setValue(M_L.LABEL_REASONING, "推論");
-        setValue(M_L.LABEL_UPLOAD_FILE, "ファイルをアップロード");
-        setValue(M_L.LABEL_FOLDER_NAME, "フォルダ名");
         setValue(M_L.LABEL_AGENT_SEES_IMAGES, "モデルが画像を扱える");
         setValue(M_L.LABEL_ATTACH_IMAGE, "画像を添付");
         setValue(M_L.LABEL_AGENT_QUEUED, "待機中");
@@ -1037,7 +1034,6 @@ public class MarginaliaLocalizationBundleJP extends TextBundleBase<M_L> {
         setValue(M_L.ERROR_COMMAND_NO_ORIGINAL_RESPONSE, "このパートには元のテキストがありません。生成されたものではないか、元のテキストが保存される前に生成されました。");
         setValue(M_L.ERROR_COMMAND_TOO_LARGE_TO_COMPARE, "テキストが大きすぎて比較できません。");
         setValue(M_L.ERROR_BOOK_LOCKED, "この本はエージェント「%s」によってロックされています。変更するには実行を一時停止または停止してください。");
-        setValue(M_L.ERROR_AGENT_ACTION_FAILED, "エージェントの操作に失敗しました: %s");
         setValue(M_L.ERROR_COMMAND_NO_SUCH_LOREBOOK, "ロアブック %s はありません。この本には %s 個のロアブックがあります（list-lorebooks を参照）。");
         setValue(M_L.ERROR_COMMAND_NO_SUCH_LORE_ENTRY, "ロアブック %s にエントリ %s はありません。エントリは %s 個です。");
         setValue(M_L.ERROR_REGEX_TIMEOUT, "正規表現の処理が %s 秒を超えたため停止しました。より単純な式を使ってください。");
@@ -1156,12 +1152,6 @@ public class MarginaliaLocalizationBundleJP extends TextBundleBase<M_L> {
         setValue(M_L.MSG_CONFIRM_STOP_RUN, "エージェント「%s」の実行をどのように終了しますか？");
         setValue(M_L.MSG_AGENT_BOOK_LOCKED, "この本はエージェント「%s」によってロックされています。先に実行を一時停止または停止してください。");
         setValue(M_L.MSG_AGENT_NO_RUN_YET, "エージェントはまだ実行されていません。エージェントのタブで開始してください。");
-        setValue(M_L.MSG_AGENT_WORKSPACE_EMPTY, "ワークスペースは空です。");
-        setValue(M_L.MSG_AGENT_WORKSPACE_USAGE, "%d 個のファイル、%s / %s");
-        setValue(M_L.MSG_AGENT_CONFIRM_CLEAR_WORKSPACE, "エージェントのワークスペースのすべてのファイルを削除しますか？エージェントがそこに保存したメモは失われます。");
-        setValue(M_L.MSG_AGENT_FILE_NOT_TEXT, "このファイルはテキストではありません。ダウンロードして確認してください。");
-        setValue(M_L.MSG_AGENT_FILE_CUT, "ファイルが長いため、%d 文字目まで（全 %d 文字）のみ表示しています（…省略）。残りはダウンロードして確認してください。");
-        setValue(M_L.MSG_AGENT_WORKSPACE_BUSY, "エージェントが作業中です。ファイルを変更するには一時停止してください。");
         setValue(M_L.MSG_AGENT_APPROVAL_QUESTION, "エージェント「%s」がデータを変更または削除するコマンド %s を実行しようとしています。エージェントは本のコピー上で作業しており、それ以外には影響しません。");
         setValue(M_L.MSG_AGENT_NOTICE_IDLE, "エージェント「%s」があなたを待っています。");
         setValue(M_L.MSG_AGENT_NOTICE_APPROVAL, "エージェント「%s」がコマンド %s の承認を求めています。");
@@ -1170,7 +1160,6 @@ public class MarginaliaLocalizationBundleJP extends TextBundleBase<M_L> {
         setValue(M_L.MSG_AGENT_NOTICE_PAUSED, "エージェント「%s」の実行が一時停止されました: %s");
         setValue(M_L.MSG_AGENT_CONFIRM_DELETE_RUN, "この実行を削除しますか？ステップとレポートはゴミ箱に移動します。");
         setValue(M_L.MSG_AGENT_RUN_BUSY, "実行中です。先に一時停止または停止してください。");
-        setValue(M_L.MSG_AGENT_UPLOAD_NOT_TEXT, "ファイル %s はテキストファイルではありません。エージェントはテキストを扱うため、アップロードできるのはテキストファイル（UTF-8）、画像（PNG、JPEG、GIF、WebP）、zipファイルだけです。");
         setValue(M_L.MSG_AGENT_UPLOAD_NOT_IMAGE, "ファイル %s は画像ではありません。添付できるのは PNG、JPEG、GIF、WebP の画像だけです。");
         setValue(M_L.MSG_AGENT_LOREBOOK_LOCKED, "このロアブックは、これを使う本で作業中のエージェント「%s」によってロックされています。表示のみで、実行を一時停止または停止するまで変更できません。更新で確認できます。");
         setValue(M_L.MSG_COMMAND_OUTDATED_SUMMARIES_HINT, "%s 件の要約がストーリーと合わなくなりました。内容がまだ正しければ revalidate-summaries を実行し、そうでなければ作り直してください（regenerate-summary）。");

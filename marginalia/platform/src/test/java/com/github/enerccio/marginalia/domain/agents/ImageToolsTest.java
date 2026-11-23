@@ -54,8 +54,8 @@ class ImageToolsTest {
 
     @BeforeEach
     void open() {
-        RunFolder folder = RunFolder.of(home, UUID.randomUUID().toString(), UUID.randomUUID().toString());
-        fs = VirtualFileSystem.ofRun(folder, WorkspaceLimits.DEFAULT, new ReentrantLock());
+        TestRunFolder folder = TestRunFolder.of(home, UUID.randomUUID().toString(), UUID.randomUUID().toString());
+        fs = folder.fileSystem(WorkspaceLimits.DEFAULT, new ReentrantLock());
         shown = new ShownImages();
         tools = new ImageToolsImpl(fs, shown);
     }

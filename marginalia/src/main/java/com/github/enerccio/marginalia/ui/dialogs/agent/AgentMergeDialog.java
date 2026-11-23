@@ -268,7 +268,7 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
         try {
             plan = mergeService.plan(run);
         } catch (IllegalArgumentException | IllegalStateException e) {
-            Notification.warning(String.format(loc.getValue(M_L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
+            Notification.warning(String.format(loc.getValue(L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
             plan = new MergePlan(List.of(), Map.of(), false);
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
@@ -1006,7 +1006,7 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
             onChange.run();
         } catch (IllegalArgumentException | IllegalStateException e) {
             // the rules of the service, its text says what; the book may have changed under the review
-            Notification.warning(String.format(loc.getValue(M_L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
+            Notification.warning(String.format(loc.getValue(L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
             load();
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
@@ -1023,7 +1023,7 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
             close();
             onChange.run();
         } catch (IllegalArgumentException | IllegalStateException e) {
-            Notification.warning(String.format(loc.getValue(M_L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
+            Notification.warning(String.format(loc.getValue(L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }

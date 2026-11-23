@@ -62,7 +62,7 @@ public class FolderActions {
             } catch (Exception e) {
                 refused(e, M_L.ERROR_FOLDER_NAME_TAKEN);
             }
-        }).inputMessageLabel(loc.getValue(M_L.LABEL_FOLDER_NAME)).messageRequired().showCancel(true).build().open();
+        }).inputMessageLabel(loc.getValue(L.LABEL_FOLDER_NAME)).messageRequired().showCancel(true).build().open();
     }
 
     /**
@@ -81,7 +81,7 @@ public class FolderActions {
             } catch (Exception e) {
                 refused(e, M_L.ERROR_FOLDER_NAME_TAKEN);
             }
-        }).inputMessageLabel(loc.getValue(M_L.LABEL_FOLDER_NAME)).initialValue(folder.getName()).messageRequired().showCancel(true)
+        }).inputMessageLabel(loc.getValue(L.LABEL_FOLDER_NAME)).initialValue(folder.getName()).messageRequired().showCancel(true)
                 .build().open();
     }
 

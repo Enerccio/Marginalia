@@ -253,7 +253,7 @@ public class AgentRunHistory extends VerticalLayout implements LLMInteract {
         try {
             agentRunService.delete(run, false);
         } catch (IllegalArgumentException | IllegalStateException | SecurityException e) {
-            Notification.warning(String.format(loc.getValue(M_L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
+            Notification.warning(String.format(loc.getValue(L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }

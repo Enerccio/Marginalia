@@ -58,14 +58,14 @@ class AgentFileToolsTest {
     @TempDir
     Path home;
 
-    private RunFolder folder;
+    private TestRunFolder folder;
     private VirtualFileSystem fs;
     private AgentFileTools tools;
 
     @BeforeEach
     void open() {
-        folder = RunFolder.of(home, UUID.randomUUID().toString(), UUID.randomUUID().toString());
-        fs = VirtualFileSystem.ofRun(folder, new WorkspaceLimits(100_000, 1_000_000, 100), new ReentrantLock());
+        folder = TestRunFolder.of(home, UUID.randomUUID().toString(), UUID.randomUUID().toString());
+        fs = folder.fileSystem(new WorkspaceLimits(100_000, 1_000_000, 100), new ReentrantLock());
         tools = new AgentFileToolsImpl(fs);
     }
 
@@ -214,7 +214,7 @@ class AgentFileToolsTest {
         for (int i = 0; i < 60; i++) {
             write("/f" + i + ".md", "x");
         }
-        fs = VirtualFileSystem.ofRun(folder, new WorkspaceLimits(100_000, 1_000_000, 1000), new ReentrantLock());
+        fs = folder.fileSystem(new WorkspaceLimits(100_000, 1_000_000, 1000), new ReentrantLock());
         tools = new AgentFileToolsImpl(fs);
         for (int i = 60; i < 260; i++) {
             write("/f" + i + ".md", "x");
@@ -385,7 +385,7 @@ class AgentFileToolsTest {
     @Test
     void aFolderReplaceWritesNothingWhenOneFileCannotBeWritten() {
         // the first file fits the total after the change, the second would not: the first one has to be put back
-        fs = VirtualFileSystem.ofRun(folder, new WorkspaceLimits(1_000, 800, 100), new ReentrantLock());
+        fs = folder.fileSystem(new WorkspaceLimits(1_000, 800, 100), new ReentrantLock());
         tools = new AgentFileToolsImpl(fs);
         write("/a.md", "x ".repeat(10));
         write("/b.md", "x ".repeat(10));
@@ -729,13 +729,13 @@ class AgentFileToolsTest {
 
     @Test
     void aCopyThatDoesNotFitTheLimitsIsNotMadeAtAll() {
-        fs = VirtualFileSystem.ofRun(folder, new WorkspaceLimits(100, 100, 10), new ReentrantLock());
+        fs = folder.fileSystem(new WorkspaceLimits(100, 100, 10), new ReentrantLock());
         tools = new AgentFileToolsImpl(fs);
         write("/d/a.md", "x".repeat(40));
         write("/d/b.md", "y".repeat(40));
         assertThat(error(a -> tools.copyFile(a, "/d", "/e"))).contains("larger than its limit");
 
-        fs = VirtualFileSystem.ofRun(folder, new WorkspaceLimits(100, 1000, 3), new ReentrantLock());
+        fs = folder.fileSystem(new WorkspaceLimits(100, 1000, 3), new ReentrantLock());
         tools = new AgentFileToolsImpl(fs);
         write("/d/c.md", "z");
         assertThat(error(a -> tools.copyFile(a, "/d", "/e"))).contains("6 files").contains("room for 3");
@@ -819,7 +819,7 @@ class AgentFileToolsTest {
         assertThat(error(a -> tools.saveCommandResult(a, "/a*.md", null, false))).isNotBlank();
         assertThat(error(a -> tools.saveCommandResult(a, "/checkpoints/x.md", null, false))).contains("read only");
 
-        fs = VirtualFileSystem.ofRun(folder, new WorkspaceLimits(3, 1_000, 10), new ReentrantLock());
+        fs = folder.fileSystem(new WorkspaceLimits(3, 1_000, 10), new ReentrantLock());
         tools = new AgentFileToolsImpl(fs, results);
         assertThat(error(a -> tools.saveCommandResult(a, "/x.md", null, false))).contains("the limit of a file is 3 bytes");
         assertThat(ok(a -> tools.listFiles(a, "/", true, null))).doesNotContain("x.md");

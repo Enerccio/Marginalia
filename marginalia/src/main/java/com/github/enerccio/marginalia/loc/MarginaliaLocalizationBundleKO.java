@@ -246,7 +246,6 @@ public class MarginaliaLocalizationBundleKO extends TextBundleBase<M_L> {
         setValue(M_L.LABEL_YOU, "나");
         setValue(M_L.LABEL_RESULT, "결과");
         setValue(M_L.LABEL_AGENT_REPORT, "에이전트 보고서");
-        setValue(M_L.LABEL_UP, "위로");
         setValue(M_L.LABEL_AGENT_APPROVAL, "에이전트가 승인을 요청합니다");
         setValue(M_L.LABEL_APPROVE, "승인");
         setValue(M_L.LABEL_DENY, "거부");
@@ -255,8 +254,6 @@ public class MarginaliaLocalizationBundleKO extends TextBundleBase<M_L> {
         setValue(M_L.LABEL_START_IN_CONSOLE, "콘솔에서 시작");
         setValue(M_L.LABEL_FINISH, "완료");
         setValue(M_L.LABEL_REASONING, "추론");
-        setValue(M_L.LABEL_UPLOAD_FILE, "파일 업로드");
-        setValue(M_L.LABEL_FOLDER_NAME, "폴더 이름");
         setValue(M_L.LABEL_AGENT_SEES_IMAGES, "모델이 이미지를 볼 수 있음");
         setValue(M_L.LABEL_ATTACH_IMAGE, "이미지 첨부");
         setValue(M_L.LABEL_AGENT_QUEUED, "대기 중");
@@ -1037,7 +1034,6 @@ public class MarginaliaLocalizationBundleKO extends TextBundleBase<M_L> {
         setValue(M_L.ERROR_COMMAND_NO_ORIGINAL_RESPONSE, "이 파트에는 원본 텍스트가 없습니다. 생성된 파트가 아니거나 원본을 보관하기 전에 생성되었습니다.");
         setValue(M_L.ERROR_COMMAND_TOO_LARGE_TO_COMPARE, "텍스트가 너무 커서 비교할 수 없습니다.");
         setValue(M_L.ERROR_BOOK_LOCKED, "책이 에이전트 \"%s\"에 의해 잠겨 있습니다. 책을 변경하려면 에이전트의 실행을 일시 정지하거나 중지하세요.");
-        setValue(M_L.ERROR_AGENT_ACTION_FAILED, "에이전트 작업이 실패했습니다: %s");
         setValue(M_L.ERROR_COMMAND_NO_SUCH_LOREBOOK, "로어북 %s이(가) 없습니다. 책에는 로어북이 %s개 있습니다 (list-lorebooks 참조).");
         setValue(M_L.ERROR_COMMAND_NO_SUCH_LORE_ENTRY, "로어북 %s에 항목 %s이(가) 없습니다. 항목은 %s개입니다.");
         setValue(M_L.ERROR_REGEX_TIMEOUT, "정규식이 %s초보다 오래 걸려 중지되었습니다. 더 단순한 정규식을 사용하세요.");
@@ -1156,12 +1152,6 @@ public class MarginaliaLocalizationBundleKO extends TextBundleBase<M_L> {
         setValue(M_L.MSG_CONFIRM_STOP_RUN, "에이전트 \"%s\"의 실행을 어떻게 끝낼까요?");
         setValue(M_L.MSG_AGENT_BOOK_LOCKED, "이 책은 에이전트 \"%s\"에 의해 잠겨 있습니다. 먼저 에이전트의 실행을 일시 정지하거나 중지하세요.");
         setValue(M_L.MSG_AGENT_NO_RUN_YET, "에이전트가 아직 실행되지 않았습니다. 에이전트 탭에서 시작하세요.");
-        setValue(M_L.MSG_AGENT_WORKSPACE_EMPTY, "작업 공간이 비어 있습니다.");
-        setValue(M_L.MSG_AGENT_WORKSPACE_USAGE, "파일 %d개, %s / %s");
-        setValue(M_L.MSG_AGENT_CONFIRM_CLEAR_WORKSPACE, "에이전트 작업 공간의 모든 파일을 삭제하시겠습니까? 에이전트가 거기에 보관한 메모가 사라집니다.");
-        setValue(M_L.MSG_AGENT_FILE_NOT_TEXT, "텍스트 파일이 아닙니다. 다운로드하여 확인하세요.");
-        setValue(M_L.MSG_AGENT_FILE_CUT, "파일이 더 깁니다: %d / %d자까지만 표시됩니다 (… 잘림). 나머지는 다운로드하여 읽으세요.");
-        setValue(M_L.MSG_AGENT_WORKSPACE_BUSY, "에이전트가 작업 중입니다. 파일을 변경하려면 일시 정지하세요.");
         setValue(M_L.MSG_AGENT_APPROVAL_QUESTION, "에이전트 \"%s\"이(가) 데이터를 변경하거나 삭제하는 명령 %s을(를) 실행하려고 합니다. 에이전트는 책의 자체 사본에서 작업하므로 그 밖의 것은 건드리지 않습니다.");
         setValue(M_L.MSG_AGENT_NOTICE_IDLE, "에이전트 \"%s\"이(가) 사용자를 기다리고 있습니다.");
         setValue(M_L.MSG_AGENT_NOTICE_APPROVAL, "에이전트 \"%s\"이(가) 명령 %s의 승인을 요청합니다.");
@@ -1170,7 +1160,6 @@ public class MarginaliaLocalizationBundleKO extends TextBundleBase<M_L> {
         setValue(M_L.MSG_AGENT_NOTICE_PAUSED, "에이전트 \"%s\"의 실행이 일시 정지되었습니다: %s");
         setValue(M_L.MSG_AGENT_CONFIRM_DELETE_RUN, "이 실행을 삭제하시겠습니까? 단계와 보고서는 휴지통으로 이동합니다.");
         setValue(M_L.MSG_AGENT_RUN_BUSY, "실행이 진행 중입니다. 먼저 일시 정지하거나 중지하세요.");
-        setValue(M_L.MSG_AGENT_UPLOAD_NOT_TEXT, "파일 %s은(는) 텍스트 파일이 아닙니다. 에이전트는 텍스트로 작업하므로 텍스트 파일(UTF-8), 이미지(PNG, JPEG, GIF, WebP), zip 파일만 업로드할 수 있습니다.");
         setValue(M_L.MSG_AGENT_UPLOAD_NOT_IMAGE, "파일 %s은(는) 이미지가 아닙니다. PNG, JPEG, GIF, WebP 이미지만 첨부할 수 있습니다.");
         setValue(M_L.MSG_AGENT_LOREBOOK_LOCKED, "이 로어북은 이 로어북을 사용하는 책의 에이전트 \"%s\"에 의해 잠겨 있습니다. 현재 상태 그대로 표시되며 실행을 일시 정지하거나 중지할 때까지 변경할 수 없습니다. 새로 고쳐 확인하세요.");
         setValue(M_L.MSG_COMMAND_OUTDATED_SUMMARIES_HINT, "요약 %s개가 더 이상 이야기를 설명하지 않습니다. 내용이 여전히 맞다면 revalidate-summaries를 실행하고, 그렇지 않으면 다시 만드세요 (regenerate-summary).");

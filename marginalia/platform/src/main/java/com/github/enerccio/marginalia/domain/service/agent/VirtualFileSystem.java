@@ -12,28 +12,16 @@ import java.util.concurrent.locks.Lock;
 
 /**
  * The files an agent sees: one tree of {@link VirtualPath}s over a few {@link VirtualMount}s. The workspace of the
- * agent is the root, and {@code /checkpoints} and {@code /AGENTS.md} (when there is a run) are read only mounts next to it. This is the only
- * thing the file tools of the model hold; there is no way from here to a {@code File} or a {@code Path} that is
- * returned, and nothing outside the mounts can be named.
+ * agent is the root, and other mounts (read only ones such as a {@link ListOnlyMount} or a {@link TextFileMount}) can be
+ * put next to it at the root with {@link #mount}. This is the only thing the file tools of the model hold; there is no way
+ * from here to a {@code File} or a {@code Path} that is returned, and nothing outside the mounts can be named.
  * <pre>
  * model's text -> VirtualPath.parse -> mount (the cage: names checked on the disk) -> real path (never returned)
  * </pre>
- * Created per run (or per look of the user at the workspace) by the {@code AgentVirtualFileSystemService}; cheap, and
- * the instances of one workspace share its lock.
+ * Created per run (or per look of the user at the workspace) by the application (in Marginalia the
+ * {@code AgentVirtualFileSystemService}); cheap, and the instances of one workspace share its lock.
  */
 public final class VirtualFileSystem {
-
-    public static final String CHECKPOINTS = "checkpoints";
-
-    /**
-     * The read only file with the instructions of the user to the agent; the name is reserved at the root of the workspace.
-     */
-    public static final String INSTRUCTIONS = "AGENTS.md";
-
-    /**
-     * The folder of the workspace for the scratch files of the sub-agents, one folder for each of them.
-     */
-    public static final String SUBAGENTS = "tmp";
 
     private final WorkspaceMount workspace;
     private final Map<VirtualPath, VirtualMount> mounts = new LinkedHashMap<>();
@@ -69,37 +57,40 @@ public final class VirtualFileSystem {
     }
 
     /**
-     * The workspace of an agent only, for the user to look at.
+     * A workspace alone, with no name reserved at its root.
      *
      * @param folder the workspace, created when missing
      * @param lock   shared by everything that changes this workspace
      */
     public static VirtualFileSystem ofWorkspace(Path folder, WorkspaceLimits limits, Lock lock) {
-        return new VirtualFileSystem(new WorkspaceMount(folder, limits, lock, java.util.Set.of(CHECKPOINTS, INSTRUCTIONS)), limits);
+        return ofWorkspace(folder, limits, lock, Set.of());
     }
 
     /**
-     * The files of a run: the workspace of its agent and the list of its checkpoints.
-     */
-    public static VirtualFileSystem ofRun(RunFolder folder, WorkspaceLimits limits, Lock lock) {
-        return ofRun(folder, limits, lock, null);
-    }
-
-    /**
-     * The files of a run: the workspace of its agent, the list of its checkpoints and, when there are instructions,
-     * {@code /AGENTS.md} with them.
+     * A workspace whose root can't have files or folders of the given names (in any case): the names of the mounts
+     * that are put next to it ({@link #mount}), whether or not they are there this time, so a look at the workspace
+     * alone does not let the user create a name a run would hide.
      *
-     * @param instructions the text of the file, null when the file is not there
+     * @param folder   the workspace, created when missing
+     * @param lock     shared by everything that changes this workspace
+     * @param reserved names that can't be created at the root of the workspace
      */
-    public static VirtualFileSystem ofRun(RunFolder folder, WorkspaceLimits limits, Lock lock, String instructions) {
-        VirtualFileSystem fs = ofWorkspace(folder.workspace(), limits, lock);
-        VirtualPath mountPoint = VirtualPath.ROOT.resolve(CHECKPOINTS);
-        fs.mounts.put(mountPoint, new CheckpointsMount(mountPoint, folder.checkpoints()));
-        if (instructions != null) {
-            VirtualPath file = VirtualPath.ROOT.resolve(INSTRUCTIONS);
-            fs.mounts.put(file, new InstructionsMount(file, instructions));
-        }
-        return fs;
+    public static VirtualFileSystem ofWorkspace(Path folder, WorkspaceLimits limits, Lock lock, Set<String> reserved) {
+        return new VirtualFileSystem(new WorkspaceMount(folder, limits, lock, reserved), limits);
+    }
+
+    /**
+     * Puts another mount at the root, next to the workspace; a file or folder of the workspace with its name is hidden
+     * by it, so reserve the name ({@link #ofWorkspace(Path, WorkspaceLimits, Lock, Set)}).
+     *
+     * @param name  the name of the mount at the root, for example {@code checkpoints}
+     * @param mount the mount, which answers for paths that start with {@code /name}
+     * @return this
+     * @throws VirtualFileException when the name is not a valid name
+     */
+    public VirtualFileSystem mount(String name, VirtualMount mount) {
+        mounts.put(VirtualPath.ROOT.resolve(name), mount);
+        return this;
     }
 
     public WorkspaceLimits getLimits() {
@@ -177,7 +168,7 @@ public final class VirtualFileSystem {
     }
 
     /**
-     * The other mounts as they appear at the root: {@code /checkpoints} a folder, {@code /AGENTS.md} a file.
+     * The other mounts as they appear at the root, a folder or a file each.
      */
     public List<VirtualEntry> mountEntries() {
         List<VirtualEntry> entries = new ArrayList<>();

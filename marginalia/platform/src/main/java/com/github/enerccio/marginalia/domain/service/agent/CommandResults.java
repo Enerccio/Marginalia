@@ -7,7 +7,7 @@ import java.util.function.Consumer;
 
 /**
  * The last results the commands of a run returned, whole: the model gets a result cut at
- * {@link CommandFunctions#MAX_RESULT_LENGTH}, the file tools that list and save them
+ * the longest result of a command (in Marginalia {@code CommandFunctions.MAX_RESULT_LENGTH}), the file tools that list and save them
  * ({@link AgentFileTools#listCommandResults}, {@link AgentFileTools#saveCommandResult}) get all of it, so a long result can
  * be kept without the model writing it out again, and looked at later. Each result has a number, counted from 1 in the
  * run; only the last {@value #KEEP} are kept. One per run, shared by the functions of the commands (which add to it) and

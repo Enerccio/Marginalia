@@ -146,6 +146,8 @@ public final class CssStyles {
     public static final String RUN_CORNER_TEXT = "run-corner-text";
     /** A dense window: smaller fields, buttons, icons, text and gaps inside it (the full-screen lorebook editor). */
     public static final String COMPACT_SIZES = "compact-sizes";
+    /** The browser of a workspace (WorkspaceBrowser): small text, the list and the viewer share the height. */
+    public static final String WORKSPACE_BROWSER = "workspace-browser";
 
     private CssStyles() {
     }

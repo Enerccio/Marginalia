@@ -314,6 +314,9 @@ public class LocalizationBundleKO extends LocalizationBundleBase {
         setValue(L.LABEL_FUNCTIONS_PLACEMENT, "함수 정의 위치");
         setValue(L.LABEL_FUNCTION_RULE, "함수 호출 규칙");
         setValue(L.LABEL_FUNCTION_RULE_PLACEMENT, "규칙 위치");
+        setValue(L.LABEL_UP, "위로");
+        setValue(L.LABEL_UPLOAD_FILE, "파일 업로드");
+        setValue(L.LABEL_FOLDER_NAME, "폴더 이름");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 호환");
@@ -394,6 +397,7 @@ public class LocalizationBundleKO extends LocalizationBundleBase {
         setValue(L.ERROR_GPU_STEP_FAILED, "단계가 실패했습니다: %s");
         setValue(L.ERROR_GPU_UNLOAD_FAILED, "해제 단계가 실패했습니다: %s");
         setValue(L.ERROR_API_KEY_CREATE_FAILED, "키를 만들 수 없습니다: %s");
+        setValue(L.ERROR_AGENT_ACTION_FAILED, "에이전트 작업이 실패했습니다: %s");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "양식을 저장할 수 없습니다.");
@@ -513,6 +517,13 @@ public class LocalizationBundleKO extends LocalizationBundleBase {
         setValue(L.MSG_API_KEY_CREATED, "지금 키를 복사하세요. 다시 표시되지 않습니다.");
         setValue(L.MSG_REVOKE_API_KEY, "키 %s을(를) 폐기할까요? 이 키를 사용하는 프로그램은 접근할 수 없게 됩니다.");
         setValue(L.MSG_MODEL_NOT_ON_SERVER, "서버가 모델 %s을(를) (더 이상) 제공하지 않습니다. 그대로 두지만 이 모델로 보낸 요청은 실패할 수 있습니다. 목록에서 하나를 고르세요.");
+        setValue(L.MSG_AGENT_WORKSPACE_EMPTY, "작업 공간이 비어 있습니다.");
+        setValue(L.MSG_AGENT_WORKSPACE_USAGE, "파일 %d개, %s / %s");
+        setValue(L.MSG_AGENT_CONFIRM_CLEAR_WORKSPACE, "에이전트 작업 공간의 모든 파일을 삭제하시겠습니까? 에이전트가 거기에 보관한 메모가 사라집니다.");
+        setValue(L.MSG_AGENT_FILE_NOT_TEXT, "텍스트 파일이 아닙니다. 다운로드하여 확인하세요.");
+        setValue(L.MSG_AGENT_FILE_CUT, "파일이 더 깁니다: %d / %d자까지만 표시됩니다 (… 잘림). 나머지는 다운로드하여 읽으세요.");
+        setValue(L.MSG_AGENT_WORKSPACE_BUSY, "에이전트가 작업 중입니다. 파일을 변경하려면 일시 정지하세요.");
+        setValue(L.MSG_AGENT_UPLOAD_NOT_TEXT, "파일 %s은(는) 텍스트 파일이 아닙니다. 에이전트는 텍스트로 작업하므로 텍스트 파일(UTF-8), 이미지(PNG, JPEG, GIF, WebP), zip 파일만 업로드할 수 있습니다.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "분 시 일 월 요일 - 예: \"0 3 * * *\"은 매일 3:00, \"0 */6 * * *\"은 6시간마다, \"30 2 * * 1\"은 월요일 2:30. @daily, @weekly, @monthly도 사용할 수 있습니다.");

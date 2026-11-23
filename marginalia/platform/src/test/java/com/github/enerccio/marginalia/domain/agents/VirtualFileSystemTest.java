@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -33,16 +34,16 @@ class VirtualFileSystemTest {
     @TempDir
     Path home;
 
-    private RunFolder folder;
+    private TestRunFolder folder;
     private Path outside;
     private VirtualFileSystem fs;
 
     @BeforeEach
     void open() throws IOException {
-        folder = RunFolder.of(home, UUID.randomUUID().toString(), UUID.randomUUID().toString());
+        folder = TestRunFolder.of(home, UUID.randomUUID().toString(), UUID.randomUUID().toString());
         outside = Files.createDirectories(home.resolve("outside"));
         Files.writeString(outside.resolve("secret.txt"), "secret");
-        fs = VirtualFileSystem.ofRun(folder, LIMITS, new ReentrantLock());
+        fs = folder.fileSystem(LIMITS, new ReentrantLock());
     }
 
     private VirtualPath p(String path) {
@@ -505,6 +506,21 @@ class VirtualFileSystemTest {
     }
 
     @Test
+    void aTextFileMountIsReadOnlyAndItsNameReserved() {
+        VirtualFileSystem files = VirtualFileSystem.ofWorkspace(folder.workspace(), LIMITS, new ReentrantLock(), Set.of("NOTE.md"))
+                .mount("NOTE.md", new TextFileMount(VirtualPath.ROOT.resolve("NOTE.md"), "read me", "/NOTE.md is the user's"));
+
+        assertThat(files.readText(files.parse("/NOTE.md"))).isEqualTo("read me");
+        assertThat(files.list(VirtualPath.ROOT)).extracting(e -> e.path().toString()).containsExactly("/NOTE.md");
+        assertThatThrownBy(() -> files.writeText(files.parse("/NOTE.md"), "x", false)).hasMessageContaining("read only");
+        assertThatThrownBy(() -> files.delete(files.parse("/NOTE.md"), false)).hasMessageContaining("read only");
+        // reserved in any case, also when the workspace is opened without the mount
+        VirtualFileSystem alone = VirtualFileSystem.ofWorkspace(folder.workspace(), LIMITS, new ReentrantLock(), Set.of("NOTE.md"));
+        assertThatThrownBy(() -> alone.writeText(alone.parse("/note.MD"), "x", false)).isInstanceOf(VirtualFileException.class);
+        alone.writeText(alone.parse("/notes/NOTE.md"), "fine below the root", false);
+    }
+
+    @Test
     void walkingTheRootDoesNotEnterTheCheckpoints() throws IOException {
         Files.createDirectories(folder.checkpoints());
         Files.writeString(folder.checkpoints().resolve("0001.json"), "{}");
@@ -560,7 +576,7 @@ class VirtualFileSystemTest {
     void clearsAndCopiesTheWorkspace() throws IOException {
         write("/a.md", "A");
         write("/dir/b.md", "B");
-        Path otherWorkspace = RunFolder.workspaceOf(home, UUID.randomUUID().toString());
+        Path otherWorkspace = TestRunFolder.workspaceOf(home, UUID.randomUUID().toString());
         VirtualFileSystem other = VirtualFileSystem.ofWorkspace(otherWorkspace, LIMITS, new ReentrantLock());
         Files.createSymbolicLink(folder.workspace().resolve("link"), outside);
 
@@ -616,7 +632,7 @@ class VirtualFileSystemTest {
     // ---------------------------------------------------------------------------------------------------------------
 
     private VirtualFileSystem withImageLimit(long textBytes, long imageBytes) {
-        return VirtualFileSystem.ofRun(folder, new WorkspaceLimits(textBytes, 100_000, 10, imageBytes), new ReentrantLock());
+        return folder.fileSystem(new WorkspaceLimits(textBytes, 100_000, 10, imageBytes), new ReentrantLock());
     }
 
     @Test
@@ -642,7 +658,7 @@ class VirtualFileSystemTest {
     @Test
     void anImageCountsAgainstTheTotalAndTheNumberOfFiles() throws IOException {
         byte[] image = TestImages.image(120, 120, "png");
-        fs = VirtualFileSystem.ofRun(folder, new WorkspaceLimits(1000, image.length + 10, 2, 100_000), new ReentrantLock());
+        fs = folder.fileSystem(new WorkspaceLimits(1000, image.length + 10, 2, 100_000), new ReentrantLock());
 
         fs.writeImage(p("/a.png"), image);
 

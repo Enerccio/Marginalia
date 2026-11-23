@@ -252,7 +252,7 @@ public class AgentCheckpointBrowser extends VerticalLayout implements LLMInterac
             Info info = checkpointService.makeManual(run.get(), label).checkpoint();
             Notification.success(String.format(loc.getValue(M_L.MSG_AGENT_CHECKPOINT_SAVED), info.id()));
         } catch (CheckpointException e) {
-            Notification.warning(String.format(loc.getValue(M_L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
+            Notification.warning(String.format(loc.getValue(L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
@@ -274,7 +274,7 @@ public class AgentCheckpointBrowser extends VerticalLayout implements LLMInterac
             Notification.success(String.format(loc.getValue(M_L.MSG_AGENT_CHECKPOINT_RESTORED), info.id(), result.removedFiles().size()));
             restored.run();
         } catch (CheckpointException e) {
-            Notification.warning(String.format(loc.getValue(M_L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
+            Notification.warning(String.format(loc.getValue(L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
@@ -297,7 +297,7 @@ public class AgentCheckpointBrowser extends VerticalLayout implements LLMInterac
                     result.restored().removedFiles().size()));
             rewound.run();
         } catch (CheckpointException | IllegalStateException e) {
-            Notification.warning(String.format(loc.getValue(M_L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
+            Notification.warning(String.format(loc.getValue(L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
@@ -313,7 +313,7 @@ public class AgentCheckpointBrowser extends VerticalLayout implements LLMInterac
         try {
             checkpointService.delete(run.get(), info.id(), false);
         } catch (CheckpointException e) {
-            Notification.warning(String.format(loc.getValue(M_L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
+            Notification.warning(String.format(loc.getValue(L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }

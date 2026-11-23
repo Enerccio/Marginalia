@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.ui.dialogs.bookimport;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.Agent;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
@@ -127,7 +128,7 @@ public class AfterImportDialog extends Dialog {
                 console.open();
                 onStarted.run();
             } catch (IllegalArgumentException | IllegalStateException | SecurityException e) {
-                Notification.error(String.format(loc.getValue(M_L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
+                Notification.error(String.format(loc.getValue(L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
             } catch (Exception e) {
                 UIUtils.internalServerError(loc, e);
             }

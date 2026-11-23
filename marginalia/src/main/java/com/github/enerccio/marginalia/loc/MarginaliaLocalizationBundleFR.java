@@ -246,7 +246,6 @@ public class MarginaliaLocalizationBundleFR extends TextBundleBase<M_L> {
         setValue(M_L.LABEL_YOU, "Vous");
         setValue(M_L.LABEL_RESULT, "Résultat");
         setValue(M_L.LABEL_AGENT_REPORT, "Rapport de l'agent");
-        setValue(M_L.LABEL_UP, "Haut");
         setValue(M_L.LABEL_AGENT_APPROVAL, "L'agent demande une approbation");
         setValue(M_L.LABEL_APPROVE, "Approuver");
         setValue(M_L.LABEL_DENY, "Refuser");
@@ -255,8 +254,6 @@ public class MarginaliaLocalizationBundleFR extends TextBundleBase<M_L> {
         setValue(M_L.LABEL_START_IN_CONSOLE, "Démarrer dans la console");
         setValue(M_L.LABEL_FINISH, "Terminer");
         setValue(M_L.LABEL_REASONING, "Raisonnement");
-        setValue(M_L.LABEL_UPLOAD_FILE, "Téléverser un fichier");
-        setValue(M_L.LABEL_FOLDER_NAME, "Nom du dossier");
         setValue(M_L.LABEL_AGENT_SEES_IMAGES, "Le modèle voit les images");
         setValue(M_L.LABEL_ATTACH_IMAGE, "Joindre une image");
         setValue(M_L.LABEL_AGENT_QUEUED, "En file d'attente");
@@ -1037,7 +1034,6 @@ public class MarginaliaLocalizationBundleFR extends TextBundleBase<M_L> {
         setValue(M_L.ERROR_COMMAND_NO_ORIGINAL_RESPONSE, "La partie n'a pas de texte original : elle n'a pas été générée, ou elle l'a été avant que l'original ne soit conservé.");
         setValue(M_L.ERROR_COMMAND_TOO_LARGE_TO_COMPARE, "Les textes sont trop grands pour être comparés.");
         setValue(M_L.ERROR_BOOK_LOCKED, "Le livre est verrouillé par l'agent « %s ». Mettez en pause ou arrêtez son exécution pour modifier le livre.");
-        setValue(M_L.ERROR_AGENT_ACTION_FAILED, "L'action de l'agent a échoué : %s");
         setValue(M_L.ERROR_COMMAND_NO_SUCH_LOREBOOK, "Il n'y a pas de lorebook %s, le livre a %s lorebooks (voir list-lorebooks).");
         setValue(M_L.ERROR_COMMAND_NO_SUCH_LORE_ENTRY, "Le lorebook %s n'a pas d'entrée %s, il a %s entrées.");
         setValue(M_L.ERROR_REGEX_TIMEOUT, "L'expression régulière a pris plus de %s secondes et a été arrêtée. Utilisez-en une plus simple.");
@@ -1156,12 +1152,6 @@ public class MarginaliaLocalizationBundleFR extends TextBundleBase<M_L> {
         setValue(M_L.MSG_CONFIRM_STOP_RUN, "Comment l'exécution de l'agent « %s » doit-elle se terminer ?");
         setValue(M_L.MSG_AGENT_BOOK_LOCKED, "Ce livre est verrouillé par l'agent « %s ». Mettez d'abord en pause ou arrêtez son exécution.");
         setValue(M_L.MSG_AGENT_NO_RUN_YET, "L'agent n'a pas encore été exécuté. Démarrez-le dans l'onglet Agents.");
-        setValue(M_L.MSG_AGENT_WORKSPACE_EMPTY, "L'espace de travail est vide.");
-        setValue(M_L.MSG_AGENT_WORKSPACE_USAGE, "%d fichiers, %s sur %s");
-        setValue(M_L.MSG_AGENT_CONFIRM_CLEAR_WORKSPACE, "Supprimer tous les fichiers de l'espace de travail de l'agent ? Les notes que l'agent y garde seront perdues.");
-        setValue(M_L.MSG_AGENT_FILE_NOT_TEXT, "Ce fichier n'est pas du texte. Téléchargez-le pour le voir.");
-        setValue(M_L.MSG_AGENT_FILE_CUT, "Le fichier est plus long : seuls les %d premiers caractères sur %d sont affichés (… tronqué), téléchargez-le pour lire la suite.");
-        setValue(M_L.MSG_AGENT_WORKSPACE_BUSY, "L'agent travaille. Mettez-le en pause pour modifier ses fichiers.");
         setValue(M_L.MSG_AGENT_APPROVAL_QUESTION, "L'agent « %s » veut exécuter la commande %s, qui modifie ou supprime des données. Il travaille sur sa propre copie du livre, rien en dehors n'est touché.");
         setValue(M_L.MSG_AGENT_NOTICE_IDLE, "L'agent « %s » vous attend.");
         setValue(M_L.MSG_AGENT_NOTICE_APPROVAL, "L'agent « %s » demande l'approbation de la commande %s.");
@@ -1170,7 +1160,6 @@ public class MarginaliaLocalizationBundleFR extends TextBundleBase<M_L> {
         setValue(M_L.MSG_AGENT_NOTICE_PAUSED, "L'exécution de l'agent « %s » a été mise en pause : %s");
         setValue(M_L.MSG_AGENT_CONFIRM_DELETE_RUN, "Supprimer cette exécution ? Ses étapes et son rapport vont à la corbeille.");
         setValue(M_L.MSG_AGENT_RUN_BUSY, "L'exécution est en cours, mettez-la d'abord en pause ou arrêtez-la.");
-        setValue(M_L.MSG_AGENT_UPLOAD_NOT_TEXT, "Le fichier %s n'est pas un fichier texte. L'agent travaille avec du texte, seuls les fichiers texte (UTF-8), les images (PNG, JPEG, GIF, WebP) et les fichiers zip peuvent donc être téléversés.");
         setValue(M_L.MSG_AGENT_UPLOAD_NOT_IMAGE, "Le fichier %s n'est pas une image. Seules les images PNG, JPEG, GIF et WebP peuvent être jointes.");
         setValue(M_L.MSG_AGENT_LOREBOOK_LOCKED, "Ce lorebook est verrouillé par l'agent « %s », dont le livre l'utilise. Il est affiché tel quel et ne peut pas être modifié tant que l'exécution n'est pas en pause ou arrêtée. Actualisez pour vérifier.");
         setValue(M_L.MSG_COMMAND_OUTDATED_SUMMARIES_HINT, "%s résumés ne décrivent plus l'histoire. Si ce qu'ils disent est toujours vrai, lancez revalidate-summaries, sinon refaites-les (regenerate-summary).");

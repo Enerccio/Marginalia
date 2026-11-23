@@ -314,6 +314,9 @@ public class LocalizationBundleES extends LocalizationBundleBase {
         setValue(L.LABEL_FUNCTIONS_PLACEMENT, "Definiciones de funciones");
         setValue(L.LABEL_FUNCTION_RULE, "Regla de llamadas a funciones");
         setValue(L.LABEL_FUNCTION_RULE_PLACEMENT, "Posición de la regla");
+        setValue(L.LABEL_UP, "Subir");
+        setValue(L.LABEL_UPLOAD_FILE, "Subir archivo");
+        setValue(L.LABEL_FOLDER_NAME, "Nombre de la carpeta");
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "Compatible con OpenAI");
         setValue(L.ENUM_PROTOCOL_TYPE_OPEN_CHAT_COMPLETION, "Chat Completion");
@@ -392,6 +395,7 @@ public class LocalizationBundleES extends LocalizationBundleBase {
         setValue(L.ERROR_GPU_STEP_FAILED, "El paso falló: %s");
         setValue(L.ERROR_GPU_UNLOAD_FAILED, "Un paso de liberación falló: %s");
         setValue(L.ERROR_API_KEY_CREATE_FAILED, "No se pudo crear la clave: %s");
+        setValue(L.ERROR_AGENT_ACTION_FAILED, "La acción del agente ha fallado: %s");
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "No se puede guardar el formulario.");
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE_EXT, "No se puede guardar el formulario. Campos no válidos: ");
@@ -510,6 +514,13 @@ public class LocalizationBundleES extends LocalizationBundleBase {
         setValue(L.MSG_API_KEY_CREATED, "Copia la clave ahora: no se volverá a mostrar.");
         setValue(L.MSG_REVOKE_API_KEY, "¿Revocar la clave %s? Los programas que la usan pierden el acceso.");
         setValue(L.MSG_MODEL_NOT_ON_SERVER, "El servidor no ofrece (o ya no ofrece) el modelo %s. Se conserva, pero una petición con él puede fallar: elige uno de la lista.");
+        setValue(L.MSG_AGENT_WORKSPACE_EMPTY, "El espacio de trabajo está vacío.");
+        setValue(L.MSG_AGENT_WORKSPACE_USAGE, "%d archivos, %s de %s");
+        setValue(L.MSG_AGENT_CONFIRM_CLEAR_WORKSPACE, "¿Eliminar todos los archivos del espacio de trabajo del agente? Se pierden las notas que el agente guarda allí.");
+        setValue(L.MSG_AGENT_FILE_NOT_TEXT, "Este archivo no es de texto. Descárgalo para verlo.");
+        setValue(L.MSG_AGENT_FILE_CUT, "El archivo es más largo: solo se muestran los primeros %d de %d caracteres (… truncado); descárgalo para leer el resto.");
+        setValue(L.MSG_AGENT_WORKSPACE_BUSY, "El agente está trabajando. Páusalo para cambiar sus archivos.");
+        setValue(L.MSG_AGENT_UPLOAD_NOT_TEXT, "El archivo %s no es un archivo de texto. El agente trabaja con texto, así que solo se pueden subir archivos de texto (UTF-8), imágenes (PNG, JPEG, GIF, WebP) y archivos zip.");
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minuto hora día-del-mes mes día-de-la-semana - p. ej. \"0 3 * * *\" todos los días a las 3:00, \"0 */6 * * *\" cada 6 horas, \"30 2 * * 1\" los lunes a las 2:30. También funcionan @daily, @weekly y @monthly.");
         setValue(L.HELP_BACKUP_KEEP, "Las copias programadas más antiguas se eliminan; 0 las conserva todas. Las copias manuales nunca se eliminan.");

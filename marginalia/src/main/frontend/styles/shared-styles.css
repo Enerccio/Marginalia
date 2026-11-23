@@ -1066,28 +1066,6 @@ vaadin-dialog-overlay.agent-console-phone .help-message-user {
     font-style: italic;
 }
 
-/* Agent console: the workspace tab (ui.dialogs.agent.AgentWorkspaceBrowser) is small text with little room around it,
-   so that the folder shows more than a row or two */
-.workspace-browser {
-    gap: var(--lumo-space-xs);
-    font-size: var(--lumo-font-size-xs);
-}
-
-/* the list and the viewer split the height of the tab (3 : 2), so the tab itself has nothing to scroll */
-.workspace-browser vaadin-grid {
-    flex: 3 1 0;
-    min-height: 6rem;
-    font-size: var(--lumo-font-size-xs);
-    --lumo-font-size-m: var(--lumo-font-size-xs);
-}
-
-.workspace-browser vaadin-text-area {
-    flex: 2 1 0;
-    min-height: 6rem;
-    padding: 0;
-    --lumo-font-size-m: var(--lumo-font-size-xs);
-}
-
 /* the dialog that tags many books, lorebooks or entries at once */
 /* an item an agent works on: listed, but nothing can be done with it */
 .multi-tag-locked {

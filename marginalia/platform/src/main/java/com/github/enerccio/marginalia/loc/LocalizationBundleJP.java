@@ -314,6 +314,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_FUNCTIONS_PLACEMENT, "関数定義の配置");
         setValue(L.LABEL_FUNCTION_RULE, "関数呼び出しのルール");
         setValue(L.LABEL_FUNCTION_RULE_PLACEMENT, "ルールの配置");
+        setValue(L.LABEL_UP, "上へ");
+        setValue(L.LABEL_UPLOAD_FILE, "ファイルをアップロード");
+        setValue(L.LABEL_FOLDER_NAME, "フォルダ名");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -394,6 +397,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ERROR_GPU_STEP_FAILED, "ステップが失敗しました: %s");
         setValue(L.ERROR_GPU_UNLOAD_FAILED, "解放ステップが失敗しました: %s");
         setValue(L.ERROR_API_KEY_CREATE_FAILED, "キーを作成できませんでした: %s");
+        setValue(L.ERROR_AGENT_ACTION_FAILED, "エージェントの操作に失敗しました: %s");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "フォームを保存できません。");
@@ -513,6 +517,13 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_API_KEY_CREATED, "今すぐキーをコピーしてください。二度と表示されません。");
         setValue(L.MSG_REVOKE_API_KEY, "キー %s を失効させますか？このキーを使うプログラムはアクセスできなくなります。");
         setValue(L.MSG_MODEL_NOT_ON_SERVER, "サーバーはモデル %s を（もう）提供していません。そのまま残しますが、このモデルでのリクエストは失敗する可能性があります。一覧から選んでください。");
+        setValue(L.MSG_AGENT_WORKSPACE_EMPTY, "ワークスペースは空です。");
+        setValue(L.MSG_AGENT_WORKSPACE_USAGE, "%d 個のファイル、%s / %s");
+        setValue(L.MSG_AGENT_CONFIRM_CLEAR_WORKSPACE, "エージェントのワークスペースのすべてのファイルを削除しますか？エージェントがそこに保存したメモは失われます。");
+        setValue(L.MSG_AGENT_FILE_NOT_TEXT, "このファイルはテキストではありません。ダウンロードして確認してください。");
+        setValue(L.MSG_AGENT_FILE_CUT, "ファイルが長いため、%d 文字目まで（全 %d 文字）のみ表示しています（…省略）。残りはダウンロードして確認してください。");
+        setValue(L.MSG_AGENT_WORKSPACE_BUSY, "エージェントが作業中です。ファイルを変更するには一時停止してください。");
+        setValue(L.MSG_AGENT_UPLOAD_NOT_TEXT, "ファイル %s はテキストファイルではありません。エージェントはテキストを扱うため、アップロードできるのはテキストファイル（UTF-8）、画像（PNG、JPEG、GIF、WebP）、zipファイルだけです。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");

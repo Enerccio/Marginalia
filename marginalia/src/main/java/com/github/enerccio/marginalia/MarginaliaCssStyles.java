@@ -169,9 +169,6 @@ public final class MarginaliaCssStyles {
     public static final String SEARCH_HIT_REPLACEMENT = "search-hit-replacement";
     public static final String SEARCH_HIT_PLACEHOLDER = "search-hit-placeholder";
 
-    // --- Agent console (ui.dialogs.agent) ---
-    public static final String WORKSPACE_BROWSER = "workspace-browser";
-
     // --- Tags of many items at once (ui.dialogs.MultiTagDialog) ---
     public static final String MULTI_TAG_LOCKED = "multi-tag-locked";
     public static final String MULTI_TAG_CHIP = "multi-tag-chip";

@@ -246,7 +246,6 @@ public class MarginaliaLocalizationBundleDE extends TextBundleBase<M_L> {
         setValue(M_L.LABEL_YOU, "Du");
         setValue(M_L.LABEL_RESULT, "Ergebnis");
         setValue(M_L.LABEL_AGENT_REPORT, "Bericht des Agenten");
-        setValue(M_L.LABEL_UP, "Nach oben");
         setValue(M_L.LABEL_AGENT_APPROVAL, "Der Agent bittet um Zustimmung");
         setValue(M_L.LABEL_APPROVE, "Genehmigen");
         setValue(M_L.LABEL_DENY, "Ablehnen");
@@ -255,8 +254,6 @@ public class MarginaliaLocalizationBundleDE extends TextBundleBase<M_L> {
         setValue(M_L.LABEL_START_IN_CONSOLE, "In der Konsole starten");
         setValue(M_L.LABEL_FINISH, "Beenden");
         setValue(M_L.LABEL_REASONING, "Reasoning");
-        setValue(M_L.LABEL_UPLOAD_FILE, "Datei hochladen");
-        setValue(M_L.LABEL_FOLDER_NAME, "Ordnername");
         setValue(M_L.LABEL_AGENT_SEES_IMAGES, "Das Modell sieht Bilder");
         setValue(M_L.LABEL_ATTACH_IMAGE, "Bild anhängen");
         setValue(M_L.LABEL_AGENT_QUEUED, "In der Warteschlange");
@@ -1037,7 +1034,6 @@ public class MarginaliaLocalizationBundleDE extends TextBundleBase<M_L> {
         setValue(M_L.ERROR_COMMAND_NO_ORIGINAL_RESPONSE, "Der Abschnitt hat keinen Originaltext: Er wurde nicht generiert oder wurde generiert, bevor das Original aufbewahrt wurde.");
         setValue(M_L.ERROR_COMMAND_TOO_LARGE_TO_COMPARE, "Die Texte sind zu groß zum Vergleichen.");
         setValue(M_L.ERROR_BOOK_LOCKED, "Das Buch ist vom Agenten „%s“ gesperrt. Pausiere oder stoppe seinen Lauf, um das Buch zu ändern.");
-        setValue(M_L.ERROR_AGENT_ACTION_FAILED, "Die Aktion des Agenten ist fehlgeschlagen: %s");
         setValue(M_L.ERROR_COMMAND_NO_SUCH_LOREBOOK, "Es gibt kein Lorebook %s, das Buch hat %s Lorebooks (siehe list-lorebooks).");
         setValue(M_L.ERROR_COMMAND_NO_SUCH_LORE_ENTRY, "Lorebook %s hat keinen Eintrag %s, es hat %s Einträge.");
         setValue(M_L.ERROR_REGEX_TIMEOUT, "Der reguläre Ausdruck hat länger als %s Sekunden gebraucht und wurde gestoppt. Verwende einen einfacheren.");
@@ -1156,12 +1152,6 @@ public class MarginaliaLocalizationBundleDE extends TextBundleBase<M_L> {
         setValue(M_L.MSG_CONFIRM_STOP_RUN, "Wie soll der Lauf des Agenten „%s“ enden?");
         setValue(M_L.MSG_AGENT_BOOK_LOCKED, "Dieses Buch ist vom Agenten „%s“ gesperrt. Pausiere oder stoppe zuerst seinen Lauf.");
         setValue(M_L.MSG_AGENT_NO_RUN_YET, "Der Agent ist noch nicht gelaufen. Starte ihn im Tab „Agenten“.");
-        setValue(M_L.MSG_AGENT_WORKSPACE_EMPTY, "Der Arbeitsbereich ist leer.");
-        setValue(M_L.MSG_AGENT_WORKSPACE_USAGE, "%d Dateien, %s von %s");
-        setValue(M_L.MSG_AGENT_CONFIRM_CLEAR_WORKSPACE, "Alle Dateien im Arbeitsbereich des Agenten löschen? Die Notizen, die der Agent dort führt, gehen verloren.");
-        setValue(M_L.MSG_AGENT_FILE_NOT_TEXT, "Diese Datei ist kein Text. Lade sie herunter, um sie anzusehen.");
-        setValue(M_L.MSG_AGENT_FILE_CUT, "Die Datei ist länger: Es werden nur die ersten %d von %d Zeichen angezeigt (… gekürzt), lade sie herunter, um den Rest zu lesen.");
-        setValue(M_L.MSG_AGENT_WORKSPACE_BUSY, "Der Agent arbeitet. Pausiere ihn, um seine Dateien zu ändern.");
         setValue(M_L.MSG_AGENT_APPROVAL_QUESTION, "Der Agent „%s“ möchte den Befehl %s ausführen, der Daten ändert oder entfernt. Er arbeitet an seiner eigenen Kopie des Buchs, nichts außerhalb davon wird angetastet.");
         setValue(M_L.MSG_AGENT_NOTICE_IDLE, "Der Agent „%s“ wartet auf dich.");
         setValue(M_L.MSG_AGENT_NOTICE_APPROVAL, "Der Agent „%s“ bittet um die Genehmigung des Befehls %s.");
@@ -1170,7 +1160,6 @@ public class MarginaliaLocalizationBundleDE extends TextBundleBase<M_L> {
         setValue(M_L.MSG_AGENT_NOTICE_PAUSED, "Der Lauf des Agenten „%s“ wurde pausiert: %s");
         setValue(M_L.MSG_AGENT_CONFIRM_DELETE_RUN, "Diesen Lauf löschen? Seine Schritte und sein Bericht kommen in den Papierkorb.");
         setValue(M_L.MSG_AGENT_RUN_BUSY, "Der Lauf ist im Gange, pausiere oder stoppe ihn zuerst.");
-        setValue(M_L.MSG_AGENT_UPLOAD_NOT_TEXT, "Die Datei %s ist keine Textdatei. Der Agent arbeitet mit Text, daher können nur Textdateien (UTF-8), Bilder (PNG, JPEG, GIF, WebP) und ZIP-Dateien hochgeladen werden.");
         setValue(M_L.MSG_AGENT_UPLOAD_NOT_IMAGE, "Die Datei %s ist kein Bild. Es können nur PNG-, JPEG-, GIF- und WebP-Bilder angehängt werden.");
         setValue(M_L.MSG_AGENT_LOREBOOK_LOCKED, "Dieses Lorebook ist vom Agenten „%s“ gesperrt, dessen Buch es verwendet. Es wird so angezeigt, wie es ist, und kann nicht geändert werden, bis der Lauf pausiert oder gestoppt wird. Aktualisiere, um es zu prüfen.");
         setValue(M_L.MSG_COMMAND_OUTDATED_SUMMARIES_HINT, "%s Zusammenfassungen beschreiben die Geschichte nicht mehr. Wenn das, was sie sagen, weiterhin stimmt, führe revalidate-summaries aus, andernfalls erstelle sie neu (regenerate-summary).");

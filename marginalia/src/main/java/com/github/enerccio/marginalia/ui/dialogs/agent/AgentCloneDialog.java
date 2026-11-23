@@ -135,7 +135,7 @@ public class AgentCloneDialog extends Dialog implements LLMInteract {
         try {
             agentService.cloneAgent(source, nameField.getValue(), manuscriptCombo.getValue());
         } catch (IllegalArgumentException | IllegalStateException | SecurityException e) {
-            Notification.error(String.format(loc.getValue(M_L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
+            Notification.error(String.format(loc.getValue(L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
             return;
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);

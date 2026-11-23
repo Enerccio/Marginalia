@@ -16,6 +16,12 @@ import java.util.List;
  */
 public interface AgentFileTools {
 
+    /**
+     * A text argument that starts with this is the content of the file named after it ({@code @file:/notes/plot.md}), in
+     * the file tools and in the arguments of the commands of an agent.
+     */
+    String FILE_PREFIX = "@file:";
+
     @LLMFunction(name = "list_files", description = "Lists the files and folders of your workspace, the notes and files "
             + "you keep between runs. Shows each path with its size. /checkpoints lists the checkpoints of this run. "
             + "With glob it finds the files by name instead.")

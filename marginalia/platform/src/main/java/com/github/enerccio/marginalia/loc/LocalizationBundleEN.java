@@ -314,6 +314,9 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_FUNCTIONS_PLACEMENT, "Function definitions");
         setValue(L.LABEL_FUNCTION_RULE, "Function call rule");
         setValue(L.LABEL_FUNCTION_RULE_PLACEMENT, "Rule placement");
+        setValue(L.LABEL_UP, "Up");
+        setValue(L.LABEL_UPLOAD_FILE, "Upload file");
+        setValue(L.LABEL_FOLDER_NAME, "Folder name");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -394,6 +397,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ERROR_GPU_STEP_FAILED, "The step failed: %s");
         setValue(L.ERROR_GPU_UNLOAD_FAILED, "A release step failed: %s");
         setValue(L.ERROR_API_KEY_CREATE_FAILED, "The key could not be created: %s");
+        setValue(L.ERROR_AGENT_ACTION_FAILED, "The agent action failed: %s");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "Cannot save form.");
@@ -513,6 +517,13 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_API_KEY_CREATED, "Copy the key now: it is not shown again.");
         setValue(L.MSG_REVOKE_API_KEY, "Revoke the key %s? The programs that use it lose access.");
         setValue(L.MSG_MODEL_NOT_ON_SERVER, "The server does not list the model %s (any more). It is kept, but a request with it may fail: pick one from the list.");
+        setValue(L.MSG_AGENT_WORKSPACE_EMPTY, "The workspace is empty.");
+        setValue(L.MSG_AGENT_WORKSPACE_USAGE, "%d files, %s of %s");
+        setValue(L.MSG_AGENT_CONFIRM_CLEAR_WORKSPACE, "Delete all the files in the workspace of the agent? The notes the agent keeps there are lost.");
+        setValue(L.MSG_AGENT_FILE_NOT_TEXT, "This file is not text. Download it to see it.");
+        setValue(L.MSG_AGENT_FILE_CUT, "The file is longer: only the first %d of %d characters are shown (… truncated), download it to read the rest.");
+        setValue(L.MSG_AGENT_WORKSPACE_BUSY, "The agent is working. Pause it to change its files.");
+        setValue(L.MSG_AGENT_UPLOAD_NOT_TEXT, "The file %s is not a text file. The agent works with text, so only text files (UTF-8), images (PNG, JPEG, GIF, WebP) and zip files can be uploaded.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");

@@ -708,7 +708,7 @@ public class AgentPart implements WorkspaceComponent {
             done = true;
         } catch (IllegalArgumentException | IllegalStateException | SecurityException e) {
             // the rules of the service (a disabled agent, no model, all the concurrent runs...), its text says what
-            Notification.warning(String.format(loc.getValue(M_L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
+            Notification.warning(String.format(loc.getValue(L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
