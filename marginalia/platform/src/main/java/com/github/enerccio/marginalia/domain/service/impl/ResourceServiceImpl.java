@@ -20,7 +20,10 @@ import javax.imageio.stream.ImageInputStream;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.*;
 
 public class ResourceServiceImpl extends OwnedServiceImpl<Resource, ResourceRepository> implements ResourceService {
@@ -51,30 +54,110 @@ public class ResourceServiceImpl extends OwnedServiceImpl<Resource, ResourceRepo
         resource.setHash(DigestUtils.sha256Hex(content));
         resource.setPath(null);
 
+        File existing = sameContent(resource, other -> Arrays.equals(FileUtils.readFileToByteArray(other), content));
+        if (existing != null) {
+            resource.setPath(existing.getName());
+            return;
+        }
+        String name = newFileName(filename);
+        FileUtils.writeByteArrayToFile(new File(folderFor(resource.getMimeType()), name), content);
+        resource.setPath(name);
+    }
+
+    private interface SameContent {
+        boolean test(File other) throws Exception;
+    }
+
+    /**
+     * @return the file of another resource of the current user with the hash and size of the resource, in the folder its type
+     * is looked up in, whose content passes the check; null when there is none (or its file is gone)
+     */
+    private File sameContent(Resource resource, SameContent check) throws Exception {
         Resource existing = findByHash(resource.getHash(), currentUser);
-        if (existing != null && existing.getPath() != null && existing.getMimeType() != null) {
-            try {
-                byte[] existingContent = getResourceData(existing);
-                if (existingContent.length == content.length && Arrays.equals(existingContent, content)) {
-                    resource.setPath(existing.getPath());
-                }
-            } catch (java.io.IOException e) {
-                // the file of the other resource is gone, this one gets its own
-            }
+        if (existing == null || existing.getPath() == null || existing.getMimeType() == null
+                || existing.getSize() != resource.getSize() || isImage(existing.getMimeType()) != isImage(resource.getMimeType())) {
+            return null;
+        }
+        File other = fileOf(existing, currentUser);
+        try {
+            return other.isFile() && check.test(other) ? other : null;
+        } catch (java.io.IOException e) {
+            // the file of the other resource is gone, this one gets its own
+            return null;
+        }
+    }
+
+    private static boolean isImage(String mimeType) {
+        return mimeType != null && mimeType.startsWith("image/");
+    }
+
+    private File folderFor(String mimeType) {
+        return isImage(mimeType) ? configuration.getImagesFolder(currentUser) : configuration.getResourcesFolder(currentUser);
+    }
+
+    private static String newFileName(String filename) {
+        return UUID.randomUUID() + "." + FilenameUtils.getExtension(filename);
+    }
+
+    @Override
+    @NoTx
+    public File newUploadFile() throws Exception {
+        return new File(configuration.getResourcesFolder(currentUser), UUID.randomUUID() + ".part");
+    }
+
+    @Override
+    @CommonTx
+    public Resource saveFile(File file, String originalName, String mimeType) throws Exception {
+        return saveFile(file, originalName, mimeType, null, null);
+    }
+
+    @Override
+    @CommonTx
+    public Resource saveFile(File file, String originalName, String mimeType, Class<?> clazz, Long objectId) throws Exception {
+        if (file == null || !file.isFile() || !isUserFolder(file.getCanonicalFile().getParentFile())) {
+            throw new IllegalArgumentException("Not a file of the user's resources");
+        }
+        Resource resource = new Resource();
+        resource.setMimeType(StringUtils.defaultIfBlank(mimeType, "application/octet-stream"));
+        resource.setOriginalName(originalName);
+        resource.setSize(file.length());
+        try (InputStream input = new BufferedInputStream(Files.newInputStream(file.toPath()))) {
+            resource.setHash(DigestUtils.sha256Hex(input));
         }
 
-        if (resource.getPath() == null) {
-            String extension = FilenameUtils.getExtension(filename);
-            String name = UUID.randomUUID() + "." + extension;
-            File storeFile;
-            if (resource.getMimeType().startsWith("image/")) {
-                storeFile = new File(configuration.getImagesFolder(currentUser), name);
-            } else {
-                storeFile = new File(configuration.getResourcesFolder(currentUser), name);
-            }
-            FileUtils.writeByteArrayToFile(storeFile, content);
+        File existing = sameContent(resource, other -> FileUtils.contentEquals(other, file));
+        if (existing != null && !existing.getCanonicalFile().equals(file.getCanonicalFile())) {
+            Files.delete(file.toPath());
+            resource.setPath(existing.getName());
+        } else if (existing != null) {
+            // the file of the other resource itself was given: it is shared, not moved
+            resource.setPath(existing.getName());
+        } else {
+            String name = newFileName(StringUtils.defaultIfBlank(originalName, file.getName()));
+            Files.move(file.toPath(), new File(folderFor(resource.getMimeType()), name).toPath());
             resource.setPath(name);
         }
+        resource = save(resource);
+        return clazz == null ? resource : link(resource, clazz, objectId);
+    }
+
+    private boolean isUserFolder(File folder) throws Exception {
+        return folder != null && (folder.equals(configuration.getResourcesFolder(currentUser).getCanonicalFile())
+                || folder.equals(configuration.getImagesFolder(currentUser).getCanonicalFile()));
+    }
+
+    @Override
+    @CommonTx
+    public int deleteUnlinked(String originalName, Date before) throws Exception {
+        if (originalName == null || before == null) {
+            return 0;
+        }
+        int deleted = 0;
+        for (Resource resource : getRepository().findUnlinked(currentUser, originalName, before)) {
+            delete(resource, false);
+            deleted++;
+        }
+        return deleted;
     }
 
     @Override
@@ -299,7 +382,7 @@ public class ResourceServiceImpl extends OwnedServiceImpl<Resource, ResourceRepo
     }
 
     private File fileOf(Resource resource, User owner) {
-        if (resource.getMimeType().startsWith("image/")) {
+        if (isImage(resource.getMimeType())) {
             return new File(configuration.getImagesFolder(owner), resource.getPath());
         }
         return new File(configuration.getResourcesFolder(owner), resource.getPath());

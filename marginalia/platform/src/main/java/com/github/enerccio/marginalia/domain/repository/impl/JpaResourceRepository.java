@@ -26,6 +26,17 @@ public class JpaResourceRepository extends JpaOwnedRepository<Resource> implemen
     }
 
     @Override
+    public List<Resource> findUnlinked(User owner, String originalName, Date before) {
+        return getEntityManager()
+                .createQuery("SELECT r FROM Resource r WHERE r.deleted = false AND r.owner.id = :owner AND r.originalName = :name"
+                        + " AND r.clazz IS NULL AND r.objectId IS NULL AND r.creation < :before", Resource.class)
+                .setParameter("owner", owner.getId())
+                .setParameter("name", originalName)
+                .setParameter("before", before)
+                .getResultList();
+    }
+
+    @Override
     public List<Resource> findPage(User owner, int offset, int limit, String sortProperty, boolean ascending) {
         return findPageOfGroup(owner, null, null, offset, limit, sortProperty, ascending, false);
     }

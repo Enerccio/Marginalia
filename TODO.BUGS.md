@@ -1169,3 +1169,42 @@ works, but is the thing the variable was meant to avoid.
 sets the lock's `lastTextModel` (per lock uuid, in memory) when a job is taken, before its steps, and gives every job `last_text_model`
 (a caller's own value is replaced). `GpuArbiterTest` has the cases (the text job sees its own model, speech before any text job gets it
 empty, after it keeps it, one lock does not see another's). Docs: *Administration → GPUs*, `gpu-locks.md`, the help of the step dialog.
+
+## BUG-67 - Resources: no way to store a file that is already on the disk, so Joi builds `Resource` rows by hand (low)
+
+Found in Joi (2026-11-23), while its chat images were stored.
+
+**Where:** `domain/service/ResourceService.java` (`upload`, `uploadImage` take a `byte[]`), `domain/service/impl/ResourceServiceImpl.java`
+(`store`: the hash, the size, the path, the reuse of a file with the same content, the folder by mime type), and Joi's copies of it:
+`ModelServiceImpl`, `BodyServiceImpl` (the `.joia`), `AnimationServiceImpl`, `ChatMessageServiceImpl.attachClip` and `ChatImageServiceImpl.store`.
+
+**What happens:** a file that came streamed to the disk (an upload of a model, a clip, an image can be large: it must not be read into a
+byte array) cannot be given to `ResourceService`. Every such caller moves the file into the folder of the user, writes `originalName`,
+`mimeType`, `path`, `size` and the SHA-256 on a new `Resource` and calls `save` (and `link`) itself: the same ten lines five times.
+The copies differ from `store` in what it does for them: they do not reuse an existing file with the same content (two resources for one
+file take two files), they leave the choice between the `images` and the `resources` folder to the caller (`ResourceGarbageService`
+lists both folders), and each has its own `newUploadFile()` for the `.part` file the upload handler writes.
+
+**Expected:** one call that does what `store` does for a file.
+
+**Needed (platform):**
+1. `Resource ResourceService.saveFile(File file, String originalName, String mimeType)`: the file is one of the user's (checked as the
+   callers do now: its parent is `getResourcesFolder(currentUser)`); streams the SHA-256 (no byte array); looks for a resource of the user
+   with the same hash and size and the same content (compare as streams) and then deletes the file and uses the existing path, else moves
+   the file to `<uuid>.<extension>` in the `images` folder for an `image/*` type and the `resources` folder for the others; sets size, hash and path;
+   saves; returns the resource (not linked; `link` stays the caller's). A variant with the class and object id, like `uploadImage(..., clazz, objectId)`.
+2. `File ResourceService.newUploadFile()`: the `<uuid>.part` file in the user's `resources` folder that an upload handler writes into (now
+   copied in `ChatImageServiceImpl` and `ChatMessageServiceImpl`).
+3. Optional: `int ResourceService.deleteUnlinked(String originalName, Date before)`, the resources of the user with that name that no object
+   took since `before` (Joi sweeps its chat-image uploads that no message took within an hour; each user's list is read in Java now).
+4. Tests in `ResourceServiceTest`: a file stored once, the same content twice shares the file, a file outside the user's folder is refused,
+   the folder by mime type, a deleted resource leaves the file of the other one.
+5. Docs (`manual/developer`, the page of resources), `CHANGELOG.MD` (Added: the three methods; plugin-visible).
+
+**Then in Joi:** replace the five hand-built blocks with `saveFile` (and `deleteUnlinked` for the sweep), after the submodule is bumped.
+
+**Fixed (platform):** `ResourceService.saveFile(file, originalName, mimeType)` and the variant with the class and object id, `newUploadFile()`
+and `deleteUnlinked(originalName, before)` (`ResourceRepository.findUnlinked`), as the idea says. `store` and `saveFile` share the lookup of a file
+with the same content, which now also requires the same folder (both images or both not: before, an image and a text with the same bytes
+shared a path and the second one's file was looked up in the wrong folder). Tests in the platform's `ResourceServiceTest`. Docs:
+`services.md` (`ResourceService`), `CHANGELOG.MD`. Joi still has to be changed to use them after the submodule is bumped.

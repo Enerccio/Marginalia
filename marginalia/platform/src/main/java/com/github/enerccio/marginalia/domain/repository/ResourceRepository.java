@@ -11,6 +11,12 @@ public interface ResourceRepository extends OwnedRepository<Resource> {
 
     Resource findByHash(String hash, User owner) throws Exception;
 
+    /**
+     * @return the not deleted resources of the user with the original name that are linked to nothing and were made
+     * before the date
+     */
+    List<Resource> findUnlinked(User owner, String originalName, Date before) throws Exception;
+
 
     /**
      * @param sortProperty one of creation, originalName, mimeType, size; anything else sorts by creation
