@@ -80,6 +80,11 @@ RUN java -jar "$JETTY_HOME/start.jar" --create-startd \
 
 COPY --from=builder /build/marginalia/target/*.war $JETTY_BASE/webapps/ROOT.war
 
+# session cookie of its own: cookies are per host, not per port, so the plain JSESSIONID of another Java web application
+# on the same host (another one on the platform, a second Marginalia) would replace this one's on every visit.
+# Override it in docker-compose.yml (MARGINALIA_SESSION_COOKIE) to run two of these images on one host
+ENV MARGINALIA_SESSION_COOKIE=JSESSIONID_MARGINALIA
+
 USER root
 RUN mkdir -p /var/marginalia/.marginalia && chown -R jetty:jetty /var/marginalia
 # no COPY --chmod: it needs BuildKit, which the classic builder of older docker/docker-compose v1 lacks
