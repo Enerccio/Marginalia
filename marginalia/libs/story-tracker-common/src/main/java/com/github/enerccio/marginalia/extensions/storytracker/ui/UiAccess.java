@@ -1,11 +1,14 @@
 package com.github.enerccio.marginalia.extensions.storytracker.ui;
 
+import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.UIDetachedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -31,6 +34,8 @@ public final class UiAccess {
      */
     public static Runnable coalesced(Component component, Runnable change) {
         AtomicBoolean queued = new AtomicBoolean();
+        // taken where the trigger is made (the page's request): the queued change may be run by any thread that unlocks the session
+        RequestAttributes scope = ThreadCopyRequestAttributes.create();
         return () -> {
             if (!queued.compareAndSet(false, true)) {
                 return;
@@ -43,11 +48,7 @@ public final class UiAccess {
             try {
                 ui.access(() -> {
                     queued.set(false);
-                    try {
-                        change.run();
-                    } catch (RuntimeException e) {
-                        log.error(e.getMessage(), e);
-                    }
+                    inScope(scope, change);
                     UIPushGuard.push(ui);
                 });
             } catch (UIDetachedException e) {
@@ -58,17 +59,24 @@ public final class UiAccess {
     }
 
     public static void run(UI ui, Runnable change) {
+        RequestAttributes scope = ThreadCopyRequestAttributes.create();
         try {
             ui.access(() -> {
-                try {
-                    change.run();
-                } catch (RuntimeException e) {
-                    log.error(e.getMessage(), e);
-                }
+                inScope(scope, change);
                 UIPushGuard.push(ui);
             });
         } catch (UIDetachedException e) {
             log.debug("The page is gone, the change is skipped");
+        }
+    }
+
+    /** Runs the change with the request scope of the page (the session-scoped user), whichever thread runs the queued task. */
+    private static void inScope(RequestAttributes scope, Runnable change) {
+        RequestAttributes bound = scope != null ? scope : RequestContextHolder.getRequestAttributes();
+        try (ThreadCopyRequestAttributes.InRequestScope _ = new ThreadCopyRequestAttributes.InRequestScope(bound)) {
+            change.run();
+        } catch (RuntimeException e) {
+            log.error(e.getMessage(), e);
         }
     }
 }
