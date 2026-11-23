@@ -95,7 +95,7 @@ public class Configuration implements InitializingBean {
     /**
      * The name of the application in the names of its cookies (the saved login), so that two applications on the
      * platform on one host (cookies are scoped to the host, not to the port) do not read or delete each other's.
-     * Empty (Marginalia's default) keeps the names cookies had before, so saved logins survive an update.
+     * Empty (Marginalia's default): no namespace in the names.
      */
     public String getCookieNamespace() {
         return cookieNamespace;

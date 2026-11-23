@@ -41,10 +41,10 @@ public abstract class LoginCheckRoute extends Div implements ApplicationEntryPoi
     private static final Logger log = LoggerFactory.getLogger(LoginCheckRoute.class);
 
     private static final String ID = "UIRoot";
-    protected static final String PERSISTED_LOGIN_COOKIE_LOGIN = "_llllm_rememberMe_login";
-    protected static final String PERSISTED_LOGIN_COOKIE_IDENTIFIER = "_llllm_rememberMe_identifier";
-    protected static final String PERSISTED_LOGIN_COOKIE_SECRET = "_llllm_rememberMe_secret";
-    protected static final String PERSISTED_LOGIN_COOKIE_WAS_SAVED = "_llllm_rememberMe_wasSaved";
+    protected static final String PERSISTED_LOGIN_COOKIE_LOGIN = "_marginalia_rememberMe_login";
+    protected static final String PERSISTED_LOGIN_COOKIE_IDENTIFIER = "_marginalia_rememberMe_identifier";
+    protected static final String PERSISTED_LOGIN_COOKIE_SECRET = "_marginalia_rememberMe_secret";
+    protected static final String PERSISTED_LOGIN_COOKIE_WAS_SAVED = "_marginalia_rememberMe_wasSaved";
 
     @Autowired
     protected Localization loc;
@@ -240,7 +240,7 @@ public abstract class LoginCheckRoute extends Div implements ApplicationEntryPoi
 
     /**
      * Start of the names of the saved login cookies: {@code <namespace>_<context>_<page class>}, only
-     * {@code <context>_<page class>} without a namespace (Marginalia's names before 1.9.0).
+     * {@code <context>_<page class>} without a namespace.
      */
     @PublicAPI(from = "1.9.0",
             returns = @APIReturn(type = String.class),

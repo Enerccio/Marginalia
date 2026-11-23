@@ -90,9 +90,9 @@ flowchart TB
    the user's settings ([Localization](architecture.md#localization)) and builds the content.
 
 Logout deletes the cookies, closes the Vaadin session, invalidates the HTTP session and redirects to the context
-root. Cookie names include the context path and the route class (`root_Main_llllm_rememberMe_login`...), so the workspace
+root. Cookie names include the context path and the route class (`root_Main_marginalia_rememberMe_login`...), so the workspace
 and the viewer keep separate saved logins, and in front of them the application's namespace when one is set
-(`getCookieNamespace()`, from `Configuration.cookieNamespace`; Marginalia has none, so its names stay): cookies are
+(`getCookieNamespace()`, from `Configuration.cookieNamespace`; Marginalia has none by default): cookies are
 scoped to the host, not the port, and two applications on the platform on one host would otherwise read and delete each
 other's. The cookies are deleted only when this application's own cookies are there but wrong (a visit without them
 sends no `Set-Cookie`), and *Save login* is ticked only by this page's own `wasSaved` cookie. The session cookie's name
