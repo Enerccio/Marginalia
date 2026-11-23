@@ -13,11 +13,10 @@ import com.github.enerccio.marginalia.extensions.imagegenerator.ImageGeneratorEx
 import com.github.enerccio.marginalia.extensions.imagegenerator.ImageGeneratorLog;
 import com.github.enerccio.marginalia.extensions.imagegenerator.model.BackendConfig;
 import com.github.enerccio.marginalia.extensions.imagegenerator.model.ImageSettings;
-import com.github.enerccio.marginalia.extensions.imagegenerator.service.ImageFormats;
-import com.github.enerccio.marginalia.extensions.imagegenerator.service.ImageGeneratorService;
-import com.github.enerccio.marginalia.extensions.imagegenerator.service.ImageRequest;
-import com.github.enerccio.marginalia.extensions.imagegenerator.service.ImageSession;
+import com.github.enerccio.marginalia.extensions.imagegenerator.service.*;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
+import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
 import com.github.enerccio.marginalia.ui.widgets.*;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -25,7 +24,7 @@ import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
-import com.vaadin.flow.component.details.Details;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Image;
@@ -35,13 +34,18 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.IntegerField;
+import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextArea;
+import com.vaadin.flow.server.Command;
 import com.vaadin.flow.server.StreamResource;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
+import org.springframework.web.context.request.RequestAttributes;
 
 import java.io.ByteArrayInputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -51,8 +55,8 @@ import static com.github.enerccio.marginalia.extensions.imagegenerator.ImageGene
 
 /**
  * Makes an image for one part of the story: the model writes the prompt from the part (the user can change it), the chosen backend
- * makes the picture, the user rerolls until it fits and accepts it - it becomes an image of the part. The backend is held between
- * the images (see {@link ImageSession}) and released when the window is done with it.
+ * makes the picture, the user rerolls until it fits and accepts it - it becomes an image of the part. The GPU lock of the backend is held for
+ * each image only (see {@link ImageJob}): a window that is closed, folded or left open holds no GPU.
  */
 @Configurable(preConstruction = true)
 public class ImageGeneratorDialog extends Dialog {
@@ -73,8 +77,21 @@ public class ImageGeneratorDialog extends Dialog {
     private final TextArea details = new TextArea(T.localized(DETAILS));
     private final TextArea prompt = new TextArea(T.localized(PROMPT));
     private final TextArea negative = new TextArea(T.localized(NEGATIVE_PROMPT));
+    private final TextArea style = new TextArea(T.localized(STYLE));
+    /** The negative prompt of the book (book, folders, user). */
+    private String bookNegative = "";
+    /** What is stored in the part, so an unchanged window is not saved again. */
+    private PartImageValues partValues;
+    /**
+     * The request context of the window, taken when it opens: the callbacks of the worker threads (the model, the backend, the list of
+     * LoRAs) run without one, and the services need it for the session's user.
+     */
+    private final RequestAttributes requestAttributes = ThreadCopyRequestAttributes.create();
     private final IntegerField width = new IntegerField(T.localized(WIDTH));
     private final IntegerField height = new IntegerField(T.localized(HEIGHT));
+    private final ComboBox<String> loraBox = new ComboBox<>(T.localized(LORA));
+    private final NumberField loraStrength = new NumberField(T.localized(LORA_STRENGTH));
+    private List<String> loraItems = new ArrayList<>();
     private final Button generate = new Button(T.localized(GENERATE), Solid.IMAGE.create(), e -> generate());
     private final Button accept = new Button(T.localized(ACCEPT), Solid.CHECK.create(), e -> accept());
     private final Button discard = new Button(T.localized(DISCARD), Solid.TRASH.create(), e -> discard());
@@ -87,8 +104,6 @@ public class ImageGeneratorDialog extends Dialog {
         return t;
     });
 
-    private ImageSession session;
-    private String sessionBackendId;
     private CancellationToken promptToken;
     // not modal: closing it while the model or the backend works folds it into the corner, the work goes on
     private final FloatingWindow floating;
@@ -122,9 +137,9 @@ public class ImageGeneratorDialog extends Dialog {
         initModelPicker();
 
         backendSelect.setLabel(T.localized(BACKEND));
-        backendSelect.setItems(settings.getBackends());
+        backendSelect.setItems(BackendConfig.byName(settings.getBackends()));
         backendSelect.setItemLabelGenerator(b -> StringUtils.defaultIfBlank(b.getName(), T.localized(NEW_BACKEND)));
-        backendSelect.setWidth("16em");
+        backendSelect.setWidth("12em");
         BackendConfig selected = settings.find(settings.getSelectedBackendId());
         if (selected == null && !settings.getBackends().isEmpty()) {
             selected = settings.getBackends().getFirst();
@@ -132,7 +147,7 @@ public class ImageGeneratorDialog extends Dialog {
         backendSelect.setValue(selected);
         backendSelect.addValueChangeListener(e -> backendChanged(e.getValue()));
 
-        HorizontalLayout top = new HorizontalLayout(modelPicker, writePrompt, backendSelect);
+        HorizontalLayout top = new HorizontalLayout(modelPicker, writePrompt);
         top.setWidthFull();
         top.setWrap(true);
         top.setAlignItems(FlexComponent.Alignment.END);
@@ -141,22 +156,40 @@ public class ImageGeneratorDialog extends Dialog {
         sendLore.getElement().setProperty("title", T.localized(THE_ENTRIES_THE_PART_ACTIVATES));
         sendLore.addValueChangeListener(e -> rememberSendLore(e.getValue()));
         details.setWidthFull();
-        details.setMinHeight("4em");
-        details.setMaxHeight("10em");
-        details.setHelperText(T.localized(WHAT_THE_PICTURE_MUST_SHOW));
+        // with the check box under it as tall as the style and the negative prompt next to it; the explanation is the placeholder
+        // (a helper line would make the window taller)
+        ResizableTextArea.install(loc, details, "116px");
+        details.setPlaceholder(T.localized(WHAT_THE_PICTURE_MUST_SHOW));
+        details.getElement().setProperty("title", T.localized(WHAT_THE_PICTURE_MUST_SHOW));
+        style.setWidthFull();
+        ResizableTextArea.install(loc, style, "56px");
+        // a helper line would make the window taller
+        style.getElement().setProperty("title", T.localized(STYLE_FOR_THIS_WINDOW));
 
         prompt.setWidthFull();
-        prompt.setMinHeight("8em");
-        prompt.setMaxHeight("16em");
+        ResizableTextArea.install(loc, prompt, "160px");
 
         negative.setWidthFull();
-        negative.setMinHeight("4em");
+        ResizableTextArea.install(loc, negative, "56px");
         width.setMin(64);
         width.setStepButtonsVisible(true);
+        width.setWidth("8em");
         height.setMin(64);
         height.setStepButtonsVisible(true);
-        Details more = new Details(T.localized(SIZE_AND_NEGATIVE_PROMPT), new VerticalLayout(new HorizontalLayout(width, height), negative));
-        more.setWidthFull();
+        height.setWidth("8em");
+        initLora();
+        // what makes the image, in one row that wraps on a narrow screen
+        HorizontalLayout imageRow = new HorizontalLayout(backendSelect, loraBox, loraStrength, width, height);
+        imageRow.setWidthFull();
+        imageRow.setWrap(true);
+        imageRow.setAlignItems(FlexComponent.Alignment.END);
+        // the details on one side, the two texts of the book on the other (one under the other on a narrow screen)
+        VerticalLayout detailsColumn = compact(new VerticalLayout(details, sendLore));
+        VerticalLayout bookTexts = compact(new VerticalLayout(style, negative));
+        Div split = new Div(detailsColumn, bookTexts);
+        split.addClassName(ImageStyles.SPLIT);
+        style.setValue(service.resolveStyle(manuscript));
+        bookNegative = StringUtils.defaultString(service.resolveNegative(manuscript)).strip();
 
         status.addClassName(ImageStyles.STATUS);
         preview.addClassName(ImageStyles.PREVIEW);
@@ -166,33 +199,28 @@ public class ImageGeneratorDialog extends Dialog {
         discard.setVisible(false);
         generate.setThemeName("primary");
 
+        // the frame of the image takes room only when it shows something
+        preview.setVisible(false);
         if (settings.getBackends().isEmpty()) {
             Span hint = new Span(T.localized(NO_BACKEND_YET));
             hint.addClassName(CssStyles.HINT_TEXT);
             preview.add(hint);
+            preview.setVisible(true);
         }
 
-        VerticalLayout content = new VerticalLayout(top, sendLore, details, prompt, more, status, preview);
-        content.setPadding(false);
-        content.setSpacing(true);
-        add(content);
+        add(compact(new VerticalLayout(top, split, prompt, imageRow, status, preview)));
 
         getFooter().add(new Button(T.localized(CLOSE), e -> close()), discard, accept, generate);
         DialogShortcuts.submitWith(writePrompt, details);
-        DialogShortcuts.submitWith(generate, prompt, negative, width, height);
+        DialogShortcuts.submitWith(generate, prompt, negative, style, width, height, loraStrength);
 
         applyBackendDefaults(selected);
+        restorePartValues();
         updateButtons();
         addDetachListener(this::detached);
 
-        // the part is the whole prompt when nothing else is there: write it right away
-        if (message != null && StringUtils.isNotBlank(message.getResponse())) {
-            addOpenedChangeListener(e -> {
-                if (e.isOpened() && prompt.isEmpty() && !writing) {
-                    writePrompt();
-                }
-            });
-        }
+        // the prompt is written when asked: the details and the lorebook choice are filled in first
+        DialogFocus.onOpen(this, details);
     }
 
     // --- model and backend ---
@@ -217,8 +245,6 @@ public class ImageGeneratorDialog extends Dialog {
     }
 
     private void backendChanged(BackendConfig backend) {
-        // the new backend is a new session; the one that was held is let go
-        releaseSession();
         applyBackendDefaults(backend);
         if (backend != null) {
             try {
@@ -233,12 +259,199 @@ public class ImageGeneratorDialog extends Dialog {
     }
 
     private void applyBackendDefaults(BackendConfig backend) {
+        setLoraVisible(backend != null && backend.usesLora());
         if (backend == null) {
             return;
         }
         width.setValue(backend.getWidth());
         height.setValue(backend.getHeight());
-        negative.setValue(backend.getNegativePrompt());
+        negative.setValue(bookNegative);
+        if (backend.usesLora()) {
+            // what the server listed last: it may not run before the first image (its before hooks start it)
+            setLoraItems(backend.getKnownLoras(), backend.getLora());
+            loraStrength.setValue(backend.getLoraStrength());
+            loadLoras(backend);
+        }
+    }
+
+    /** {@code ui.access} in the request context of the window, for a callback of another thread that uses the services. */
+    private void inRequest(UI ui, Command command) {
+        ui.access(() -> {
+            try (InRequestScope scope = new InRequestScope(requestAttributes)) {
+                command.execute();
+            }
+        });
+    }
+
+    // --- what the window used for the part ---
+
+    /** The window opens with what was used for the part last time; a part without it keeps the book's and the backend's values. */
+    private void restorePartValues() {
+        partValues = service.partValues(message);
+        if (partValues == null) {
+            return;
+        }
+        if (partValues.details() != null) {
+            details.setValue(partValues.details());
+        }
+        if (partValues.style() != null) {
+            style.setValue(partValues.style());
+        }
+        if (partValues.negative() != null) {
+            negative.setValue(partValues.negative());
+        }
+        if (partValues.prompt() != null) {
+            prompt.setValue(partValues.prompt());
+        }
+        if (partValues.width() != null && partValues.width() > 0) {
+            width.setValue(partValues.width());
+        }
+        if (partValues.height() != null && partValues.height() > 0) {
+            height.setValue(partValues.height());
+        }
+    }
+
+    /** Keeps what the window shows with the part (after the prompt was written and when an image is made), if it changed. */
+    private void rememberPartValues() {
+        if (message == null) {
+            return;
+        }
+        PartImageValues values = new PartImageValues(details.getValue(), style.getValue(), negative.getValue(), prompt.getValue(),
+                width.getValue(), height.getValue());
+        if (values.equals(partValues)) {
+            return;
+        }
+        try {
+            message = service.rememberPartValues(message, values);
+            partValues = values;
+            // the card keeps its own copy of the part: a stale one would drop the values with its next save
+            onChanged.accept(message);
+        } catch (Exception e) {
+            // an agent working on the book, a part deleted meanwhile: the image is still made, only not remembered
+            ImageGeneratorLog.get().warn("Remembering the values of the window failed: {}", e.getMessage());
+        }
+    }
+
+    // --- the LoRA ---
+
+    /** A layout without padding and with the small gap between its rows. */
+    private static VerticalLayout compact(VerticalLayout layout) {
+        layout.setPadding(false);
+        layout.setSpacing(false);
+        layout.getThemeList().add("spacing-xs");
+        return layout;
+    }
+
+    private void setLoraVisible(boolean visible) {
+        loraBox.setVisible(visible);
+        loraStrength.setVisible(visible);
+    }
+
+    private void initLora() {
+        loraBox.setAllowCustomValue(true);
+        loraBox.setClearButtonVisible(true);
+        loraBox.setPlaceholder(T.localized(NO_LORA));
+        loraBox.setWidth("18em");
+        // a file the list misses (a subfolder, a server that does not list)
+        loraBox.addCustomValueSetListener(e -> {
+            String typed = e.getDetail().strip();
+            if (!typed.isEmpty()) {
+                setLoraItems(loraItems, typed);
+            }
+        });
+        loraStrength.setStep(0.05);
+        loraStrength.setMin(-5);
+        loraStrength.setMax(5);
+        loraStrength.setStepButtonsVisible(true);
+        loraStrength.setWidth("8em");
+        setLoraVisible(false);
+    }
+
+    private void setLoraItems(List<String> names, String selected) {
+        List<String> items = new ArrayList<>(names);
+        if (selected != null && !items.contains(selected)) {
+            items.add(selected);
+        }
+        items.sort(String.CASE_INSENSITIVE_ORDER);
+        loraItems = items;
+        loraBox.setItems(items);
+        loraBox.setValue(selected);
+    }
+
+    /** Asks the server for its LoRAs; the stored choice stays when it can't answer. */
+    private void loadLoras(BackendConfig backend) {
+        UI ui = UI.getCurrent();
+        if (ui == null) {
+            return;
+        }
+        ImageBackend server = service.createBackend(backend);
+        Thread.ofVirtual().name("image-generator-loras").start(() -> {
+            List<String> names;
+            String error = null;
+            try {
+                names = server.loras();
+            } catch (BackendException e) {
+                names = null;
+                error = e.getMessage();
+            } catch (RuntimeException e) {
+                ImageGeneratorLog.get().warn("Reading the LoRAs failed: {}", e.getMessage(), e);
+                names = null;
+                error = String.valueOf(e.getMessage());
+            }
+            List<String> found = names;
+            String message = error;
+            inRequest(ui, () -> {
+                if (backendSelect.getValue() != backend) {
+                    return;
+                }
+                if (found != null) {
+                    setLoraItems(found, loraBox.getValue());
+                    rememberKnownLoras(backend, found);
+                } else if (backend.getKnownLoras().isEmpty()) {
+                    // with a list from before nothing is missing: the server is probably just not started yet
+                    Notification.warning(T.localized(THE_LORAS_COULD_NOT_BE_READ).formatted(message));
+                }
+                UIPushGuard.push(ui);
+            });
+        });
+    }
+
+    /** Keeps the list the server gave with the backend, for a window that opens while the server is not running. */
+    private void rememberKnownLoras(BackendConfig backend, List<String> names) {
+        if (backend.getKnownLoras().equals(names)) {
+            return;
+        }
+        backend.setKnownLoras(names);
+        try {
+            ImageSettings changed = service.getSettings();
+            BackendConfig stored = changed.find(backend.getId());
+            if (stored != null) {
+                stored.setKnownLoras(names);
+                service.saveSettings(changed);
+            }
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    /** Keeps the LoRA of the window with the backend, for the next window. */
+    private void rememberLora(BackendConfig backend, String lora, double strength) {
+        if (StringUtils.equals(backend.getLora(), lora) && backend.getLoraStrength() == strength) {
+            return;
+        }
+        backend.setLora(lora);
+        backend.setLoraStrength(strength);
+        try {
+            ImageSettings changed = service.getSettings();
+            BackendConfig stored = changed.find(backend.getId());
+            if (stored != null) {
+                stored.setLora(lora);
+                stored.setLoraStrength(strength);
+                service.saveSettings(changed);
+            }
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
     }
 
     // --- the prompt ---
@@ -260,7 +473,7 @@ public class ImageGeneratorDialog extends Dialog {
         updateButtons();
         try {
             ImageGeneratorService.PromptRequest request = service.buildPromptRequest(settings, manuscript, message, ai, protocol,
-                    sendLore.getValue(), details.getValue());
+                    sendLore.getValue(), details.getValue(), style.getValue(), service.instructionFor(backendSelect.getValue()));
             if (request.skippedLore() > 0) {
                 Notification.warning(T.localized(LORE_ENTRIES_DID_NOT_FIT).formatted(request.skippedLore()));
             }
@@ -272,7 +485,7 @@ public class ImageGeneratorDialog extends Dialog {
             promptToken = service.streamPrompt(ai, protocol, request.payload(), new ImageGeneratorService.PromptListener() {
                 @Override
                 public void onProgress(String text) {
-                    ui.access(() -> {
+                    inRequest(ui, () -> {
                         if (writing) {
                             prompt.setValue(text.strip());
                             UIPushGuard.push(ui);
@@ -282,7 +495,7 @@ public class ImageGeneratorDialog extends Dialog {
 
                 @Override
                 public void onDone(boolean cancelled, Throwable error) {
-                    ui.access(() -> {
+                    inRequest(ui, () -> {
                         writing = false;
                         status.setText("");
                         if (error != null) {
@@ -293,6 +506,7 @@ public class ImageGeneratorDialog extends Dialog {
                             new DesktopNotifier(ui).failed(ImageGeneratorExtension.NOTIFY_PROMPT, false, manuscript.getName());
                         } else if (!cancelled) {
                             new DesktopNotifier(ui).finished(ImageGeneratorExtension.NOTIFY_PROMPT, false, manuscript.getName());
+                            rememberPartValues();
                         }
                         updateButtons();
                         UIPushGuard.push(ui);
@@ -336,16 +550,21 @@ public class ImageGeneratorDialog extends Dialog {
             }
             return;
         }
-        String text = service.withStyle(settings, prompt.getValue());
+        String text = ImageGeneratorService.withStyle(style.getValue(), prompt.getValue());
         if (StringUtils.isBlank(text)) {
             Notification.warning(T.localized(THE_PROMPT_IS_EMPTY));
             return;
         }
+        String lora = backend.usesLora() ? StringUtils.trimToNull(loraBox.getValue()) : null;
+        double strength = loraStrength.getValue() == null ? backend.getLoraStrength() : loraStrength.getValue();
+        if (backend.usesLora()) {
+            rememberLora(backend, lora, strength);
+        }
         ImageRequest request = new ImageRequest(text, negative.getValue(), ImageGeneratorService.newSeed(),
                 width.getValue() == null ? backend.getWidth() : width.getValue(),
-                height.getValue() == null ? backend.getHeight() : height.getValue());
+                height.getValue() == null ? backend.getHeight() : height.getValue(), lora, strength);
+        rememberPartValues();
         UI ui = UI.getCurrent();
-        ImageSession active = session(backend, ui);
         AtomicBoolean cancel = new AtomicBoolean();
         imageCancel = cancel;
         making = true;
@@ -355,7 +574,7 @@ public class ImageGeneratorDialog extends Dialog {
             byte[] bytes = null;
             String error = null;
             try {
-                bytes = active.generate(request, cancel::get);
+                bytes = service.generate(backend, request, cancel::get);
                 if (ImageFormats.extension(bytes) == null) {
                     bytes = null;
                     error = T.localized(THE_IMAGE_IS_NOT_VALID);
@@ -371,13 +590,17 @@ public class ImageGeneratorDialog extends Dialog {
             }
             byte[] result = bytes;
             String message = error;
-            ui.access(() -> {
+            inRequest(ui, () -> {
                 making = false;
                 status.setText("");
                 if (message != null) {
                     Notification.error(T.localized(GENERATING_FAILED).formatted(message));
                 } else if (result != null) {
                     showImage(result);
+                    if (backend.usesLora() && backendSelect.getValue() == backend) {
+                        // the server runs now (the before hooks started it): its list is current
+                        loadLoras(backend);
+                    }
                 }
                 if (message != null) {
                     new DesktopNotifier(ui).failed(ImageGeneratorExtension.NOTIFY_IMAGE, false, manuscript.getName());
@@ -390,21 +613,6 @@ public class ImageGeneratorDialog extends Dialog {
         });
     }
 
-    private ImageSession session(BackendConfig backend, UI ui) {
-        if (session == null || !backend.getId().equals(sessionBackendId)) {
-            releaseSession();
-            sessionBackendId = backend.getId();
-            session = service.createSession(backend, error -> ui.access(() -> {
-                Notification.success(T.localized(THE_BACKEND_WAS_RELEASED));
-                if (error != null) {
-                    Notification.warning(T.localized(THE_AFTER_HOOK_FAILED).formatted(error));
-                }
-                UIPushGuard.push(ui);
-            }));
-        }
-        return session;
-    }
-
     private void showImage(byte[] bytes) {
         image = bytes;
         imageExtension = ImageFormats.extension(bytes);
@@ -414,11 +622,13 @@ public class ImageGeneratorDialog extends Dialog {
         resource.setCacheTime(0);
         preview.removeAll();
         preview.add(new Image(resource, ""));
+        preview.setVisible(true);
     }
 
     private void discard() {
         image = null;
         preview.removeAll();
+        preview.setVisible(false);
         updateButtons();
     }
 
@@ -457,16 +667,6 @@ public class ImageGeneratorDialog extends Dialog {
         floating.setRunning(writing || making);
     }
 
-    private void releaseSession() {
-        ImageSession old = session;
-        session = null;
-        sessionBackendId = null;
-        if (old != null) {
-            // the after hook is a request; the thread of the window may be gone
-            Thread.ofVirtual().name("image-generator-release").start(old::end);
-        }
-    }
-
     private void detached(DetachEvent event) {
         // a window folded into the corner is detached too, and goes on
         if (!floating.isMinimised()) {
@@ -480,7 +680,6 @@ public class ImageGeneratorDialog extends Dialog {
         if (imageCancel != null) {
             imageCancel.set(true);
         }
-        releaseSession();
         worker.shutdown();
     }
 }

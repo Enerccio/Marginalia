@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.ui.dialogs.agent;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.model.impl.Annotation;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
@@ -20,6 +21,8 @@ import com.github.enerccio.marginalia.domain.service.agent.jsonmerge.JsonMergeNo
 import com.github.enerccio.marginalia.domain.service.agent.jsonmerge.JsonText;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
@@ -124,7 +127,7 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
                     @APILocals(name = "closeButton", type = Button.class),
                     @APILocals(name = "footer", type = HorizontalLayout.class)})
     public void create() {
-        setHeaderTitle(loc.getValue(L.LABEL_REVIEW_CHANGES) + " - " + agentName);
+        setHeaderTitle(loc.getValue(M_L.LABEL_REVIEW_CHANGES) + " - " + agentName);
         setWidth("1300px");
         setMaxWidth("96%");
         setHeight("92%");
@@ -134,16 +137,16 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
 
         summaryLabel = new Span();
         summaryLabel.addClassName(CssStyles.TEXT_SEMIBOLD);
-        hintLabel = new Span(loc.getValue(L.HELP_MERGE));
+        hintLabel = new Span(loc.getValue(M_L.HELP_MERGE));
         hintLabel.addClassName(CssStyles.HINT_TEXT);
 
         Button allButton = small(L.LABEL_SELECT_ALL, event -> pick(item -> item.applicable()));
         Button noneButton = small(L.LABEL_SELECT_NONE, event -> pick(item -> false));
-        Button newButton = small(L.LABEL_SELECT_NEW_PARTS, event ->
+        Button newButton = small(M_L.LABEL_SELECT_NEW_PARTS, event ->
                 pick(item -> item.applicable() && item.kind() == Kind.MESSAGE && item.change() == Change.ADDED));
-        Button annotationsButton = small(L.LABEL_SELECT_ANNOTATIONS, event -> pick(item -> item.applicable() && item.kind() == Kind.ANNOTATION));
-        Button cleanButton = small(L.LABEL_SELECT_WITHOUT_CONFLICTS, event -> pick(this::isClean));
-        branchBox = new Checkbox(loc.getValue(L.LABEL_SWITCH_TO_AGENT_BRANCH));
+        Button annotationsButton = small(M_L.LABEL_SELECT_ANNOTATIONS, event -> pick(item -> item.applicable() && item.kind() == Kind.ANNOTATION));
+        Button cleanButton = small(M_L.LABEL_SELECT_WITHOUT_CONFLICTS, event -> pick(this::isClean));
+        branchBox = new Checkbox(loc.getValue(M_L.LABEL_SWITCH_TO_AGENT_BRANCH));
         HorizontalLayout toolbar = new HorizontalLayout(allButton, noneButton, newButton, annotationsButton, cleanButton, branchBox);
         toolbar.setWidthFull();
         toolbar.setWrap(true);
@@ -198,11 +201,11 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
         content.expand(split);
         add(content);
 
-        discardButton = new Button(loc.getValue(L.LABEL_DISCARD_RESULT), Solid.TRASH.create(), event ->
-                ConfirmDialog.open(loc.getValue(L.MSG_MERGE_CONFIRM_DISCARD), this::discard, () -> {}));
+        discardButton = new Button(loc.getValue(M_L.LABEL_DISCARD_RESULT), Solid.TRASH.create(), event ->
+                ConfirmDialog.open(loc.getValue(M_L.MSG_MERGE_CONFIRM_DISCARD), this::discard, () -> {}));
         discardButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
         Button closeButton = new Button(loc.getValue(L.LABEL_CLOSE), event -> close());
-        applyButton = new Button(loc.getValue(L.LABEL_APPLY_PICKED_CHANGES), Solid.CHECK.create(), event -> confirmApply());
+        applyButton = new Button(loc.getValue(M_L.LABEL_APPLY_PICKED_CHANGES), Solid.CHECK.create(), event -> confirmApply());
         applyButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         HorizontalLayout footer = new HorizontalLayout(discardButton, closeButton, applyButton);
         footer.setWidthFull();
@@ -235,20 +238,20 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
         }
         AgentFindingsView view = new AgentFindingsView(loc);
         view.setFindings(findings);
-        view.addClassName(CssStyles.AGENT_FINDINGS_COMPACT);
-        Details details = new Details(loc.getValue(L.LABEL_AGENT_FINDINGS) + " (" + findings.size() + ")", view);
+        view.addClassName(MarginaliaCssStyles.AGENT_FINDINGS_COMPACT);
+        Details details = new Details(loc.getValue(M_L.LABEL_AGENT_FINDINGS) + " (" + findings.size() + ")", view);
         details.setOpened(true);
         details.setWidthFull();
         findingsDetails = details;
         return details;
     }
 
-    @PublicAPI(from = "1.4.0",
+    @PublicAPI(from = "1.9.0",
             returns = @APIReturn(type = Button.class),
-            parameters = {@APIParameter(name = "label", type = L.class),
+            parameters = {@APIParameter(name = "label", type = LocalizationKey.class),
                     @APIParameter(name = "listener", type = ComponentEventListener.class)},
             locals = {@APILocals(name = "button", type = Button.class)})
-    private Button small(L label, com.vaadin.flow.component.ComponentEventListener<com.vaadin.flow.component.ClickEvent<Button>> listener) {
+    private Button small(LocalizationKey label, com.vaadin.flow.component.ComponentEventListener<com.vaadin.flow.component.ClickEvent<Button>> listener) {
         Button button = new Button(loc.getValue(label), listener);
         button.addThemeVariants(ButtonVariant.LUMO_SMALL);
         return button;
@@ -275,9 +278,9 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
         skipped.clear();
         jsonModels.clear();
         grid.setItems(plan.items());
-        summaryLabel.setText(plan.isEmpty() ? loc.getValue(L.MSG_MERGE_NO_CHANGES) : String.format(loc.getValue(L.MSG_MERGE_SUMMARY),
+        summaryLabel.setText(plan.isEmpty() ? loc.getValue(M_L.MSG_MERGE_NO_CHANGES) : String.format(loc.getValue(M_L.MSG_MERGE_SUMMARY),
                 plan.items().size(), count(Kind.MESSAGE), count(Kind.LOREBOOK), count(Kind.ENTRY), count(Kind.BOOK), count(Kind.ANNOTATION), plan.conflicts()));
-        hintLabel.setText(loc.getValue(plan.bookChanged() ? L.MSG_MERGE_BOOK_CHANGED : L.HELP_MERGE));
+        hintLabel.setText(loc.getValue(plan.bookChanged() ? M_L.MSG_MERGE_BOOK_CHANGED : M_L.HELP_MERGE));
         pick(this::isClean);
         showFirst();
     }
@@ -354,7 +357,7 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
             }
         }
         if (blocked) {
-            Notification.warning(loc.getValue(L.ENUM_MERGE_STATE_BLOCKED));
+            Notification.warning(loc.getValue(M_L.ENUM_MERGE_STATE_BLOCKED));
         }
         if (!selected.equals(grid.asMultiSelect().getSelectedItems())) {
             adjusting = true;
@@ -374,26 +377,26 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
         }
         int picked = grid.asMultiSelect().getSelectedItems().size();
         applyButton.setEnabled(picked > 0);
-        applyButton.setText(loc.getValue(L.LABEL_APPLY_PICKED_CHANGES) + (picked > 0 ? " (" + picked + ")" : ""));
+        applyButton.setText(loc.getValue(M_L.LABEL_APPLY_PICKED_CHANGES) + (picked > 0 ? " (" + picked + ")" : ""));
     }
 
     // --- the list
 
-    private static L kindText(Kind kind) {
+    private static LocalizationKey kindText(Kind kind) {
         return switch (kind) {
-            case BOOK -> L.ENUM_MERGE_KIND_BOOK;
-            case MESSAGE -> L.ENUM_MERGE_KIND_MESSAGE;
-            case LOREBOOK -> L.ENUM_MERGE_KIND_LOREBOOK;
-            case ENTRY -> L.ENUM_MERGE_KIND_ENTRY;
-            case ANNOTATION -> L.ENUM_DOMAIN_ANNOTATION;
+            case BOOK -> M_L.ENUM_MERGE_KIND_BOOK;
+            case MESSAGE -> M_L.ENUM_MERGE_KIND_MESSAGE;
+            case LOREBOOK -> M_L.ENUM_MERGE_KIND_LOREBOOK;
+            case ENTRY -> M_L.ENUM_MERGE_KIND_ENTRY;
+            case ANNOTATION -> M_L.ENUM_DOMAIN_ANNOTATION;
         };
     }
 
-    private static L changeText(Change change) {
+    private static LocalizationKey changeText(Change change) {
         return switch (change) {
-            case ADDED -> L.ENUM_MERGE_CHANGE_ADDED;
-            case CHANGED -> L.ENUM_MERGE_CHANGE_CHANGED;
-            case DELETED -> L.ENUM_MERGE_CHANGE_DELETED;
+            case ADDED -> M_L.ENUM_MERGE_CHANGE_ADDED;
+            case CHANGED -> M_L.ENUM_MERGE_CHANGE_CHANGED;
+            case DELETED -> M_L.ENUM_MERGE_CHANGE_DELETED;
         };
     }
 
@@ -416,22 +419,22 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
         states.setSpacing(false);
         states.setPadding(false);
         if (!item.applicable()) {
-            states.add(badge(L.ENUM_MERGE_STATE_BLOCKED, "error"));
+            states.add(badge(M_L.ENUM_MERGE_STATE_BLOCKED, "error"));
         } else if (item.conflict()) {
-            states.add(badge(L.ENUM_MERGE_STATE_CONFLICT, "error"));
+            states.add(badge(M_L.ENUM_MERGE_STATE_CONFLICT, "error"));
         }
         if (!item.sharedWith().isEmpty()) {
-            states.add(badge(L.ENUM_MERGE_STATE_SHARED, "contrast"));
+            states.add(badge(M_L.ENUM_MERGE_STATE_SHARED, "contrast"));
         }
         return states;
     }
 
-    @PublicAPI(from = "1.4.0",
+    @PublicAPI(from = "1.9.0",
             returns = @APIReturn(type = Span.class),
-            parameters = {@APIParameter(name = "text", type = L.class),
+            parameters = {@APIParameter(name = "text", type = LocalizationKey.class),
                     @APIParameter(name = "theme", type = String.class)},
             locals = {@APILocals(name = "badge", type = Span.class)})
-    private Span badge(L text, String theme) {
+    private Span badge(LocalizationKey text, String theme) {
         Span badge = new Span(loc.getValue(text));
         badge.getElement().getThemeList().add("badge small " + theme);
         return badge;
@@ -463,13 +466,13 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
         if (item.problem() != null) {
             detail.add(note(problem(item.problem()), "error"));
         } else if (item.conflict()) {
-            detail.add(note(loc.getValue(L.ENUM_MERGE_STATE_CONFLICT), "error"));
+            detail.add(note(loc.getValue(M_L.ENUM_MERGE_STATE_CONFLICT), "error"));
         }
         if (!item.sharedWith().isEmpty()) {
-            detail.add(note(String.format(loc.getValue(L.MSG_MERGE_SHARED), String.join(", ", item.sharedWith())), "contrast"));
+            detail.add(note(String.format(loc.getValue(M_L.MSG_MERGE_SHARED), String.join(", ", item.sharedWith())), "contrast"));
         }
         if (item.sourceUuid() != null && item.kind() != Kind.BOOK) {
-            Button inCopy = new Button(loc.getValue(L.LABEL_SHOW_IN_COPY), Solid.EYE.create(), event -> showInCopy(item));
+            Button inCopy = new Button(loc.getValue(M_L.LABEL_SHOW_IN_COPY), Solid.EYE.create(), event -> showInCopy(item));
             inCopy.addThemeVariants(ButtonVariant.LUMO_SMALL);
             detail.add(inCopy);
         }
@@ -488,7 +491,7 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
                     @APILocals(name = "view", type = AgentCopyView.class)})
     void showInCopy(Item item) {
         Dialog dialog = new Dialog();
-        dialog.setHeaderTitle(loc.getValue(L.LABEL_AGENT_BOOK_COPY) + " - " + agentName);
+        dialog.setHeaderTitle(loc.getValue(M_L.LABEL_AGENT_BOOK_COPY) + " - " + agentName);
         dialog.setWidth("1000px");
         dialog.setMaxWidth("96%");
         dialog.setHeight("85%");
@@ -546,10 +549,10 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
             parameters = {@APIParameter(name = "problem", type = String.class)})
     private String problem(String problem) {
         return loc.getValue(switch (problem) {
-            case MergePlan.PROBLEM_NEEDS_PARENT -> L.MSG_MERGE_PROBLEM_NEEDS_PARENT;
-            case MergePlan.PROBLEM_NEEDS_LOREBOOK -> L.MSG_MERGE_PROBLEM_NEEDS_LOREBOOK;
-            case MergePlan.PROBLEM_NEEDS_PART -> L.MSG_MERGE_PROBLEM_NEEDS_PART;
-            default -> L.MSG_MERGE_PROBLEM_GONE;
+            case MergePlan.PROBLEM_NEEDS_PARENT -> M_L.MSG_MERGE_PROBLEM_NEEDS_PARENT;
+            case MergePlan.PROBLEM_NEEDS_LOREBOOK -> M_L.MSG_MERGE_PROBLEM_NEEDS_LOREBOOK;
+            case MergePlan.PROBLEM_NEEDS_PART -> M_L.MSG_MERGE_PROBLEM_NEEDS_PART;
+            default -> M_L.MSG_MERGE_PROBLEM_GONE;
         });
     }
 
@@ -567,11 +570,11 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
         view.setSpacing(false);
         view.addClassName(CssStyles.GAP_S);
         Span name = new Span(field.name().startsWith(MergeDiff.ATTRIBUTES)
-                ? loc.getValue(L.LABEL_ATTRIBUTES) + ": " + field.name().substring(MergeDiff.ATTRIBUTES.length())
+                ? loc.getValue(M_L.LABEL_ATTRIBUTES) + ": " + field.name().substring(MergeDiff.ATTRIBUTES.length())
                 : loc.getValue(fieldText(field.name())));
         name.addClassName(CssStyles.TEXT_SEMIBOLD);
         if (pickable(item, field)) {
-            Checkbox take = new Checkbox(loc.getValue(L.LABEL_MERGE_TAKE_FIELD));
+            Checkbox take = new Checkbox(loc.getValue(M_L.LABEL_MERGE_TAKE_FIELD));
             take.setValue(!skipped.getOrDefault(item.id(), Set.of()).contains(field.name()));
             take.addValueChangeListener(event -> take(item, field, event.getValue()));
             HorizontalLayout head = new HorizontalLayout(name, take);
@@ -581,7 +584,7 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
             view.add(name);
         }
         if (field.conflict()) {
-            view.add(note(loc.getValue(L.ENUM_MERGE_STATE_CONFLICT), "error"));
+            view.add(note(loc.getValue(M_L.ENUM_MERGE_STATE_CONFLICT), "error"));
         }
         if (field.type() == Type.JSON && item.change() != Change.DELETED && item.applicable()) {
             view.add(jsonView(item, field, name.getText()));
@@ -590,10 +593,10 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
         } else if (field.type() == Type.SET) {
             view.add(setView(field));
         } else {
-            view.add(readOnly(L.LABEL_MERGE_BEFORE_RUN, named(field.type(), field.base())));
-            view.add(readOnly(L.LABEL_MERGE_IN_BOOK_NOW, named(field.type(), field.book())));
+            view.add(readOnly(M_L.LABEL_MERGE_BEFORE_RUN, named(field.type(), field.base())));
+            view.add(readOnly(M_L.LABEL_MERGE_IN_BOOK_NOW, named(field.type(), field.book())));
             if (item.change() != Change.DELETED) {
-                view.add(readOnly(L.LABEL_MERGE_TO_APPLY, named(field.type(), field.agent())));
+                view.add(readOnly(M_L.LABEL_MERGE_TO_APPLY, named(field.type(), field.agent())));
             }
         }
         return view;
@@ -637,7 +640,7 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
                     @APILocals(name = "button", type = Button.class),
                     @APILocals(name = "both", type = VerticalLayout.class)})
     private Component textView(Item item, Field field) {
-        TextArea toApply = new TextArea(loc.getValue(L.LABEL_MERGE_TO_APPLY));
+        TextArea toApply = new TextArea(loc.getValue(M_L.LABEL_MERGE_TO_APPLY));
         toApply.setWidthFull();
         toApply.setMinRows(3);
         toApply.setMaxRows(14);
@@ -647,9 +650,9 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
         if (item.change() == Change.ADDED) {
             return toApply;
         }
-        TextArea inBook = readOnlyArea(L.LABEL_MERGE_IN_BOOK_NOW, field.book());
-        Button useBook = new Button(loc.getValue(L.LABEL_USE_BOOK_VERSION), event -> toApply.setValue(field.book()));
-        Button useAgent = new Button(loc.getValue(L.LABEL_USE_AGENT_VERSION), event -> toApply.setValue(field.agent()));
+        TextArea inBook = readOnlyArea(M_L.LABEL_MERGE_IN_BOOK_NOW, field.book());
+        Button useBook = new Button(loc.getValue(M_L.LABEL_USE_BOOK_VERSION), event -> toApply.setValue(field.book()));
+        Button useAgent = new Button(loc.getValue(M_L.LABEL_USE_AGENT_VERSION), event -> toApply.setValue(field.agent()));
         for (Button button : List.of(useBook, useAgent)) {
             button.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY);
         }
@@ -675,32 +678,32 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
                     @APILocals(name = "user", type = WordDiffView.class),
                     @APILocals(name = "details", type = Details.class)})
     private Component differences(Field field, TextArea toApply) {
-        String same = loc.getValue(L.MSG_MERGE_NO_DIFFERENCE);
+        String same = loc.getValue(M_L.MSG_MERGE_NO_DIFFERENCE);
         WordDiffView applied = new WordDiffView(same);
         applied.show(field.book(), toApply.getValue());
         toApply.addValueChangeListener(event -> applied.show(field.book(), event.getValue()));
-        VerticalLayout content = new VerticalLayout(heading(L.LABEL_MERGE_DIFF_APPLIED), applied);
+        VerticalLayout content = new VerticalLayout(heading(M_L.LABEL_MERGE_DIFF_APPLIED), applied);
         if (field.conflict()) {
             WordDiffView agent = new WordDiffView(same);
             agent.show(field.base(), field.agent());
             WordDiffView user = new WordDiffView(same);
             user.show(field.base(), field.book());
-            content.add(heading(L.LABEL_MERGE_DIFF_AGENT), agent, heading(L.LABEL_MERGE_DIFF_USER), user);
+            content.add(heading(M_L.LABEL_MERGE_DIFF_AGENT), agent, heading(M_L.LABEL_MERGE_DIFF_USER), user);
         }
         content.setPadding(false);
         content.setSpacing(false);
         content.addClassName(CssStyles.GAP_S);
-        Details details = new Details(loc.getValue(L.LABEL_MERGE_DIFFERENCES), content);
+        Details details = new Details(loc.getValue(M_L.LABEL_MERGE_DIFFERENCES), content);
         details.setOpened(true);
         details.setWidthFull();
         return details;
     }
 
-    @PublicAPI(from = "1.4.0",
+    @PublicAPI(from = "1.9.0",
             returns = @APIReturn(type = Span.class),
-            parameters = {@APIParameter(name = "text", type = L.class)},
+            parameters = {@APIParameter(name = "text", type = LocalizationKey.class)},
             locals = {@APILocals(name = "heading", type = Span.class)})
-    private Span heading(L text) {
+    private Span heading(LocalizationKey text) {
         Span heading = new Span(loc.getValue(text));
         heading.addClassName(CssStyles.HINT_TEXT);
         return heading;
@@ -753,17 +756,17 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
         JsonMergeNode model = jsonModels.computeIfAbsent(item.id() + "\u0000" + field.name(), key -> jsonModel(field));
         if (model == null) {
             // not JSON after all, a text like the others
-            VerticalLayout fallback = new VerticalLayout(note(loc.getValue(L.MSG_JSON_NOT_JSON), "contrast"), textView(item, field));
+            VerticalLayout fallback = new VerticalLayout(note(loc.getValue(M_L.MSG_JSON_NOT_JSON), "contrast"), textView(item, field));
             fallback.setPadding(false);
             fallback.setSpacing(false);
             return fallback;
         }
         String applied = edits.getOrDefault(item.id(), Map.of()).getOrDefault(field.name(), defaultValue(field));
-        TextArea toApply = readOnlyArea(L.LABEL_MERGE_TO_APPLY, JsonText.pretty(applied));
-        toApply.addClassName(CssStyles.JSON_MERGE_TEXT);
+        TextArea toApply = readOnlyArea(M_L.LABEL_MERGE_TO_APPLY, JsonText.pretty(applied));
+        toApply.addClassName(MarginaliaCssStyles.JSON_MERGE_TEXT);
         toApply.setMaxRows(14);
 
-        Button merge = new Button(loc.getValue(L.LABEL_JSON_MERGE), Solid.CODE_MERGE.create(), event -> {
+        Button merge = new Button(loc.getValue(M_L.LABEL_JSON_MERGE), Solid.CODE_MERGE.create(), event -> {
             JsonMergeDialog dialog = new JsonMergeDialog(label, model, result -> {
                 edit(item, field, result);
                 show(item);
@@ -773,15 +776,15 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
             jsonDialog = dialog;
         });
         merge.addThemeVariants(ButtonVariant.LUMO_SMALL);
-        Button useAgent = small(L.LABEL_USE_AGENT_VERSION, event -> {
+        Button useAgent = small(M_L.LABEL_USE_AGENT_VERSION, event -> {
             edit(item, field, field.agent());
             show(item);
         });
-        Button useBook = small(L.LABEL_USE_BOOK_VERSION, event -> {
+        Button useBook = small(M_L.LABEL_USE_BOOK_VERSION, event -> {
             edit(item, field, field.book());
             show(item);
         });
-        Button startOver = small(L.LABEL_JSON_START_OVER, event -> {
+        Button startOver = small(M_L.LABEL_JSON_START_OVER, event -> {
             model.reset();
             edits.getOrDefault(item.id(), new HashMap<>()).remove(field.name());
             show(item);
@@ -795,14 +798,14 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
         view.setWidthFull();
         int conflicts = model.conflicts();
         if (conflicts > 0 && !edits.getOrDefault(item.id(), Map.of()).containsKey(field.name())) {
-            view.add(note(String.format(loc.getValue(L.MSG_JSON_RESULT_CONFLICTS), conflicts), "error"));
+            view.add(note(String.format(loc.getValue(M_L.MSG_JSON_RESULT_CONFLICTS), conflicts), "error"));
         }
-        TextArea inBook = readOnlyArea(L.LABEL_MERGE_IN_BOOK_NOW, JsonText.pretty(field.book()));
-        inBook.addClassName(CssStyles.JSON_MERGE_TEXT);
+        TextArea inBook = readOnlyArea(M_L.LABEL_MERGE_IN_BOOK_NOW, JsonText.pretty(field.book()));
+        inBook.addClassName(MarginaliaCssStyles.JSON_MERGE_TEXT);
         view.add(inBook, toApply, buttons);
-        WordDiffView changes = new WordDiffView(loc.getValue(L.MSG_MERGE_NO_DIFFERENCE));
+        WordDiffView changes = new WordDiffView(loc.getValue(M_L.MSG_MERGE_NO_DIFFERENCE));
         changes.show(JsonText.pretty(field.book()), JsonText.pretty(applied));
-        view.add(heading(L.LABEL_MERGE_DIFF_APPLIED), changes);
+        view.add(heading(M_L.LABEL_MERGE_DIFF_APPLIED), changes);
         return view;
     }
 
@@ -882,20 +885,20 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
         return value == null ? "" : value;
     }
 
-    @PublicAPI(from = "1.4.0",
+    @PublicAPI(from = "1.9.0",
             returns = @APIReturn(type = Component.class),
-            parameters = {@APIParameter(name = "label", type = L.class),
+            parameters = {@APIParameter(name = "label", type = LocalizationKey.class),
                     @APIParameter(name = "value", type = String.class)})
-    private Component readOnly(L label, String value) {
+    private Component readOnly(LocalizationKey label, String value) {
         return readOnlyArea(label, value);
     }
 
-    @PublicAPI(from = "1.4.0",
+    @PublicAPI(from = "1.9.0",
             returns = @APIReturn(type = TextArea.class),
-            parameters = {@APIParameter(name = "label", type = L.class),
+            parameters = {@APIParameter(name = "label", type = LocalizationKey.class),
                     @APIParameter(name = "value", type = String.class)},
             locals = {@APILocals(name = "area", type = TextArea.class)})
-    private TextArea readOnlyArea(L label, String value) {
+    private TextArea readOnlyArea(LocalizationKey label, String value) {
         TextArea area = new TextArea(loc.getValue(label));
         area.setReadOnly(true);
         area.setWidthFull();
@@ -905,45 +908,45 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
         return area;
     }
 
-    @PublicAPI(from = "1.4.0",
-            returns = @APIReturn(type = L.class),
+    @PublicAPI(from = "1.9.0",
+            returns = @APIReturn(type = LocalizationKey.class),
             parameters = {@APIParameter(name = "field", type = String.class)})
-    private L fieldText(String field) {
+    private LocalizationKey fieldText(String field) {
         return switch (field) {
             case "name" -> L.LABEL_NAME;
             case "description" -> L.LABEL_DESCRIPTION;
             case "language" -> L.LABEL_LANGUAGE;
-            case "pov" -> L.LABEL_POV;
-            case "tense" -> L.LABEL_TENSE;
-            case "style" -> L.LABEL_STYLE;
-            case "template" -> L.LABEL_MASTER_TEMPLATE;
-            case "userPrompt" -> L.LABEL_TOKEN_USER_PROMPT;
-            case "summaryPrompt" -> L.LABEL_SUMMARY_PROMPT;
-            case "metaSummaryPrompt" -> L.LABEL_META_SUMMARY_PROMPT;
-            case "historyMaxVersions" -> L.LABEL_HISTORY_MAX_VERSIONS;
-            case "tags" -> L.LABEL_TAGS;
-            case "negativeTags" -> L.LABEL_NEGATIVE_TAGS;
-            case "response" -> L.LABEL_PART_TEXT;
-            case "instructions" -> L.LABEL_INSTRUCTIONS;
-            case "sceneSetting" -> L.LABEL_SCENE_SETTING;
-            case "povCharacter" -> L.LABEL_POV_CHARACTER;
-            case "presentCharacters" -> L.LABEL_PRESENT_CHARACTERS;
+            case "pov" -> M_L.LABEL_POV;
+            case "tense" -> M_L.LABEL_TENSE;
+            case "style" -> M_L.LABEL_STYLE;
+            case "template" -> M_L.LABEL_MASTER_TEMPLATE;
+            case "userPrompt" -> M_L.LABEL_TOKEN_USER_PROMPT;
+            case "summaryPrompt" -> M_L.LABEL_SUMMARY_PROMPT;
+            case "metaSummaryPrompt" -> M_L.LABEL_META_SUMMARY_PROMPT;
+            case "historyMaxVersions" -> M_L.LABEL_HISTORY_MAX_VERSIONS;
+            case "tags" -> M_L.LABEL_TAGS;
+            case "negativeTags" -> M_L.LABEL_NEGATIVE_TAGS;
+            case "response" -> M_L.LABEL_PART_TEXT;
+            case "instructions" -> M_L.LABEL_INSTRUCTIONS;
+            case "sceneSetting" -> M_L.LABEL_SCENE_SETTING;
+            case "povCharacter" -> M_L.LABEL_POV_CHARACTER;
+            case "presentCharacters" -> M_L.LABEL_PRESENT_CHARACTERS;
             case "summary" -> L.LABEL_SUMMARY;
-            case "enabled" -> L.LABEL_ENABLED;
-            case "subbooks" -> L.LABEL_SUBBOOKS;
-            case "payload" -> L.LABEL_CONTENT;
-            case "comment" -> L.LABEL_NOTE;
-            case "order" -> L.LABEL_ORDER;
-            case "filtering" -> L.LABEL_FILTERING;
-            case "filteringMode" -> L.LABEL_FILTERING_MODE;
-            case "insertionMode" -> L.LABEL_INSERTION_MODE;
-            case "lorebook" -> L.LABEL_LOREBOOK;
-            case "text" -> L.LABEL_NOTE;
+            case "enabled" -> M_L.LABEL_ENABLED;
+            case "subbooks" -> M_L.LABEL_SUBBOOKS;
+            case "payload" -> M_L.LABEL_CONTENT;
+            case "comment" -> M_L.LABEL_NOTE;
+            case "order" -> M_L.LABEL_ORDER;
+            case "filtering" -> M_L.LABEL_FILTERING;
+            case "filteringMode" -> M_L.LABEL_FILTERING_MODE;
+            case "insertionMode" -> M_L.LABEL_INSERTION_MODE;
+            case "lorebook" -> M_L.LABEL_LOREBOOK;
+            case "text" -> M_L.LABEL_NOTE;
             case "type" -> L.LABEL_TYPE;
             case "status" -> L.LABEL_STATE;
-            case "sendToPrompt" -> L.LABEL_ANNOTATION_SEND_TO_PROMPT;
-            case "quote" -> L.LABEL_ANNOTATION_PASSAGE;
-            case MergeDiff.PARENT -> L.LABEL_AGENT_MERGE_FOLLOWS;
+            case "sendToPrompt" -> M_L.LABEL_ANNOTATION_SEND_TO_PROMPT;
+            case "quote" -> M_L.LABEL_ANNOTATION_PASSAGE;
+            case MergeDiff.PARENT -> M_L.LABEL_AGENT_MERGE_FOLLOWS;
             default -> L.LABEL_BOOK;
         };
     }
@@ -956,12 +959,12 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
     private void confirmApply() {
         Set<Item> picked = grid.asMultiSelect().getSelectedItems();
         if (picked.isEmpty()) {
-            Notification.warning(loc.getValue(L.MSG_MERGE_NOTHING_PICKED));
+            Notification.warning(loc.getValue(M_L.MSG_MERGE_NOTHING_PICKED));
             return;
         }
         long conflicts = picked.stream().filter(Item::conflict).count();
         if (conflicts > 0) {
-            ConfirmDialog.open(String.format(loc.getValue(L.MSG_MERGE_CONFIRM_CONFLICTS), conflicts), this::apply, () -> {});
+            ConfirmDialog.open(String.format(loc.getValue(M_L.MSG_MERGE_CONFIRM_CONFLICTS), conflicts), this::apply, () -> {});
         } else {
             apply();
         }
@@ -994,9 +997,9 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
                 }
             });
             MergeResult result = mergeService.apply(run, new MergeSelection(ids, written, branchBox.getValue(), left));
-            Notification.success(String.format(loc.getValue(L.MSG_MERGE_APPLIED), result.total()));
+            Notification.success(String.format(loc.getValue(M_L.MSG_MERGE_APPLIED), result.total()));
             if (!result.skipped().isEmpty()) {
-                Notification.warning(String.format(loc.getValue(L.MSG_MERGE_SKIPPED), result.skipped().size(),
+                Notification.warning(String.format(loc.getValue(M_L.MSG_MERGE_SKIPPED), result.skipped().size(),
                         result.skipped().stream().map(skipped -> skipped.label() + " (" + skipped.reason() + ")").collect(Collectors.joining("; "))));
             }
             close();

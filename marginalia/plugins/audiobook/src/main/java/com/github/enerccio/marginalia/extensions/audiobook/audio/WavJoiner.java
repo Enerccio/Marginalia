@@ -101,6 +101,12 @@ public final class WavJoiner {
         throw new BackendException("A wav piece has no audio");
     }
 
+    /** The samples of the wav (its data chunk). */
+    public static byte[] data(byte[] wav) throws BackendException {
+        Parsed p = parse(wav);
+        return java.util.Arrays.copyOfRange(wav, p.dataStart(), (int) p.dataEnd());
+    }
+
     /** The format of the wav. */
     public static Format formatOf(byte[] wav) throws BackendException {
         return parse(wav).format();

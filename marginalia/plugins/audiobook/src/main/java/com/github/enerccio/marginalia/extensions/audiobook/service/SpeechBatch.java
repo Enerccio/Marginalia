@@ -2,17 +2,14 @@ package com.github.enerccio.marginalia.extensions.audiobook.service;
 
 import com.github.enerccio.marginalia.extensions.audiobook.AudiobookLog;
 import com.github.enerccio.marginalia.extensions.httphooks.BackendException;
-import com.github.enerccio.marginalia.extensions.httphooks.GpuGate;
 
 import java.util.function.BooleanSupplier;
 
 /**
- * The time a speech server is held for a batch of pieces: the requests before the batch run ahead of the first piece, all the pieces are
- * made with the server up, and the requests after the batch run when the batch is over, whatever became of it. One swap per batch, not
- * one per piece (loading the language model again takes about a minute).
- * <p>
- * Batches of several users on one GPU share a {@link GpuGate}: the before requests run for the first of them and the after requests for the
- * last, and the batches are made one at a time, so the end of one does not stop the server under the other.
+ * A batch of pieces on a speech server: the GPU lock of the backend is taken for the batch (the lock's steps unload the language model or
+ * another server and load the speech server when the GPU holds something else), the requests before the batch run, all the pieces are made,
+ * the requests after the batch run whatever became of it, and the lock is given back. The GPU stays loaded with the speech server after the
+ * batch, so the next batch (or sample) of the same lock starts at once; nothing is held between batches.
  */
 public final class SpeechBatch {
 
@@ -21,6 +18,33 @@ public final class SpeechBatch {
     public interface Work<T> {
         T run(SpeechBackend backend) throws BackendException;
     }
+
+    /** Requests made around the work (before or after a batch, or a restart of the server). */
+    @FunctionalInterface
+    public interface Hooks {
+        void run() throws BackendException;
+    }
+
+    /** The hold of the GPU lock; closing it twice does nothing. */
+    @FunctionalInterface
+    public interface Lease extends AutoCloseable {
+        @Override
+        void close();
+
+        /** Restarts what the GPU lock loaded (its release and then its acquire steps) while the batch holds it. */
+        default void reload() throws BackendException {
+        }
+    }
+
+    /** Takes the GPU lock of the backend, blocking; a backend without a lock needs nothing. */
+    @FunctionalInterface
+    public interface Gpu {
+        Lease take(BooleanSupplier cancelled) throws BackendException;
+    }
+
+    /** No GPU lock. */
+    public static final Gpu NO_GPU = cancelled -> () -> {
+    };
 
     /**
      * @param value      what the work returned
@@ -33,48 +57,47 @@ public final class SpeechBatch {
     }
 
     /**
-     * @param before    the requests before the batch (in order, the first failure stops the batch: the next must not load a model on a full GPU)
-     * @param after     the requests after the batch (all of them are made, the first failure is reported)
-     * @param cancelled asked while the batch waits for its turn (may be null)
+     * @param before    the requests before the batch (in order, the first failure stops the batch), may be null
+     * @param after     the requests after the batch (all of them are made, the first failure is reported), may be null
+     * @param cancelled asked while the batch waits for the GPU (may be null)
      */
-    public static <T> Outcome<T> run(SpeechBackend backend, GpuGate gate, GpuGate.Step before, GpuGate.Step after, BooleanSupplier cancelled,
-                                     Work<T> work) throws BackendException {
-        return run(backend, gate, "", before, after, cancelled, work);
-    }
-
-    /**
-     * @param mode what the requests before the batch leave loaded; a batch with another mode waits for the others to be done
-     */
-    public static <T> Outcome<T> run(SpeechBackend backend, GpuGate gate, String mode, GpuGate.Step before, GpuGate.Step after,
-                                     BooleanSupplier cancelled, Work<T> work) throws BackendException {
-        // a batch that was stopped before it began must not touch the GPU: the requests before it unload the language model
+    public static <T> Outcome<T> run(SpeechBackend backend, Gpu gpu, Hooks before, Hooks after, BooleanSupplier cancelled, Work<T> work)
+            throws BackendException {
+        // a batch that was stopped before it began must not touch the GPU: the steps of the lock unload the language model
         if (cancelled != null && cancelled.getAsBoolean()) {
             throw new BackendException("Cancelled");
         }
-        gate.acquire(mode, cancelled, before);
-        T value;
-        try {
-            value = gate.exclusive(cancelled, () -> {
-                if (cancelled != null && cancelled.getAsBoolean()) {
-                    throw new BackendException("Cancelled");
-                }
+        try (Lease _ = gpu.take(cancelled)) {
+            if (cancelled != null && cancelled.getAsBoolean()) {
+                throw new BackendException("Cancelled");
+            }
+            if (before != null) {
+                before.run();
+            }
+            T value;
+            try {
                 backend.prepare();
                 AudiobookLog.get().info("The batch starts: the pieces are spoken");
-                T made = work.run(backend);
+                value = work.run(backend);
                 AudiobookLog.get().info("The batch is over: the requests after it follow");
-                return made;
-            });
-        } catch (BackendException | RuntimeException e) {
-            String error = gate.release(after);
-            if (error != null) {
-                AudiobookLog.get().warn("The request after the batch failed: {}", error);
+            } catch (BackendException | RuntimeException e) {
+                runAfter(after);
+                throw e;
             }
-            throw e;
+            return new Outcome<>(value, runAfter(after));
         }
-        String error = gate.release(after);
-        if (error != null) {
-            AudiobookLog.get().warn("The request after the batch failed: {}", error);
+    }
+
+    private static String runAfter(Hooks after) {
+        if (after == null) {
+            return null;
         }
-        return new Outcome<>(value, error);
+        try {
+            after.run();
+            return null;
+        } catch (BackendException | RuntimeException e) {
+            AudiobookLog.get().warn("The request after the batch failed: {}", e.getMessage());
+            return e.getMessage();
+        }
     }
 }

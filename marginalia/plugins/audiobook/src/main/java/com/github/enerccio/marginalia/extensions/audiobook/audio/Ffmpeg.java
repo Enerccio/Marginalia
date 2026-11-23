@@ -177,6 +177,84 @@ public final class Ffmpeg {
         return run(audio, AudioKind.of(audio).extension(), "wav", null, wavOptions(format));
     }
 
+    /** A 16-bit mono wav at 24 kHz of any audio ffmpeg reads (for measuring a reference clip). */
+    public static byte[] toMonoWav(byte[] audio) throws BackendException {
+        return run(audio, AudioKind.of(audio).extension(), "wav", null, List.of("-map", "0:a", "-map_metadata", "-1", "-ac", "1", "-ar", "24000",
+                "-c:a", "pcm_s16le", "-f", "wav"));
+    }
+
+    /**
+     * A reference clip with less steady background: a high-pass under the voice (rumble, hum) and a spectral noise reduction whose floor is the measured
+     * level of the quietest parts of the clip. It lowers a steady hiss or hum; music, effects and other voices of a film clip stay. The result is wav at the
+     * rate and channels of the clip.
+     *
+     * @param floorDb the level of the quietest parts of the clip ({@code ClipQuality})
+     */
+    public static byte[] cleanVoice(byte[] audio, double floorDb) throws BackendException {
+        long floor = Math.round(Math.max(-80, Math.min(-20, floorDb)));
+        return run(audio, AudioKind.of(audio).extension(), "wav", null, List.of("-map", "0:a", "-map_metadata", "-1", "-af",
+                "highpass=f=70,afftdn=nr=12:nf=" + floor + ":gs=10", "-c:a", "pcm_s16le", "-f", "wav"));
+    }
+
+    /**
+     * A 16-bit wav of the audio with only the range kept ({@code keep}) or with the range cut out, the two sides joined.
+     *
+     * @param from the start of the range in seconds
+     * @param to   the end of the range in seconds
+     */
+    public static byte[] trim(byte[] audio, double from, double to, boolean keep) throws BackendException {
+        String start = String.format(java.util.Locale.ROOT, "%.3f", from);
+        String end = String.format(java.util.Locale.ROOT, "%.3f", to);
+        String filter = keep ? "atrim=start=" + start + ":end=" + end + ",asetpts=PTS-STARTPTS"
+                : "aselect=not(between(t\\," + start + "\\," + end + ")),asetpts=N/SR/TB";
+        return run(audio, AudioKind.of(audio).extension(), "wav", null, List.of("-map", "0:a", "-map_metadata", "-1", "-af", filter, "-c:a", "pcm_s16le",
+                "-f", "wav"));
+    }
+
+    /**
+     * A 16-bit wav of the audio with the audio filter applied (a voice shift: {@code VoiceShift.filter()}), at the rate and channels of the audio.
+     */
+    public static byte[] filter(byte[] audio, String filter) throws BackendException {
+        return run(audio, AudioKind.of(audio).extension(), "wav", null, List.of("-map", "0:a", "-map_metadata", "-1", "-af", filter, "-c:a", "pcm_s16le",
+                "-f", "wav"));
+    }
+
+    /** The filters this ffmpeg was found to have, asked once per program (a build without a library has not its filter). */
+    private static final java.util.Map<Path, java.util.Set<String>> FILTERS = new java.util.concurrent.ConcurrentHashMap<>();
+
+    /** Whether ffmpeg is there and has the audio filter ({@code rubberband} needs a build with librubberband). */
+    public static boolean hasFilter(String name) {
+        Path program = locate();
+        if (program == null) {
+            return false;
+        }
+        return FILTERS.computeIfAbsent(program, Ffmpeg::filtersOf).contains(name);
+    }
+
+    private static java.util.Set<String> filtersOf(Path program) {
+        java.util.Set<String> names = new java.util.HashSet<>();
+        try {
+            Process process = new ProcessBuilder(program.toString(), "-hide_banner", "-filters").redirectErrorStream(true).start();
+            try (var reader = new java.io.BufferedReader(new java.io.InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
+                // " ..C rubberband        A->A       Apply time-stretching and pitch-shifting."
+                reader.lines().map(String::strip).map(line -> line.split("\\s+")).filter(parts -> parts.length > 2).forEach(parts -> names.add(parts[1]));
+            }
+            if (!process.waitFor(1, TimeUnit.MINUTES)) {
+                process.destroyForcibly();
+            }
+        } catch (IOException e) {
+            return names;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        return names;
+    }
+
+    /** A 16-bit wav of a flac, at its own sample rate and channels (ComfyUI writes no wav: a Higgs piece comes as flac when the storage is wav). */
+    public static byte[] flacToWav(byte[] flac) throws BackendException {
+        return run(flac, "flac", "wav", null, List.of("-map", "0:a", "-map_metadata", "-1", "-c:a", "pcm_s16le", "-f", "wav"));
+    }
+
     /** The loudness target of a part is a level a listener does not notice being missed by this much: such audio is left as it is (no second encoding). */
     static final double TOLERANCE_LU = 0.5;
 

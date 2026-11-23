@@ -1,6 +1,6 @@
 package com.github.enerccio.marginalia.ui.workspace;
 
-import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.vaadin.flow.component.html.Span;
 import org.junit.jupiter.api.Test;
 import org.w3c.dom.Document;
@@ -37,7 +37,7 @@ class PartIconTest {
     void theComponentCarriesTheStyleClassAndTheDrawing() {
         Span span = PartIcon.TRASH.create();
 
-        assertThat(span.getClassNames()).contains(CssStyles.WORKSPACE_PART_ICON);
+        assertThat(span.getClassNames()).contains(MarginaliaCssStyles.WORKSPACE_PART_ICON);
         assertThat(span.getElement().getProperty("innerHTML")).isEqualTo(PartIcon.TRASH.svg());
     }
 

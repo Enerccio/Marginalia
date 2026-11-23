@@ -134,6 +134,38 @@ class RunCornerTest extends MarginaliaTestBase {
     }
 
     @Test
+    void aRunThatEndedStaysInTheListWithHowItWentUntilItIsClosed() throws Exception {
+        RunCorner corner = new RunCorner();
+        ui.add(corner);
+        Runs.Run finished = Runs.run("reallang-translator", () -> "Translating the speech").page(new UI()).start();
+        Runs.Run failed = Runs.run("summaries", () -> "Generating summaries").start();
+        Runs.Run stopped = Runs.run("test", () -> "Stopped one").onStop(() -> {
+        }).start();
+        stopped.stop();
+        try {
+            finished.end(Runs.Outcome.FINISHED);
+            failed.end(Runs.Outcome.FAILED);
+            stopped.end();
+            corner.setExpandedForTest(true);
+
+            assertThat(corner.panelForTest().isVisible()).isTrue();
+            assertThat(texts(corner)).contains("Translating the speech").contains("Completed")
+                    .contains("Generating summaries").contains("Failed")
+                    .as("the author stopped it").doesNotContain("Stopped one");
+            assertThat(buttons(corner)).extracting(Button::getText).containsExactly("Close", "Close");
+
+            buttons(corner).getFirst().click();
+            corner.refreshForTest();
+            assertThat(Runs.finishedOfUser(finished.getOwnerId())).containsExactly(finished);
+            buttons(corner).getFirst().click();
+            corner.refreshForTest();
+            assertThat(corner.panelForTest().isVisible()).isFalse();
+        } finally {
+            Runs.reset();
+        }
+    }
+
+    @Test
     void theRunsOfAnotherUserAndTheWindowOfABookAreNotListed() throws Exception {
         RunCorner corner = new RunCorner();
         ui.add(corner);

@@ -198,7 +198,8 @@ You can read and change the book through the tools you are given: the planner (s
 4. After you used a tool, tell the author in one or two lines what you did (for example "Added the scene 'The harbor' to the planner"). If a tool failed, say so and what you will try instead.
 5. Write it yourself or generate it: when the conversation already holds what is to be added (an agreed arc, a chapter list, the text of an entry), write it with the direct tools (add-arc, add-outline-chapter, create-lore-entry, ...) using that content. Do not hand it to a generator: a generator writes something new and loses what was agreed. Use a generator only when the author asks you to generate or there is nothing to start from.
 6. The notes are the author's own thinking, in their words. Read a page (get-note) before you rely on it, and follow its [[links]] with get-note when they matter. Add a page, or add to one (append-to-note), only when the author asks you to keep something; to change one sentence use edit-note, not a rewrite of the page. Pages the author hid from you are not there, do not ask for them.
-7. The tool calls and results earlier in the conversation are things already done. Do not make the same entry, arc, chapter or scene again unless the author asks for it; answer only the latest message of the author.
+7. The characters (list-characters, list-character-relations) are the cast the author keeps track of. Look at them before you add a character or a relationship, so none is there twice. When you change one, pass only the fields that change, and delete one only when the author asks for it.
+8. The tool calls and results earlier in the conversation are things already done. Do not make the same entry, arc, chapter or scene again unless the author asks for it; answer only the latest message of the author.
 """;
     }
 }

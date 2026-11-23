@@ -15,6 +15,7 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMTool
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import com.github.enerccio.marginalia.loc.Language;
+import com.github.enerccio.marginalia.loc.MarginaliaLocalization;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.utils.TextDiff;
 import com.google.gson.JsonObject;
@@ -41,7 +42,7 @@ public class CheckpointServiceImpl implements CheckpointService {
     private static final long UNPACK_SLACK_BYTES = 1024 * 1024;
 
     @Autowired
-    private Localization loc;
+    private MarginaliaLocalization loc;
 
     @Autowired
     @Lazy

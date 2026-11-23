@@ -8,9 +8,14 @@ import com.github.enerccio.marginalia.extensions.imagegenerator.ImageGeneratorLo
 import com.github.enerccio.marginalia.extensions.imagegenerator.model.BackendConfig;
 import com.github.enerccio.marginalia.extensions.imagegenerator.model.BackendType;
 import com.github.enerccio.marginalia.extensions.imagegenerator.model.ImageSettings;
+import com.github.enerccio.marginalia.extensions.imagegenerator.model.PromptForm;
 import com.github.enerccio.marginalia.extensions.imagegenerator.service.ImageBackend;
 import com.github.enerccio.marginalia.extensions.imagegenerator.service.ImageGeneratorService;
+import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.widgets.GpuLockSelect;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
+import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
+import com.github.enerccio.marginalia.ui.widgets.SettingsChanges;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -25,6 +30,8 @@ import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,11 +39,15 @@ import java.util.List;
 import static com.github.enerccio.marginalia.extensions.imagegenerator.ImageGeneratorLocalization.*;
 
 /**
- * <i>Image Generator Settings</i>, a panel of <i>Settings → Extension Settings</i>: the style and the instruction of the prompt
+ * <i>Image Generator Settings</i>, a panel of <i>Settings → Extension Settings</i>: the style and the negative prompt of the user
  * writer, and the backends the images are made by. The backends are edited on a copy that {@link #save()} returns; the page
  * stores it with the other settings of the user.
  */
+@Configurable(preConstruction = true)
 public class ImageSettingsForm extends VerticalLayout {
+
+    @Autowired
+    private Localization loc;
 
     private final ImageGeneratorService service;
 
@@ -46,7 +57,8 @@ public class ImageSettingsForm extends VerticalLayout {
     private boolean binding;
 
     private final TextArea style = new TextArea(T.localized(STYLE));
-    private final TextArea instruction = new TextArea(T.localized(INSTRUCTION_FOR_THE_PROMPT_WRITER));
+    /** The user level of the negative prompt (a book or a folder can change it). */
+    private final TextArea defaultNegative = new TextArea(T.localized(NEGATIVE_PROMPT));
 
     private final Select<BackendConfig> picker = new Select<>();
     private final Button addButton = new Button(Solid.PLUS.create(), e -> addBackend());
@@ -58,32 +70,58 @@ public class ImageSettingsForm extends VerticalLayout {
     private final TextField baseUrl = new TextField(T.localized(ADDRESS));
     private final PasswordField apiKey = new PasswordField(T.localized(API_KEY));
     private final Button removeKey = new Button(T.localized(REMOVE_THE_KEY), e -> removeKey());
+    private final PasswordField hooksKey = new PasswordField(T.localized(KEY_OF_THE_REQUESTS));
+    private final Button removeHooksKey = new Button(T.localized(REMOVE_THE_KEY), e -> removeHooksKey());
     private final TextField model = new TextField(T.localized(MODEL));
     private final TextArea workflow = new TextArea(T.localized(WORKFLOW));
-    private final TextField gpu = new TextField(T.localized(GPU_NAME));
+    private final Select<PromptForm> promptForm = new Select<>();
+    private final TextArea instruction = new TextArea(T.localized(INSTRUCTION_FOR_THE_PROMPT_WRITER));
+    private final GpuLockSelect gpuLock = new GpuLockSelect();
     private final Checkbox local = new Checkbox(T.localized(THE_SERVER_IS_LOCAL));
     private final IntegerField width = new IntegerField(T.localized(WIDTH));
     private final IntegerField height = new IntegerField(T.localized(HEIGHT));
-    private final TextArea negative = new TextArea(T.localized(NEGATIVE_PROMPT));
     private final IntegerField timeout = new IntegerField(T.localized(TIMEOUT_SECONDS));
-    private final IntegerField idle = new IntegerField(T.localized(RELEASE_AFTER_IDLE_SECONDS));
-    private final HookListEditor before = new HookListEditor(hookLabels(), ImageStyles.SECTION);
-    private final HookListEditor after = new HookListEditor(hookLabels(), ImageStyles.SECTION);
+    private final HookListEditor before;
+    private final HookListEditor after;
     private final Button test = new Button(T.localized(TEST_CONNECTION), Solid.PLUG.create(), e -> testConnection());
 
     public ImageSettingsForm(ImageGeneratorService service) {
         this.service = service;
+        // built here, not with the fields: the localization is injected before the body runs
+        this.before = new HookListEditor(hookLabels(), ImageStyles.SECTION, loc);
+        this.after = new HookListEditor(hookLabels(), ImageStyles.SECTION, loc);
 
         setWidthFull();
         setPadding(true);
         setSpacing(true);
 
         style.setWidthFull();
-        style.setMinHeight("5em");
+        ResizableTextArea.install(loc, style, "80px");
         style.setHelperText(T.localized(PUT_IN_FRONT_OF_EVERY_PROMPT));
+        defaultNegative.setWidthFull();
+        defaultNegative.setHelperText(T.localized(NEGATIVE_PROMPT_HELP));
+        ResizableTextArea.install(loc, defaultNegative, "80px");
+        Span inherited = new Span(T.localized(A_BOOK_OR_A_FOLDER_CAN_CHANGE_THESE));
+        inherited.addClassName(CssStyles.HINT_TEXT);
+        promptForm.setLabel(T.localized(PROMPT_FORM));
+        promptForm.setItems(PromptForm.values());
+        promptForm.setItemLabelGenerator(f -> switch (f) {
+            case TAGS -> T.localized(TAGS_FORM);
+            case SENTENCES -> T.localized(SENTENCES_FORM);
+            case CUSTOM -> T.localized(FREE_TEXT);
+        });
+        promptForm.setHelperText(T.localized(PROMPT_FORM_HELP));
+        promptForm.setWidth("24em");
+        promptForm.addValueChangeListener(e -> {
+            // free text starts from the instruction that was in use, to be changed
+            if (!binding && e.getValue() == PromptForm.CUSTOM && instruction.isEmpty() && e.getOldValue() != null) {
+                instruction.setValue(e.getOldValue().instruction());
+            }
+            instruction.setVisible(e.getValue() == PromptForm.CUSTOM);
+        });
         instruction.setWidthFull();
-        instruction.setMinHeight("10em");
-        instruction.setHelperText(T.localized(EMPTY_OR_UNCHANGED_THE_BUILT_IN_TEXT));
+        ResizableTextArea.install(loc, instruction, "160px");
+        instruction.setVisible(false);
 
         picker.setLabel(T.localized(BACKENDS));
         picker.setItemLabelGenerator(b -> StringUtils.defaultIfBlank(b.getName(), T.localized(NEW_BACKEND)));
@@ -116,40 +154,44 @@ public class ImageSettingsForm extends VerticalLayout {
         apiKey.setWidth("20em");
         apiKey.setRevealButtonVisible(false);
         removeKey.setThemeName("tertiary small");
+        hooksKey.setWidth("20em");
+        hooksKey.setRevealButtonVisible(false);
+        hooksKey.setHelperText(T.localized(KEY_OF_THE_REQUESTS_HELP));
+        removeHooksKey.setThemeName("tertiary small");
         model.setWidth("16em");
         workflow.setWidthFull();
-        workflow.setMinHeight("12em");
+        // a workflow is hundreds of lines of JSON: it scrolls inside the field unless expanded
+        ResizableTextArea.install(loc, workflow, "240px");
         workflow.setHelperText(T.localized(API_FORMAT_WORKFLOW));
         local.getElement().setProperty("title", T.localized(ALLOWS_ADDRESSES_OF_THE_LOCAL_NETWORK));
-        for (IntegerField f : List.of(width, height, timeout, idle)) {
+        for (IntegerField f : List.of(width, height, timeout)) {
             f.setMin(0);
             f.setStepButtonsVisible(true);
         }
-        idle.setHelperText(T.localized(THE_REQUEST_AFTER_THE_IMAGES_RUNS));
-        negative.setWidthFull();
-        negative.setMinHeight("4em");
 
         HorizontalLayout identity = new HorizontalLayout(name, type);
         identity.setWrap(true);
         HorizontalLayout credentials = new HorizontalLayout(apiKey, removeKey, model);
         credentials.setWrap(true);
         credentials.setAlignItems(FlexComponent.Alignment.END);
-        HorizontalLayout numbers = new HorizontalLayout(width, height, timeout, idle);
+        HorizontalLayout numbers = new HorizontalLayout(width, height, timeout);
         numbers.setWrap(true);
 
-        Details beforeDetails = new Details(T.localized(BEFORE_THE_FIRST_IMAGE), before);
-        Details afterDetails = new Details(T.localized(AFTER_THE_LAST_IMAGE), after);
-        Span hookHint = new Span(T.localized(A_REQUEST_MADE_AROUND_THE_IMAGES));
+        Details beforeDetails = new Details(T.localized(BEFORE_EACH_IMAGE), before);
+        Details afterDetails = new Details(T.localized(AFTER_EACH_IMAGE), after);
+        Span hookHint = new Span(T.localized(REQUESTS_MADE_AROUND_EACH_IMAGE));
         hookHint.addClassName(CssStyles.HINT_TEXT);
+        HorizontalLayout hooksCredentials = new HorizontalLayout(hooksKey, removeHooksKey);
+        hooksCredentials.setAlignItems(FlexComponent.Alignment.BASELINE);
 
         editor.setPadding(false);
         editor.setSpacing(true);
-        gpu.setWidth("14em");
-        gpu.setHelperText(T.localized(GPU_NAME_HELP));
-        editor.add(identity, baseUrl, gpu, credentials, workflow, local, numbers, negative, hookHint, beforeDetails, afterDetails, test);
+        gpuLock.setHelperText(T.localized(GPU_LOCK_HELP));
+        editor.add(identity, baseUrl, gpuLock, credentials, workflow, promptForm, instruction, local, numbers, hookHint, hooksCredentials, beforeDetails,
+                afterDetails, test);
         editor.addClassName(ImageStyles.SECTION);
 
-        add(style, instruction, bar, editor);
+        add(inherited, style, defaultNegative, bar, editor);
         refresh();
     }
 
@@ -158,10 +200,10 @@ public class ImageSettingsForm extends VerticalLayout {
         settings = service.getSettings();
         backends = new ArrayList<>(settings.getBackends());
         style.setValue(settings.getStylePrefix());
-        instruction.setValue(settings.getPromptInstruction());
+        defaultNegative.setValue(settings.getNegativePrompt().isBlank() ? legacyNegative(settings) : settings.getNegativePrompt());
         binding = true;
         try {
-            picker.setItems(backends);
+            picker.setItems(BackendConfig.byName(backends));
             current = settings.find(settings.getSelectedBackendId());
             if (current == null && !backends.isEmpty()) {
                 current = backends.getFirst();
@@ -173,13 +215,24 @@ public class ImageSettingsForm extends VerticalLayout {
         show(current);
     }
 
+    /**
+     * The negative prompt the backends had before it became a setting of the user and the book: the one of the selected backend (else the
+     * first that has one) is taken over the first time the panel is shown, and stored with the next save.
+     */
+    private static String legacyNegative(ImageSettings settings) {
+        BackendConfig selected = settings.find(settings.getSelectedBackendId());
+        if (selected != null && !selected.getNegativePrompt().isBlank()) {
+            return selected.getNegativePrompt();
+        }
+        return settings.getBackends().stream().map(BackendConfig::getNegativePrompt).filter(n -> !n.isBlank()).findFirst().orElse("");
+    }
+
     /** The stored settings with what the form shows. */
     public ImageSettings save() {
         commit();
         ImageSettings stored = service.getSettings();
         stored.setStylePrefix(style.getValue());
-        String text = instruction.getValue();
-        stored.setPromptInstruction(StringUtils.isBlank(text) || text.equals(ImageSettings.DEFAULT_PROMPT_INSTRUCTION) ? null : text);
+        stored.setNegativePrompt(defaultNegative.getValue());
         stored.setBackends(new ArrayList<>(backends));
         if (stored.find(stored.getSelectedBackendId()) == null) {
             stored.setSelectedBackendId(current == null ? null : current.getId());
@@ -196,7 +249,7 @@ public class ImageSettingsForm extends VerticalLayout {
         backends.add(created);
         binding = true;
         try {
-            picker.setItems(backends);
+            picker.setItems(BackendConfig.byName(backends));
             picker.setValue(created);
         } finally {
             binding = false;
@@ -212,7 +265,7 @@ public class ImageSettingsForm extends VerticalLayout {
         current = null;
         binding = true;
         try {
-            picker.setItems(backends);
+            picker.setItems(BackendConfig.byName(backends));
             BackendConfig next = backends.isEmpty() ? null : backends.getFirst();
             picker.setValue(next);
             current = next;
@@ -227,6 +280,17 @@ public class ImageSettingsForm extends VerticalLayout {
             current.setProtectedApiKey(null);
             apiKey.clear();
             updateKeyState();
+            // the field was empty already: no value change tells the settings page
+            SettingsChanges.changed(this);
+        }
+    }
+
+    private void removeHooksKey() {
+        if (current != null) {
+            current.setProtectedHooksKey(null);
+            hooksKey.clear();
+            updateKeyState();
+            SettingsChanges.changed(this);
         }
     }
 
@@ -244,15 +308,23 @@ public class ImageSettingsForm extends VerticalLayout {
             type.setValue(config.getType());
             baseUrl.setValue(config.getBaseUrl());
             apiKey.clear();
+            hooksKey.clear();
             model.setValue(StringUtils.defaultString(config.getModel()));
+            // a backend from before the choice: the instruction the user had then becomes its free text
+            String legacy = settings.getStoredPromptInstruction();
+            if (config.hasPromptForm() || legacy == null) {
+                promptForm.setValue(config.getPromptForm());
+                instruction.setValue(config.getPromptInstruction());
+            } else {
+                promptForm.setValue(PromptForm.CUSTOM);
+                instruction.setValue(legacy);
+            }
             workflow.setValue(StringUtils.defaultString(config.getWorkflow()));
-            gpu.setValue(config.getGpu());
+            gpuLock.setLockUuid(config.getGpuLock());
             local.setValue(config.isLocal());
             width.setValue(config.getWidth());
             height.setValue(config.getHeight());
-            negative.setValue(config.getNegativePrompt());
             timeout.setValue(config.getTimeoutSeconds());
-            idle.setValue(config.getIdleSeconds());
             before.show(config.getBeforeHooks(), service::reveal);
             after.show(config.getAfterHooks(), service::reveal);
         } finally {
@@ -274,15 +346,22 @@ public class ImageSettingsForm extends VerticalLayout {
             current.setProtectedApiKey(service.protect(apiKey.getValue().strip()));
             apiKey.clear();
         }
+        if (!hooksKey.isEmpty()) {
+            current.setProtectedHooksKey(service.protect(hooksKey.getValue().strip()));
+            hooksKey.clear();
+        }
         current.setModel(StringUtils.defaultIfBlank(model.getValue().strip(), null));
+        current.setPromptForm(promptForm.getValue() == null ? PromptForm.TAGS : promptForm.getValue());
+        current.setPromptInstruction(StringUtils.defaultIfBlank(instruction.getValue(), null));
         current.setWorkflow(StringUtils.defaultIfBlank(workflow.getValue(), null));
-        current.setGpu(gpu.getValue().strip());
+        // a lock the administrator removed (the box is hidden then) stays as it was
+        if (gpuLock.isVisible()) {
+            current.setGpuLock(gpuLock.getLockUuid());
+        }
         current.setLocal(local.getValue());
         current.setWidth(valueOr(width, BackendConfig.DEFAULT_WIDTH));
         current.setHeight(valueOr(height, BackendConfig.DEFAULT_HEIGHT));
-        current.setNegativePrompt(negative.getValue());
         current.setTimeoutSeconds(valueOr(timeout, BackendConfig.DEFAULT_TIMEOUT_SECONDS));
-        current.setIdleSeconds(idle.getValue() == null ? 0 : Math.max(0, idle.getValue()));
         current.setBeforeHooks(before.read(service::protect));
         current.setAfterHooks(after.read(service::protect));
         updateKeyState();
@@ -303,6 +382,9 @@ public class ImageSettingsForm extends VerticalLayout {
         boolean stored = current != null && current.getProtectedApiKey() != null;
         apiKey.setPlaceholder(stored ? T.localized(STORED_TYPE_TO_REPLACE) : "");
         removeKey.setVisible(stored);
+        boolean hooksStored = current != null && current.getProtectedHooksKey() != null;
+        hooksKey.setPlaceholder(hooksStored ? T.localized(STORED_TYPE_TO_REPLACE) : "");
+        removeHooksKey.setVisible(hooksStored);
     }
 
     private void updateVisibility() {

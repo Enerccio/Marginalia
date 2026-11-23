@@ -1,7 +1,7 @@
 ---
 label: After the part
 order: 65
-verified: f7e7de02b
+verified: f337fe83d
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/generation/AfterPart.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/AfterPartPhase.java
@@ -48,22 +48,22 @@ afterPart.unregister();
 
 | Stage | For | Bound in the application |
 |---|---|---|
-| `REVIEW` | notes on the new text | the automatic annotation (`AutoAnnotateSteps`) |
-| `REWRITE` | the text is written again; **a new generation of the book is refused while it runs** | the automatic redraft (`AutoAnnotateSteps`) |
+| `REVIEW` | notes on the new text | the automatic annotation, then the phrase watch list (`AutoAnnotateSteps`, ids `annotate` and `phraseWatch`; the hits count as notes for the redraft) |
+| `REWRITE` | the text is written again; **a new generation of the book is refused while it runs** | the automatic redraft (`AutoAnnotateSteps`; runs when the automatic annotation or the phrase watch list of the book is on, with its redraft switches, and notes were added) |
 | `TRANSFORM` | passages of the final text are replaced | Real Language and Conlang translators (sequential) |
 | `EXTRACT` | data is read out of the final text | Knowledge Tracker (parallel) |
 | `MEDIA` | what is made of the final text | Audiobook (parallel) |
 
 The stages run in this order, so what changes the text comes before what reads it. Inside a stage the `SEQUENTIAL` steps run one after
 another in the order they were bound, each seeing what the one before left; then the `PARALLEL` ones start together and the stage ends
-when all are done. A parallel step must not change the text of the part (not enforced). On a model with one connection parallel steps
+when all are done. A parallel step must not change the text of the part: its thread is marked `Runs.readingOnly()`, and a change through `ChatMessageService` there throws `IllegalStateException` (the step fails, which stops the phase). On a model with one connection parallel steps
 take turns anyway: every request waits for a connection of its AI.
 
 ## The handler
 
 `run(context)` is plain blocking code on a worker thread, in the request scope of the user who generated, with the run of the phase
-bound: the requests it makes to a model show in the panel of the runs, and a run of the registry it starts (`PartRuns.run`, an
-`ExtractionRun`) is a part of the phase's entry (its text goes there, the phase's Stop stops it). `appliesTo(book)` says whether the
+bound: the requests it makes to a model show in the panel of the runs, and a run of the registry it starts (`PartRuns.run`, a
+`TrackerRun` of the trackers) is a part of the phase's entry (its text goes there, the phase's Stop stops it). `appliesTo(book)` says whether the
 book uses the step (its switch); a step that does not apply is not shown. The context gives:
 
 | | |

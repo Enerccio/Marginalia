@@ -10,6 +10,8 @@ import com.github.enerccio.marginalia.domain.service.agent.CheckpointStore.Info;
 import com.github.enerccio.marginalia.domain.service.agent.CheckpointText;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
@@ -109,12 +111,12 @@ public class AgentCheckpointBrowser extends VerticalLayout implements LLMInterac
         setSpacing(false);
         addClassNames(CssStyles.MIN_HEIGHT_0, CssStyles.OVERFLOW_AUTO, CssStyles.GAP_S);
 
-        Span help = new Span(loc.getValue(L.HELP_AGENT_CHECKPOINTS));
+        Span help = new Span(loc.getValue(M_L.HELP_AGENT_CHECKPOINTS));
         help.addClassName(CssStyles.HINT_TEXT);
         Button refreshButton = new Button(loc.getValue(L.LABEL_REFRESH), Solid.ARROWS_ROTATE.create(), event -> refresh());
-        saveButton = new Button(loc.getValue(L.LABEL_SAVE_CHECKPOINT), Solid.FLOPPY_DISK.create(), event ->
-                new TextInputDialog.Builder(loc.getValue(L.LABEL_SAVE_CHECKPOINT), this::save)
-                        .inputMessageLabel(loc.getValue(L.LABEL_CHECKPOINT_LABEL)).showCancel(true).build().open());
+        saveButton = new Button(loc.getValue(M_L.LABEL_SAVE_CHECKPOINT), Solid.FLOPPY_DISK.create(), event ->
+                new TextInputDialog.Builder(loc.getValue(M_L.LABEL_SAVE_CHECKPOINT), this::save)
+                        .inputMessageLabel(loc.getValue(M_L.LABEL_CHECKPOINT_LABEL)).showCancel(true).build().open());
         for (Button button : List.of(refreshButton, saveButton)) {
             button.addThemeVariants(ButtonVariant.LUMO_SMALL);
         }
@@ -129,12 +131,12 @@ public class AgentCheckpointBrowser extends VerticalLayout implements LLMInterac
         if (phone) {
             grid.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_ROW_STRIPES);
             grid.setAllRowsVisible(true);
-            grid.addComponentColumn(this::card).setHeader(loc.getValue(L.LABEL_AGENT_CHECKPOINTS));
+            grid.addComponentColumn(this::card).setHeader(loc.getValue(M_L.LABEL_AGENT_CHECKPOINTS));
         } else {
             grid.addColumn(Info::id).setHeader(loc.getValue(L.LABEL_NAME)).setFlexGrow(0).setWidth("80px");
             grid.addColumn(info -> loc.getValue(kindText(info))).setHeader(loc.getValue(L.LABEL_TYPE)).setFlexGrow(1);
-            grid.addColumn(Info::round).setHeader(loc.getValue(L.LABEL_ROUNDS)).setFlexGrow(0).setWidth("80px");
-            grid.addColumn(Info::label).setHeader(loc.getValue(L.LABEL_CHECKPOINT_LABEL)).setFlexGrow(3);
+            grid.addColumn(Info::round).setHeader(loc.getValue(M_L.LABEL_ROUNDS)).setFlexGrow(0).setWidth("80px");
+            grid.addColumn(Info::label).setHeader(loc.getValue(M_L.LABEL_CHECKPOINT_LABEL)).setFlexGrow(3);
             grid.addColumn(info -> CheckpointText.bytes(info.bytes())).setHeader(loc.getValue(L.LABEL_SIZE)).setFlexGrow(1);
             grid.addColumn(AgentCheckpointBrowser::created).setHeader(loc.getValue(L.LABEL_CREATED)).setFlexGrow(2);
             grid.addComponentColumn(this::actions).setHeader("").setFlexGrow(0).setWidth("210px");
@@ -142,7 +144,7 @@ public class AgentCheckpointBrowser extends VerticalLayout implements LLMInterac
 
         usageLabel = new Span();
         usageLabel.addClassNames(CssStyles.HINT_TEXT);
-        emptyLabel = new Span(loc.getValue(L.MSG_AGENT_CHECKPOINTS_EMPTY));
+        emptyLabel = new Span(loc.getValue(M_L.MSG_AGENT_CHECKPOINTS_EMPTY));
         emptyLabel.addClassNames(CssStyles.HINT_TEXT);
 
         add(help, toolbar, grid, emptyLabel, usageLabel);
@@ -170,15 +172,15 @@ public class AgentCheckpointBrowser extends VerticalLayout implements LLMInterac
             parameters = {@APIParameter(name = "info", type = CheckpointStore.Info.class)})
     Component card(Info info) {
         return AgentCard.of(info.id() + " - " + loc.getValue(kindText(info)), created(info), List.of(
-                loc.getValue(L.LABEL_ROUNDS) + ": " + info.round() + "   " + loc.getValue(L.LABEL_SIZE) + ": "
+                loc.getValue(M_L.LABEL_ROUNDS) + ": " + info.round() + "   " + loc.getValue(L.LABEL_SIZE) + ": "
                         + CheckpointText.bytes(info.bytes()), StringUtils.defaultString(info.label())), actions(info));
     }
 
-    private static L kindText(Info info) {
+    private static LocalizationKey kindText(Info info) {
         return switch (info.kind()) {
-            case START -> L.ENUM_CHECKPOINT_START;
-            case AUTOMATIC -> L.ENUM_CHECKPOINT_AUTOMATIC;
-            case MANUAL -> L.ENUM_CHECKPOINT_MANUAL;
+            case START -> M_L.ENUM_CHECKPOINT_START;
+            case AUTOMATIC -> M_L.ENUM_CHECKPOINT_AUTOMATIC;
+            case MANUAL -> M_L.ENUM_CHECKPOINT_MANUAL;
         };
     }
 
@@ -195,20 +197,20 @@ public class AgentCheckpointBrowser extends VerticalLayout implements LLMInterac
     private Component actions(Info info) {
         boolean working = busy.getAsBoolean();
         Button restoreButton = new Button(Solid.ROTATE_LEFT.create(), event ->
-                ConfirmDialog.open(String.format(loc.getValue(L.MSG_AGENT_CONFIRM_RESTORE_CHECKPOINT), info.id()),
+                ConfirmDialog.open(String.format(loc.getValue(M_L.MSG_AGENT_CONFIRM_RESTORE_CHECKPOINT), info.id()),
                         () -> restore(info), () -> {}));
         restoreButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        restoreButton.setTooltipText(loc.getValue(working ? L.MSG_AGENT_CHECKPOINT_BUSY : L.LABEL_RESTORE));
+        restoreButton.setTooltipText(loc.getValue(working ? M_L.MSG_AGENT_CHECKPOINT_BUSY : L.LABEL_RESTORE));
         restoreButton.setEnabled(!working);
 
         AgentRun current = run.get();
         boolean paused = current != null && current.getStatus().isResumable();
         Button rewindButton = new Button(Solid.BACKWARD_STEP.create(), event ->
-                ConfirmDialog.open(String.format(loc.getValue(L.MSG_AGENT_CONFIRM_REWIND_CHECKPOINT), info.id()),
+                ConfirmDialog.open(String.format(loc.getValue(M_L.MSG_AGENT_CONFIRM_REWIND_CHECKPOINT), info.id()),
                         () -> rewind(info), () -> {}));
         rewindButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        rewindButton.setTooltipText(loc.getValue(working ? L.MSG_AGENT_CHECKPOINT_BUSY : !paused ? L.MSG_AGENT_REWIND_PAUSE_FIRST
-                : !rewindable.contains(info.id()) ? L.MSG_AGENT_REWIND_UNAVAILABLE : L.LABEL_REWIND));
+        rewindButton.setTooltipText(loc.getValue(working ? M_L.MSG_AGENT_CHECKPOINT_BUSY : !paused ? M_L.MSG_AGENT_REWIND_PAUSE_FIRST
+                : !rewindable.contains(info.id()) ? M_L.MSG_AGENT_REWIND_UNAVAILABLE : M_L.LABEL_REWIND));
         rewindButton.setEnabled(!working && paused && rewindable.contains(info.id()));
 
         Button downloadButton = new Button(Solid.DOWNLOAD.create());
@@ -248,7 +250,7 @@ public class AgentCheckpointBrowser extends VerticalLayout implements LLMInterac
         }
         try {
             Info info = checkpointService.makeManual(run.get(), label).checkpoint();
-            Notification.success(String.format(loc.getValue(L.MSG_AGENT_CHECKPOINT_SAVED), info.id()));
+            Notification.success(String.format(loc.getValue(M_L.MSG_AGENT_CHECKPOINT_SAVED), info.id()));
         } catch (CheckpointException e) {
             Notification.warning(String.format(loc.getValue(L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
         } catch (Exception e) {
@@ -269,7 +271,7 @@ public class AgentCheckpointBrowser extends VerticalLayout implements LLMInterac
         }
         try {
             CheckpointService.Restored result = checkpointService.restore(run.get(), info.id());
-            Notification.success(String.format(loc.getValue(L.MSG_AGENT_CHECKPOINT_RESTORED), info.id(), result.removedFiles().size()));
+            Notification.success(String.format(loc.getValue(M_L.MSG_AGENT_CHECKPOINT_RESTORED), info.id(), result.removedFiles().size()));
             restored.run();
         } catch (CheckpointException e) {
             Notification.warning(String.format(loc.getValue(L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
@@ -291,7 +293,7 @@ public class AgentCheckpointBrowser extends VerticalLayout implements LLMInterac
         }
         try {
             CheckpointService.Rewound result = checkpointService.rewind(run.get(), info.id());
-            Notification.success(String.format(loc.getValue(L.MSG_AGENT_CHECKPOINT_REWOUND), info.id(), result.forgotten(),
+            Notification.success(String.format(loc.getValue(M_L.MSG_AGENT_CHECKPOINT_REWOUND), info.id(), result.forgotten(),
                     result.restored().removedFiles().size()));
             rewound.run();
         } catch (CheckpointException | IllegalStateException e) {
@@ -322,7 +324,7 @@ public class AgentCheckpointBrowser extends VerticalLayout implements LLMInterac
             returns = @APIReturn(type = boolean.class))
     private boolean isBusy() {
         if (busy.getAsBoolean()) {
-            Notification.warning(loc.getValue(L.MSG_AGENT_CHECKPOINT_BUSY));
+            Notification.warning(loc.getValue(M_L.MSG_AGENT_CHECKPOINT_BUSY));
             refresh();
             return true;
         }
@@ -356,12 +358,12 @@ public class AgentCheckpointBrowser extends VerticalLayout implements LLMInterac
             emptyLabel.setVisible(infos.isEmpty());
             boolean canSave = current != null && current.getWorkingCopy() != null && !busy.getAsBoolean();
             saveButton.setEnabled(canSave);
-            saveButton.setTooltipText(busy.getAsBoolean() ? loc.getValue(L.MSG_AGENT_CHECKPOINT_BUSY) : null);
+            saveButton.setTooltipText(busy.getAsBoolean() ? loc.getValue(M_L.MSG_AGENT_CHECKPOINT_BUSY) : null);
             if (current == null || infos.isEmpty()) {
                 UIUtils.setTextIfChanged(usageLabel, "");
             } else {
                 CheckpointService.Usage usage = checkpointService.usage(current);
-                UIUtils.setTextIfChanged(usageLabel, String.format(loc.getValue(L.MSG_AGENT_CHECKPOINTS_USAGE), CheckpointText.bytes(usage.usedBytes()),
+                UIUtils.setTextIfChanged(usageLabel, String.format(loc.getValue(M_L.MSG_AGENT_CHECKPOINTS_USAGE), CheckpointText.bytes(usage.usedBytes()),
                         CheckpointText.bytes(usage.quotaBytes()), CheckpointText.bytes(usage.reserveBytes())));
             }
         } catch (Exception e) {

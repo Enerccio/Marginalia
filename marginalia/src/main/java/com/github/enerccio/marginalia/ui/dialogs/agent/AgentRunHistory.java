@@ -9,6 +9,8 @@ import com.github.enerccio.marginalia.domain.service.AgentRunService;
 import com.github.enerccio.marginalia.domain.service.agent.AgentTranscriptExport;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
+import com.github.enerccio.marginalia.loc.MarginaliaLocalization;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
@@ -50,7 +52,7 @@ public class AgentRunHistory extends VerticalLayout implements LLMInteract {
     private static final int RESULT_LIMIT = 100;
 
     @Autowired
-    private Localization loc;
+    private MarginaliaLocalization loc;
 
     @Autowired
     private AgentRunService agentRunService;
@@ -93,17 +95,17 @@ public class AgentRunHistory extends VerticalLayout implements LLMInteract {
             grid.addComponentColumn(this::card).setHeader(loc.getValue(L.LABEL_AGENT_RUNS));
         } else {
             grid.addColumn(this::started)
-                    .setHeader(loc.getValue(L.LABEL_DATE)).setFlexGrow(2);
+                    .setHeader(loc.getValue(M_L.LABEL_DATE)).setFlexGrow(2);
             grid.addColumn(this::statusText)
                     .setHeader(loc.getValue(L.LABEL_STATUS)).setFlexGrow(2);
-            grid.addColumn(AgentRun::getRounds).setHeader(loc.getValue(L.LABEL_ROUNDS)).setFlexGrow(1);
-            grid.addColumn(AgentRun::getTotalTokens).setHeader(loc.getValue(L.LABEL_TOKENS)).setFlexGrow(1);
+            grid.addColumn(AgentRun::getRounds).setHeader(loc.getValue(M_L.LABEL_ROUNDS)).setFlexGrow(1);
+            grid.addColumn(AgentRun::getTotalTokens).setHeader(loc.getValue(M_L.LABEL_TOKENS)).setFlexGrow(1);
             grid.addColumn(this::result)
-                    .setHeader(loc.getValue(L.LABEL_RESULT)).setFlexGrow(4);
+                    .setHeader(loc.getValue(M_L.LABEL_RESULT)).setFlexGrow(4);
             grid.addComponentColumn(this::actions).setHeader("").setFlexGrow(0).setWidth("160px");
         }
 
-        emptyLabel = new Span(loc.getValue(L.MSG_AGENT_NO_RUN_YET));
+        emptyLabel = new Span(loc.getValue(M_L.MSG_AGENT_NO_RUN_YET));
         emptyLabel.addClassName(CssStyles.HINT_TEXT);
         add(grid, emptyLabel);
         setFlexGrow(1, grid);
@@ -146,8 +148,8 @@ public class AgentRunHistory extends VerticalLayout implements LLMInteract {
             returns = @APIReturn(type = Component.class),
             parameters = {@APIParameter(name = "run", type = AgentRun.class)})
     Component card(AgentRun run) {
-        return AgentCard.of(started(run), statusText(run), List.of(loc.getValue(L.LABEL_ROUNDS) + ": " + run.getRounds() + "   "
-                + loc.getValue(L.LABEL_TOKENS) + ": " + run.getTotalTokens(), result(run)), actions(run));
+        return AgentCard.of(started(run), statusText(run), List.of(loc.getValue(M_L.LABEL_ROUNDS) + ": " + run.getRounds() + "   "
+                + loc.getValue(M_L.LABEL_TOKENS) + ": " + run.getTotalTokens(), result(run)), actions(run));
     }
 
     /**
@@ -193,10 +195,10 @@ public class AgentRunHistory extends VerticalLayout implements LLMInteract {
 
         boolean busy = run.getStatus().isActive();
         Button deleteButton = new Button(Solid.TRASH.create(), event ->
-                ConfirmDialog.open(loc.getValue(L.MSG_AGENT_CONFIRM_DELETE_RUN), () -> delete(run), () -> {}));
+                ConfirmDialog.open(loc.getValue(M_L.MSG_AGENT_CONFIRM_DELETE_RUN), () -> delete(run), () -> {}));
         deleteButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ERROR);
         deleteButton.setEnabled(!busy);
-        deleteButton.setTooltipText(loc.getValue(busy ? L.MSG_AGENT_RUN_BUSY : L.LABEL_DELETE));
+        deleteButton.setTooltipText(loc.getValue(busy ? M_L.MSG_AGENT_RUN_BUSY : L.LABEL_DELETE));
 
         HorizontalLayout actions = new HorizontalLayout(viewButton, downloadAnchor(run, downloadButton), deleteButton);
         actions.setSpacing(false);

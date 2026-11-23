@@ -146,6 +146,14 @@
     text-decoration: line-through;
 }
 
+/* Why an old item is old (and the part that retracted it): small, after the text, not struck through */
+.knowledge-tracker-old-reason {
+    margin-left: var(--lumo-space-s);
+    color: var(--lumo-secondary-text-color);
+    font-size: var(--lumo-font-size-xxs);
+    white-space: nowrap;
+}
+
 /* The number of the part an item was learned in: tiny, after the text; a click scrolls the story to the part */
 .knowledge-tracker-source {
     margin-left: var(--lumo-space-xs);
@@ -287,4 +295,52 @@
     overflow-wrap: anywhere;
     color: var(--lumo-secondary-text-color);
     font-size: var(--lumo-font-size-s);
+}
+
+/* The icon-only Process now / Process next part / Tidy knowledge in the top bar: shown only while the buttons of the Processing
+   panel are scrolled out of sight (the view's observer sets the attribute "docked" on the bar) */
+.knowledge-tracker-dock {
+    display: none;
+    margin-inline-start: auto;
+    align-items: center;
+}
+
+.knowledge-tracker-toolbar[docked] .knowledge-tracker-dock {
+    display: flex;
+}
+
+/* Who has met whom: the tracked characters on the left, the others with check boxes on the right; one under the other on a
+   phone */
+.knowledge-tracker-met-dialog-content {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--lumo-space-m);
+    align-items: flex-start;
+}
+
+.knowledge-tracker-met-dialog-characters {
+    flex: 1 1 200px;
+    max-height: 60vh;
+    overflow-y: auto;
+    border: 1px solid var(--lumo-contrast-10pct);
+    border-radius: var(--lumo-border-radius-m);
+}
+
+.knowledge-tracker-met-dialog-others {
+    flex: 2 1 260px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--lumo-space-xs);
+    max-height: 60vh;
+    overflow-y: auto;
+    min-width: 0;
+}
+
+.knowledge-tracker-met-dialog-hint {
+    color: var(--lumo-secondary-text-color);
+    font-size: var(--lumo-font-size-s);
+}
+
+.knowledge-tracker-met-dialog-row {
+    display: flex;
 }

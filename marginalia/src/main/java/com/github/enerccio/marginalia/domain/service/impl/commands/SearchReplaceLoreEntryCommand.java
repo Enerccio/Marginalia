@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service.impl.commands;
 
+import com.github.enerccio.marginalia.domain.service.command.CommandScope;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.LorebookReplaceService;
@@ -8,7 +9,7 @@ import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.service.search.replace.TextSearch.InvalidSearchException;
 import com.github.enerccio.marginalia.domain.traits.*;
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.utils.CommandUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,93 +42,128 @@ public class SearchReplaceLoreEntryCommand {
     @Autowired
     private Localization loc;
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_SEARCH_REPLACE_LOREBOOK, async = true,
+    @Command(commandName = NAME, async = true,
             dataSeverity = CommandDataSeverity.DESTRUCTIVE,
-            description = L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK, llmDescription = L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "search", type = String.class, description = L.DESC_COMMAND_SEARCH_PARAM),
-                    @CommandParameter(name = "replace", type = String.class, description = L.DESC_COMMAND_REPLACE_PARAM)}),
-            returns = @CommandReturn(name = "message", type = String.class, description = L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK_RETURN))
+                    @CommandParameter(name = "search", type = String.class),
+                    @CommandParameter(name = "replace", type = String.class)}),
+            returns = @CommandReturn(name = "message", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SEARCH_REPLACE_LOREBOOK,
+            description = M_L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK,
+            llmDescription = M_L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK_LLM,
+            parameters = {@MarginaliaParameterText(name = "search", description = M_L.DESC_COMMAND_SEARCH_PARAM),
+                    @MarginaliaParameterText(name = "replace", description = M_L.DESC_COMMAND_REPLACE_PARAM)},
+            returns = M_L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK_RETURN)
     public void replace(CommandContext context) throws Exception {
         run(context, false, true, null, false);
     }
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_SEARCH_REPLACE_LOREBOOK, async = true,
+    @Command(commandName = NAME, async = true,
             dataSeverity = CommandDataSeverity.DESTRUCTIVE,
-            description = L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK, llmDescription = L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "search", type = String.class, description = L.DESC_COMMAND_SEARCH_PARAM),
-                    @CommandParameter(name = "replace", type = String.class, description = L.DESC_COMMAND_REPLACE_PARAM),
-                    @CommandParameter(name = "regex", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_REGEX_PARAM)}),
-            returns = @CommandReturn(name = "message", type = String.class, description = L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK_RETURN))
+                    @CommandParameter(name = "search", type = String.class),
+                    @CommandParameter(name = "replace", type = String.class),
+                    @CommandParameter(name = "regex", type = Boolean.class, optional = true, defaultValue = "false")}),
+            returns = @CommandReturn(name = "message", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SEARCH_REPLACE_LOREBOOK,
+            description = M_L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK,
+            llmDescription = M_L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK_LLM,
+            parameters = {@MarginaliaParameterText(name = "search", description = M_L.DESC_COMMAND_SEARCH_PARAM),
+                    @MarginaliaParameterText(name = "replace", description = M_L.DESC_COMMAND_REPLACE_PARAM),
+                    @MarginaliaParameterText(name = "regex", description = M_L.DESC_COMMAND_REGEX_PARAM)},
+            returns = M_L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK_RETURN)
     public void replaceRegex(CommandContext context) throws Exception {
         run(context, context.get("regex", Boolean.class), true, null, false);
     }
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_SEARCH_REPLACE_LOREBOOK, async = true,
+    @Command(commandName = NAME, async = true,
             dataSeverity = CommandDataSeverity.DESTRUCTIVE,
-            description = L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK, llmDescription = L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "search", type = String.class, description = L.DESC_COMMAND_SEARCH_PARAM),
-                    @CommandParameter(name = "replace", type = String.class, description = L.DESC_COMMAND_REPLACE_PARAM),
-                    @CommandParameter(name = "regex", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_REGEX_PARAM),
-                    @CommandParameter(name = "caseSensitive", type = Boolean.class, optional = true, defaultValue = "true", description = L.DESC_COMMAND_CASE_SENSITIVE_PARAM)}),
-            returns = @CommandReturn(name = "message", type = String.class, description = L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK_RETURN))
+                    @CommandParameter(name = "search", type = String.class),
+                    @CommandParameter(name = "replace", type = String.class),
+                    @CommandParameter(name = "regex", type = Boolean.class, optional = true, defaultValue = "false"),
+                    @CommandParameter(name = "caseSensitive", type = Boolean.class, optional = true, defaultValue = "true")}),
+            returns = @CommandReturn(name = "message", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SEARCH_REPLACE_LOREBOOK,
+            description = M_L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK,
+            llmDescription = M_L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK_LLM,
+            parameters = {@MarginaliaParameterText(name = "search", description = M_L.DESC_COMMAND_SEARCH_PARAM),
+                    @MarginaliaParameterText(name = "replace", description = M_L.DESC_COMMAND_REPLACE_PARAM),
+                    @MarginaliaParameterText(name = "regex", description = M_L.DESC_COMMAND_REGEX_PARAM),
+                    @MarginaliaParameterText(name = "caseSensitive", description = M_L.DESC_COMMAND_CASE_SENSITIVE_PARAM)},
+            returns = M_L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK_RETURN)
     public void replaceCase(CommandContext context) throws Exception {
         run(context, context.get("regex", Boolean.class), context.get("caseSensitive", Boolean.class), null, false);
     }
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_SEARCH_REPLACE_LOREBOOK, async = true,
+    @Command(commandName = NAME, async = true,
             dataSeverity = CommandDataSeverity.DESTRUCTIVE,
-            description = L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK, llmDescription = L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "search", type = String.class, description = L.DESC_COMMAND_SEARCH_PARAM),
-                    @CommandParameter(name = "replace", type = String.class, description = L.DESC_COMMAND_REPLACE_PARAM),
-                    @CommandParameter(name = "regex", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_REGEX_PARAM),
-                    @CommandParameter(name = "caseSensitive", type = Boolean.class, optional = true, defaultValue = "true", description = L.DESC_COMMAND_CASE_SENSITIVE_PARAM),
-                    @CommandParameter(name = "maxHits", type = Integer.class, optional = true, min = "1", description = L.DESC_COMMAND_MAX_HITS_PARAM)}),
-            returns = @CommandReturn(name = "message", type = String.class, description = L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK_RETURN))
+                    @CommandParameter(name = "search", type = String.class),
+                    @CommandParameter(name = "replace", type = String.class),
+                    @CommandParameter(name = "regex", type = Boolean.class, optional = true, defaultValue = "false"),
+                    @CommandParameter(name = "caseSensitive", type = Boolean.class, optional = true, defaultValue = "true"),
+                    @CommandParameter(name = "maxHits", type = Integer.class, optional = true, min = "1")}),
+            returns = @CommandReturn(name = "message", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SEARCH_REPLACE_LOREBOOK,
+            description = M_L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK,
+            llmDescription = M_L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK_LLM,
+            parameters = {@MarginaliaParameterText(name = "search", description = M_L.DESC_COMMAND_SEARCH_PARAM),
+                    @MarginaliaParameterText(name = "replace", description = M_L.DESC_COMMAND_REPLACE_PARAM),
+                    @MarginaliaParameterText(name = "regex", description = M_L.DESC_COMMAND_REGEX_PARAM),
+                    @MarginaliaParameterText(name = "caseSensitive", description = M_L.DESC_COMMAND_CASE_SENSITIVE_PARAM),
+                    @MarginaliaParameterText(name = "maxHits", description = M_L.DESC_COMMAND_MAX_HITS_PARAM)},
+            returns = M_L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK_RETURN)
     public void replaceMaxHits(CommandContext context) throws Exception {
         run(context, context.get("regex", Boolean.class), context.get("caseSensitive", Boolean.class),
                 context.get("maxHits", Integer.class), false);
     }
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_SEARCH_REPLACE_LOREBOOK, async = true,
+    @Command(commandName = NAME, async = true,
             dataSeverity = CommandDataSeverity.DESTRUCTIVE,
-            description = L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK, llmDescription = L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "search", type = String.class, description = L.DESC_COMMAND_SEARCH_PARAM),
-                    @CommandParameter(name = "replace", type = String.class, description = L.DESC_COMMAND_REPLACE_PARAM),
-                    @CommandParameter(name = "regex", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_REGEX_PARAM),
-                    @CommandParameter(name = "caseSensitive", type = Boolean.class, optional = true, defaultValue = "true", description = L.DESC_COMMAND_CASE_SENSITIVE_PARAM),
-                    @CommandParameter(name = "maxHits", type = Integer.class, optional = true, min = "1", description = L.DESC_COMMAND_MAX_HITS_PARAM),
-                    @CommandParameter(name = "dryRun", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_DRY_RUN_PARAM)}),
-            returns = @CommandReturn(name = "message", type = String.class, description = L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK_RETURN))
+                    @CommandParameter(name = "search", type = String.class),
+                    @CommandParameter(name = "replace", type = String.class),
+                    @CommandParameter(name = "regex", type = Boolean.class, optional = true, defaultValue = "false"),
+                    @CommandParameter(name = "caseSensitive", type = Boolean.class, optional = true, defaultValue = "true"),
+                    @CommandParameter(name = "maxHits", type = Integer.class, optional = true, min = "1"),
+                    @CommandParameter(name = "dryRun", type = Boolean.class, optional = true, defaultValue = "false")}),
+            returns = @CommandReturn(name = "message", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SEARCH_REPLACE_LOREBOOK,
+            description = M_L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK,
+            llmDescription = M_L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK_LLM,
+            parameters = {@MarginaliaParameterText(name = "search", description = M_L.DESC_COMMAND_SEARCH_PARAM),
+                    @MarginaliaParameterText(name = "replace", description = M_L.DESC_COMMAND_REPLACE_PARAM),
+                    @MarginaliaParameterText(name = "regex", description = M_L.DESC_COMMAND_REGEX_PARAM),
+                    @MarginaliaParameterText(name = "caseSensitive", description = M_L.DESC_COMMAND_CASE_SENSITIVE_PARAM),
+                    @MarginaliaParameterText(name = "maxHits", description = M_L.DESC_COMMAND_MAX_HITS_PARAM),
+                    @MarginaliaParameterText(name = "dryRun", description = M_L.DESC_COMMAND_DRY_RUN_PARAM)},
+            returns = M_L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK_RETURN)
     public void replaceDryRun(CommandContext context) throws Exception {
         run(context, context.get("regex", Boolean.class), context.get("caseSensitive", Boolean.class),
                 context.get("maxHits", Integer.class), context.get("dryRun", Boolean.class));
     }
 
     private void run(CommandContext context, boolean regex, boolean caseSensitive, Integer maxHits, boolean dryRun) throws Exception {
-        Manuscript manuscript = context.getScope().getManuscript();
+        Manuscript manuscript = CommandScope.of(context).getManuscript();
         if (manuscript == null) {
-            throw new IllegalStateException(loc.getValue(L.ERROR_COMMAND_NO_BOOK_OPEN));
+            throw new IllegalStateException(loc.getValue(M_L.ERROR_COMMAND_NO_BOOK_OPEN));
         }
         Lorebook lorebook = manuscript.getLorebook() == null ? null
                 : lorebookService.findForUser(manuscript.getLorebook().getUuid());
         if (lorebook == null) {
-            throw new IllegalStateException(loc.getValue(L.ERROR_COMMAND_NO_LOREBOOK));
+            throw new IllegalStateException(loc.getValue(M_L.ERROR_COMMAND_NO_LOREBOOK));
         }
         String search = context.get("search", String.class);
         String replacement = context.get("replace", String.class);
         if (search == null || search.isEmpty()) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_SEARCH_TEXT_EMPTY));
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_SEARCH_TEXT_EMPTY));
         }
         if (replacement == null) {
             replacement = "";
         }
 
-        context.setStatus(loc.getValue(L.MSG_COMMAND_SEARCHING));
+        context.setStatus(loc.getValue(M_L.MSG_COMMAND_SEARCHING));
         LorebookReplaceService.Plan plan;
         try {
             plan = replaceService.plan(lorebook, new LorebookReplaceService.Options(search, replacement, regex,
@@ -136,13 +172,13 @@ public class SearchReplaceLoreEntryCommand {
             return;
         } catch (InvalidSearchException e) {
             throw new IllegalArgumentException(String.format(loc.getValue(e.getKind() == InvalidSearchException.Kind.SEARCH
-                    ? L.ERROR_INVALID_REGEX : L.ERROR_INVALID_REPLACEMENT), e.getMessage()), e);
+                    ? M_L.ERROR_INVALID_REGEX : M_L.ERROR_INVALID_REPLACEMENT), e.getMessage()), e);
         }
         if (context.isTerminated()) {
             return;
         }
         if (plan.items().isEmpty()) {
-            context.setReturn(loc.getValue(L.MSG_SEARCH_NOTHING_FOUND));
+            context.setReturn(loc.getValue(M_L.MSG_SEARCH_NOTHING_FOUND));
             return;
         }
 
@@ -150,32 +186,32 @@ public class SearchReplaceLoreEntryCommand {
         context.setSubStatus(null);
         if (dryRun) {
             // only the numbers and a few matches, to decide whether the replace is wanted
-            context.setReturn(String.format(loc.getValue(L.MSG_COMMAND_REPLACE_DRY_RUN), plan.hitCount(), plan.items().size())
+            context.setReturn(String.format(loc.getValue(M_L.MSG_COMMAND_REPLACE_DRY_RUN), plan.hitCount(), plan.items().size())
                     + SearchReplaceCommands.samples(plan.items().stream().flatMap(item -> item.hits().stream()).toList()));
             return;
         }
         if (maxHits != null && plan.hitCount() > maxHits) {
-            throw new IllegalArgumentException(String.format(loc.getValue(L.ERROR_COMMAND_TOO_MANY_HITS), plan.hitCount(), maxHits));
+            throw new IllegalArgumentException(String.format(loc.getValue(M_L.ERROR_COMMAND_TOO_MANY_HITS), plan.hitCount(), maxHits));
         }
         // there is no preview, so the user decides on the numbers
-        String question = String.format(loc.getValue(L.MSG_COMMAND_REPLACE_CONFIRM), plan.hitCount(),
+        String question = String.format(loc.getValue(M_L.MSG_COMMAND_REPLACE_CONFIRM), plan.hitCount(),
                 plan.items().size(), SearchReplaceCommands.shorten(search), SearchReplaceCommands.shorten(replacement));
         if (!confirm(context, question)) {
             if (!context.isTerminated()) {
-                context.setReturn(loc.getValue(L.MSG_COMMAND_REPLACE_CANCELLED));
+                context.setReturn(loc.getValue(M_L.MSG_COMMAND_REPLACE_CANCELLED));
             }
             return;
         }
 
         // one transaction that is finished or rolled back as a whole, the user can't stop it half way
         context.setUninterruptable(true);
-        context.setStatus(loc.getValue(L.MSG_COMMAND_REPLACING));
+        context.setStatus(loc.getValue(M_L.MSG_COMMAND_REPLACING));
         LorebookReplaceService.Result result = replaceService.apply(lorebook, plan, SearchReplaceCommands.NO_STOP);
         CommandUtils.reloadManuscriptWindow();
 
-        String message = String.format(loc.getValue(L.MSG_REPLACE_DONE), result.hits(), result.changed());
+        String message = String.format(loc.getValue(M_L.MSG_REPLACE_DONE), result.hits(), result.changed());
         context.setReturn(result.skipped() == 0 ? message
-                : message + "\n" + String.format(loc.getValue(L.MSG_REPLACE_SKIPPED), result.skipped()));
+                : message + "\n" + String.format(loc.getValue(M_L.MSG_REPLACE_SKIPPED), result.skipped()));
     }
 
     /**

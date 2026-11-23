@@ -9,13 +9,30 @@ import com.github.enerccio.marginalia.extensions.knowledgetracker.KnowledgeTrack
 import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.ChangeApplier;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.ChangeLog;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.model.*;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.process.BranchProcessor.Report;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.process.Part;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.process.RunEstimate;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.scene.SeparatorText;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.service.*;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.service.ExtractionRun.Phase;
+import com.github.enerccio.marginalia.extensions.knowledgetracker.service.ExtractionService;
+import com.github.enerccio.marginalia.extensions.knowledgetracker.service.ExtractionService.Proposal;
+import com.github.enerccio.marginalia.extensions.knowledgetracker.service.KnowledgeProcessService;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.service.KnowledgeProcessService.Status;
+import com.github.enerccio.marginalia.extensions.knowledgetracker.service.KnowledgeStateService;
+import com.github.enerccio.marginalia.extensions.knowledgetracker.service.StaleProposalException;
+import com.github.enerccio.marginalia.extensions.storytracker.characters.CharacterTrackerCharacters;
+import com.github.enerccio.marginalia.extensions.storytracker.llm.LoreMode;
+import com.github.enerccio.marginalia.extensions.storytracker.log.TrackerChangeLog;
+import com.github.enerccio.marginalia.extensions.storytracker.process.BranchProcessor.Report;
+import com.github.enerccio.marginalia.extensions.storytracker.process.Part;
+import com.github.enerccio.marginalia.extensions.storytracker.process.RunEstimate;
+import com.github.enerccio.marginalia.extensions.storytracker.run.TrackerRun;
+import com.github.enerccio.marginalia.extensions.storytracker.run.TrackerRun.Phase;
+import com.github.enerccio.marginalia.extensions.storytracker.run.TrackerRuns;
+import com.github.enerccio.marginalia.extensions.storytracker.scene.SeparatorText;
+import com.github.enerccio.marginalia.extensions.storytracker.checkpoint.Checkpoint;
+import com.github.enerccio.marginalia.extensions.storytracker.checkpoint.TrackerCheckpoints;
+import com.github.enerccio.marginalia.extensions.storytracker.ui.ChangeLogPanel;
+import com.github.enerccio.marginalia.extensions.storytracker.ui.CheckpointsPanel;
+import com.github.enerccio.marginalia.extensions.storytracker.ui.StoryTrackerLocalization;
+import com.github.enerccio.marginalia.extensions.storytracker.ui.ImportCharactersDialog;
+import com.github.enerccio.marginalia.extensions.storytracker.ui.ProgressPanel;
+import com.github.enerccio.marginalia.extensions.storytracker.ui.UiAccess;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
@@ -60,7 +77,7 @@ public class KnowledgeTrackerView extends VerticalLayout {
     private final KnowledgeStateService service;
     private final KnowledgeProcessService processService;
     private final ExtractionService extractionService;
-    private final ExtractionRuns runs;
+    private final TrackerRuns<Proposal> runs;
     private final Manuscript manuscript;
     /** The story tab this one belongs to, to scroll it to a part; {@code null} when there is none. */
     private final StoryEditor story;
@@ -77,11 +94,22 @@ public class KnowledgeTrackerView extends VerticalLayout {
 
     private final VerticalLayout list = new VerticalLayout();
     private Button settingsButton;
+    /** The bar at the top and the list's scroller: the bar shows {@link #dock} while the buttons of the Processing panel are scrolled away. */
+    private HorizontalLayout toolbar;
+    private Scroller scroller;
+    /** Icon-only copies of Process now, Process next part and Tidy knowledge, in the top bar. */
+    private final Div dock = new Div();
+    private final Button dockProcess = iconButton(Solid.PLAY, T.localized(PROCESS_NOW), _ -> processNow());
+    private final Button dockNext = iconButton(Solid.FORWARD_STEP, T.localized(PROCESS_NEXT_PART), _ -> processNext());
+    private final Button dockTidy = iconButton(Solid.BROOM, T.localized(TIDY_KNOWLEDGE), _ -> tidy());
+    /** The row of the processing buttons the last refresh made, {@code null} when it has none. */
+    private Div processButtons;
     private boolean processedOpen;
     private boolean logOpen;
+    private boolean checkpointsOpen;
     /** The progress panel of the run that is shown, and the listener that keeps this view in line with that run. */
-    private ProgressPanel progressPanel;
-    private ExtractionRun watched;
+    private ProgressPanel<Proposal> progressPanel;
+    private TrackerRun<Proposal> watched;
     /** At most one reload of the tab waits at a time, however fast the run reports. */
     private final Runnable runRefresh = UiAccess.coalesced(this, () -> {
         state = loadState();
@@ -93,8 +121,8 @@ public class KnowledgeTrackerView extends VerticalLayout {
      * that depend on whether a run goes on: so it is rebuilt when the run waits for a review or ends, not at every phase. A rebuild reads
      * the whole branch of the story and the whole state, which is slow in a long book.
      */
-    private final java.util.function.Consumer<ExtractionRun.Status> runListener = status -> {
-        if (status.phase().isFinished() || status.phase() == ExtractionRun.Phase.REVIEW) {
+    private final java.util.function.Consumer<TrackerRun.Status<Proposal>> runListener = status -> {
+        if (status.phase().isFinished() || status.phase() == TrackerRun.Phase.REVIEW) {
             runRefresh.run();
         }
     };
@@ -105,6 +133,8 @@ public class KnowledgeTrackerView extends VerticalLayout {
         refresh();
         reloadMassChanges();
     });
+    /** The items copied in the <b>Mass changes</b> window, kept while the tab is open so they can be pasted after it was closed. */
+    private final List<KnowledgeItem> clipboard = new ArrayList<>();
     /** The open <b>Mass changes</b> window, {@code null} when there is none. */
     private MassChangesDialog massChanges;
     /** Removes the listener that reads the state again when a command changes it, set while the view is attached. */
@@ -118,7 +148,7 @@ public class KnowledgeTrackerView extends VerticalLayout {
     private static final int SHOWN_PROCESSED = 30;
 
     public KnowledgeTrackerView(Manuscript manuscript, StoryEditor story, KnowledgeStateService service,
-                                KnowledgeProcessService processService, ExtractionService extractionService, ExtractionRuns runs) {
+                                KnowledgeProcessService processService, ExtractionService extractionService, TrackerRuns<Proposal> runs) {
         this.manuscript = manuscript;
         this.story = story;
         this.service = service;
@@ -138,7 +168,8 @@ public class KnowledgeTrackerView extends VerticalLayout {
         super.onAttach(attachEvent);
         // a command (the command bar, an agent) stores the state behind the back of the view, which keeps it in memory
         changeRegistration = service.onChange(manuscript, changeRefresh);
-        ExtractionRun running = runs.running(manuscript);
+        watchProcessButtons();
+        TrackerRun<Proposal> running = runs.running(manuscript);
         if (running != null) {
             watch(running);
         }
@@ -195,19 +226,62 @@ public class KnowledgeTrackerView extends VerticalLayout {
         mass.setAriaLabel(T.localized(MASS_CHANGES));
         mass.setTooltipText(T.localized(CHANGE_MANY_ITEMS_AT_ONCE));
 
-        HorizontalLayout buttons = new HorizontalLayout(add, mass, reload, settingsButton);
-        buttons.setAlignItems(Alignment.CENTER);
-        buttons.setPadding(true);
-        buttons.setSpacing(false);
+        Button importCharacters = new Button(Solid.USER_PLUS.create(), _ -> openImportCharacters());
+        importCharacters.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ICON);
+        importCharacters.setAriaLabel(T.localized(IMPORT_FROM_THE_CHARACTER_TRACKER));
+        importCharacters.setTooltipText(T.localized(IMPORT_FROM_THE_CHARACTER_TRACKER));
+
+        Button metCharacters = new Button(Solid.HANDSHAKE.create(), _ -> openMetCharacters());
+        metCharacters.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ICON);
+        metCharacters.setAriaLabel(T.localized(WHO_HAS_MET_WHOM));
+        metCharacters.setTooltipText(T.localized(WHO_HAS_MET_WHOM));
+
+        dock.add(dockProcess, dockNext, dockTidy);
+        dock.addClassName(KnowledgeTrackerStyles.DOCK);
+        toolbar = new HorizontalLayout(add, importCharacters, metCharacters, mass, reload, settingsButton, dock);
+        toolbar.setAlignItems(Alignment.CENTER);
+        toolbar.setPadding(true);
+        toolbar.setSpacing(false);
+        toolbar.setWidthFull();
+        toolbar.addClassName(KnowledgeTrackerStyles.TOOLBAR);
 
         list.setPadding(false);
         list.addClassName(KnowledgeTrackerStyles.LIST);
         list.setSpacing(false);
-        Scroller scroller = new Scroller(list);
+        scroller = new Scroller(list);
         scroller.setSizeFull();
 
-        add(buttons, scroller);
+        add(toolbar, scroller);
         setFlexGrow(1, scroller);
+    }
+
+    /**
+     * Docks the processing buttons into the top bar while their row in the Processing panel is scrolled out of sight above the
+     * list: an observer in the browser sets the attribute {@code docked} on the bar and the CSS shows the icon buttons then, so
+     * scrolling sends nothing to the server. Called after every refresh (the panel is made again) and when the view is attached.
+     */
+    private void watchProcessButtons() {
+        if (toolbar == null) {
+            return;
+        }
+        if (processButtons == null) {
+            toolbar.getElement().executeJs("""
+                    if (this.__ktDock) { this.__ktDock.disconnect(); this.__ktDock = null; }
+                    this.removeAttribute('docked');""");
+            return;
+        }
+        toolbar.getElement().executeJs("""
+                const bar = this, row = $0, root = $1;
+                if (bar.__ktDock) { bar.__ktDock.disconnect(); }
+                bar.removeAttribute('docked');
+                if (!row || typeof IntersectionObserver === 'undefined') { bar.__ktDock = null; return; }
+                bar.__ktDock = new IntersectionObserver(entries => {
+                    for (const e of entries) {
+                        const top = e.rootBounds ? e.rootBounds.top : 0;
+                        bar.toggleAttribute('docked', !e.isIntersecting && e.boundingClientRect.bottom <= top + 1);
+                    }
+                }, {root: root, threshold: 0});
+                bar.__ktDock.observe(row);""", processButtons.getElement(), scroller.getElement());
     }
 
     // --- settings ---
@@ -436,9 +510,42 @@ public class KnowledgeTrackerView extends VerticalLayout {
         enable.run();
 
         VerticalLayout box = new VerticalLayout(extract, ask, readBack, parts, autoTidy, tidyEvery, tidyParts, tidyMin, lore, model, protocol);
+        box.add(createBookDefaults());
         box.setPadding(false);
         box.setSpacing(false);
         return box;
+    }
+
+    /**
+     * Saves the settings of this book as the ones a book starts with where the tracker was never used, or forgets them: without it every
+     * new book starts with the built-in settings (no model) and the first run reads nothing with the model.
+     */
+    private Component createBookDefaults() {
+        Button use = new Button(T.localized(USE_THESE_SETTINGS_FOR_NEW_BOOKS), Solid.FLOPPY_DISK.create());
+        use.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY);
+        use.setTooltipText(T.localized(A_BOOK_WHERE_THE_TRACKER_WAS_NEVER_USED_STARTS_WITH_THEM));
+        Button forget = new Button(T.localized(FORGET_THE_SETTINGS_FOR_NEW_BOOKS), Solid.XMARK.create());
+        forget.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY);
+        forget.setEnabled(service.getBookDefaults() != null);
+        use.addClickListener(_ -> {
+            try {
+                service.saveBookDefaults(state.getSettings());
+                forget.setEnabled(true);
+                Notification.success(T.localized(NEW_BOOKS_START_WITH_THESE_SETTINGS));
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
+        });
+        forget.addClickListener(_ -> {
+            try {
+                service.clearBookDefaults();
+                forget.setEnabled(false);
+                Notification.success(T.localized(NEW_BOOKS_START_WITH_THE_BUILT_IN_SETTINGS));
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
+        });
+        return new Div(use, forget);
     }
 
     private static TextArea separatorsField(String label, String value) {
@@ -496,13 +603,16 @@ public class KnowledgeTrackerView extends VerticalLayout {
         info.addClassName(KnowledgeTrackerStyles.COUNTS);
         panel.add(info);
         if (branch.isEmpty()) {
+            dockProcess.setEnabled(false);
+            dockNext.setEnabled(false);
+            dockTidy.setEnabled(false);
             return panel;
         }
 
         Button process = new Button(T.localized(PROCESS_NOW), Solid.PLAY.create(), _ -> processNow());
         process.addThemeVariants(ButtonVariant.LUMO_SMALL);
         process.setTooltipText(T.localized(READ_THE_PARTS_THAT_ARE_NOT_PROCESSED));
-        ExtractionRun running = runs.running(manuscript);
+        TrackerRun<Proposal> running = runs.running(manuscript);
         process.setEnabled(status.unread() > 0 && running == null);
         Button tidyButton = new Button(T.localized(TIDY_KNOWLEDGE), Solid.BROOM.create(), _ -> tidy());
         tidyButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
@@ -512,11 +622,15 @@ public class KnowledgeTrackerView extends VerticalLayout {
         next.addThemeVariants(ButtonVariant.LUMO_SMALL);
         next.setTooltipText(T.localized(READ_ONLY_THE_NEXT_PART_THAT_IS_NOT_PROCESSED));
         next.setEnabled(status.unread() > 0 && running == null);
-        panel.add(new Div(process, next, tidyButton));
+        processButtons = new Div(process, next, tidyButton);
+        panel.add(processButtons);
+        dockProcess.setEnabled(process.isEnabled());
+        dockNext.setEnabled(next.isEnabled());
+        dockTidy.setEnabled(tidyButton.isEnabled());
         if (running != null) {
             panel.add(createRunButton(running));
         }
-        ExtractionRun last = runs.latest(manuscript);
+        TrackerRun<Proposal> last = runs.latest(manuscript);
         if (last != null && last.getStatus().phase().isFinished() && !last.getThoughts().isEmpty()) {
             // the reasoning of the last run, also when it proposed nothing and no review ever opened
             Button lastRun = new Button(T.localized(LAST_RUN_WHAT_THE_MODEL_THOUGHT), Solid.LIGHTBULB.create(), _ -> showProgress(last));
@@ -537,7 +651,43 @@ public class KnowledgeTrackerView extends VerticalLayout {
         if (log != null) {
             panel.add(log);
         }
+        Component checkpoints = createCheckpoints(branch, running == null);
+        if (checkpoints != null) {
+            panel.add(checkpoints);
+        }
         return panel;
+    }
+
+    /** The checkpoints the runs took whose part is on the active branch, each with a button that returns the tracker to it. */
+    private Component createCheckpoints(List<Part> branch, boolean enabled) {
+        try {
+            return CheckpointsPanel.create(processService.checkpoints(manuscript, branch), true, enabled, this::restoreCheckpoint,
+                    checkpointsOpen, opened -> checkpointsOpen = opened);
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+            return null;
+        }
+    }
+
+    private void restoreCheckpoint(Checkpoint checkpoint) {
+        try {
+            if (runs.running(manuscript) != null) {
+                return;
+            }
+            TrackerCheckpoints.Restore outcome = processService.restoreCheckpoint(manuscript, checkpoint.id());
+            switch (outcome) {
+                case RESTORED -> Notification.success(CheckpointsPanel.restoredMessage(checkpoint, positions.getOrDefault(checkpoint.partUuid(), 0)));
+                case NOT_ON_BRANCH -> Notification.warning(StoryTrackerLocalization.T.localized(
+                        StoryTrackerLocalization.THE_PART_OF_THE_CHECKPOINT_IS_NOT_ON_THE_ACTIVE_BRANCH));
+                case GONE -> Notification.warning(StoryTrackerLocalization.T.localized(StoryTrackerLocalization.THE_CHECKPOINT_CAN_NOT_BE_READ));
+            }
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+        state = loadState();
+        showSettingsState();
+        refresh();
+        reloadMassChanges();
     }
 
     /**
@@ -547,7 +697,7 @@ public class KnowledgeTrackerView extends VerticalLayout {
     private Button createHeldButton(ExtractionService.Proposal held) {
         Button button = new Button(T.localized(CHANGES_FROM_A_COMMAND_TO_REVIEW).formatted(held.changes().changes().size()));
         button.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_PRIMARY);
-        button.addClickListener(_ -> new ReviewDialog(1, held, () -> applyHeld(held), () -> discardHeld(held)).open());
+        button.addClickListener(_ -> KnowledgeRunScreens.review(1, held, () -> applyHeld(held), () -> discardHeld(held)).open());
         return button;
     }
 
@@ -578,8 +728,8 @@ public class KnowledgeTrackerView extends VerticalLayout {
     }
 
     /** A run is going on: a button to show its panel, or, when its proposal waits, to review it. */
-    private Button createRunButton(ExtractionRun run) {
-        ExtractionRun.Status status = run.getStatus();
+    private Button createRunButton(TrackerRun<Proposal> run) {
+        TrackerRun.Status<Proposal> status = run.getStatus();
         boolean review = status.phase() == Phase.REVIEW && status.proposal() != null;
         Button button = new Button(review ? T.localized(CHANGES_TO_REVIEW).formatted(status.proposal().changes().changes().size())
                 : T.localized(PROCESSING_THE_STORY));
@@ -667,53 +817,24 @@ public class KnowledgeTrackerView extends VerticalLayout {
         return details;
     }
 
-    /**
-     * What automatic runs applied without asking, newest first, each with a button that takes it back (the log itself is not
-     * editable). Only the entries that can still be reverted have an enabled button.
-     */
+    /** What automatic runs applied without asking, newest first, each with a button that takes it back (the shared log panel). */
     private Component createChangeLog(List<Part> branch) {
-        List<ChangeLogEntry> log = state.getChangeLog();
-        if (log.isEmpty()) {
-            return null;
-        }
         Map<String, Integer> positions = new HashMap<>();
         for (int i = 0; i < branch.size(); i++) {
             positions.put(branch.get(i).uuid(), i + 1);
         }
-        VerticalLayout rows = new VerticalLayout();
-        rows.setPadding(false);
-        rows.setSpacing(false);
-        for (int n = log.size() - 1; n >= 0 && log.size() - n <= SHOWN_PROCESSED; n--) {
-            ChangeLogEntry entry = log.get(n);
+        return ChangeLogPanel.create(state.getChangeLog(), entry -> {
             boolean added = entry.getType() == ChangeLogEntry.Type.ADDED;
             Integer position = positions.get(entry.getMessageUuid());
-            String what = (added ? T.localized(ADDED_TO) : T.localized(RETRACTED_FROM)).formatted(entry.getCharacterName())
+            return (added ? T.localized(ADDED_TO) : T.localized(RETRACTED_FROM)).formatted(entry.getCharacterName())
                     + (position == null ? "" : " (" + T.localized(PART_N).formatted(position) + ")") + ": " + entry.getText();
-            Div text = new Div(new Span(what));
-            text.addClassName(KnowledgeTrackerStyles.ITEM_TEXT);
-            Div row = new Div(text);
-            row.addClassName(KnowledgeTrackerStyles.ITEM);
-            if (entry.isReverted()) {
-                Span done = new Span(T.localized(REVERTED));
-                done.addClassName(KnowledgeTrackerStyles.STALE);
-                row.add(done);
-            } else {
-                Button revert = iconButton(Solid.ROTATE_LEFT, T.localized(REVERT_THIS_CHANGE), _ -> revertChange(entry));
-                revert.setEnabled(ChangeLog.canRevert(state, entry));
-                row.add(revert);
-            }
-            rows.add(row);
-        }
-        Details details = new Details(T.localized(APPLIED_AUTOMATICALLY).formatted(log.size()), rows);
-        details.setOpened(logOpen);
-        details.addOpenedChangeListener(e -> logOpen = e.isOpened());
-        return details;
+        }, entry -> ChangeLog.canRevert(state, entry), this::revertChange, logOpen, opened -> logOpen = opened);
     }
 
     private void revertChange(ChangeLogEntry entry) {
         try {
-            ChangeLog.Outcome outcome = processService.revertChange(manuscript, entry.getId());
-            if (outcome != ChangeLog.Outcome.REVERTED) {
+            TrackerChangeLog.Outcome outcome = processService.revertChange(manuscript, entry.getId());
+            if (outcome != TrackerChangeLog.Outcome.REVERTED) {
                 Notification.warning(T.localized(THE_ITEM_HAS_BEEN_CHANGED_SINCE));
             }
         } catch (Exception e) {
@@ -764,7 +885,7 @@ public class KnowledgeTrackerView extends VerticalLayout {
     /** <b>Tidy knowledge</b>: the model drops or merges what is not worth keeping; reviewed or logged like any run. */
     private void tidy() {
         try {
-            ExtractionRun run = runs.running(manuscript);
+            TrackerRun<Proposal> run = runs.running(manuscript);
             if (run == null) {
                 run = runs.startTidy(manuscript, null);
                 notifyWhenOver(run);
@@ -796,7 +917,7 @@ public class KnowledgeTrackerView extends VerticalLayout {
     }
 
     private void startRun(int maxParts) throws Exception {
-        ExtractionRun run = runs.running(manuscript);
+        TrackerRun<Proposal> run = runs.running(manuscript);
         if (run == null) {
             run = runs.start(manuscript, null, null, maxParts);
             notifyWhenOver(run);
@@ -809,13 +930,13 @@ public class KnowledgeTrackerView extends VerticalLayout {
      * Tells the user, with a desktop notification, when a run they started has read the story and waits for the review, is done or
      * failed. The runs the extension starts by itself while a part is generated are not told: nobody asked for them.
      */
-    private void notifyWhenOver(ExtractionRun run) {
+    private void notifyWhenOver(TrackerRun<Proposal> run) {
         UI ui = UI.getCurrent();
-        java.util.concurrent.atomic.AtomicReference<ExtractionRun.Phase> last = new java.util.concurrent.atomic.AtomicReference<>();
+        java.util.concurrent.atomic.AtomicReference<TrackerRun.Phase> last = new java.util.concurrent.atomic.AtomicReference<>();
         run.addListener(status -> {
-            ExtractionRun.Phase phase = status.phase();
-            boolean failed = phase == ExtractionRun.Phase.FAILED;
-            if ((failed || phase == ExtractionRun.Phase.DONE || phase == ExtractionRun.Phase.REVIEW) && last.getAndSet(phase) != phase) {
+            TrackerRun.Phase phase = status.phase();
+            boolean failed = phase == TrackerRun.Phase.FAILED;
+            if ((failed || phase == TrackerRun.Phase.DONE || phase == TrackerRun.Phase.REVIEW) && last.getAndSet(phase) != phase) {
                 UiAccess.run(ui, () -> {
                     DesktopNotifier notifier = new DesktopNotifier(ui);
                     if (failed) {
@@ -824,7 +945,7 @@ public class KnowledgeTrackerView extends VerticalLayout {
                         notifier.finished(KnowledgeTrackerExtension.NOTIFY_EXTRACT, false, manuscript.getName());
                     }
                 });
-            } else if (!phase.isFinished() && phase != ExtractionRun.Phase.REVIEW) {
+            } else if (!phase.isFinished() && phase != TrackerRun.Phase.REVIEW) {
                 // a new request of the series: the next review is told again
                 last.set(phase);
             }
@@ -853,7 +974,7 @@ public class KnowledgeTrackerView extends VerticalLayout {
     }
 
     /** Keeps this view in line with the run: its changes of the state and its phases show up in the tab. */
-    private void watch(ExtractionRun run) {
+    private void watch(TrackerRun<Proposal> run) {
         if (watched == run) {
             return;
         }
@@ -870,17 +991,17 @@ public class KnowledgeTrackerView extends VerticalLayout {
     }
 
     /** Shows the run (the panel of the runs was clicked): its progress, and the review when its proposal waits. */
-    public void showRun(ExtractionRun run) {
+    public void showRun(TrackerRun<Proposal> run) {
         watch(run);
         showProgress(run);
         progressPanel.openReview();
     }
 
-    private void showProgress(ExtractionRun run) {
+    private void showProgress(TrackerRun<Proposal> run) {
         if (progressPanel != null) {
             progressPanel.close();
         }
-        progressPanel = new ProgressPanel(run);
+        progressPanel = KnowledgeRunScreens.panel(run);
         progressPanel.open();
     }
 
@@ -911,7 +1032,9 @@ public class KnowledgeTrackerView extends VerticalLayout {
 
     private void refresh() {
         list.removeAll();
+        processButtons = null;
         list.add(createProcessingPanel());
+        watchProcessButtons();
         if (state.getCharacters().isEmpty()) {
             Div empty = new Div(new Span(T.localized(NO_CHARACTER_IS_TRACKED_YET)));
             empty.addClassName(KnowledgeTrackerStyles.EMPTY);
@@ -925,7 +1048,7 @@ public class KnowledgeTrackerView extends VerticalLayout {
 
     /** <b>Mass changes</b>: the items of all the characters in grids with check boxes, export and import. */
     private void openMassChanges() {
-        massChanges = new MassChangesDialog(manuscript.getName(), () -> state, this::persist, positions::get);
+        massChanges = new MassChangesDialog(manuscript.getName(), () -> state, this::persist, positions::get, clipboard);
         massChanges.addOpenedChangeListener(e -> {
             if (!e.isOpened()) {
                 massChanges = null;
@@ -939,6 +1062,33 @@ public class KnowledgeTrackerView extends VerticalLayout {
         if (massChanges != null) {
             massChanges.reload();
         }
+    }
+
+    private void openImportCharacters() {
+        try {
+            List<CharacterTrackerCharacters.Candidate> all = service.characterTrackerCharacters(manuscript);
+            Checkbox relationsAsMet = new Checkbox(T.localized(RELATIONSHIPS_ARE_MEETINGS));
+            relationsAsMet.setHelperText(T.localized(AN_IMPORTED_CHARACTER_HAS_MET_THE_PEOPLE));
+            new ImportCharactersDialog(all, CharacterTrackerImport.untracked(state, all), relationsAsMet, null, chosen -> {
+                CharacterTrackerImport.ImportResult result = CharacterTrackerImport.importInto(state, chosen, relationsAsMet.getValue());
+                persist();
+                Notification.success(T.localized(N_CHARACTERS_NOW_TRACKED).formatted(result.added(), result.met()));
+            }).open();
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    /**
+     * <b>Who has met whom</b>: tick the tracked characters one has met; each change is stored, the list is shown on close.
+     * It needs two tracked characters.
+     */
+    private void openMetCharacters() {
+        if (state.getCharacters().size() < 2) {
+            Notification.warning(T.localized(TRACK_AT_LEAST_TWO_CHARACTERS));
+            return;
+        }
+        new MetCharactersDialog(() -> state, this::saveState, this::refresh).open();
     }
 
     private void openCharacterDialog(TrackedCharacter character) {
@@ -1116,9 +1266,12 @@ public class KnowledgeTrackerView extends VerticalLayout {
         }
         Div text = new Div(words);
         text.addClassName(KnowledgeTrackerStyles.ITEM_TEXT);
-        Component source = createSourceLink(item);
+        Component source = createSourceLink(item.getSourceMessage());
         if (source != null) {
             text.add(source);
+        }
+        if (old) {
+            text.add(createOldReason(item));
         }
 
         if (selected != null) {
@@ -1188,9 +1341,9 @@ public class KnowledgeTrackerView extends VerticalLayout {
      * by hand, and for one whose part is not on the active branch any more (another branch, or the part was deleted): the story can
      * only show the parts of the active branch.
      */
-    private Component createSourceLink(KnowledgeItem item) {
-        Integer position = item.getSourceMessage() == null ? null : positions.get(item.getSourceMessage());
-        Long id = item.getSourceMessage() == null ? null : messageIds.get(item.getSourceMessage());
+    private Component createSourceLink(String messageUuid) {
+        Integer position = messageUuid == null ? null : positions.get(messageUuid);
+        Long id = messageUuid == null ? null : messageIds.get(messageUuid);
         if (position == null) {
             return null;
         }
@@ -1205,6 +1358,24 @@ public class KnowledgeTrackerView extends VerticalLayout {
             link.getElement().addEventListener("keydown", _ -> story.scrollToMessage(id)).setFilter("event.key === 'Enter'");
         }
         return link;
+    }
+
+    /**
+     * Why an old item is old: retracted (with the part whose processing retracted it, while that part is on the active branch),
+     * declined in a review, or tidied.
+     */
+    private Component createOldReason(KnowledgeItem item) {
+        Span reason = new Span(T.localized(switch (item.getOldReason()) {
+            case RETRACTED -> RETRACTED;
+            case REJECTED -> DECLINED;
+            case TIDIED -> TIDIED;
+        }));
+        reason.addClassName(KnowledgeTrackerStyles.OLD_REASON);
+        Component part = item.getOldReason() == OldReason.RETRACTED ? createSourceLink(item.getRetractedAt()) : null;
+        if (part != null) {
+            reason.add(part);
+        }
+        return reason;
     }
 
     private void openItemDialog(TrackedCharacter character, KnowledgeItem existing) {

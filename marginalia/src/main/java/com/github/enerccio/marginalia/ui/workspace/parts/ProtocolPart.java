@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.ProtocolService;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.LLMInteraction;
@@ -77,7 +78,7 @@ public class ProtocolPart implements WorkspaceComponent {
         Span titleSpan = new Span(loc.getValue(L.LABEL_PROTOCOLS));
         titleSpan.addClassName(CssStyles.SECTION_TITLE);
 
-        Button addProtocolButton = new Button(loc.getValue(L.LABEL_ADD_PROTOCOL), event -> {
+        Button addProtocolButton = new Button(loc.getValue(M_L.LABEL_ADD_PROTOCOL), event -> {
             ProtocolDialog dialog = new ProtocolDialog();
             dialog.setOnSave(this::refreshGrid);
             dialog.create();
@@ -86,7 +87,7 @@ public class ProtocolPart implements WorkspaceComponent {
         addProtocolButton.setThemeName("primary");
         this.addProtocolButton = addProtocolButton;
 
-        Button importFromOtherUserButton = new Button(loc.getValue(L.LABEL_IMPORT_FROM_OTHER_USER), Solid.FILE_IMPORT.create(),
+        Button importFromOtherUserButton = new Button(loc.getValue(M_L.LABEL_IMPORT_FROM_OTHER_USER), Solid.FILE_IMPORT.create(),
                 event -> SharedImportDialog.forProtocols(loc, protocolService, imported -> refreshGrid()).open());
 
         headerLayout.add(titleSpan, importFromOtherUserButton, addProtocolButton);
@@ -116,7 +117,7 @@ public class ProtocolPart implements WorkspaceComponent {
             });
 
             Button cloneButton = new Button(Solid.CLONE.create(), event -> cloneProtocol(protocol));
-            cloneButton.setTooltipText(loc.getValue(L.LABEL_CLONE_PROTOCOL));
+            cloneButton.setTooltipText(loc.getValue(M_L.LABEL_CLONE_PROTOCOL));
 
             Button deleteButton = new Button(Solid.TRASH.create(), event ->
                     ConfirmDialog.show(loc.getValue(L.MSG_CONFIRM_DELETE), () -> {
@@ -169,7 +170,7 @@ public class ProtocolPart implements WorkspaceComponent {
             returns = @APIReturn(type = void.class),
             parameters = {@APIParameter(name = "protocol", type = Protocol.class)})
     private void cloneProtocol(Protocol protocol) {
-        CloneNameDialog.show(loc, loc.getValue(L.LABEL_CLONE_PROTOCOL), protocol.getName(), name -> {
+        CloneNameDialog.show(loc, loc.getValue(M_L.LABEL_CLONE_PROTOCOL), protocol.getName(), name -> {
             try {
                 protocolService.cloneProtocol(protocol, name);
                 refreshGrid();

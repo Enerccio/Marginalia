@@ -14,6 +14,8 @@ import java.net.URLEncoder;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -97,6 +99,24 @@ public class ComfyUiBackend implements ImageBackend {
     @Override
     public void test() throws BackendException {
         Http.requireOk(Http.send(builder("/system_stats").GET().build()), "Connecting to ComfyUI");
+    }
+
+    /** {@code GET /models/loras}: the files of the {@code loras} folder of ComfyUI. */
+    @Override
+    public List<String> loras() throws BackendException {
+        HttpResponse<byte[]> response = Http.send(builder("/models/loras").GET().build());
+        Http.requireOk(response, "Reading the LoRAs");
+        JsonElement answer = parse(response);
+        if (!answer.isJsonArray()) {
+            throw new BackendException("ComfyUI did not answer with a list of LoRAs: " + Http.excerpt(response));
+        }
+        List<String> names = new ArrayList<>();
+        for (JsonElement name : answer.getAsJsonArray()) {
+            if (name.isJsonPrimitive()) {
+                names.add(name.getAsString());
+            }
+        }
+        return names;
     }
 
     /** The image the outputs name first, a saved one before a preview. */

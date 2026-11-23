@@ -1,12 +1,12 @@
 package com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.write;
 
 import com.github.enerccio.marginalia.domain.model.PlannedScene;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.PlannerService;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.read.ManuscriptReadSupport;
 import com.github.enerccio.marginalia.domain.traits.*;
-import com.github.enerccio.marginalia.loc.L;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
@@ -36,11 +36,13 @@ public class PlannerCommands extends ManuscriptReadSupport {
     @Autowired
     private PlannerService plannerService;
 
-    @Command(commandName = GET, humanName = L.LABEL_COMMAND_GET_PLANNED_SCENES, readOnly = true, dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_GET_PLANNED_SCENES,
-            llmDescription = L.DESC_COMMAND_GET_PLANNED_SCENES_LLM,
+    @Command(commandName = GET, readOnly = true, dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             signature = @CommandParameterSignature,
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_PLANNER_RETURN))
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_GET_PLANNED_SCENES,
+            description = M_L.DESC_COMMAND_GET_PLANNED_SCENES,
+            llmDescription = M_L.DESC_COMMAND_GET_PLANNED_SCENES_LLM,
+            returns = M_L.DESC_COMMAND_PLANNER_RETURN)
     public void getPlannedScenes(CommandContext context) throws Exception {
         Manuscript book = new Book(context).manuscript;
         List<PlannedScene> scenes = plannerService.list(book);
@@ -55,62 +57,87 @@ public class PlannerCommands extends ManuscriptReadSupport {
         answer(context, result);
     }
 
-    @Command(commandName = ADD, linkedCommand = GET, humanName = L.LABEL_COMMAND_ADD_PLANNED_SCENE, dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_ADD_PLANNED_SCENE,
-            llmDescription = L.DESC_COMMAND_ADD_PLANNED_SCENE_LLM,
+    @Command(commandName = ADD, linkedCommand = GET, dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "title", type = String.class, description = L.DESC_COMMAND_PLANNER_TITLE_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_PLANNER_RETURN))
+                    @CommandParameter(name = "title", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_ADD_PLANNED_SCENE,
+            description = M_L.DESC_COMMAND_ADD_PLANNED_SCENE,
+            llmDescription = M_L.DESC_COMMAND_ADD_PLANNED_SCENE_LLM,
+            parameters = @MarginaliaParameterText(name = "title", description = M_L.DESC_COMMAND_PLANNER_TITLE_PARAM),
+            returns = M_L.DESC_COMMAND_PLANNER_RETURN)
     public void addPlannedScene(CommandContext context) throws Exception {
         addPlannedSceneRun(context);
     }
 
-    @Command(commandName = ADD, linkedCommand = GET, humanName = L.LABEL_COMMAND_ADD_PLANNED_SCENE, dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_ADD_PLANNED_SCENE,
-            llmDescription = L.DESC_COMMAND_ADD_PLANNED_SCENE_LLM,
+    @Command(commandName = ADD, linkedCommand = GET, dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "title", type = String.class, description = L.DESC_COMMAND_PLANNER_TITLE_PARAM),
-                    @CommandParameter(name = "instructions", type = String.class, description = L.DESC_COMMAND_PLANNER_INSTRUCTIONS_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_PLANNER_RETURN))
+                    @CommandParameter(name = "title", type = String.class),
+                    @CommandParameter(name = "instructions", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_ADD_PLANNED_SCENE,
+            description = M_L.DESC_COMMAND_ADD_PLANNED_SCENE,
+            llmDescription = M_L.DESC_COMMAND_ADD_PLANNED_SCENE_LLM,
+            parameters = {@MarginaliaParameterText(name = "title", description = M_L.DESC_COMMAND_PLANNER_TITLE_PARAM),
+                    @MarginaliaParameterText(name = "instructions", description = M_L.DESC_COMMAND_PLANNER_INSTRUCTIONS_PARAM)},
+            returns = M_L.DESC_COMMAND_PLANNER_RETURN)
     public void addPlannedScene2(CommandContext context) throws Exception {
         addPlannedSceneRun(context);
     }
 
-    @Command(commandName = ADD, linkedCommand = GET, humanName = L.LABEL_COMMAND_ADD_PLANNED_SCENE, dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_ADD_PLANNED_SCENE,
-            llmDescription = L.DESC_COMMAND_ADD_PLANNED_SCENE_LLM,
+    @Command(commandName = ADD, linkedCommand = GET, dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "title", type = String.class, description = L.DESC_COMMAND_PLANNER_TITLE_PARAM),
-                    @CommandParameter(name = "instructions", type = String.class, description = L.DESC_COMMAND_PLANNER_INSTRUCTIONS_PARAM),
-                    @CommandParameter(name = "sceneSetting", type = String.class, description = L.DESC_COMMAND_PLANNER_SETTING_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_PLANNER_RETURN))
+                    @CommandParameter(name = "title", type = String.class),
+                    @CommandParameter(name = "instructions", type = String.class),
+                    @CommandParameter(name = "sceneSetting", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_ADD_PLANNED_SCENE,
+            description = M_L.DESC_COMMAND_ADD_PLANNED_SCENE,
+            llmDescription = M_L.DESC_COMMAND_ADD_PLANNED_SCENE_LLM,
+            parameters = {@MarginaliaParameterText(name = "title", description = M_L.DESC_COMMAND_PLANNER_TITLE_PARAM),
+                    @MarginaliaParameterText(name = "instructions", description = M_L.DESC_COMMAND_PLANNER_INSTRUCTIONS_PARAM),
+                    @MarginaliaParameterText(name = "sceneSetting", description = M_L.DESC_COMMAND_PLANNER_SETTING_PARAM)},
+            returns = M_L.DESC_COMMAND_PLANNER_RETURN)
     public void addPlannedScene3(CommandContext context) throws Exception {
         addPlannedSceneRun(context);
     }
 
-    @Command(commandName = ADD, linkedCommand = GET, humanName = L.LABEL_COMMAND_ADD_PLANNED_SCENE, dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_ADD_PLANNED_SCENE,
-            llmDescription = L.DESC_COMMAND_ADD_PLANNED_SCENE_LLM,
+    @Command(commandName = ADD, linkedCommand = GET, dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "title", type = String.class, description = L.DESC_COMMAND_PLANNER_TITLE_PARAM),
-                    @CommandParameter(name = "instructions", type = String.class, description = L.DESC_COMMAND_PLANNER_INSTRUCTIONS_PARAM),
-                    @CommandParameter(name = "sceneSetting", type = String.class, description = L.DESC_COMMAND_PLANNER_SETTING_PARAM),
-                    @CommandParameter(name = "povCharacter", type = String.class, description = L.DESC_COMMAND_PLANNER_POV_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_PLANNER_RETURN))
+                    @CommandParameter(name = "title", type = String.class),
+                    @CommandParameter(name = "instructions", type = String.class),
+                    @CommandParameter(name = "sceneSetting", type = String.class),
+                    @CommandParameter(name = "povCharacter", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_ADD_PLANNED_SCENE,
+            description = M_L.DESC_COMMAND_ADD_PLANNED_SCENE,
+            llmDescription = M_L.DESC_COMMAND_ADD_PLANNED_SCENE_LLM,
+            parameters = {@MarginaliaParameterText(name = "title", description = M_L.DESC_COMMAND_PLANNER_TITLE_PARAM),
+                    @MarginaliaParameterText(name = "instructions", description = M_L.DESC_COMMAND_PLANNER_INSTRUCTIONS_PARAM),
+                    @MarginaliaParameterText(name = "sceneSetting", description = M_L.DESC_COMMAND_PLANNER_SETTING_PARAM),
+                    @MarginaliaParameterText(name = "povCharacter", description = M_L.DESC_COMMAND_PLANNER_POV_PARAM)},
+            returns = M_L.DESC_COMMAND_PLANNER_RETURN)
     public void addPlannedScene4(CommandContext context) throws Exception {
         addPlannedSceneRun(context);
     }
 
-    @Command(commandName = ADD, linkedCommand = GET, humanName = L.LABEL_COMMAND_ADD_PLANNED_SCENE, dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_ADD_PLANNED_SCENE,
-            llmDescription = L.DESC_COMMAND_ADD_PLANNED_SCENE_LLM,
+    @Command(commandName = ADD, linkedCommand = GET, dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "title", type = String.class, description = L.DESC_COMMAND_PLANNER_TITLE_PARAM),
-                    @CommandParameter(name = "instructions", type = String.class, description = L.DESC_COMMAND_PLANNER_INSTRUCTIONS_PARAM),
-                    @CommandParameter(name = "sceneSetting", type = String.class, description = L.DESC_COMMAND_PLANNER_SETTING_PARAM),
-                    @CommandParameter(name = "povCharacter", type = String.class, description = L.DESC_COMMAND_PLANNER_POV_PARAM),
-                    @CommandParameter(name = "presentCharacters", type = String.class, description = L.DESC_COMMAND_PLANNER_PRESENT_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_PLANNER_RETURN))
+                    @CommandParameter(name = "title", type = String.class),
+                    @CommandParameter(name = "instructions", type = String.class),
+                    @CommandParameter(name = "sceneSetting", type = String.class),
+                    @CommandParameter(name = "povCharacter", type = String.class),
+                    @CommandParameter(name = "presentCharacters", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_ADD_PLANNED_SCENE,
+            description = M_L.DESC_COMMAND_ADD_PLANNED_SCENE,
+            llmDescription = M_L.DESC_COMMAND_ADD_PLANNED_SCENE_LLM,
+            parameters = {@MarginaliaParameterText(name = "title", description = M_L.DESC_COMMAND_PLANNER_TITLE_PARAM),
+                    @MarginaliaParameterText(name = "instructions", description = M_L.DESC_COMMAND_PLANNER_INSTRUCTIONS_PARAM),
+                    @MarginaliaParameterText(name = "sceneSetting", description = M_L.DESC_COMMAND_PLANNER_SETTING_PARAM),
+                    @MarginaliaParameterText(name = "povCharacter", description = M_L.DESC_COMMAND_PLANNER_POV_PARAM),
+                    @MarginaliaParameterText(name = "presentCharacters", description = M_L.DESC_COMMAND_PLANNER_PRESENT_PARAM)},
+            returns = M_L.DESC_COMMAND_PLANNER_RETURN)
     public void addPlannedScene5(CommandContext context) throws Exception {
         addPlannedSceneRun(context);
     }
@@ -123,67 +150,97 @@ public class PlannerCommands extends ManuscriptReadSupport {
         answer(context, row(plannerService.list(book).size(), added));
     }
 
-    @Command(commandName = UPDATE, linkedCommand = GET, humanName = L.LABEL_COMMAND_UPDATE_PLANNED_SCENE, dataSeverity = CommandDataSeverity.DESTRUCTIVE,
-            description = L.DESC_COMMAND_UPDATE_PLANNED_SCENE,
-            llmDescription = L.DESC_COMMAND_UPDATE_PLANNED_SCENE_LLM,
+    @Command(commandName = UPDATE, linkedCommand = GET, dataSeverity = CommandDataSeverity.DESTRUCTIVE,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "scene", type = Integer.class, description = L.DESC_COMMAND_PLANNER_SCENE_PARAM),
-                    @CommandParameter(name = "title", type = String.class, description = L.DESC_COMMAND_PLANNER_TITLE_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_PLANNER_RETURN))
+                    @CommandParameter(name = "scene", type = Integer.class),
+                    @CommandParameter(name = "title", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_UPDATE_PLANNED_SCENE,
+            description = M_L.DESC_COMMAND_UPDATE_PLANNED_SCENE,
+            llmDescription = M_L.DESC_COMMAND_UPDATE_PLANNED_SCENE_LLM,
+            parameters = {@MarginaliaParameterText(name = "scene", description = M_L.DESC_COMMAND_PLANNER_SCENE_PARAM),
+                    @MarginaliaParameterText(name = "title", description = M_L.DESC_COMMAND_PLANNER_TITLE_PARAM)},
+            returns = M_L.DESC_COMMAND_PLANNER_RETURN)
     public void updatePlannedScene(CommandContext context) throws Exception {
         updatePlannedSceneRun(context);
     }
 
-    @Command(commandName = UPDATE, linkedCommand = GET, humanName = L.LABEL_COMMAND_UPDATE_PLANNED_SCENE, dataSeverity = CommandDataSeverity.DESTRUCTIVE,
-            description = L.DESC_COMMAND_UPDATE_PLANNED_SCENE,
-            llmDescription = L.DESC_COMMAND_UPDATE_PLANNED_SCENE_LLM,
+    @Command(commandName = UPDATE, linkedCommand = GET, dataSeverity = CommandDataSeverity.DESTRUCTIVE,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "scene", type = Integer.class, description = L.DESC_COMMAND_PLANNER_SCENE_PARAM),
-                    @CommandParameter(name = "title", type = String.class, description = L.DESC_COMMAND_PLANNER_TITLE_PARAM),
-                    @CommandParameter(name = "instructions", type = String.class, description = L.DESC_COMMAND_PLANNER_INSTRUCTIONS_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_PLANNER_RETURN))
+                    @CommandParameter(name = "scene", type = Integer.class),
+                    @CommandParameter(name = "title", type = String.class),
+                    @CommandParameter(name = "instructions", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_UPDATE_PLANNED_SCENE,
+            description = M_L.DESC_COMMAND_UPDATE_PLANNED_SCENE,
+            llmDescription = M_L.DESC_COMMAND_UPDATE_PLANNED_SCENE_LLM,
+            parameters = {@MarginaliaParameterText(name = "scene", description = M_L.DESC_COMMAND_PLANNER_SCENE_PARAM),
+                    @MarginaliaParameterText(name = "title", description = M_L.DESC_COMMAND_PLANNER_TITLE_PARAM),
+                    @MarginaliaParameterText(name = "instructions", description = M_L.DESC_COMMAND_PLANNER_INSTRUCTIONS_PARAM)},
+            returns = M_L.DESC_COMMAND_PLANNER_RETURN)
     public void updatePlannedScene3(CommandContext context) throws Exception {
         updatePlannedSceneRun(context);
     }
 
-    @Command(commandName = UPDATE, linkedCommand = GET, humanName = L.LABEL_COMMAND_UPDATE_PLANNED_SCENE, dataSeverity = CommandDataSeverity.DESTRUCTIVE,
-            description = L.DESC_COMMAND_UPDATE_PLANNED_SCENE,
-            llmDescription = L.DESC_COMMAND_UPDATE_PLANNED_SCENE_LLM,
+    @Command(commandName = UPDATE, linkedCommand = GET, dataSeverity = CommandDataSeverity.DESTRUCTIVE,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "scene", type = Integer.class, description = L.DESC_COMMAND_PLANNER_SCENE_PARAM),
-                    @CommandParameter(name = "title", type = String.class, description = L.DESC_COMMAND_PLANNER_TITLE_PARAM),
-                    @CommandParameter(name = "instructions", type = String.class, description = L.DESC_COMMAND_PLANNER_INSTRUCTIONS_PARAM),
-                    @CommandParameter(name = "sceneSetting", type = String.class, description = L.DESC_COMMAND_PLANNER_SETTING_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_PLANNER_RETURN))
+                    @CommandParameter(name = "scene", type = Integer.class),
+                    @CommandParameter(name = "title", type = String.class),
+                    @CommandParameter(name = "instructions", type = String.class),
+                    @CommandParameter(name = "sceneSetting", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_UPDATE_PLANNED_SCENE,
+            description = M_L.DESC_COMMAND_UPDATE_PLANNED_SCENE,
+            llmDescription = M_L.DESC_COMMAND_UPDATE_PLANNED_SCENE_LLM,
+            parameters = {@MarginaliaParameterText(name = "scene", description = M_L.DESC_COMMAND_PLANNER_SCENE_PARAM),
+                    @MarginaliaParameterText(name = "title", description = M_L.DESC_COMMAND_PLANNER_TITLE_PARAM),
+                    @MarginaliaParameterText(name = "instructions", description = M_L.DESC_COMMAND_PLANNER_INSTRUCTIONS_PARAM),
+                    @MarginaliaParameterText(name = "sceneSetting", description = M_L.DESC_COMMAND_PLANNER_SETTING_PARAM)},
+            returns = M_L.DESC_COMMAND_PLANNER_RETURN)
     public void updatePlannedScene4(CommandContext context) throws Exception {
         updatePlannedSceneRun(context);
     }
 
-    @Command(commandName = UPDATE, linkedCommand = GET, humanName = L.LABEL_COMMAND_UPDATE_PLANNED_SCENE, dataSeverity = CommandDataSeverity.DESTRUCTIVE,
-            description = L.DESC_COMMAND_UPDATE_PLANNED_SCENE,
-            llmDescription = L.DESC_COMMAND_UPDATE_PLANNED_SCENE_LLM,
+    @Command(commandName = UPDATE, linkedCommand = GET, dataSeverity = CommandDataSeverity.DESTRUCTIVE,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "scene", type = Integer.class, description = L.DESC_COMMAND_PLANNER_SCENE_PARAM),
-                    @CommandParameter(name = "title", type = String.class, description = L.DESC_COMMAND_PLANNER_TITLE_PARAM),
-                    @CommandParameter(name = "instructions", type = String.class, description = L.DESC_COMMAND_PLANNER_INSTRUCTIONS_PARAM),
-                    @CommandParameter(name = "sceneSetting", type = String.class, description = L.DESC_COMMAND_PLANNER_SETTING_PARAM),
-                    @CommandParameter(name = "povCharacter", type = String.class, description = L.DESC_COMMAND_PLANNER_POV_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_PLANNER_RETURN))
+                    @CommandParameter(name = "scene", type = Integer.class),
+                    @CommandParameter(name = "title", type = String.class),
+                    @CommandParameter(name = "instructions", type = String.class),
+                    @CommandParameter(name = "sceneSetting", type = String.class),
+                    @CommandParameter(name = "povCharacter", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_UPDATE_PLANNED_SCENE,
+            description = M_L.DESC_COMMAND_UPDATE_PLANNED_SCENE,
+            llmDescription = M_L.DESC_COMMAND_UPDATE_PLANNED_SCENE_LLM,
+            parameters = {@MarginaliaParameterText(name = "scene", description = M_L.DESC_COMMAND_PLANNER_SCENE_PARAM),
+                    @MarginaliaParameterText(name = "title", description = M_L.DESC_COMMAND_PLANNER_TITLE_PARAM),
+                    @MarginaliaParameterText(name = "instructions", description = M_L.DESC_COMMAND_PLANNER_INSTRUCTIONS_PARAM),
+                    @MarginaliaParameterText(name = "sceneSetting", description = M_L.DESC_COMMAND_PLANNER_SETTING_PARAM),
+                    @MarginaliaParameterText(name = "povCharacter", description = M_L.DESC_COMMAND_PLANNER_POV_PARAM)},
+            returns = M_L.DESC_COMMAND_PLANNER_RETURN)
     public void updatePlannedScene5(CommandContext context) throws Exception {
         updatePlannedSceneRun(context);
     }
 
-    @Command(commandName = UPDATE, linkedCommand = GET, humanName = L.LABEL_COMMAND_UPDATE_PLANNED_SCENE, dataSeverity = CommandDataSeverity.DESTRUCTIVE,
-            description = L.DESC_COMMAND_UPDATE_PLANNED_SCENE,
-            llmDescription = L.DESC_COMMAND_UPDATE_PLANNED_SCENE_LLM,
+    @Command(commandName = UPDATE, linkedCommand = GET, dataSeverity = CommandDataSeverity.DESTRUCTIVE,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "scene", type = Integer.class, description = L.DESC_COMMAND_PLANNER_SCENE_PARAM),
-                    @CommandParameter(name = "title", type = String.class, description = L.DESC_COMMAND_PLANNER_TITLE_PARAM),
-                    @CommandParameter(name = "instructions", type = String.class, description = L.DESC_COMMAND_PLANNER_INSTRUCTIONS_PARAM),
-                    @CommandParameter(name = "sceneSetting", type = String.class, description = L.DESC_COMMAND_PLANNER_SETTING_PARAM),
-                    @CommandParameter(name = "povCharacter", type = String.class, description = L.DESC_COMMAND_PLANNER_POV_PARAM),
-                    @CommandParameter(name = "presentCharacters", type = String.class, description = L.DESC_COMMAND_PLANNER_PRESENT_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_PLANNER_RETURN))
+                    @CommandParameter(name = "scene", type = Integer.class),
+                    @CommandParameter(name = "title", type = String.class),
+                    @CommandParameter(name = "instructions", type = String.class),
+                    @CommandParameter(name = "sceneSetting", type = String.class),
+                    @CommandParameter(name = "povCharacter", type = String.class),
+                    @CommandParameter(name = "presentCharacters", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_UPDATE_PLANNED_SCENE,
+            description = M_L.DESC_COMMAND_UPDATE_PLANNED_SCENE,
+            llmDescription = M_L.DESC_COMMAND_UPDATE_PLANNED_SCENE_LLM,
+            parameters = {@MarginaliaParameterText(name = "scene", description = M_L.DESC_COMMAND_PLANNER_SCENE_PARAM),
+                    @MarginaliaParameterText(name = "title", description = M_L.DESC_COMMAND_PLANNER_TITLE_PARAM),
+                    @MarginaliaParameterText(name = "instructions", description = M_L.DESC_COMMAND_PLANNER_INSTRUCTIONS_PARAM),
+                    @MarginaliaParameterText(name = "sceneSetting", description = M_L.DESC_COMMAND_PLANNER_SETTING_PARAM),
+                    @MarginaliaParameterText(name = "povCharacter", description = M_L.DESC_COMMAND_PLANNER_POV_PARAM),
+                    @MarginaliaParameterText(name = "presentCharacters", description = M_L.DESC_COMMAND_PLANNER_PRESENT_PARAM)},
+            returns = M_L.DESC_COMMAND_PLANNER_RETURN)
     public void updatePlannedScene6(CommandContext context) throws Exception {
         updatePlannedSceneRun(context);
     }
@@ -201,23 +258,30 @@ public class PlannerCommands extends ManuscriptReadSupport {
         answer(context, row(number, scene));
     }
 
-    @Command(commandName = SET_DONE, linkedCommand = GET, humanName = L.LABEL_COMMAND_SET_PLANNED_SCENE_DONE, dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_SET_PLANNED_SCENE_DONE,
-            llmDescription = L.DESC_COMMAND_SET_PLANNED_SCENE_DONE_LLM,
+    @Command(commandName = SET_DONE, linkedCommand = GET, dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "scene", type = Integer.class, description = L.DESC_COMMAND_PLANNER_SCENE_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_PLANNER_RETURN))
+                    @CommandParameter(name = "scene", type = Integer.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SET_PLANNED_SCENE_DONE,
+            description = M_L.DESC_COMMAND_SET_PLANNED_SCENE_DONE,
+            llmDescription = M_L.DESC_COMMAND_SET_PLANNED_SCENE_DONE_LLM,
+            parameters = @MarginaliaParameterText(name = "scene", description = M_L.DESC_COMMAND_PLANNER_SCENE_PARAM),
+            returns = M_L.DESC_COMMAND_PLANNER_RETURN)
     public void setPlannedSceneDone(CommandContext context) throws Exception {
         setPlannedSceneDoneRun(context);
     }
 
-    @Command(commandName = SET_DONE, linkedCommand = GET, humanName = L.LABEL_COMMAND_SET_PLANNED_SCENE_DONE, dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_SET_PLANNED_SCENE_DONE,
-            llmDescription = L.DESC_COMMAND_SET_PLANNED_SCENE_DONE_LLM,
+    @Command(commandName = SET_DONE, linkedCommand = GET, dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "scene", type = Integer.class, description = L.DESC_COMMAND_PLANNER_SCENE_PARAM),
-                    @CommandParameter(name = "done", type = Boolean.class, description = L.DESC_COMMAND_PLANNER_DONE_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_PLANNER_RETURN))
+                    @CommandParameter(name = "scene", type = Integer.class),
+                    @CommandParameter(name = "done", type = Boolean.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SET_PLANNED_SCENE_DONE,
+            description = M_L.DESC_COMMAND_SET_PLANNED_SCENE_DONE,
+            llmDescription = M_L.DESC_COMMAND_SET_PLANNED_SCENE_DONE_LLM,
+            parameters = {@MarginaliaParameterText(name = "scene", description = M_L.DESC_COMMAND_PLANNER_SCENE_PARAM),
+                    @MarginaliaParameterText(name = "done", description = M_L.DESC_COMMAND_PLANNER_DONE_PARAM)},
+            returns = M_L.DESC_COMMAND_PLANNER_RETURN)
     public void setPlannedSceneDone2(CommandContext context) throws Exception {
         setPlannedSceneDoneRun(context);
     }
@@ -232,13 +296,17 @@ public class PlannerCommands extends ManuscriptReadSupport {
         answer(context, row(number, scene));
     }
 
-    @Command(commandName = MOVE, linkedCommand = GET, humanName = L.LABEL_COMMAND_MOVE_PLANNED_SCENE, dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_MOVE_PLANNED_SCENE,
-            llmDescription = L.DESC_COMMAND_MOVE_PLANNED_SCENE_LLM,
+    @Command(commandName = MOVE, linkedCommand = GET, dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "scene", type = Integer.class, description = L.DESC_COMMAND_PLANNER_SCENE_PARAM),
-                    @CommandParameter(name = "to", type = Integer.class, description = L.DESC_COMMAND_PLANNER_TO_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_PLANNER_RETURN))
+                    @CommandParameter(name = "scene", type = Integer.class),
+                    @CommandParameter(name = "to", type = Integer.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_MOVE_PLANNED_SCENE,
+            description = M_L.DESC_COMMAND_MOVE_PLANNED_SCENE,
+            llmDescription = M_L.DESC_COMMAND_MOVE_PLANNED_SCENE_LLM,
+            parameters = {@MarginaliaParameterText(name = "scene", description = M_L.DESC_COMMAND_PLANNER_SCENE_PARAM),
+                    @MarginaliaParameterText(name = "to", description = M_L.DESC_COMMAND_PLANNER_TO_PARAM)},
+            returns = M_L.DESC_COMMAND_PLANNER_RETURN)
     public void movePlannedScene(CommandContext context) throws Exception {
         Manuscript book = new Book(context).manuscript;
         int number = context.get("scene", Integer.class);
@@ -249,12 +317,15 @@ public class PlannerCommands extends ManuscriptReadSupport {
         answer(context, row(Math.min(to, last), scene));
     }
 
-    @Command(commandName = DELETE, linkedCommand = GET, humanName = L.LABEL_COMMAND_DELETE_PLANNED_SCENE, dataSeverity = CommandDataSeverity.DESTRUCTIVE,
-            description = L.DESC_COMMAND_DELETE_PLANNED_SCENE,
-            llmDescription = L.DESC_COMMAND_DELETE_PLANNED_SCENE_LLM,
+    @Command(commandName = DELETE, linkedCommand = GET, dataSeverity = CommandDataSeverity.DESTRUCTIVE,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "scene", type = Integer.class, description = L.DESC_COMMAND_PLANNER_SCENE_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_PLANNER_RETURN))
+                    @CommandParameter(name = "scene", type = Integer.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_DELETE_PLANNED_SCENE,
+            description = M_L.DESC_COMMAND_DELETE_PLANNED_SCENE,
+            llmDescription = M_L.DESC_COMMAND_DELETE_PLANNED_SCENE_LLM,
+            parameters = @MarginaliaParameterText(name = "scene", description = M_L.DESC_COMMAND_PLANNER_SCENE_PARAM),
+            returns = M_L.DESC_COMMAND_PLANNER_RETURN)
     public void deletePlannedScene(CommandContext context) throws Exception {
         Manuscript book = new Book(context).manuscript;
         PlannedScene scene = at(book, context.get("scene", Integer.class));

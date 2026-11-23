@@ -1,6 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs.agent;
 
-import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.Agent;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.service.AgentMessageService;
@@ -168,6 +168,6 @@ class AgentSubAgentsViewTest extends AgentTestBase {
 
         assertThat(view.getPicker().getItemLabelGenerator().apply(view.getPicker().getValue())).contains("forgotten");
         assertThat(view.getTranscriptBox().getChildren()
-                .allMatch(block -> block.getElement().getClassList().contains(CssStyles.AGENT_REWOUND))).isTrue();
+                .allMatch(block -> block.getElement().getClassList().contains(MarginaliaCssStyles.AGENT_REWOUND))).isTrue();
     }
 }

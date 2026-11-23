@@ -16,6 +16,7 @@ import com.github.enerccio.marginalia.domain.service.search.Sorter;
 import com.github.enerccio.marginalia.domain.service.search.Sorter.Ordering;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.LLMInteraction;
@@ -121,7 +122,7 @@ public class ManuscriptPart implements ManuscriptSection {
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = String.class))
     public String getName() {
-        return loc.getValue(L.LABEL_BOOKS);
+        return loc.getValue(M_L.LABEL_BOOKS);
     }
 
     @PublicAPI(from = "1.8.0",
@@ -148,30 +149,30 @@ public class ManuscriptPart implements ManuscriptSection {
         headerLayout.setWidthFull();
         headerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
 
-        Span titleSpan = new Span(loc.getValue(L.LABEL_BOOKS));
+        Span titleSpan = new Span(loc.getValue(M_L.LABEL_BOOKS));
         titleSpan.addClassName(CssStyles.SECTION_TITLE);
 
-        Button addBookButton = new Button(loc.getValue(L.LABEL_ADD_BOOK),
+        Button addBookButton = new Button(loc.getValue(M_L.LABEL_ADD_BOOK),
                 event -> new NewBookAction(this::openManuscript, currentFolder).run());
         addBookButton.setThemeName("primary");
         this.addBookButton = addBookButton;
 
         newFolderButton = new Button(loc.getValue(L.LABEL_NEW_FOLDER), Solid.FOLDER_PLUS.create(),
                 event -> new FolderActions().create(currentFolder, _ -> refreshGrid()));
-        searchButton = new Button(loc.getValue(L.LABEL_SEARCH), Solid.SEARCH.create(), event -> openSearchDialog());
+        searchButton = new Button(loc.getValue(M_L.LABEL_SEARCH), Solid.SEARCH.create(), event -> openSearchDialog());
         // Manage: the windows that work on many books, with the mass changes one level down
         MenuBar manageBar = new MenuBar();
-        MenuItem manageItem = manageBar.addItem(loc.getValue(L.LABEL_MANAGE));
+        MenuItem manageItem = manageBar.addItem(loc.getValue(M_L.LABEL_MANAGE));
         manageItem.getSubMenu().addItem(loc.getValue(L.LABEL_ORGANISE), _ -> openOrganiseDialog());
         manageItem.getSubMenu().addItem(loc.getValue(L.LABEL_TAG_BOOKS), _ -> openTagDialog());
-        manageItem.getSubMenu().addItem(loc.getValue(L.LABEL_STATISTICS), _ -> openStatisticsDialog());
+        manageItem.getSubMenu().addItem(loc.getValue(M_L.LABEL_STATISTICS), _ -> openStatisticsDialog());
         manageItem.getSubMenu().addSeparator();
-        MenuItem massChangesItem = manageItem.getSubMenu().addItem(loc.getValue(L.LABEL_MASS_CHANGES));
+        MenuItem massChangesItem = manageItem.getSubMenu().addItem(loc.getValue(M_L.LABEL_MASS_CHANGES));
         massChangesItem.getSubMenu().addItem(loc.getValue(L.LABEL_MASS_CHANGE_MODEL_PROTOCOL), _ -> openMassChangeDialog());
         massChangesItem.getSubMenu().addItem(loc.getValue(L.LABEL_MASS_CHANGE_LANGUAGE), _ -> openMassChangeLanguageDialog());
         massChangesItem.getSubMenu().addItem(loc.getValue(L.LABEL_MASS_RENAME), _ -> openMassRenameDialog());
-        massChangesItem.getSubMenu().addItem(loc.getValue(L.LABEL_TAG_FOLDERS), _ -> openTagFoldersDialog());
-        Button importButton = new Button(loc.getValue(L.LABEL_IMPORT), Solid.FILE_IMPORT.create(),
+        massChangesItem.getSubMenu().addItem(loc.getValue(M_L.LABEL_TAG_FOLDERS), _ -> openTagFoldersDialog());
+        Button importButton = new Button(loc.getValue(M_L.LABEL_IMPORT), Solid.FILE_IMPORT.create(),
                 event -> new NewBookAction(this::openManuscript, currentFolder).runImport());
         headerLayout.add(titleSpan, searchButton, manageBar, importButton, newFolderButton, addBookButton);
         headerLayout.setFlexGrow(1, titleSpan);
@@ -181,7 +182,7 @@ public class ManuscriptPart implements ManuscriptSection {
         breadcrumb = new FlexLayout();
         breadcrumb.setAlignItems(FlexComponent.Alignment.CENTER);
         breadcrumb.addClassNames(CssStyles.FLEX_WRAP, CssStyles.GAP_S);
-        includeSubfolders = new Checkbox(loc.getValue(L.LABEL_INCLUDE_SUBFOLDERS));
+        includeSubfolders = new Checkbox(loc.getValue(M_L.LABEL_INCLUDE_SUBFOLDERS));
         includeSubfolders.addValueChangeListener(_ -> {
             refreshGrid();
             notifyStateChanged();
@@ -212,13 +213,13 @@ public class ManuscriptPart implements ManuscriptSection {
 
         // the folder of the row, shown while the folders below the current one are listed too
         folderColumn = grid.addColumn(FolderBookRow::getPath)
-                .setHeader(loc.getValue(L.LABEL_FOLDER))
+                .setHeader(loc.getValue(M_L.LABEL_FOLDER))
                 .setFlexGrow(2)
                 .setSortable(false);
         folderColumn.setVisible(false);
 
         tagsColumn = grid.addColumn(row -> String.join(", ", row.getTags()))
-                .setHeader(loc.getValue(L.LABEL_TAGS))
+                .setHeader(loc.getValue(M_L.LABEL_TAGS))
                 .setFlexGrow(2)
                 .setSortable(false);
         tagFilter = new MultiSelectComboBox<>();
@@ -242,17 +243,17 @@ public class ManuscriptPart implements ManuscriptSection {
 
         // the total number of books of a folder, the size of the active branch of a book
         booksColumn = grid.addColumn(row -> row.isFolder() ? NumberFormat.getIntegerInstance().format(row.getBooks()) : "")
-                .setHeader(loc.getValue(L.LABEL_BOOKS))
+                .setHeader(loc.getValue(M_L.LABEL_BOOKS))
                 .setFlexGrow(0)
                 .setWidth(UIConstants.TOOL_COLUMN_SIZE_LARGE)
                 .setSortable(false);
         wordsColumn = grid.addColumn(row -> size(row, BranchSize::words))
-                .setHeader(loc.getValue(L.LABEL_WORDS))
+                .setHeader(loc.getValue(M_L.LABEL_WORDS))
                 .setFlexGrow(0)
                 .setWidth(UIConstants.TOOL_COLUMN_SIZE_LARGE)
                 .setSortable(false);
         tokensColumn = grid.addColumn(row -> size(row, BranchSize::tokens))
-                .setHeader(loc.getValue(L.LABEL_TOKENS))
+                .setHeader(loc.getValue(M_L.LABEL_TOKENS))
                 .setFlexGrow(0)
                 .setWidth(UIConstants.TOOL_COLUMN_SIZE_LARGE)
                 .setSortable(false);
@@ -350,7 +351,7 @@ public class ManuscriptPart implements ManuscriptSection {
 
         Button deleteButton = new Button(Solid.TRASH.create(), _ -> new FolderActions().delete(folder, this::refreshGrid));
         deleteButton.setThemeName("error tertiary");
-        deleteButton.setTooltipText(loc.getValue(L.LABEL_DELETE_FOLDER));
+        deleteButton.setTooltipText(loc.getValue(M_L.LABEL_DELETE_FOLDER));
 
         actions.add(renameButton, settingsButton, deleteButton);
         return actions;
@@ -381,7 +382,7 @@ public class ManuscriptPart implements ManuscriptSection {
                 UIUtils.internalServerError(loc, e);
             }
         });
-        starButton.setTooltipText(loc.getValue(L.LABEL_FAVORITES));
+        starButton.setTooltipText(loc.getValue(M_L.LABEL_FAVORITES));
 
         Button editButton = new Button(Solid.PENCIL.create(), _ -> {
             try {
@@ -399,14 +400,14 @@ public class ManuscriptPart implements ManuscriptSection {
         });
 
         Button cloneButton = new Button(Solid.CLONE.create(), _ -> openCloneDialog(manuscript));
-        cloneButton.setTooltipText(loc.getValue(L.LABEL_CLONE_BOOK));
+        cloneButton.setTooltipText(loc.getValue(M_L.LABEL_CLONE_BOOK));
 
         Button moveButton = new Button(Solid.FOLDER_OPEN.create(), _ -> {
             if (!new AgentLockCheck().refuses(manuscript)) {
                 new FolderActions().moveBooks(List.of(manuscript), manuscript.getFolder(), this::refreshGrid);
             }
         });
-        moveButton.setTooltipText(loc.getValue(L.LABEL_MOVE_TO_FOLDER));
+        moveButton.setTooltipText(loc.getValue(M_L.LABEL_MOVE_TO_FOLDER));
 
         Button deleteButton = new Button(Solid.TRASH.create(), _ ->
                 ConfirmDialog.show(loc.getValue(L.MSG_CONFIRM_DELETE), () -> {
@@ -459,12 +460,12 @@ public class ManuscriptPart implements ManuscriptSection {
                     @APILocals(name = "button", type = Button.class)})
     private void updateBreadcrumb() throws Exception {
         breadcrumb.removeAll();
-        Button top = new Button(loc.getValue(L.LABEL_BOOKS), VaadinIcon.HOME.create(), _ -> openFolder(null));
+        Button top = new Button(loc.getValue(M_L.LABEL_BOOKS), VaadinIcon.HOME.create(), _ -> openFolder(null));
         top.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
         breadcrumb.add(top);
         if (inFavorites) {
             breadcrumb.add(new Span("/"));
-            Span current = new Span(loc.getValue(L.LABEL_FAVORITES));
+            Span current = new Span(loc.getValue(M_L.LABEL_FAVORITES));
             current.addClassName(CssStyles.TEXT_BOLD);
             breadcrumb.add(current);
             return;
@@ -543,7 +544,7 @@ public class ManuscriptPart implements ManuscriptSection {
                 boolean filtered = StringUtils.isNotEmpty(filterValues.getName())
                         || (filterValues.getTags() != null && !filterValues.getTags().isEmpty());
                 if (!favorites.isEmpty() && currentFolder == null && !includeSubfolders.getValue() && !filtered) {
-                    favoritesLabel = loc.getValue(L.LABEL_FAVORITES);
+                    favoritesLabel = loc.getValue(M_L.LABEL_FAVORITES);
                 }
             }
             grid.setItems(new FolderBookProvider(folders, ids, folderService.countBooksByFolder(), folderService.getPaths(),

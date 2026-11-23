@@ -1,18 +1,20 @@
 package com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.write;
 
+import com.github.enerccio.marginalia.domain.service.command.CommandScope;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
 import com.github.enerccio.marginalia.domain.service.GenerationListener;
 import com.github.enerccio.marginalia.domain.service.GenerationView;
+import com.github.enerccio.marginalia.domain.service.PhraseWatchService;
 import com.github.enerccio.marginalia.domain.service.StoryGenerationService;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationOptions;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequest;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequestType;
 import com.github.enerccio.marginalia.domain.traits.*;
-import com.github.enerccio.marginalia.loc.L;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.vaadin.flow.component.UI;
@@ -44,254 +46,380 @@ public class StoryGenerationCommands extends ManuscriptWriteSupport {
     static final String SWIPE = "swipe";
     static final String REGENERATE = "regenerate";
 
-    @Command(commandName = NEXT, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_NEXT, async = true, progressInStory = true,
+    @Command(commandName = NEXT, batch = BatchPolicy.SINGLE, async = true, progressInStory = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_NEXT, llmDescription = L.DESC_COMMAND_NEXT_LLM,
             signature = @CommandParameterSignature,
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_NEXT_RETURN))
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_NEXT,
+            description = M_L.DESC_COMMAND_NEXT,
+            llmDescription = M_L.DESC_COMMAND_NEXT_LLM,
+            returns = M_L.DESC_COMMAND_NEXT_RETURN)
     public void next(CommandContext context) throws Exception {
         next(context, null, null, null, null, null, null);
     }
 
-    @Command(commandName = NEXT, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_NEXT, async = true, progressInStory = true,
+    @Command(commandName = NEXT, batch = BatchPolicy.SINGLE, async = true, progressInStory = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_NEXT, llmDescription = L.DESC_COMMAND_NEXT_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "scene", type = String.class, description = L.DESC_COMMAND_GEN_SCENE_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_NEXT_RETURN))
+                    @CommandParameter(name = "scene", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_NEXT,
+            description = M_L.DESC_COMMAND_NEXT,
+            llmDescription = M_L.DESC_COMMAND_NEXT_LLM,
+            parameters = @MarginaliaParameterText(name = "scene", description = M_L.DESC_COMMAND_GEN_SCENE_PARAM),
+            returns = M_L.DESC_COMMAND_NEXT_RETURN)
     public void nextScene(CommandContext context) throws Exception {
         next(context, context.get("scene", String.class), null, null, null, null, null);
     }
 
-    @Command(commandName = NEXT, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_NEXT, async = true, progressInStory = true,
+    @Command(commandName = NEXT, batch = BatchPolicy.SINGLE, async = true, progressInStory = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_NEXT, llmDescription = L.DESC_COMMAND_NEXT_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "scene", type = String.class, description = L.DESC_COMMAND_GEN_SCENE_PARAM),
-                    @CommandParameter(name = "pov", type = String.class, description = L.DESC_COMMAND_GEN_POV_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_NEXT_RETURN))
+                    @CommandParameter(name = "scene", type = String.class),
+                    @CommandParameter(name = "pov", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_NEXT,
+            description = M_L.DESC_COMMAND_NEXT,
+            llmDescription = M_L.DESC_COMMAND_NEXT_LLM,
+            parameters = {@MarginaliaParameterText(name = "scene", description = M_L.DESC_COMMAND_GEN_SCENE_PARAM),
+                    @MarginaliaParameterText(name = "pov", description = M_L.DESC_COMMAND_GEN_POV_PARAM)},
+            returns = M_L.DESC_COMMAND_NEXT_RETURN)
     public void nextPov(CommandContext context) throws Exception {
         next(context, context.get("scene", String.class), context.get("pov", String.class), null, null, null, null);
     }
 
-    @Command(commandName = NEXT, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_NEXT, async = true, progressInStory = true,
+    @Command(commandName = NEXT, batch = BatchPolicy.SINGLE, async = true, progressInStory = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_NEXT, llmDescription = L.DESC_COMMAND_NEXT_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "scene", type = String.class, description = L.DESC_COMMAND_GEN_SCENE_PARAM),
-                    @CommandParameter(name = "pov", type = String.class, description = L.DESC_COMMAND_GEN_POV_PARAM),
-                    @CommandParameter(name = "present", type = String.class, description = L.DESC_COMMAND_GEN_PRESENT_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_NEXT_RETURN))
+                    @CommandParameter(name = "scene", type = String.class),
+                    @CommandParameter(name = "pov", type = String.class),
+                    @CommandParameter(name = "present", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_NEXT,
+            description = M_L.DESC_COMMAND_NEXT,
+            llmDescription = M_L.DESC_COMMAND_NEXT_LLM,
+            parameters = {@MarginaliaParameterText(name = "scene", description = M_L.DESC_COMMAND_GEN_SCENE_PARAM),
+                    @MarginaliaParameterText(name = "pov", description = M_L.DESC_COMMAND_GEN_POV_PARAM),
+                    @MarginaliaParameterText(name = "present", description = M_L.DESC_COMMAND_GEN_PRESENT_PARAM)},
+            returns = M_L.DESC_COMMAND_NEXT_RETURN)
     public void nextPresent(CommandContext context) throws Exception {
         next(context, context.get("scene", String.class), context.get("pov", String.class), context.get("present", String.class), null, null, null);
     }
 
-    @Command(commandName = NEXT, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_NEXT, async = true, progressInStory = true,
+    @Command(commandName = NEXT, batch = BatchPolicy.SINGLE, async = true, progressInStory = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_NEXT, llmDescription = L.DESC_COMMAND_NEXT_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "scene", type = String.class, description = L.DESC_COMMAND_GEN_SCENE_PARAM),
-                    @CommandParameter(name = "pov", type = String.class, description = L.DESC_COMMAND_GEN_POV_PARAM),
-                    @CommandParameter(name = "present", type = String.class, description = L.DESC_COMMAND_GEN_PRESENT_PARAM),
-                    @CommandParameter(name = "instructions", type = String.class, description = L.DESC_COMMAND_GEN_INSTRUCTIONS_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_NEXT_RETURN))
+                    @CommandParameter(name = "scene", type = String.class),
+                    @CommandParameter(name = "pov", type = String.class),
+                    @CommandParameter(name = "present", type = String.class),
+                    @CommandParameter(name = "instructions", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_NEXT,
+            description = M_L.DESC_COMMAND_NEXT,
+            llmDescription = M_L.DESC_COMMAND_NEXT_LLM,
+            parameters = {@MarginaliaParameterText(name = "scene", description = M_L.DESC_COMMAND_GEN_SCENE_PARAM),
+                    @MarginaliaParameterText(name = "pov", description = M_L.DESC_COMMAND_GEN_POV_PARAM),
+                    @MarginaliaParameterText(name = "present", description = M_L.DESC_COMMAND_GEN_PRESENT_PARAM),
+                    @MarginaliaParameterText(name = "instructions", description = M_L.DESC_COMMAND_GEN_INSTRUCTIONS_PARAM)},
+            returns = M_L.DESC_COMMAND_NEXT_RETURN)
     public void nextInstructions(CommandContext context) throws Exception {
         next(context, context.get("scene", String.class), context.get("pov", String.class), context.get("present", String.class), context.get("instructions", String.class), null, null);
     }
 
-    @Command(commandName = NEXT, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_NEXT, async = true, progressInStory = true,
+    @Command(commandName = NEXT, batch = BatchPolicy.SINGLE, async = true, progressInStory = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_NEXT, llmDescription = L.DESC_COMMAND_NEXT_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "scene", type = String.class, description = L.DESC_COMMAND_GEN_SCENE_PARAM),
-                    @CommandParameter(name = "pov", type = String.class, description = L.DESC_COMMAND_GEN_POV_PARAM),
-                    @CommandParameter(name = "present", type = String.class, description = L.DESC_COMMAND_GEN_PRESENT_PARAM),
-                    @CommandParameter(name = "instructions", type = String.class, description = L.DESC_COMMAND_GEN_INSTRUCTIONS_PARAM),
-                    @CommandParameter(name = "after", type = String.class, description = L.DESC_COMMAND_AFTER_PART_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_NEXT_RETURN))
+                    @CommandParameter(name = "scene", type = String.class),
+                    @CommandParameter(name = "pov", type = String.class),
+                    @CommandParameter(name = "present", type = String.class),
+                    @CommandParameter(name = "instructions", type = String.class),
+                    @CommandParameter(name = "after", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_NEXT,
+            description = M_L.DESC_COMMAND_NEXT,
+            llmDescription = M_L.DESC_COMMAND_NEXT_LLM,
+            parameters = {@MarginaliaParameterText(name = "scene", description = M_L.DESC_COMMAND_GEN_SCENE_PARAM),
+                    @MarginaliaParameterText(name = "pov", description = M_L.DESC_COMMAND_GEN_POV_PARAM),
+                    @MarginaliaParameterText(name = "present", description = M_L.DESC_COMMAND_GEN_PRESENT_PARAM),
+                    @MarginaliaParameterText(name = "instructions", description = M_L.DESC_COMMAND_GEN_INSTRUCTIONS_PARAM),
+                    @MarginaliaParameterText(name = "after", description = M_L.DESC_COMMAND_AFTER_PART_PARAM)},
+            returns = M_L.DESC_COMMAND_NEXT_RETURN)
     public void nextAfter(CommandContext context) throws Exception {
         next(context, context.get("scene", String.class), context.get("pov", String.class), context.get("present", String.class), context.get("instructions", String.class), ref(context, "after"), null);
     }
 
-    @Command(commandName = NEXT, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_NEXT, async = true, progressInStory = true,
+    @Command(commandName = NEXT, batch = BatchPolicy.SINGLE, async = true, progressInStory = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_NEXT, llmDescription = L.DESC_COMMAND_NEXT_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "scene", type = String.class, description = L.DESC_COMMAND_GEN_SCENE_PARAM),
-                    @CommandParameter(name = "pov", type = String.class, description = L.DESC_COMMAND_GEN_POV_PARAM),
-                    @CommandParameter(name = "present", type = String.class, description = L.DESC_COMMAND_GEN_PRESENT_PARAM),
-                    @CommandParameter(name = "instructions", type = String.class, description = L.DESC_COMMAND_GEN_INSTRUCTIONS_PARAM),
-                    @CommandParameter(name = "after", type = String.class, description = L.DESC_COMMAND_AFTER_PART_PARAM),
-                    @CommandParameter(name = "profile", type = String.class, description = L.DESC_COMMAND_GEN_PROFILE_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_NEXT_RETURN))
+                    @CommandParameter(name = "scene", type = String.class),
+                    @CommandParameter(name = "pov", type = String.class),
+                    @CommandParameter(name = "present", type = String.class),
+                    @CommandParameter(name = "instructions", type = String.class),
+                    @CommandParameter(name = "after", type = String.class),
+                    @CommandParameter(name = "profile", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_NEXT,
+            description = M_L.DESC_COMMAND_NEXT,
+            llmDescription = M_L.DESC_COMMAND_NEXT_LLM,
+            parameters = {@MarginaliaParameterText(name = "scene", description = M_L.DESC_COMMAND_GEN_SCENE_PARAM),
+                    @MarginaliaParameterText(name = "pov", description = M_L.DESC_COMMAND_GEN_POV_PARAM),
+                    @MarginaliaParameterText(name = "present", description = M_L.DESC_COMMAND_GEN_PRESENT_PARAM),
+                    @MarginaliaParameterText(name = "instructions", description = M_L.DESC_COMMAND_GEN_INSTRUCTIONS_PARAM),
+                    @MarginaliaParameterText(name = "after", description = M_L.DESC_COMMAND_AFTER_PART_PARAM),
+                    @MarginaliaParameterText(name = "profile", description = M_L.DESC_COMMAND_GEN_PROFILE_PARAM)},
+            returns = M_L.DESC_COMMAND_NEXT_RETURN)
     public void nextProfile(CommandContext context) throws Exception {
         next(context, context.get("scene", String.class), context.get("pov", String.class), context.get("present", String.class), context.get("instructions", String.class), ref(context, "after"), ref(context, "profile"));
     }
 
-    @Command(commandName = SWIPE, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_SWIPE, async = true, progressInStory = true,
+    @Command(commandName = SWIPE, batch = BatchPolicy.SINGLE, async = true, progressInStory = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_SWIPE, llmDescription = L.DESC_COMMAND_SWIPE_LLM,
             signature = @CommandParameterSignature,
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SWIPE_RETURN))
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SWIPE,
+            description = M_L.DESC_COMMAND_SWIPE,
+            llmDescription = M_L.DESC_COMMAND_SWIPE_LLM,
+            returns = M_L.DESC_COMMAND_SWIPE_RETURN)
     public void swipe(CommandContext context) throws Exception {
         swipe(context, null, null, null, null, null, null);
     }
 
-    @Command(commandName = SWIPE, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_SWIPE, async = true, progressInStory = true,
+    @Command(commandName = SWIPE, batch = BatchPolicy.SINGLE, async = true, progressInStory = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_SWIPE, llmDescription = L.DESC_COMMAND_SWIPE_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_GEN_PART_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SWIPE_RETURN))
+                    @CommandParameter(name = "part", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SWIPE,
+            description = M_L.DESC_COMMAND_SWIPE,
+            llmDescription = M_L.DESC_COMMAND_SWIPE_LLM,
+            parameters = @MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_GEN_PART_PARAM),
+            returns = M_L.DESC_COMMAND_SWIPE_RETURN)
     public void swipePart(CommandContext context) throws Exception {
         swipe(context, ref(context, "part"), null, null, null, null, null);
     }
 
-    @Command(commandName = SWIPE, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_SWIPE, async = true, progressInStory = true,
+    @Command(commandName = SWIPE, batch = BatchPolicy.SINGLE, async = true, progressInStory = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_SWIPE, llmDescription = L.DESC_COMMAND_SWIPE_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_GEN_PART_PARAM),
-                    @CommandParameter(name = "scene", type = String.class, description = L.DESC_COMMAND_GEN_SCENE_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SWIPE_RETURN))
+                    @CommandParameter(name = "part", type = String.class),
+                    @CommandParameter(name = "scene", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SWIPE,
+            description = M_L.DESC_COMMAND_SWIPE,
+            llmDescription = M_L.DESC_COMMAND_SWIPE_LLM,
+            parameters = {@MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_GEN_PART_PARAM),
+                    @MarginaliaParameterText(name = "scene", description = M_L.DESC_COMMAND_GEN_SCENE_PARAM)},
+            returns = M_L.DESC_COMMAND_SWIPE_RETURN)
     public void swipeScene(CommandContext context) throws Exception {
         swipe(context, ref(context, "part"), context.get("scene", String.class), null, null, null, null);
     }
 
-    @Command(commandName = SWIPE, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_SWIPE, async = true, progressInStory = true,
+    @Command(commandName = SWIPE, batch = BatchPolicy.SINGLE, async = true, progressInStory = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_SWIPE, llmDescription = L.DESC_COMMAND_SWIPE_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_GEN_PART_PARAM),
-                    @CommandParameter(name = "scene", type = String.class, description = L.DESC_COMMAND_GEN_SCENE_PARAM),
-                    @CommandParameter(name = "pov", type = String.class, description = L.DESC_COMMAND_GEN_POV_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SWIPE_RETURN))
+                    @CommandParameter(name = "part", type = String.class),
+                    @CommandParameter(name = "scene", type = String.class),
+                    @CommandParameter(name = "pov", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SWIPE,
+            description = M_L.DESC_COMMAND_SWIPE,
+            llmDescription = M_L.DESC_COMMAND_SWIPE_LLM,
+            parameters = {@MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_GEN_PART_PARAM),
+                    @MarginaliaParameterText(name = "scene", description = M_L.DESC_COMMAND_GEN_SCENE_PARAM),
+                    @MarginaliaParameterText(name = "pov", description = M_L.DESC_COMMAND_GEN_POV_PARAM)},
+            returns = M_L.DESC_COMMAND_SWIPE_RETURN)
     public void swipePov(CommandContext context) throws Exception {
         swipe(context, ref(context, "part"), context.get("scene", String.class), context.get("pov", String.class), null, null, null);
     }
 
-    @Command(commandName = SWIPE, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_SWIPE, async = true, progressInStory = true,
+    @Command(commandName = SWIPE, batch = BatchPolicy.SINGLE, async = true, progressInStory = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_SWIPE, llmDescription = L.DESC_COMMAND_SWIPE_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_GEN_PART_PARAM),
-                    @CommandParameter(name = "scene", type = String.class, description = L.DESC_COMMAND_GEN_SCENE_PARAM),
-                    @CommandParameter(name = "pov", type = String.class, description = L.DESC_COMMAND_GEN_POV_PARAM),
-                    @CommandParameter(name = "present", type = String.class, description = L.DESC_COMMAND_GEN_PRESENT_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SWIPE_RETURN))
+                    @CommandParameter(name = "part", type = String.class),
+                    @CommandParameter(name = "scene", type = String.class),
+                    @CommandParameter(name = "pov", type = String.class),
+                    @CommandParameter(name = "present", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SWIPE,
+            description = M_L.DESC_COMMAND_SWIPE,
+            llmDescription = M_L.DESC_COMMAND_SWIPE_LLM,
+            parameters = {@MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_GEN_PART_PARAM),
+                    @MarginaliaParameterText(name = "scene", description = M_L.DESC_COMMAND_GEN_SCENE_PARAM),
+                    @MarginaliaParameterText(name = "pov", description = M_L.DESC_COMMAND_GEN_POV_PARAM),
+                    @MarginaliaParameterText(name = "present", description = M_L.DESC_COMMAND_GEN_PRESENT_PARAM)},
+            returns = M_L.DESC_COMMAND_SWIPE_RETURN)
     public void swipePresent(CommandContext context) throws Exception {
         swipe(context, ref(context, "part"), context.get("scene", String.class), context.get("pov", String.class), context.get("present", String.class), null, null);
     }
 
-    @Command(commandName = SWIPE, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_SWIPE, async = true, progressInStory = true,
+    @Command(commandName = SWIPE, batch = BatchPolicy.SINGLE, async = true, progressInStory = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_SWIPE, llmDescription = L.DESC_COMMAND_SWIPE_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_GEN_PART_PARAM),
-                    @CommandParameter(name = "scene", type = String.class, description = L.DESC_COMMAND_GEN_SCENE_PARAM),
-                    @CommandParameter(name = "pov", type = String.class, description = L.DESC_COMMAND_GEN_POV_PARAM),
-                    @CommandParameter(name = "present", type = String.class, description = L.DESC_COMMAND_GEN_PRESENT_PARAM),
-                    @CommandParameter(name = "instructions", type = String.class, description = L.DESC_COMMAND_GEN_INSTRUCTIONS_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SWIPE_RETURN))
+                    @CommandParameter(name = "part", type = String.class),
+                    @CommandParameter(name = "scene", type = String.class),
+                    @CommandParameter(name = "pov", type = String.class),
+                    @CommandParameter(name = "present", type = String.class),
+                    @CommandParameter(name = "instructions", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SWIPE,
+            description = M_L.DESC_COMMAND_SWIPE,
+            llmDescription = M_L.DESC_COMMAND_SWIPE_LLM,
+            parameters = {@MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_GEN_PART_PARAM),
+                    @MarginaliaParameterText(name = "scene", description = M_L.DESC_COMMAND_GEN_SCENE_PARAM),
+                    @MarginaliaParameterText(name = "pov", description = M_L.DESC_COMMAND_GEN_POV_PARAM),
+                    @MarginaliaParameterText(name = "present", description = M_L.DESC_COMMAND_GEN_PRESENT_PARAM),
+                    @MarginaliaParameterText(name = "instructions", description = M_L.DESC_COMMAND_GEN_INSTRUCTIONS_PARAM)},
+            returns = M_L.DESC_COMMAND_SWIPE_RETURN)
     public void swipeInstructions(CommandContext context) throws Exception {
         swipe(context, ref(context, "part"), context.get("scene", String.class), context.get("pov", String.class), context.get("present", String.class), context.get("instructions", String.class), null);
     }
 
-    @Command(commandName = SWIPE, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_SWIPE, async = true, progressInStory = true,
+    @Command(commandName = SWIPE, batch = BatchPolicy.SINGLE, async = true, progressInStory = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_SWIPE, llmDescription = L.DESC_COMMAND_SWIPE_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_GEN_PART_PARAM),
-                    @CommandParameter(name = "scene", type = String.class, description = L.DESC_COMMAND_GEN_SCENE_PARAM),
-                    @CommandParameter(name = "pov", type = String.class, description = L.DESC_COMMAND_GEN_POV_PARAM),
-                    @CommandParameter(name = "present", type = String.class, description = L.DESC_COMMAND_GEN_PRESENT_PARAM),
-                    @CommandParameter(name = "instructions", type = String.class, description = L.DESC_COMMAND_GEN_INSTRUCTIONS_PARAM),
-                    @CommandParameter(name = "profile", type = String.class, description = L.DESC_COMMAND_GEN_PROFILE_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SWIPE_RETURN))
+                    @CommandParameter(name = "part", type = String.class),
+                    @CommandParameter(name = "scene", type = String.class),
+                    @CommandParameter(name = "pov", type = String.class),
+                    @CommandParameter(name = "present", type = String.class),
+                    @CommandParameter(name = "instructions", type = String.class),
+                    @CommandParameter(name = "profile", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SWIPE,
+            description = M_L.DESC_COMMAND_SWIPE,
+            llmDescription = M_L.DESC_COMMAND_SWIPE_LLM,
+            parameters = {@MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_GEN_PART_PARAM),
+                    @MarginaliaParameterText(name = "scene", description = M_L.DESC_COMMAND_GEN_SCENE_PARAM),
+                    @MarginaliaParameterText(name = "pov", description = M_L.DESC_COMMAND_GEN_POV_PARAM),
+                    @MarginaliaParameterText(name = "present", description = M_L.DESC_COMMAND_GEN_PRESENT_PARAM),
+                    @MarginaliaParameterText(name = "instructions", description = M_L.DESC_COMMAND_GEN_INSTRUCTIONS_PARAM),
+                    @MarginaliaParameterText(name = "profile", description = M_L.DESC_COMMAND_GEN_PROFILE_PARAM)},
+            returns = M_L.DESC_COMMAND_SWIPE_RETURN)
     public void swipeProfile(CommandContext context) throws Exception {
         swipe(context, ref(context, "part"), context.get("scene", String.class), context.get("pov", String.class), context.get("present", String.class), context.get("instructions", String.class), ref(context, "profile"));
     }
 
-    @Command(commandName = REGENERATE, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_REGENERATE, async = true, progressInStory = true,
+    @Command(commandName = REGENERATE, batch = BatchPolicy.SINGLE, async = true, progressInStory = true,
             dataSeverity = CommandDataSeverity.DESTRUCTIVE,
-            description = L.DESC_COMMAND_REGENERATE, llmDescription = L.DESC_COMMAND_REGENERATE_LLM,
             signature = @CommandParameterSignature,
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_REGENERATE_RETURN))
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_REGENERATE,
+            description = M_L.DESC_COMMAND_REGENERATE,
+            llmDescription = M_L.DESC_COMMAND_REGENERATE_LLM,
+            returns = M_L.DESC_COMMAND_REGENERATE_RETURN)
     public void regenerate(CommandContext context) throws Exception {
         regenerate(context, null, null, null, null, null, null);
     }
 
-    @Command(commandName = REGENERATE, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_REGENERATE, async = true, progressInStory = true,
+    @Command(commandName = REGENERATE, batch = BatchPolicy.SINGLE, async = true, progressInStory = true,
             dataSeverity = CommandDataSeverity.DESTRUCTIVE,
-            description = L.DESC_COMMAND_REGENERATE, llmDescription = L.DESC_COMMAND_REGENERATE_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_GEN_PART_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_REGENERATE_RETURN))
+                    @CommandParameter(name = "part", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_REGENERATE,
+            description = M_L.DESC_COMMAND_REGENERATE,
+            llmDescription = M_L.DESC_COMMAND_REGENERATE_LLM,
+            parameters = @MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_GEN_PART_PARAM),
+            returns = M_L.DESC_COMMAND_REGENERATE_RETURN)
     public void regeneratePart(CommandContext context) throws Exception {
         regenerate(context, ref(context, "part"), null, null, null, null, null);
     }
 
-    @Command(commandName = REGENERATE, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_REGENERATE, async = true, progressInStory = true,
+    @Command(commandName = REGENERATE, batch = BatchPolicy.SINGLE, async = true, progressInStory = true,
             dataSeverity = CommandDataSeverity.DESTRUCTIVE,
-            description = L.DESC_COMMAND_REGENERATE, llmDescription = L.DESC_COMMAND_REGENERATE_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_GEN_PART_PARAM),
-                    @CommandParameter(name = "scene", type = String.class, description = L.DESC_COMMAND_GEN_SCENE_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_REGENERATE_RETURN))
+                    @CommandParameter(name = "part", type = String.class),
+                    @CommandParameter(name = "scene", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_REGENERATE,
+            description = M_L.DESC_COMMAND_REGENERATE,
+            llmDescription = M_L.DESC_COMMAND_REGENERATE_LLM,
+            parameters = {@MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_GEN_PART_PARAM),
+                    @MarginaliaParameterText(name = "scene", description = M_L.DESC_COMMAND_GEN_SCENE_PARAM)},
+            returns = M_L.DESC_COMMAND_REGENERATE_RETURN)
     public void regenerateScene(CommandContext context) throws Exception {
         regenerate(context, ref(context, "part"), context.get("scene", String.class), null, null, null, null);
     }
 
-    @Command(commandName = REGENERATE, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_REGENERATE, async = true, progressInStory = true,
+    @Command(commandName = REGENERATE, batch = BatchPolicy.SINGLE, async = true, progressInStory = true,
             dataSeverity = CommandDataSeverity.DESTRUCTIVE,
-            description = L.DESC_COMMAND_REGENERATE, llmDescription = L.DESC_COMMAND_REGENERATE_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_GEN_PART_PARAM),
-                    @CommandParameter(name = "scene", type = String.class, description = L.DESC_COMMAND_GEN_SCENE_PARAM),
-                    @CommandParameter(name = "pov", type = String.class, description = L.DESC_COMMAND_GEN_POV_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_REGENERATE_RETURN))
+                    @CommandParameter(name = "part", type = String.class),
+                    @CommandParameter(name = "scene", type = String.class),
+                    @CommandParameter(name = "pov", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_REGENERATE,
+            description = M_L.DESC_COMMAND_REGENERATE,
+            llmDescription = M_L.DESC_COMMAND_REGENERATE_LLM,
+            parameters = {@MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_GEN_PART_PARAM),
+                    @MarginaliaParameterText(name = "scene", description = M_L.DESC_COMMAND_GEN_SCENE_PARAM),
+                    @MarginaliaParameterText(name = "pov", description = M_L.DESC_COMMAND_GEN_POV_PARAM)},
+            returns = M_L.DESC_COMMAND_REGENERATE_RETURN)
     public void regeneratePov(CommandContext context) throws Exception {
         regenerate(context, ref(context, "part"), context.get("scene", String.class), context.get("pov", String.class), null, null, null);
     }
 
-    @Command(commandName = REGENERATE, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_REGENERATE, async = true, progressInStory = true,
+    @Command(commandName = REGENERATE, batch = BatchPolicy.SINGLE, async = true, progressInStory = true,
             dataSeverity = CommandDataSeverity.DESTRUCTIVE,
-            description = L.DESC_COMMAND_REGENERATE, llmDescription = L.DESC_COMMAND_REGENERATE_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_GEN_PART_PARAM),
-                    @CommandParameter(name = "scene", type = String.class, description = L.DESC_COMMAND_GEN_SCENE_PARAM),
-                    @CommandParameter(name = "pov", type = String.class, description = L.DESC_COMMAND_GEN_POV_PARAM),
-                    @CommandParameter(name = "present", type = String.class, description = L.DESC_COMMAND_GEN_PRESENT_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_REGENERATE_RETURN))
+                    @CommandParameter(name = "part", type = String.class),
+                    @CommandParameter(name = "scene", type = String.class),
+                    @CommandParameter(name = "pov", type = String.class),
+                    @CommandParameter(name = "present", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_REGENERATE,
+            description = M_L.DESC_COMMAND_REGENERATE,
+            llmDescription = M_L.DESC_COMMAND_REGENERATE_LLM,
+            parameters = {@MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_GEN_PART_PARAM),
+                    @MarginaliaParameterText(name = "scene", description = M_L.DESC_COMMAND_GEN_SCENE_PARAM),
+                    @MarginaliaParameterText(name = "pov", description = M_L.DESC_COMMAND_GEN_POV_PARAM),
+                    @MarginaliaParameterText(name = "present", description = M_L.DESC_COMMAND_GEN_PRESENT_PARAM)},
+            returns = M_L.DESC_COMMAND_REGENERATE_RETURN)
     public void regeneratePresent(CommandContext context) throws Exception {
         regenerate(context, ref(context, "part"), context.get("scene", String.class), context.get("pov", String.class), context.get("present", String.class), null, null);
     }
 
-    @Command(commandName = REGENERATE, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_REGENERATE, async = true, progressInStory = true,
+    @Command(commandName = REGENERATE, batch = BatchPolicy.SINGLE, async = true, progressInStory = true,
             dataSeverity = CommandDataSeverity.DESTRUCTIVE,
-            description = L.DESC_COMMAND_REGENERATE, llmDescription = L.DESC_COMMAND_REGENERATE_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_GEN_PART_PARAM),
-                    @CommandParameter(name = "scene", type = String.class, description = L.DESC_COMMAND_GEN_SCENE_PARAM),
-                    @CommandParameter(name = "pov", type = String.class, description = L.DESC_COMMAND_GEN_POV_PARAM),
-                    @CommandParameter(name = "present", type = String.class, description = L.DESC_COMMAND_GEN_PRESENT_PARAM),
-                    @CommandParameter(name = "instructions", type = String.class, description = L.DESC_COMMAND_GEN_INSTRUCTIONS_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_REGENERATE_RETURN))
+                    @CommandParameter(name = "part", type = String.class),
+                    @CommandParameter(name = "scene", type = String.class),
+                    @CommandParameter(name = "pov", type = String.class),
+                    @CommandParameter(name = "present", type = String.class),
+                    @CommandParameter(name = "instructions", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_REGENERATE,
+            description = M_L.DESC_COMMAND_REGENERATE,
+            llmDescription = M_L.DESC_COMMAND_REGENERATE_LLM,
+            parameters = {@MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_GEN_PART_PARAM),
+                    @MarginaliaParameterText(name = "scene", description = M_L.DESC_COMMAND_GEN_SCENE_PARAM),
+                    @MarginaliaParameterText(name = "pov", description = M_L.DESC_COMMAND_GEN_POV_PARAM),
+                    @MarginaliaParameterText(name = "present", description = M_L.DESC_COMMAND_GEN_PRESENT_PARAM),
+                    @MarginaliaParameterText(name = "instructions", description = M_L.DESC_COMMAND_GEN_INSTRUCTIONS_PARAM)},
+            returns = M_L.DESC_COMMAND_REGENERATE_RETURN)
     public void regenerateInstructions(CommandContext context) throws Exception {
         regenerate(context, ref(context, "part"), context.get("scene", String.class), context.get("pov", String.class), context.get("present", String.class), context.get("instructions", String.class), null);
     }
 
-    @Command(commandName = REGENERATE, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_REGENERATE, async = true, progressInStory = true,
+    @Command(commandName = REGENERATE, batch = BatchPolicy.SINGLE, async = true, progressInStory = true,
             dataSeverity = CommandDataSeverity.DESTRUCTIVE,
-            description = L.DESC_COMMAND_REGENERATE, llmDescription = L.DESC_COMMAND_REGENERATE_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_GEN_PART_PARAM),
-                    @CommandParameter(name = "scene", type = String.class, description = L.DESC_COMMAND_GEN_SCENE_PARAM),
-                    @CommandParameter(name = "pov", type = String.class, description = L.DESC_COMMAND_GEN_POV_PARAM),
-                    @CommandParameter(name = "present", type = String.class, description = L.DESC_COMMAND_GEN_PRESENT_PARAM),
-                    @CommandParameter(name = "instructions", type = String.class, description = L.DESC_COMMAND_GEN_INSTRUCTIONS_PARAM),
-                    @CommandParameter(name = "profile", type = String.class, description = L.DESC_COMMAND_GEN_PROFILE_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_REGENERATE_RETURN))
+                    @CommandParameter(name = "part", type = String.class),
+                    @CommandParameter(name = "scene", type = String.class),
+                    @CommandParameter(name = "pov", type = String.class),
+                    @CommandParameter(name = "present", type = String.class),
+                    @CommandParameter(name = "instructions", type = String.class),
+                    @CommandParameter(name = "profile", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_REGENERATE,
+            description = M_L.DESC_COMMAND_REGENERATE,
+            llmDescription = M_L.DESC_COMMAND_REGENERATE_LLM,
+            parameters = {@MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_GEN_PART_PARAM),
+                    @MarginaliaParameterText(name = "scene", description = M_L.DESC_COMMAND_GEN_SCENE_PARAM),
+                    @MarginaliaParameterText(name = "pov", description = M_L.DESC_COMMAND_GEN_POV_PARAM),
+                    @MarginaliaParameterText(name = "present", description = M_L.DESC_COMMAND_GEN_PRESENT_PARAM),
+                    @MarginaliaParameterText(name = "instructions", description = M_L.DESC_COMMAND_GEN_INSTRUCTIONS_PARAM),
+                    @MarginaliaParameterText(name = "profile", description = M_L.DESC_COMMAND_GEN_PROFILE_PARAM)},
+            returns = M_L.DESC_COMMAND_REGENERATE_RETURN)
     public void regenerateProfile(CommandContext context) throws Exception {
         regenerate(context, ref(context, "part"), context.get("scene", String.class), context.get("pov", String.class), context.get("present", String.class), context.get("instructions", String.class), ref(context, "profile"));
     }
@@ -301,6 +429,9 @@ public class StoryGenerationCommands extends ManuscriptWriteSupport {
 
     @Autowired
     private StoryGenerationService storyGenerationService;
+
+    @Autowired
+    private PhraseWatchService phraseWatchService;
 
     private void next(CommandContext context, String scene, String pov, String present, String instructions, String after,
                       String profile) throws Exception {
@@ -338,13 +469,13 @@ public class StoryGenerationCommands extends ManuscriptWriteSupport {
             } else {
                 target = partHandle != null ? part(book, partHandle) : book.manuscript.getActiveLeaf();
                 if (target == null) {
-                    throw new IllegalStateException(loc.getValue(L.ERROR_COMMAND_NO_STORY));
+                    throw new IllegalStateException(loc.getValue(M_L.ERROR_COMMAND_NO_STORY));
                 }
                 if (!book.childrenOf(target).isEmpty()) {
-                    throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_PART_NOT_LAST));
+                    throw new IllegalArgumentException(loc.getValue(M_L.ERROR_COMMAND_PART_NOT_LAST));
                 }
                 if (type == GenerationRequestType.REGENERATE && !confirmed(context,
-                        String.format(loc.getValue(L.MSG_COMMAND_REGENERATE_CONFIRM), book.locate(target.getUuid(), null).position()))) {
+                        String.format(loc.getValue(M_L.MSG_COMMAND_REGENERATE_CONFIRM), book.locate(target.getUuid(), null).position()))) {
                     return;
                 }
                 activate(book, target);
@@ -360,12 +491,12 @@ public class StoryGenerationCommands extends ManuscriptWriteSupport {
                 case REGENERATE -> GenerationRequest.regenerate(target);
             };
 
-            context.setStatus(loc.getValue(L.MSG_COMMAND_GENERATING));
+            context.setStatus(loc.getValue(M_L.MSG_COMMAND_GENERATING));
             CompletableFuture<ChatMessage> done = new CompletableFuture<>();
             List<String> warnings = new CopyOnWriteArrayList<>();
-            Manuscript fresh = context.getScope().getManuscript();
+            Manuscript fresh = CommandScope.of(context).getManuscript();
             // the story of the command bar shows the generation as one of its own: the part streams in, its round button stops it
-            GenerationView view = context.getScope().isAgent() ? null : context.getScope().getGenerationView();
+            GenerationView view = context.getScope().isAgent() ? null : CommandScope.of(context).getGenerationView();
             GenerationListener shown = view == null ? null : view.show(fresh, request);
             if (shown != null) {
                 options = options.withPage(view.getPage());
@@ -388,8 +519,13 @@ public class StoryGenerationCommands extends ManuscriptWriteSupport {
             if (created == null) {
                 return;
             }
+            // what follows a part does not run for an agent, but the phrase watch list costs no model: its hits are notes the agent sees
+            int phraseNotes = context.getScope().isAgent() ? markPhrases(fresh, created) : 0;
             Book.Located at = new Book(context).locate(created.getUuid(), null);
             JsonObject result = describe(created, at.position());
+            if (phraseNotes > 0) {
+                result.addProperty("phraseWatchNotes", phraseNotes);
+            }
             result.addProperty("parts", at.path().size());
             result.addProperty("model", created.getModelUsed());
             if (!warnings.isEmpty()) {
@@ -405,6 +541,15 @@ public class StoryGenerationCommands extends ManuscriptWriteSupport {
         } finally {
             gate.unlock();
         }
+    }
+
+    /** The hits of the book's phrase watch list in the new part, annotated; 0 when the book does not watch phrases. */
+    private int markPhrases(Manuscript book, ChatMessage part) throws Exception {
+        Manuscript stored = manuscriptService.find(book);
+        if (stored == null || !stored.getPhraseWatch()) {
+            return 0;
+        }
+        return phraseWatchService.scan(stored, part).size();
     }
 
     /**
@@ -473,7 +618,7 @@ public class StoryGenerationCommands extends ManuscriptWriteSupport {
                     shown.onWaitingForModel(ahead);
                 }
                 if (ahead > 0) {
-                    context.setStatus(loc.getValue(L.MSG_COMMAND_WAITING_FOR_MODEL));
+                    context.setStatus(loc.getValue(M_L.MSG_COMMAND_WAITING_FOR_MODEL));
                 }
             }
 
@@ -482,7 +627,7 @@ public class StoryGenerationCommands extends ManuscriptWriteSupport {
                 if (shown != null) {
                     shown.onCancelled(partialMessage);
                 }
-                done.completeExceptionally(new CancellationException(loc.getValue(L.ERROR_COMMAND_GENERATION_CANCELLED)));
+                done.completeExceptionally(new CancellationException(loc.getValue(M_L.ERROR_COMMAND_GENERATION_CANCELLED)));
             }
 
             @Override

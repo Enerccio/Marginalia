@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.extensions.knowledgetracker.extract;
 
 import com.github.enerccio.marginalia.domain.service.function.FunctionContinuation;
+import com.github.enerccio.marginalia.extensions.storytracker.process.PartReader;
 
 /** The functions of one request, answered from what its {@link PartReader} may show. */
 public final class StoryFunctionsImpl implements StoryFunctions {

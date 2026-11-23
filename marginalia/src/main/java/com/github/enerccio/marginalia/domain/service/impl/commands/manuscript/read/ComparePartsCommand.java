@@ -1,9 +1,9 @@
 package com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.read;
 
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.traits.*;
-import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.utils.TextDiff;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -20,38 +20,56 @@ public class ComparePartsCommand extends ManuscriptReadSupport {
     static final int MAX_DIFF_LINES = 200;
     static final int MAX_DIFF_LINE_LENGTH = 300;
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_COMPARE_PARTS,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_COMPARE_PARTS, llmDescription = L.DESC_COMMAND_COMPARE_PARTS_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "a", type = String.class, description = L.DESC_COMMAND_PART_A_PARAM),
-                    @CommandParameter(name = "b", type = String.class, description = L.DESC_COMMAND_PART_B_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_COMPARE_PARTS_RETURN))
+                    @CommandParameter(name = "a", type = String.class),
+                    @CommandParameter(name = "b", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_COMPARE_PARTS,
+            description = M_L.DESC_COMMAND_COMPARE_PARTS,
+            llmDescription = M_L.DESC_COMMAND_COMPARE_PARTS_LLM,
+            parameters = {@MarginaliaParameterText(name = "a", description = M_L.DESC_COMMAND_PART_A_PARAM),
+                    @MarginaliaParameterText(name = "b", description = M_L.DESC_COMMAND_PART_B_PARAM)},
+            returns = M_L.DESC_COMMAND_COMPARE_PARTS_RETURN)
     public void compareParts(CommandContext context) throws Exception {
         comparePartsImpl(context, ref(context, "a"), ref(context, "b"), null, null);
     }
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_COMPARE_PARTS,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_COMPARE_PARTS, llmDescription = L.DESC_COMMAND_COMPARE_PARTS_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "a", type = String.class, description = L.DESC_COMMAND_PART_A_PARAM),
-                    @CommandParameter(name = "b", type = String.class, description = L.DESC_COMMAND_PART_B_PARAM),
-                    @CommandParameter(name = "branchA", type = String.class, description = L.DESC_COMMAND_BRANCH_A_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_COMPARE_PARTS_RETURN))
+                    @CommandParameter(name = "a", type = String.class),
+                    @CommandParameter(name = "b", type = String.class),
+                    @CommandParameter(name = "branchA", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_COMPARE_PARTS,
+            description = M_L.DESC_COMMAND_COMPARE_PARTS,
+            llmDescription = M_L.DESC_COMMAND_COMPARE_PARTS_LLM,
+            parameters = {@MarginaliaParameterText(name = "a", description = M_L.DESC_COMMAND_PART_A_PARAM),
+                    @MarginaliaParameterText(name = "b", description = M_L.DESC_COMMAND_PART_B_PARAM),
+                    @MarginaliaParameterText(name = "branchA", description = M_L.DESC_COMMAND_BRANCH_A_PARAM)},
+            returns = M_L.DESC_COMMAND_COMPARE_PARTS_RETURN)
     public void comparePartsBranchA(CommandContext context) throws Exception {
         comparePartsImpl(context, ref(context, "a"), ref(context, "b"), ref(context, "branchA"), null);
     }
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_COMPARE_PARTS,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_COMPARE_PARTS, llmDescription = L.DESC_COMMAND_COMPARE_PARTS_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "a", type = String.class, description = L.DESC_COMMAND_PART_A_PARAM),
-                    @CommandParameter(name = "b", type = String.class, description = L.DESC_COMMAND_PART_B_PARAM),
-                    @CommandParameter(name = "branchA", type = String.class, description = L.DESC_COMMAND_BRANCH_A_PARAM),
-                    @CommandParameter(name = "branchB", type = String.class, description = L.DESC_COMMAND_BRANCH_B_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_COMPARE_PARTS_RETURN))
+                    @CommandParameter(name = "a", type = String.class),
+                    @CommandParameter(name = "b", type = String.class),
+                    @CommandParameter(name = "branchA", type = String.class),
+                    @CommandParameter(name = "branchB", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_COMPARE_PARTS,
+            description = M_L.DESC_COMMAND_COMPARE_PARTS,
+            llmDescription = M_L.DESC_COMMAND_COMPARE_PARTS_LLM,
+            parameters = {@MarginaliaParameterText(name = "a", description = M_L.DESC_COMMAND_PART_A_PARAM),
+                    @MarginaliaParameterText(name = "b", description = M_L.DESC_COMMAND_PART_B_PARAM),
+                    @MarginaliaParameterText(name = "branchA", description = M_L.DESC_COMMAND_BRANCH_A_PARAM),
+                    @MarginaliaParameterText(name = "branchB", description = M_L.DESC_COMMAND_BRANCH_B_PARAM)},
+            returns = M_L.DESC_COMMAND_COMPARE_PARTS_RETURN)
     public void comparePartsBranchB(CommandContext context) throws Exception {
         comparePartsImpl(context, ref(context, "a"), ref(context, "b"), ref(context, "branchA"), ref(context, "branchB"));
     }
@@ -66,14 +84,14 @@ public class ComparePartsCommand extends ManuscriptReadSupport {
         Book.Located locatedSecond = original ? null : book.locate(b, branchB == null ? branchA : branchB);
         ChatMessage second = original ? null : locatedSecond.message();
         if (original && first.getOriginalResponse() == null) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_NO_ORIGINAL_RESPONSE));
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_COMMAND_NO_ORIGINAL_RESPONSE));
         }
         String oldText = original ? first.getOriginalResponse() : first.getResponse();
         String newText = original ? first.getResponse() : second.getResponse();
 
         TextDiff.Result diff = TextDiff.diff(oldText, newText);
         if (diff == null) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_TOO_LARGE_TO_COMPARE));
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_COMMAND_TOO_LARGE_TO_COMPARE));
         }
         JsonObject result = new JsonObject();
         result.addProperty("a", locatedFirst.position());

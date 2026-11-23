@@ -12,7 +12,9 @@ import com.github.enerccio.marginalia.domain.service.LoreImages;
 import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
 import com.github.enerccio.marginalia.domain.service.LorebookService;
 import com.github.enerccio.marginalia.domain.traits.*;
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
+import com.github.enerccio.marginalia.loc.MarginaliaLocalization;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.dialogs.LorebookEditorDialog;
@@ -64,7 +66,7 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
     }
 
     @Autowired
-    private Localization loc;
+    private MarginaliaLocalization loc;
 
     @Autowired
     private LorebookService lorebookService;
@@ -104,7 +106,7 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
         setPadding(false);
         setSpacing(false);
 
-        includeSubbooks = new Checkbox(loc.getValue(L.LABEL_INCLUDE_SUB_LOREBOOKS));
+        includeSubbooks = new Checkbox(loc.getValue(M_L.LABEL_INCLUDE_SUB_LOREBOOKS));
         includeSubbooks.addValueChangeListener(e -> {
             if (e.isFromClient()) {
                 refresh(lastLorebook);
@@ -112,7 +114,7 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
         });
 
         searchField = new TextField();
-        searchField.setPlaceholder(loc.getValue(L.LABEL_SEARCH));
+        searchField.setPlaceholder(loc.getValue(M_L.LABEL_SEARCH));
         searchField.setPrefixComponent(Solid.SEARCH.create());
         searchField.setClearButtonVisible(true);
         searchField.setWidthFull();
@@ -127,8 +129,8 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
         editorButton = new Button(Solid.EXPAND_ALT.create(), event -> openEditor(lastLorebook, null));
         editorButton.setThemeName("tertiary");
         editorButton.addClassName(CssStyles.FLEX_SHRINK_0);
-        editorButton.setTooltipText(loc.getValue(L.LABEL_FULL_SCREEN_EDITOR));
-        editorButton.setAriaLabel(loc.getValue(L.LABEL_FULL_SCREEN_EDITOR));
+        editorButton.setTooltipText(loc.getValue(M_L.LABEL_FULL_SCREEN_EDITOR));
+        editorButton.setAriaLabel(loc.getValue(M_L.LABEL_FULL_SCREEN_EDITOR));
         editorButton.setVisible(false);
         HorizontalLayout searchRow = new HorizontalLayout(searchField, editorButton);
         searchRow.setWidthFull();
@@ -137,7 +139,7 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
         searchRow.setAlignItems(FlexComponent.Alignment.CENTER);
         searchRow.setFlexGrow(1, searchField);
 
-        noLorebook = new Span(loc.getValue(L.MSG_NO_STORY_LOREBOOK));
+        noLorebook = new Span(loc.getValue(M_L.MSG_NO_STORY_LOREBOOK));
         noLorebook.addClassNames(CssStyles.HINT_TEXT, CssStyles.WHITE_SPACE_NORMAL);
 
         grid = new TreeGrid<>();
@@ -358,12 +360,12 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
         return rows;
     }
 
-    @PublicAPI(from = "1.8.0",
+    @PublicAPI(from = "1.9.0",
             returns = @APIReturn(type = HorizontalLayout.class),
             parameters = {@APIParameter(name = "row", type = LorebookPreview.Row.class)},
             locals = {@APILocals(name = "name", type = Span.class),
                     @APILocals(name = "layout", type = HorizontalLayout.class),
-                    @APILocals(name = "tooltip", type = L.class),
+                    @APILocals(name = "tooltip", type = LocalizationKey.class),
                     @APILocals(name = "open", type = Button.class),
                     @APILocals(name = "toggle", type = Button.class),
                     @APILocals(name = "edit", type = Button.class)})
@@ -383,7 +385,7 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
         layout.setFlexGrow(1, name);
 
         if (editable && fullScreenEditor) {
-            L tooltip = isBook ? L.LABEL_FULL_SCREEN_EDITOR : L.LABEL_OPEN_IN_FULL_SCREEN_EDITOR;
+            LocalizationKey tooltip = isBook ? M_L.LABEL_FULL_SCREEN_EDITOR : M_L.LABEL_OPEN_IN_FULL_SCREEN_EDITOR;
             Button open = new Button(Solid.EXPAND_ALT.create(), event -> openEditor(row.book(), row.entry()));
             open.setThemeName("tertiary small");
             open.addClassName(CssStyles.FLEX_SHRINK_0);
@@ -399,7 +401,7 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
                 Button edit = new Button(Solid.PEN.create(), event -> edit(row));
                 edit.setThemeName("tertiary small");
                 edit.addClassName(CssStyles.FLEX_SHRINK_0);
-                UIUtils.addTooltip(edit, loc.getValue(L.LABEL_EDIT_ENTRY));
+                UIUtils.addTooltip(edit, loc.getValue(M_L.LABEL_EDIT_ENTRY));
                 layout.add(edit);
             }
             layout.add(toggle);
@@ -418,7 +420,7 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
     void edit(Row row) {
         try {
             if (agentRunService.findLockingRun(row.book()) != null) {
-                Notification.warning(loc.getValue(L.LABEL_LOCKED_BY_AGENT));
+                Notification.warning(loc.getValue(M_L.LABEL_LOCKED_BY_AGENT));
                 return;
             }
             new LorebookEntryEditDialog(row.entry(), () -> refresh(lastLorebook)).create().open();
@@ -469,14 +471,14 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
 
         LorebookEntry entry = row.entry();
         if (StringUtils.isNotBlank(entry.getFiltering())) {
-            Span activation = infoSpan(L.LABEL_FILTERING, entry.getFiltering());
+            Span activation = infoSpan(M_L.LABEL_FILTERING, entry.getFiltering());
             if (entry.getFilteringMode() == FilteringMode.REGEX) {
                 activation.add(new Span(" (" + loc.getValue(loc.getFilteringMode(FilteringMode.REGEX)) + ")"));
             }
             details.add(activation);
         }
         if (StringUtils.isNotBlank(entry.getPayload())) {
-            Span contentLabel = new Span(loc.getValue(L.LABEL_CONTENT) + ":");
+            Span contentLabel = new Span(loc.getValue(M_L.LABEL_CONTENT) + ":");
             contentLabel.addClassName(CssStyles.TEXT_SEMIBOLD);
             // entries are often written in Markdown; the images are shown under the text (the Markdown can't load them)
             Markdown content = new Markdown(StringUtils.defaultString(LoreImages.strip(entry.getPayload())));
@@ -506,14 +508,14 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
     /**
      * A "label: value" line, empty when there is no value.
      */
-    @PublicAPI(from = "1.4.0",
+    @PublicAPI(from = "1.9.0",
             returns = @APIReturn(type = Span.class),
-            parameters = {@APIParameter(name = "label", type = L.class),
+            parameters = {@APIParameter(name = "label", type = LocalizationKey.class),
                     @APIParameter(name = "value", type = String.class)},
             locals = {@APILocals(name = "span", type = Span.class),
                     @APILocals(name = "labelSpan", type = Span.class),
                     @APILocals(name = "valueSpan", type = Span.class)})
-    private Span infoSpan(L label, String value) {
+    private Span infoSpan(LocalizationKey label, String value) {
         Span span = new Span();
         span.addClassNames(CssStyles.WHITE_SPACE_NORMAL, CssStyles.WRAP_ANYWHERE);
         if (StringUtils.isBlank(value)) {

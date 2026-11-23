@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.security.service.UserService;
 import com.github.enerccio.marginalia.domain.service.AgentService;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.LLMInteraction;
@@ -160,7 +161,7 @@ public class DesktopWorkspace implements Workspace {
         HorizontalLayout manuscriptTabHeader = new HorizontalLayout();
         manuscriptTabHeader.setAlignItems(Alignment.CENTER);
         manuscriptTabHeader.setSpacing(true);
-        Span manuscriptNameSpan = new Span(loc.getValue(L.LABEL_BOOKS));
+        Span manuscriptNameSpan = new Span(loc.getValue(M_L.LABEL_BOOKS));
         manuscriptTabHeader.add(PartIcon.BOOKS.create(), manuscriptNameSpan);
 
         Tab manuscriptTab = tabs.add(manuscriptTabHeader, manuscriptPartComponent);
@@ -169,7 +170,7 @@ public class DesktopWorkspace implements Workspace {
         HorizontalLayout lorebookTabHeader = new HorizontalLayout();
         lorebookTabHeader.setAlignItems(Alignment.CENTER);
         lorebookTabHeader.setSpacing(true);
-        Span lorebookNameSpan = new Span(loc.getValue(L.LABEL_LOREBOOKS));
+        Span lorebookNameSpan = new Span(loc.getValue(M_L.LABEL_LOREBOOKS));
         lorebookTabHeader.add(PartIcon.LOREBOOKS.create(), lorebookNameSpan);
 
         Tab lorebookTab = tabs.add(lorebookTabHeader, lorebookPartComponent);
@@ -178,7 +179,7 @@ public class DesktopWorkspace implements Workspace {
         HorizontalLayout userTabHeader = new HorizontalLayout();
         userTabHeader.setAlignItems(Alignment.CENTER);
         userTabHeader.setSpacing(true);
-        Span userNameSpan = new Span(loc.getValue(L.LABEL_SETTINGS));
+        Span userNameSpan = new Span(loc.getValue(M_L.LABEL_SETTINGS));
         userTabHeader.add(PartIcon.SETTINGS.create(), userNameSpan);
 
         Tab userTab = tabs.add(userTabHeader, userPartComponent);
@@ -196,7 +197,7 @@ public class DesktopWorkspace implements Workspace {
         HorizontalLayout aiTabHeader = new HorizontalLayout();
         aiTabHeader.setAlignItems(Alignment.CENTER);
         aiTabHeader.setSpacing(true);
-        Span connNameSpan = new Span(loc.getValue(L.LABEL_MODELS));
+        Span connNameSpan = new Span(loc.getValue(M_L.LABEL_MODELS));
         aiTabHeader.add(PartIcon.MODELS.create(), connNameSpan);
 
         Tab aiTab = tabs.add(aiTabHeader, aiPartComponent);
@@ -206,7 +207,7 @@ public class DesktopWorkspace implements Workspace {
             HorizontalLayout agentsTabHeader = new HorizontalLayout();
             agentsTabHeader.setAlignItems(Alignment.CENTER);
             agentsTabHeader.setSpacing(true);
-            agentsTabHeader.add(PartIcon.AGENTS.create(), new Span(loc.getValue(L.LABEL_AGENTS)), agentPart.getAttentionBadge());
+            agentsTabHeader.add(PartIcon.AGENTS.create(), new Span(loc.getValue(M_L.LABEL_AGENTS)), agentPart.getAttentionBadge());
 
             Tab agentsTab = tabs.add(agentsTabHeader, agentPartComponent);
             tabToComponent.put(agentsTab, agentPart);
@@ -216,7 +217,7 @@ public class DesktopWorkspace implements Workspace {
         HorizontalLayout resourcesTabHeader = new HorizontalLayout();
         resourcesTabHeader.setAlignItems(Alignment.CENTER);
         resourcesTabHeader.setSpacing(true);
-        resourcesTabHeader.add(PartIcon.RESOURCES.create(), new Span(loc.getValue(L.LABEL_RESOURCES)));
+        resourcesTabHeader.add(PartIcon.RESOURCES.create(), new Span(loc.getValue(M_L.LABEL_RESOURCES)));
 
         Tab resourcesTab = tabs.add(resourcesTabHeader, resourcesPartComponent);
         tabToComponent.put(resourcesTab, resourcesPart);
@@ -367,7 +368,7 @@ public class DesktopWorkspace implements Workspace {
         footer.add(changePasswordButton);
 
         if (onLogout != null) {
-            logoutButton = new Button(loc.getValue(L.LABEL_LOGOUT), Solid.SIGN_OUT_ALT.create());
+            logoutButton = new Button(loc.getValue(M_L.LABEL_LOGOUT), Solid.SIGN_OUT_ALT.create());
             logoutButton.setWidthFull();
             logoutButton.addClickListener(e -> onLogout.run());
             footer.add(logoutButton);
@@ -379,7 +380,7 @@ public class DesktopWorkspace implements Workspace {
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = Component.class))
     private Component createAdminFooter() {
-        adminButton = new Button(loc.getValue(L.LABEL_ADMIN), Solid.USER_TIE.create());
+        adminButton = new Button(loc.getValue(M_L.LABEL_ADMIN), Solid.USER_TIE.create());
         adminButton.setWidthFull();
         adminButton.addClickListener(e -> openAdmin());
         return adminButton;

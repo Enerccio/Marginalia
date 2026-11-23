@@ -8,6 +8,8 @@ import com.github.enerccio.marginalia.domain.service.LorebookService;
 import com.github.enerccio.marginalia.domain.service.TagRelationService;
 import com.github.enerccio.marginalia.domain.service.TagService;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.test.AgentTestBase;
 import com.vaadin.flow.component.Component;
@@ -101,7 +103,7 @@ class LorebookEntryListTest extends AgentTestBase {
 
     private TextField searchBox(Component view) {
         return all(view).filter(TextField.class::isInstance).map(TextField.class::cast)
-                .filter(field -> loc.getValue(L.LABEL_SEARCH).equals(field.getPlaceholder())).findFirst().orElseThrow();
+                .filter(field -> loc.getValue(M_L.LABEL_SEARCH).equals(field.getPlaceholder())).findFirst().orElseThrow();
     }
 
     @Test
@@ -171,7 +173,7 @@ class LorebookEntryListTest extends AgentTestBase {
         searchBox(view).setValue("guild");
         assertThat(shown(grid(view))).containsExactly("Mages");
         assertThat(all(view).filter(Span.class::isInstance).map(Span.class::cast).map(Span::getText))
-                .contains(loc.getValue(L.LABEL_SCAN_DEPTH) + ": 2");
+                .contains(loc.getValue(M_L.LABEL_SCAN_DEPTH) + ": 2");
     }
 
     private void tag(Lorebook lorebook, String entryName, String value) throws Exception {
@@ -182,7 +184,7 @@ class LorebookEntryListTest extends AgentTestBase {
     }
 
     @SuppressWarnings("unchecked")
-    private <T> ComboBox<T> comboBox(Component view, L placeholder) {
+    private <T> ComboBox<T> comboBox(Component view, LocalizationKey placeholder) {
         return (ComboBox<T>) all(view).filter(ComboBox.class::isInstance).map(ComboBox.class::cast)
                 .filter(box -> loc.getValue(placeholder).equals(box.getPlaceholder())).findFirst().orElseThrow();
     }
@@ -204,7 +206,7 @@ class LorebookEntryListTest extends AgentTestBase {
         LorebookView view = new LorebookView(bookWithTagsAndAStatus(), true);
         view.create();
         Grid<LorebookEntry> grid = grid(view);
-        ComboBox<String> tags = comboBox(view, L.LABEL_TAGS);
+        ComboBox<String> tags = comboBox(view, M_L.LABEL_TAGS);
         ComboBox<LorebookEntryFilter.Status> status = comboBox(view, L.LABEL_STATUS);
         assertThat(tags.getListDataView().getItems()).as("the tags the entries have").containsExactly("guilds", "people");
 
@@ -233,10 +235,10 @@ class LorebookEntryListTest extends AgentTestBase {
         view.create();
         Grid<LorebookEntry> grid = grid(view);
 
-        comboBox(view, L.LABEL_TAGS).setValue("guilds");
+        comboBox(view, M_L.LABEL_TAGS).setValue("guilds");
         assertThat(shown(grid)).containsExactly("Mages");
 
-        comboBox(view, L.LABEL_TAGS).clear();
+        comboBox(view, M_L.LABEL_TAGS).clear();
         comboBox(view, L.LABEL_STATUS).setValue(LorebookEntryFilter.Status.DISABLED);
         assertThat(shown(grid)).containsExactly("Ostra");
     }
@@ -274,7 +276,7 @@ class LorebookEntryListTest extends AgentTestBase {
 
         assertThat(all(view).filter(com.vaadin.flow.component.textfield.IntegerField.class::isInstance)
                 .map(com.vaadin.flow.component.textfield.IntegerField.class::cast)
-                .filter(f -> loc.getValue(L.LABEL_OWN_SCAN_DEPTH).equals(f.getLabel()))
+                .filter(f -> loc.getValue(M_L.LABEL_OWN_SCAN_DEPTH).equals(f.getLabel()))
                 .map(com.vaadin.flow.component.textfield.IntegerField::getValue)).containsExactly(2);
     }
 }

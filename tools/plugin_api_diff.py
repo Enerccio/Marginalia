@@ -38,7 +38,9 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SRC = "marginalia/src/main/java"
+# the sources of the platform module and of the application (a revision before the split has only the second); the
+# classes are named by their package line, so a class that moved between the two is the same class
+SRCS = ["marginalia/platform/src/main/java", "marginalia/src/main/java"]
 
 
 def git(*args, check=True):
@@ -51,11 +53,12 @@ def sources(rev):
     """{path: text} of the java files of the application at `rev` (None: the files on disk)."""
     result = {}
     if rev is None:
-        for path in (ROOT / SRC).rglob("*.java"):
-            result[str(path.relative_to(ROOT))] = path.read_text(encoding="utf-8")
+        for src in SRCS:
+            for path in (ROOT / src).rglob("*.java"):
+                result[str(path.relative_to(ROOT))] = path.read_text(encoding="utf-8")
         return result
     # one `git grep` finds the interesting files, one `cat-file --batch` reads them: no process per file
-    names = git("grep", "-l", "-E", "@Extendable|@PublicAPI", rev, "--", SRC, check=False).splitlines()
+    names = git("grep", "-l", "-E", "@Extendable|@PublicAPI", rev, "--", *SRCS, check=False).splitlines()
     names = [n.split(":", 1)[1] for n in names if ":" in n]
     if not names:
         return result

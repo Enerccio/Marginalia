@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.ui.components;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.bound.ProblemLog;
 import com.github.enerccio.marginalia.bound.SessionPoint;
 import com.github.enerccio.marginalia.bound.UiProblem;
@@ -19,6 +20,7 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole
 import com.github.enerccio.marginalia.domain.service.manual.UiStateSource;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.LLMSnapshot;
@@ -108,11 +110,11 @@ public class HelpAssistantWidget extends Div {
         request = WindowRun.of(this, NotificationService.HELP_ASSISTANT, () -> loc.getValue(L.LABEL_HELP_ASSISTANT));
         history = sessionPoint.getHelpChat();
         problems = sessionPoint.getProblems();
-        addClassName(CssStyles.HELP_ROOT);
+        addClassName(MarginaliaCssStyles.HELP_ROOT);
 
         fab = new Button(Solid.ROBOT.create(), e -> toggle());
         fab.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        fab.addClassName(CssStyles.HELP_FAB);
+        fab.addClassName(MarginaliaCssStyles.HELP_FAB);
         fab.setTooltipText(loc.getValue(L.LABEL_HELP_ASSISTANT));
 
         buildPanel();
@@ -156,7 +158,7 @@ public class HelpAssistantWidget extends Div {
         header.setWidthFull();
         header.setAlignItems(FlexComponent.Alignment.CENTER);
         header.expand(title);
-        header.addClassName(CssStyles.HELP_HEADER);
+        header.addClassName(MarginaliaCssStyles.HELP_HEADER);
 
         infoSpan = new Span();
         infoSpan.addClassNames(CssStyles.TEXT_SECONDARY, CssStyles.TEXT_S);
@@ -164,42 +166,42 @@ public class HelpAssistantWidget extends Div {
         infoRow.addClassName(CssStyles.PADDING_COMPACT);
 
         // the books of the user go to the AI that answers, so it is the user's choice, kept in their settings
-        booksBox = new Checkbox(loc.getValue(L.LABEL_HELP_BOOKS_ACCESS));
+        booksBox = new Checkbox(loc.getValue(M_L.LABEL_HELP_BOOKS_ACCESS));
         booksBox.addValueChangeListener(e -> {
             if (!loadingBooks) {
                 saveBooksAllowed(e.getValue());
             }
         });
-        Span booksNotice = new Span(loc.getValue(L.MSG_HELP_BOOKS_NOTICE));
+        Span booksNotice = new Span(loc.getValue(M_L.MSG_HELP_BOOKS_NOTICE));
         booksNotice.addClassNames(CssStyles.TEXT_SECONDARY, CssStyles.TEXT_S);
         Div booksRow = new Div(booksBox, booksNotice);
         booksRow.addClassName(CssStyles.PADDING_COMPACT);
 
-        warning = new Div(new Span(loc.getValue(L.MSG_HELP_LIMITS_APPLY)));
-        warning.addClassName(CssStyles.HELP_WARNING);
+        warning = new Div(new Span(loc.getValue(M_L.MSG_HELP_LIMITS_APPLY)));
+        warning.addClassName(MarginaliaCssStyles.HELP_WARNING);
         warning.setVisible(false);
 
         messages = new Div();
-        messages.addClassName(CssStyles.HELP_MESSAGES);
+        messages.addClassName(MarginaliaCssStyles.HELP_MESSAGES);
 
         input = new TextField();
-        input.setPlaceholder(loc.getValue(L.LABEL_ASK_ABOUT_MARGINALIA));
+        input.setPlaceholder(loc.getValue(M_L.LABEL_ASK_ABOUT_MARGINALIA));
         input.setClearButtonVisible(true);
         input.setWidthFull();
         input.addKeyDownListener(Key.ENTER, e -> send());
 
         sendButton = new Button(Solid.PAPER_PLANE.create(), e -> send());
         sendButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        Tooltip.forComponent(sendButton).setText(loc.getValue(L.LABEL_SEND));
+        Tooltip.forComponent(sendButton).setText(loc.getValue(M_L.LABEL_SEND));
 
         HorizontalLayout inputRow = new HorizontalLayout(input, sendButton);
         inputRow.setWidthFull();
         inputRow.setAlignItems(FlexComponent.Alignment.CENTER);
         inputRow.expand(input);
-        inputRow.addClassName(CssStyles.HELP_INPUT);
+        inputRow.addClassName(MarginaliaCssStyles.HELP_INPUT);
 
         panel = new Div(header, infoRow, booksRow, warning, messages, inputRow);
-        panel.addClassName(CssStyles.HELP_PANEL);
+        panel.addClassName(MarginaliaCssStyles.HELP_PANEL);
         panel.setVisible(false);
     }
 
@@ -236,7 +238,7 @@ public class HelpAssistantWidget extends Div {
         }
         String ai = info.model() == null || info.model().equals(info.aiName())
                 ? info.aiName() : info.aiName() + " (" + info.model() + ")";
-        infoSpan.setText(String.format(loc.getValue(L.MSG_HELP_ANSWERING_WITH), ai));
+        infoSpan.setText(String.format(loc.getValue(M_L.MSG_HELP_ANSWERING_WITH), ai));
         warning.setVisible(info.metered());
         loadBooksAllowed();
         panel.setVisible(true);
@@ -284,7 +286,7 @@ public class HelpAssistantWidget extends Div {
             copy = new ArrayList<>(history);
         }
         if (copy.isEmpty()) {
-            messages.add(assistantCard(loc.getValue(L.MSG_HELP_WELCOME)));
+            messages.add(assistantCard(loc.getValue(M_L.MSG_HELP_WELCOME)));
             return;
         }
         for (LLMChatMessage message : copy) {
@@ -303,7 +305,7 @@ public class HelpAssistantWidget extends Div {
     private Div userCard(String text) {
         Div card = new Div();
         card.setText(text);
-        card.addClassNames(CssStyles.HELP_MESSAGE, CssStyles.HELP_MESSAGE_USER);
+        card.addClassNames(MarginaliaCssStyles.HELP_MESSAGE, MarginaliaCssStyles.HELP_MESSAGE_USER);
         return card;
     }
 
@@ -313,7 +315,7 @@ public class HelpAssistantWidget extends Div {
             locals = {@APILocals(name = "card", type = Markdown.class)})
     private Markdown assistantCard(String text) {
         Markdown card = new Markdown(text);
-        card.addClassName(CssStyles.HELP_MESSAGE);
+        card.addClassName(MarginaliaCssStyles.HELP_MESSAGE);
         return card;
     }
 
@@ -490,7 +492,7 @@ public class HelpAssistantWidget extends Div {
     private void setGenerating(boolean value) {
         generating = value;
         sendButton.setIcon((value ? Solid.STOP : Solid.PAPER_PLANE).create());
-        Tooltip.forComponent(sendButton).setText(loc.getValue(value ? L.LABEL_STOP : L.LABEL_SEND));
+        Tooltip.forComponent(sendButton).setText(loc.getValue(value ? L.LABEL_STOP : M_L.LABEL_SEND));
         clearButton.setEnabled(!value);
     }
 
@@ -609,7 +611,7 @@ public class HelpAssistantWidget extends Div {
                 messages.remove(answerCard);
             } else {
                 answerCard.setContent(error);
-                answerCard.addClassName(CssStyles.HELP_MESSAGE_ERROR);
+                answerCard.addClassName(MarginaliaCssStyles.HELP_MESSAGE_ERROR);
             }
             // so that it can be sent again
             if (input.isEmpty()) {

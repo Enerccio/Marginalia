@@ -15,7 +15,8 @@ import java.util.function.UnaryOperator;
 
 /**
  * Asks a speech server whether it is there: {@code GET /api/model-info}, which Chatterbox-TTS-Server answers also when no model is
- * loaded (it says the server is up, not the model). Nothing is started or loaded by it.
+ * loaded (it says the server is up, not the model); for Higgs Audio v3 ComfyUI and its node ({@link HiggsComfyBackend#check}). Nothing is started or
+ * loaded by it.
  */
 public final class ServerCheck {
 
@@ -38,6 +39,9 @@ public final class ServerCheck {
     public static Result checkWithKey(BackendConfig config, String apiKey) throws BackendException {
         if (config.getBaseUrl().isBlank()) {
             throw new BackendException("The address of the server is empty");
+        }
+        if (config.isHiggs()) {
+            return HiggsComfyBackend.check(config, apiKey);
         }
         URI uri = UrlGuard.check(config.getBaseUrl().strip().replaceAll("/+$", "") + "/api/model-info", config.isLocal());
         HttpRequest.Builder builder = Http.request(uri, TIMEOUT_SECONDS).GET();

@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.db;
 
 import com.github.enerccio.marginalia.Configuration;
 import com.github.enerccio.marginalia.DatabaseCheck;
+import com.github.enerccio.marginalia.MarginaliaDatabase;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -53,7 +54,7 @@ class DatabaseRestoreCheckTest {
 
     private File marginaliaDatabase(String name, Consumer<JdbcTemplate> afterMigration) {
         return database(name, jdbc -> {
-            new Flyway(DatabaseCheck.flywayConfiguration(jdbc.getDataSource())).migrate();
+            new Flyway(DatabaseCheck.flywayConfiguration(jdbc.getDataSource(), MarginaliaDatabase.SCHEMA)).migrate();
             afterMigration.accept(jdbc);
         });
     }
@@ -81,7 +82,7 @@ class DatabaseRestoreCheckTest {
     void acceptsMigratedDatabase() {
         File db = marginaliaDatabase("ok.sqlite", _ -> {
         });
-        assertThatCode(() -> DatabaseCheck.check(db)).doesNotThrowAnyException();
+        assertThatCode(() -> DatabaseCheck.check(db, MarginaliaDatabase.SCHEMA)).doesNotThrowAnyException();
     }
 
     @Test
@@ -91,14 +92,14 @@ class DatabaseRestoreCheckTest {
             jdbc.execute("PRAGMA journal_mode=WAL");
             jdbc.execute("VACUUM INTO '" + copy.getAbsolutePath() + "'");
         });
-        assertThatCode(() -> DatabaseCheck.check(copy)).doesNotThrowAnyException();
+        assertThatCode(() -> DatabaseCheck.check(copy, MarginaliaDatabase.SCHEMA)).doesNotThrowAnyException();
     }
 
     @Test
     void rejectsFileThatIsNotSqlite() throws Exception {
         File file = tempDir.resolve("text.sqlite").toFile();
         Files.writeString(file.toPath(), "definitely not a database, but long enough", StandardCharsets.UTF_8);
-        assertThatThrownBy(() -> DatabaseCheck.check(file))
+        assertThatThrownBy(() -> DatabaseCheck.check(file, MarginaliaDatabase.SCHEMA))
                 .isInstanceOf(DatabaseCheck.InvalidDatabaseException.class)
                 .hasMessageContaining("not a SQLite database");
     }
@@ -106,9 +107,9 @@ class DatabaseRestoreCheckTest {
     @Test
     void rejectsOtherSqliteDatabase() {
         File db = database("other.sqlite", jdbc -> jdbc.execute("CREATE TABLE notes (id INTEGER PRIMARY KEY, text TEXT)"));
-        assertThatThrownBy(() -> DatabaseCheck.check(db))
+        assertThatThrownBy(() -> DatabaseCheck.check(db, MarginaliaDatabase.SCHEMA))
                 .isInstanceOf(DatabaseCheck.InvalidDatabaseException.class)
-                .hasMessageContaining("not a Marginalia database");
+                .hasMessageContaining("not a database of this application");
     }
 
     @Test
@@ -116,7 +117,7 @@ class DatabaseRestoreCheckTest {
         File db = marginaliaDatabase("newer.sqlite", jdbc -> jdbc.update(
                 "INSERT INTO flyway_schema_history (installed_rank, version, description, type, script, checksum, "
                         + "installed_by, execution_time, success) VALUES (999, '999', 'future', 'SQL', 'V999__future.sql', 0, '', 0, 1)"));
-        assertThatThrownBy(() -> DatabaseCheck.check(db))
+        assertThatThrownBy(() -> DatabaseCheck.check(db, MarginaliaDatabase.SCHEMA))
                 .isInstanceOf(DatabaseCheck.InvalidDatabaseException.class)
                 .hasMessageContaining("newer version");
     }
@@ -125,7 +126,7 @@ class DatabaseRestoreCheckTest {
     void rejectsDatabaseWithFailedMigration() {
         File db = marginaliaDatabase("failed.sqlite", jdbc -> jdbc.update(
                 "UPDATE flyway_schema_history SET success = 0 WHERE installed_rank = (SELECT max(installed_rank) FROM flyway_schema_history)"));
-        assertThatThrownBy(() -> DatabaseCheck.check(db))
+        assertThatThrownBy(() -> DatabaseCheck.check(db, MarginaliaDatabase.SCHEMA))
                 .isInstanceOf(DatabaseCheck.InvalidDatabaseException.class)
                 .hasMessageContaining("failed migration");
     }
@@ -170,7 +171,7 @@ class DatabaseRestoreCheckTest {
                 jdbc.execute("CREATE TABLE " + table + " (id INTEGER)");
             }
         });
-        assertThatCode(() -> DatabaseCheck.check(broken)).doesNotThrowAnyException();
+        assertThatCode(() -> DatabaseCheck.check(broken, MarginaliaDatabase.SCHEMA)).doesNotThrowAnyException();
         File pending = stageRestore(broken);
 
         configuration.resolveDb(DB);

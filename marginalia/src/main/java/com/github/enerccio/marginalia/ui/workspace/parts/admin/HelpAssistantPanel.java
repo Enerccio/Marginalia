@@ -8,6 +8,8 @@ import com.github.enerccio.marginalia.domain.service.HelpAssistantService.Settin
 import com.github.enerccio.marginalia.domain.service.manual.HelpPrompts;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
@@ -57,7 +59,7 @@ public class HelpAssistantPanel implements LLMInteract {
         VerticalLayout layout = new VerticalLayout();
         layout.setSizeFull();
 
-        Span description = new Span(loc.getValue(L.HELP_ASSISTANT));
+        Span description = new Span(loc.getValue(M_L.HELP_ASSISTANT));
         description.addClassName(CssStyles.TEXT_SECONDARY);
 
         aiCombo = new ComboBox<>(loc.getValue(L.LABEL_MODEL));
@@ -66,11 +68,11 @@ public class HelpAssistantPanel implements LLMInteract {
         aiCombo.setItemLabelGenerator(AI::getName);
         aiCombo.setClearButtonVisible(true);
 
-        adminData = new Checkbox(loc.getValue(L.LABEL_HELP_ADMIN_DATA));
-        adminData.setHelperText(loc.getValue(L.HELP_ASSISTANT_ADMIN_DATA));
+        adminData = new Checkbox(loc.getValue(M_L.LABEL_HELP_ADMIN_DATA));
+        adminData.setHelperText(loc.getValue(M_L.HELP_ASSISTANT_ADMIN_DATA));
 
-        adminPrompt = promptArea(L.LABEL_HELP_PROMPT_ADMIN);
-        userPrompt = promptArea(L.LABEL_HELP_PROMPT_USER);
+        adminPrompt = promptArea(M_L.LABEL_HELP_PROMPT_ADMIN);
+        userPrompt = promptArea(M_L.LABEL_HELP_PROMPT_USER);
 
         Button save = new Button(loc.getValue(L.LABEL_SAVE), e -> save());
         save.setThemeName("primary");
@@ -81,13 +83,13 @@ public class HelpAssistantPanel implements LLMInteract {
         return layout;
     }
 
-    @PublicAPI(from = "1.4.0",
+    @PublicAPI(from = "1.9.0",
             returns = @APIReturn(type = TextArea.class),
-            parameters = {@APIParameter(name = "label", type = L.class)},
+            parameters = {@APIParameter(name = "label", type = LocalizationKey.class)},
             locals = {@APILocals(name = "area", type = TextArea.class)})
-    private TextArea promptArea(L label) {
+    private TextArea promptArea(LocalizationKey label) {
         TextArea area = new TextArea(loc.getValue(label));
-        area.setHelperText(loc.getValue(L.HELP_ASSISTANT_PROMPT));
+        area.setHelperText(loc.getValue(M_L.HELP_ASSISTANT_PROMPT));
         area.setWidthFull();
         area.setMinRows(6);
         area.setMaxRows(14);

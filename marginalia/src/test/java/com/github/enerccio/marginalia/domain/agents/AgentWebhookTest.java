@@ -5,13 +5,13 @@ import com.github.enerccio.marginalia.domain.collections.WebhookFormat;
 import com.github.enerccio.marginalia.domain.model.impl.Agent;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
+import com.github.enerccio.marginalia.domain.security.OutboundAddressGuard;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.permissions.PermissionType;
 import com.github.enerccio.marginalia.domain.service.AgentAttentionService;
 import com.github.enerccio.marginalia.domain.service.AgentAttentionService.Notice;
 import com.github.enerccio.marginalia.domain.service.AgentWebhookService;
 import com.github.enerccio.marginalia.domain.service.SettingService;
-import com.github.enerccio.marginalia.domain.service.impl.AgentWebhookServiceImpl;
 import com.github.enerccio.marginalia.test.AgentTestBase;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -271,10 +271,10 @@ class AgentWebhookTest extends AgentTestBase {
         for (String local : new String[]{"127.0.0.1", "127.1.2.3", "10.0.0.5", "172.16.4.1", "192.168.1.20", "169.254.169.254",
                 "100.64.0.1", "0.0.0.0", "0.1.2.3", "224.0.0.1", "::1", "fe80::1", "fd12:3456::1", "fc00::1", "::", "::ffff:127.0.0.1",
                 "::ffff:10.1.1.1"}) {
-            assertThat(AgentWebhookServiceImpl.isLocal(InetAddress.getByName(local))).as(local).isTrue();
+            assertThat(OutboundAddressGuard.isPrivate(InetAddress.getByName(local))).as(local).isTrue();
         }
         for (String internet : new String[]{"8.8.8.8", "1.1.1.1", "93.184.216.34", "172.32.0.1", "100.128.0.1", "2606:4700:4700::1111"}) {
-            assertThat(AgentWebhookServiceImpl.isLocal(InetAddress.getByName(internet))).as(internet).isFalse();
+            assertThat(OutboundAddressGuard.isPrivate(InetAddress.getByName(internet))).as(internet).isFalse();
         }
     }
 

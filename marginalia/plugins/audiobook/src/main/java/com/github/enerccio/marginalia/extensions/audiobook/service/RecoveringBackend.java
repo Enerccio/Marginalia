@@ -2,7 +2,6 @@ package com.github.enerccio.marginalia.extensions.audiobook.service;
 
 import com.github.enerccio.marginalia.extensions.audiobook.AudiobookLog;
 import com.github.enerccio.marginalia.extensions.httphooks.BackendException;
-import com.github.enerccio.marginalia.extensions.httphooks.GpuGate;
 import com.github.enerccio.marginalia.extensions.httphooks.ServerGoneException;
 
 import java.util.List;
@@ -20,7 +19,7 @@ import java.util.List;
 final class RecoveringBackend implements SpeechBackend {
 
     private final SpeechBackend inner;
-    private final GpuGate.Step restart;
+    private final SpeechBatch.Hooks restart;
     private final int restartEvery;
     private int made;
     private BackendException broken;
@@ -29,7 +28,7 @@ final class RecoveringBackend implements SpeechBackend {
      * @param restart      stops the server and starts it again, the requests of the backend (may fail)
      * @param restartEvery restart before the piece that follows this many pieces; 0: never
      */
-    RecoveringBackend(SpeechBackend inner, GpuGate.Step restart, int restartEvery) {
+    RecoveringBackend(SpeechBackend inner, SpeechBatch.Hooks restart, int restartEvery) {
         this.inner = inner;
         this.restart = restart;
         this.restartEvery = Math.max(0, restartEvery);

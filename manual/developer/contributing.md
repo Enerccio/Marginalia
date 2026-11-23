@@ -1,7 +1,7 @@
 ---
 label: Contributing
 order: 870
-verified: 16e77d0d1
+verified: f337fe83d
 covers:
   - CONTRIBUTING.md
   - CLAUDE.md
@@ -118,10 +118,12 @@ There is no formatter configuration in the repository; match the code around you
   are detached; reload them through the service before changing them.
 - **The current user** comes from the session-scoped `User` bean; services check ownership (`findForUser`) - the UI
   must not be the only thing protecting other users' data.
-- **UI text** is never hard-coded: add a key to `loc/L.java` and the text to `loc/LocalizationBundleEN.java` (and to
-  `LocalizationBundleJP.java`, `LocalizationBundleFR.java`, `LocalizationBundleES.java`, `LocalizationBundleDE.java`, `LocalizationBundleKO.java`, `LocalizationBundleIT.java` and the Chinese plugin's `LocalizationBundleZH.java`; a language without the key shows
-  the English text), and
-  use `loc.getValue(L.KEY)` (see [User interface](ui.md#text)).
+- **UI text** is never hard-coded: add a key to `loc/M_L.java` (a text of the application) or `loc/L.java` (a text
+  of the platform) and the text to its English bundle,
+  `loc/MarginaliaLocalizationBundleEN.java` or `loc/LocalizationBundleEN.java` (and to the `JP`, `FR`, `ES`, `DE`,
+  `KO` and `IT` ones of the same enum and the Chinese plugin's `MarginaliaLocalizationBundleZH.java` /
+  `LocalizationBundleZH.java`; a language without the key shows the English text), and
+  use `loc.getValue(M_L.KEY)` (see [User interface](ui.md#text)).
 - **Plugin UI text** goes through the `PluginLocalizationBundle` of the plugin: the English text is a `public static final String` constant
   of the bundle class, named after its words, never a literal at the call site (`T.localized(EXPORT_INSTRUCTIONS)`); the Japanese, Chinese, French, Spanish, German, Korean and Italian
   texts are `ja(...)` / `zh(...)` / `fr(...)` / `es(...)` / `de(...)` / `ko(...)` / `it(...)` calls in `loadKeys()` that take the constant as the key (see
@@ -152,9 +154,13 @@ no build) sends one chat completion to the AI set up in your dev database `~/.ma
 
 `python3 tools/plugin_api_diff.py <tag> [<tag>] [--changelog]` prints the `@PublicAPI` methods and fields that changed between two git revisions, for the plugin-visible part of the CHANGELOG (see [@Extendable hooks](plugins/extendable.md#the-public-api)).
 
+`python3 tools/marginalia_api.py` is a command line client of the [HTTP API](api.md) (standard library only; the server and the key come
+from `MARGINALIA_URL` and `MARGINALIA_API_KEY_FILE`): the version of a server, whether plugins can be installed without an update,
+installing them. `tools/version_from_tag.sh` sets every POM to the version of a `v*` tag in the release builds ([Packaging](packaging.md#making-a-release)).
+
 `tools/update-watcher` is the host side of *Admin → Update* of a Docker installation: `watch.sh` runs `bin/rebuild.sh` when the application asks for it, `install.sh` makes it systemd units (see [Packaging](packaging.md)).
 
-`tools/gpu-control` is a small controller (FastAPI, `gpu_control.py`, with its own README and compose file) that starts and stops the containers that take turns on one GPU (a speech server, ComfyUI), behind a Docker socket proxy; the Audiobook and the Image Generator call it through the requests before and after a batch, see [Setting up the speech server](../user/extensions/audiobook-server.md). `tools/workset_run.sh` runs the dataset harness with the plugins on the classpath ([The dataset book](testing.md#the-dataset-book)).
+`tools/gpu-control` is a small controller (Python standard library, `gpu_control.py`, with its own README, compose file and tests) that starts and stops the containers that take turns on one GPU (a speech server, ComfyUI), behind a Docker socket proxy, and unloads the models of a `llama-server` router except the ones a caller keeps (`POST /llama/unload`); the acquire and release steps of a [GPU lock](plugins/gpu-locks.md) call it (through LiteLLM pass-throughs), see [Setting up the speech server](../user/extensions/audiobook-server.md). `tools/workset_run.sh` runs the dataset harness with the plugins on the classpath ([The dataset book](testing.md#the-dataset-book)).
 
 ## Documentation
 

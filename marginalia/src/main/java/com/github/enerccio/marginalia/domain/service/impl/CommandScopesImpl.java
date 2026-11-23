@@ -70,7 +70,15 @@ public class CommandScopesImpl implements CommandScopes {
         if (manuscript == null || manuscript.getId() == null) {
             throw new IllegalArgumentException("The book does not exist");
         }
-        return new FixedBookScope(manuscript);
+        return new FixedBookScope(manuscript, false);
+    }
+
+    @Override
+    public CommandScope forApi(Manuscript manuscript, boolean confirm) {
+        if (manuscript != null && manuscript.getId() == null) {
+            throw new IllegalArgumentException("The book does not exist");
+        }
+        return new FixedBookScope(manuscript, confirm);
     }
 
     /**
@@ -191,18 +199,23 @@ public class CommandScopesImpl implements CommandScopes {
     }
 
     /**
-     * A template: one given book, nobody to ask.
+     * A template (nobody to ask, the answer is no) or a call of the API (the caller answered with the call): one given book, or none.
      */
     private final class FixedBookScope extends BookScope {
 
         private final Manuscript manuscript;
+        private final boolean answer;
 
-        FixedBookScope(Manuscript manuscript) {
+        FixedBookScope(Manuscript manuscript, boolean answer) {
             this.manuscript = manuscript;
+            this.answer = answer;
         }
 
         @Override
         Manuscript book() throws Exception {
+            if (manuscript == null) {
+                return null;
+            }
             Manuscript current = manuscriptService.find(manuscript.getId());
             return current == null || current.isDeleted() ? null : current;
         }
@@ -214,7 +227,7 @@ public class CommandScopesImpl implements CommandScopes {
 
         @Override
         public boolean confirm(CommandContext context, String question) {
-            return false;
+            return answer && !context.isTerminated();
         }
     }
 

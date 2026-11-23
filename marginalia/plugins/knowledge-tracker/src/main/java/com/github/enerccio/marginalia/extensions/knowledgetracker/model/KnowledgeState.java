@@ -1,14 +1,21 @@
 package com.github.enerccio.marginalia.extensions.knowledgetracker.model;
 
+import com.github.enerccio.marginalia.extensions.storytracker.process.Part;
+import com.github.enerccio.marginalia.extensions.storytracker.process.ProcessedPart;
+import com.github.enerccio.marginalia.extensions.storytracker.process.TrackerProgress;
+import com.github.enerccio.marginalia.extensions.storytracker.scene.PresentCharacters;
+
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
 
 /**
  * Everything the plugin keeps for a book: the settings, the tracked characters and where the processing stands. Stored
  * in the book's attributes under {@link #KEY}, so it travels with backups.
  */
-public class KnowledgeState {
+public class KnowledgeState implements TrackerProgress {
 
     public static final String KEY = "com.github.enerccio.marginalia.extensions.knowledgetracker";
 
@@ -60,8 +67,40 @@ public class KnowledgeState {
      *
      * @return how many things changed
      */
+    @Override
     public int rewind(Predicate<String> dropped) {
         return getCharacters().stream().mapToInt(c -> c.rewind(dropped)).sum();
+    }
+
+    /**
+     * The "has met" pass: a tracked character that is in the present characters field of the part has met every name in
+     * it.
+     */
+    @Override
+    public void read(Part part, Collection<String> separators) {
+        List<String> names = PresentCharacters.parse(part.presentCharacters(), separators);
+        Set<String> present = PresentCharacters.normalizedNames(part.presentCharacters(), separators);
+        for (TrackedCharacter character : getCharacters()) {
+            if (PresentCharacters.isPresent(present, character.getName(), character.getAliases())) {
+                for (String name : names) {
+                    character.addMet(name, part.uuid());
+                }
+            }
+        }
+    }
+
+    /**
+     * This state, read from a checkpoint, takes the place of {@code current}: what the author set up for the book (the settings and
+     * the start point) stays as it is now, everything the tracker followed (the characters, the cursor, the processed parts, the
+     * count for the tidy, the log) is the checkpoint's.
+     */
+    public void keepSetupOf(KnowledgeState current) {
+        this.settings = current.getSettings();
+        this.startMessage = current.getStartMessage();
+    }
+
+    public void setSettings(BookSettings settings) {
+        this.settings = settings;
     }
 
     public BookSettings getSettings() {
@@ -78,6 +117,7 @@ public class KnowledgeState {
         return characters;
     }
 
+    @Override
     public List<ProcessedPart> getProcessed() {
         if (processed == null) {
             processed = new ArrayList<>();
@@ -106,6 +146,7 @@ public class KnowledgeState {
         return changeLog;
     }
 
+    @Override
     public String getStartMessage() {
         return startMessage;
     }
@@ -114,10 +155,12 @@ public class KnowledgeState {
         this.startMessage = startMessage;
     }
 
+    @Override
     public String getCursor() {
         return cursor;
     }
 
+    @Override
     public void setCursor(String cursor) {
         this.cursor = cursor;
     }

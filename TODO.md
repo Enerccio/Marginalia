@@ -88,8 +88,9 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
      (macOS Gatekeeper, Windows SmartScreen) is deliberately not planned: it costs money and nobody pays for it, so
      users get the unsigned archives and the manual explains the warnings. ✅ App icon (`src/desktop/icons`: `.icns`,
      `.ico`, `.png` for jpackage, the tray icon and the browser favicon / PWA icon). ✅ Installers (`.deb`, `.dmg`, `.msi`,
-     `desktop-installer` execution, attached to releases) and the `-full` ones with all built-in plugins. Still missing: the release version is the pom version, not
-     the tag; signing; an `.rpm`/AppImage if somebody asks.
+     `desktop-installer` execution, attached to releases) and the `-full` ones with all built-in plugins. ✅ The release version is the tag: a `v*` build sets every POM to
+     it first (`tools/version_from_tag.sh`, every building job of `desktop.yml` and `server.yml`; a `pom.xml` that says another
+     version only warns). Not planned: signing; an `.rpm`/AppImage if somebody asks.
 
 9. **WAR size / dependency hygiene.** The WAR was ~200 MB. `tika-parsers-standard-package` + `tika-async-cli`
    were unused and are removed (the WAR is ~185 MB; the export tests declare PDFBox themselves). `Resource` is now used for the image attachments of parts (story editor, exports) and listed in the Resources tab. Logging moved from `slf4j-log4j12` + `reload4j` to logback (`log4j-to-slf4j` for the `log4j-api` of POI). ✅ Done.
@@ -837,20 +838,29 @@ numbers of the older items stable), the rest is P3/P4.
     readable existing one logs a warning. The data folder is left alone on purpose: in Docker it is a bind mount that the
     host user must open (backups). Original text: no `PosixFilePermission` anywhere in the core, so on a shared Linux host
     the key was world-readable under the usual umask.
-79. **One outbound address guard, resolved once.** The agent webhook (`AgentWebhookService`) and the image generator (35:
-    "resolves the host twice") both check the host and then let the HTTP client resolve it again, which a DNS-rebinding
-    host passes. Resolve once and connect to that address (or a custom `InetAddressResolver` for the client), in one shared
-    class (`http-hooks` already serves plugins), with a test class for the SSRF cases: `security/` holds one test now.
-    With it: audit the `new Html(...)` call sites that rely on the caller escaping (`OutdatedSummariesDialog`, `HtmlText`).
-80. **CI: dependency updates, vulnerability scan, coverage.** No Dependabot, no OWASP Dependency-Check and no JaCoCo in the
-    poms or `.github/workflows`, while the WAR carries POI, PDFBox, OpenPDF, Jetty, Hibernate and a Node toolchain.
-    Dependabot (Maven + GitHub Actions + the `screenshots` npm), a weekly scan job that does not block a build, and JaCoCo
-    as a report only, so "well tested" is a number.
-81. **A smoke test for every plugin.** 12 of the plugins have no tests, and the plugin API is the internals of the core. One
-    shared harness that installs each built JAR into a test context (the `extensions` tests already load bundles), checks
-    that `onExtensionLoad` passes, that every decorator names a method that exists with those arguments and locals
-    (`@PublicAPI` has the data) and that unload leaves nothing registered (decorators, CSS, shortcuts, commands). It turns
-    "a refactor broke a plugin" from a runtime surprise into a red build.
+79. ~~**One outbound address guard, resolved once.**~~ ✅ Done — `OutboundAddressGuard` (`domain.security`, plain JDK, plugins see it):
+    one `isPrivate` for the webhook and `http-hooks` (the webhook's lacked the IPv4-in-IPv6 cases), and `publicOnly(HttpClient.Builder)`, a proxy selector
+    that looks the host up once at the connection, refuses a private answer and for `http` connects to exactly that address (named as the proxy: the
+    request line carries the URL, the `Host` header stays). `https` is connected directly; the certificate check stands for the second lookup. The
+    webhook sends with it for users without local addresses, `Http.send` for every URI `UrlGuard.check(url, false)` passed. Tests:
+    `security/OutboundAddressGuardTest` (rebinding with a lookup the test controls), `UrlGuardTest`. The `new Html(...)` audit found nothing open: the
+    dialogs and the story tree escape, `HtmlText` (markup) is only used by `Notification`, which escapes unless told not to and no caller does; both
+    say so in their Javadoc now. Not done: a URI built anew after the check (not equal to the one `UrlGuard.check` returned) is sent by the plain
+    client, so a plugin must send what the guard returned.
+
+80. ✅ **CI: dependency updates, vulnerability scan, coverage.** Done — `.github/dependabot.yml` (Maven from the root pom, grouped; Actions;
+    the Docker base images; the npm of `screenshots/`), `.github/workflows/health.yml` (weekly and by hand: OWASP Dependency-Check `aggregate` over the
+    application, libraries and plugins, the findings by severity in the summary, never failing; the `coverage` profile of `marginalia/pom.xml`,
+    JaCoCo as a report only, the line and branch numbers in the summary). Not done: the repository secret `NVD_API_KEY` must be set by the owner (without
+    it the first database download takes an hour or more); the first runs on GitHub are still to be watched (the scan has not run there yet).
+
+81. ✅ **A smoke test for every plugin.** Done — `extensions/smoke/PluginSmokeTest` (only with `-Dmarginalia.plugins=<folder of JARs | plugins>`): the
+    JARs on a real Felix framework inside the test context (`OsgiServiceImpl` made by the context), each must verify (`verifyExtension`: the decorators
+    against the `@Extendable` methods, their arguments, locals, fields and returns), load, and unload without anything of the application still
+    pointing into its class loader (`PluginLeakFinder`: the singletons, their statics, collections, maps, arrays). Run by the `plugins` job of
+    `desktop.yml`. The plugins without their own tests are down to three (`chaptermarker`, `instructionexporter`, `tts-reader`); the smoke test
+    covers their loading only.
+
 82. **A few browser flows in CI.** The UI tests run on server-side components; everything in `JavascriptLibrary` (marks,
     selection, popovers, scroll, lazy loading) is checked by hand. The screenshot pipeline already drives the real app with
     Playwright and a fake model: reuse it for a handful of asserting flows (log in, generate with streaming, swipe, edit and
@@ -882,24 +892,21 @@ numbers of the older items stable), the rest is P3/P4.
     AI as the queue of every request, the panel of the runs on every page (the live text of the model, the place in the queue, Stop,
     Open / Review, the end notified from another page), the model windows of the core and the plugins not modal (they fold into the
     panel and go on), the strict modal of the Real Language Translator removed, the story usable during a generation (only the written
-    part held), and what follows a part (annotate, redraft, translate, knowledge, audio) as one ordered phase on the server. Not done:
-    - **saves are not refused** under a `WRITE` hold (only deletes and a second writer are): it needs the thread scope of the work,
-      to tell the holder's own saves from someone else's;
-    - **the agent lock is not in the registry**: it stays a status in the database; starting an agent on a book that is open in a
-      window is not refused;
-    - `importTree` and search and replace do not ask the runs; the bulk statements were not looked at one by one;
-    - **no sweeper**: a run whose work never reaches its end holds until a restart (*End* in `/jobs` by hand);
-    - the panel has **no list of finished runs** (an entry goes when its run ends); only the resummary declares a notification for
-      when its page is gone;
-    - `/jobs`: the active jobs do not name their book, and have no Stop of their own (their runs have);
-    - the generation from the command bar is not held between the start of the command and the start of its generation;
-    - what follows a part: the author's generation does not go before the phase's requests at the model's queue, a parallel step is
-      not kept from writing the text of the part, the redraft by hand does not block the next generation;
-    - the merge of the part after a busy one into it is not refused, and a generation does not ask about an open redraft of the last
-      part (the changed-text check catches both);
-    - Side Query's tab name is not a run; the Knowledge Tracker keeps its own `ProgressPanel` beside the panel;
-    - not tested on a device: what a phone reports when its browser goes to the background;
-    - the developer docs flagged by `tools/check_dev_docs.py` are to be checked and stamped.
+    part held), and what follows a part (annotate, redraft, translate, knowledge, audio) as one ordered phase on the server. Finished
+    2026-11-17: a save of the part a generation writes is refused unless it comes from the generation's own threads (`Runs.saving`; its
+    event listeners and continuations are bound now); an agent's work session is a run (panel, `/jobs`, Stop pauses) and an agent does
+    not start on a book any run works on (`START_AGENT`; the lock itself stays the status of the agent run, it outlives the worker);
+    `importTree` holds its book and search and replace skips a part being generated; the sweeper (`Runs.sweep`, every minute: a
+    window whose page is gone, any other run nothing worked for in an hour); finished runs in the panel (`Runs.finishedOfUser`, two
+    hours, closed by the author); `/jobs` names the book of a job and stops its run; a command of the bar holds its book until its
+    generation starts (`GENERATION_COMMAND`); the author's generation goes before the requests of what follows a part at the model's
+    queue; a parallel step can not write the text of the part (`Runs.readingOnly`); the redraft window blocks the next generation (so a
+    generation is told about an open redraft); a merge into a part a run works on is refused; Side Query's tab name is a run; the
+    trackers' `ProgressPanel` is a `FloatingWindow` that follows its run. Not done:
+    - **(check)** on a phone, what a browser in the background reports (not tested on a device);
+    - **(check)** in a real browser: the finished list, the tracker panel folding into the corner, the agent's entry and its Stop;
+    - a notification for the end of a run whose page is gone exists only for the runs that declare one (the resummary, the summaries);
+    - the developer docs flagged by `tools/check_dev_docs.py` are to be stamped.
 
 ### Writing workflow
 
@@ -971,3 +978,47 @@ numbers of the older items stable), the rest is P3/P4.
      marks (generated text, search hits, annotation underlines) in both themes, and `prefers-reduced-motion`. A check
      list in `manual/developer/ui.md` keeps new widgets honest.
 
+
+## Proposed 2026-11-16 (not reviewed by the author yet)
+
+From a look over the feature list for what a writer would miss. Numbers continue the list above.
+
+### Prose quality
+
+103. ✅ **Phrase watch list (clichés as annotations, not banned tokens).** Done in core (see the CHANGELOG): lists in the user settings, folders and books (added up, an entry can replace or switch off an inherited one), annotation templates in the user settings, a step after the automatic annotation and *Save and scan the story* for the active branch. Finished 2026-11-17: a range of the active branch in the dialog, the command `/scan-phrases [from to]`, the parts an agent generates are scanned (the answer of its command says how many notes), and an automatic redraft applied without asking is scanned again and redrafted again for new hits, three rounds at most (`AutoAnnotateSteps.REDRAFT_ROUNDS`; a resolved note whose phrase is still there no longer keeps the hit from a new note). Open: nothing. A list of phrases and regular expressions per
+     book or folder (inherited like the prompts, `FolderService.findChain`), matched against every finished part with no
+     model call; every hit becomes an annotation of source *extension* (54, `/create-annotation`). The rest is what the
+     annotations already do: *Redraft to address the notes* rewrites only those passages, *Apply the redraft without
+     asking* makes it hands-off, *Dismiss* keeps a hit that is fine (in dialogue, say). A command scans a range of parts
+     of a book that is already written. The note is not given to the model on later generations by default (naming the
+     phrase in the prompt primes it), and a hands-off redraft needs a retry cap.
+     **Not** as banned tokens / `logit_bias`, and not as an option either:
+     - A phrase is known to be that phrase only after its first tokens are out. The ban then hits in the middle of a
+       cliché that has already begun, and the model has to bend the sentence to end it some other way, which reads worse
+       than the cliché. A check of the finished part rewrites the whole passage instead.
+     - A phrase is not a token: a ban takes its words out everywhere, or only its first token and the model writes the
+       nearest synonym.
+     - Token ids differ per model and `logit_bias` support differs per server, so a list would not survive a switch of
+       the model.
+104. 🧩 **Style samples.** A few passages of the author's own prose (per book or folder) put into the prompt as the
+     reference for the voice, the way Author's Note puts in a note. The useful half of 47 (style fingerprint) without
+     the metrics; the passages could be offered from the parts the author wrote or edited most (49 knows which).
+
+### Long-form continuity
+
+105. **Series: the next book knows the previous one.** Folders hand down the style and the prompts of a series and tags
+     its lore, but nothing carries the story over. A *previous book* link on a book: its summaries (or one meta summary
+     of the whole book) go into the prompt before the summaries of this one, and the trackers (knowledge, state,
+     characters) can start from where that book ended. Decide what is copied once and what is read live (a later edit of
+     book 1).
+106. 🧩 **Story timeline.** The State Tracker knows the state now and 40 proposes an in-world clock; nothing shows the
+     events in the order of story time. A date or offset per part (typed, or proposed by the model with the trackers'
+     batch), a timeline view over the active branch, and the current date and "how long ago" facts offered to the prompt
+     and to the annotation reviewer (`{{{facts}}}`): travel times, ages and "three days ago" are where long books break.
+
+### Sharing and distribution
+
+107. **Writing one book together.** 22 shares copies and the published view is read-only. Two users on one book, at
+     least by turns: the owner invites a user, both see the same tree, a part records who wrote its instructions, and
+     generation uses the AI of the one who asks (limits and usage stay per user). Ownership (`OwnedEntity`,
+     `findForUser`) is the hard part, so check what a second writer of one book means there before promising it.

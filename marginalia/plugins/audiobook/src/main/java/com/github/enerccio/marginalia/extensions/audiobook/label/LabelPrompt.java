@@ -14,6 +14,11 @@ public final class LabelPrompt {
 
     /** At most one sound tag per this many words of the part (the model uses them freely otherwise). */
     private static final int WORDS_PER_TAG = 80;
+    /**
+     * The same for Higgs, whose sounds (and moods) are the reason to choose it: with 80 a dialogue of 170 words got exactly two tags in 3 of 3 samples, the
+     * giggle, the laugh, the moan and the crying the text named were left out.
+     */
+    private static final int WORDS_PER_TAG_HIGGS = 30;
 
     private LabelPrompt() {
     }
@@ -21,13 +26,31 @@ public final class LabelPrompt {
     /** The key of the inherited setting (book, folders, the user, the built-in {@link AudiobookDefaults#labelTemplate()}). */
     public static final String SETTING = "audiobook.labelPrompt";
 
-    /** The variables of the template for the characters of a part. */
+    /** The variables of the template for the characters of a part, with the tags of Chatterbox Turbo. */
     public static LabelPromptData data(List<String> characters) {
+        return data(characters, null);
+    }
+
+    /**
+     * The variables of the template for the characters of a part.
+     *
+     * @param model the speech model of the book: its sound tags are offered (a model without tags gets Turbo's, which it drops, as before)
+     */
+    public static LabelPromptData data(List<String> characters, String model) {
+        return data(characters, model, false);
+    }
+
+    /**
+     * @param extras the cast of the book has base voices for unnamed speakers: the instruction asks for their gender and age. Only then: the labels
+     *               are cached by the instruction, so a sentence added for every book would have every part labelled again.
+     */
+    public static LabelPromptData data(List<String> characters, String model, boolean extras) {
         LabelPromptData data = new LabelPromptData();
+        data.setExtras(extras);
         data.setCharacters(String.join(", ", characters));
         data.setDeliveries(deliveries());
-        data.setTags(tags());
-        data.setWordsPerTag(WORDS_PER_TAG);
+        data.setTags(tags(model));
+        data.setWordsPerTag(com.github.enerccio.marginalia.extensions.audiobook.model.BackendConfig.MODEL_HIGGS.equals(model) ? WORDS_PER_TAG_HIGGS : WORDS_PER_TAG);
         return data;
     }
 
@@ -37,8 +60,18 @@ public final class LabelPrompt {
      * @throws Exception when the template is not valid
      */
     public static String system(TemplateService templates, String template, List<String> characters) throws Exception {
+        return system(templates, template, characters, null);
+    }
+
+    /** The system message for a book spoken by the model (its sound tags are the ones offered). */
+    public static String system(TemplateService templates, String template, List<String> characters, String model) throws Exception {
+        return system(templates, template, characters, model, false);
+    }
+
+    /** The system message, asking for the gender and the age of unnamed speakers when {@code extras} (see {@link #data(List, String, boolean)}). */
+    public static String system(TemplateService templates, String template, List<String> characters, String model, boolean extras) throws Exception {
         String text = template == null || template.isBlank() ? T.defaults().labelTemplate() : template;
-        return templates.processTemplate(text, "audiobookLabelPrompt", data(characters)).strip();
+        return templates.processTemplate(text, "audiobookLabelPrompt", data(characters, model, extras)).strip();
     }
 
     private static String deliveries() {
@@ -49,9 +82,15 @@ public final class LabelPrompt {
         return all.toString();
     }
 
-    private static String tags() {
+    /** The tags the labelling may use for the model; a model without tags gets Turbo's (the script drops them for it). */
+    public static List<String> tagsOf(String model) {
+        List<String> tags = Tags.forModel(model);
+        return tags.isEmpty() ? Tags.TURBO : tags;
+    }
+
+    private static String tags(String model) {
         StringBuilder all = new StringBuilder();
-        for (String tag : Tags.ALLOWED) {
+        for (String tag : tagsOf(model)) {
             all.append(all.isEmpty() ? "" : " ").append('[').append(tag).append(']');
         }
         return all.toString();

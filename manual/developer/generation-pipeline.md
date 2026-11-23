@@ -1,7 +1,7 @@
 ---
 label: Generation pipeline
 order: 930
-verified: f7e7de02b
+verified: f337fe83d
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/generation
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/StoryGenerationServiceImpl.java
@@ -213,7 +213,7 @@ Skipped when the book has no lorebook. Otherwise:
 6. **Insert**: payloads with `IN_LORE_BLOCK` are joined into `backgroundLore` (the master template's
    `{{backgroundLore}}`); payloads with `BEFORE_USER_PROMPT` are joined into `backgroundUserLore` and put in front of
    the user prompt. The images in the content (`![caption](resource:<uuid>)`, `LoreImages`) are not in the text:
-   `renderPayload` (and the recursion scan) strips them. When the AI has `sendLoreImages` they are listed in
+   `renderPayload` (and the recursion scan) strips them. When the AI is multimodal (`isMultimodal()`) they are listed in
    `GenerationProperties.LORE_IMAGES` (`List<LoreImage>`: entry name, caption, resource uuid, insertion mode, in the order of
    the entries, also those of an entry whose text is empty) for the payload step.
 
@@ -287,14 +287,15 @@ user       lore before user prompt + "\n\n" + rendered user prompt
 Earlier parts are sent as the model's own previous answers, each preceded by a short placeholder user turn. The final
 user message carries the instructions.
 
-**Lore images** (`LORE_IMAGES`, empty unless the AI has *Send lore images*): each resource once, read with
+**Lore images** (`LORE_IMAGES`, empty unless the AI is *Multimodal*): each resource once, read with
 `resourceService.findImage` and scaled by `ImageFiles.prepare` (an image that is gone or can't be read is left out with a
 warning), with a caption line `[ Images of the lore, in order: 1. Entry (caption); ... ]`. The images of `IN_LORE_BLOCK`
 entries go into a user message of their own right after the system message, answered by an assistant message
-(`LORE_IMAGES_ACKNOWLEDGED`), since the system role of most APIs takes text only; with `AI.loreImagesInSystem` (OpenAI
+(`LORE_IMAGES_ACKNOWLEDGED`), since the system role of most APIs takes text only; with `AI.getImagePlacement()` `SYSTEM` (OpenAI
 compatible only) they are attachments of the system message instead, which `OpenAICompatibleInferenceService.toSystemMessage`
 writes as untyped JSON parts (`text`, `image_url`). The images of `BEFORE_USER_PROMPT` entries are attachments of the final
-user message, the caption after the prompt. Only the text of the parts is sent: the images attached to a part are not part of
+user message, the caption after the prompt. With the placement `BEFORE` every provider sends the images of a message
+before its text (`PlacedInferenceService` marks the copy that is sent, see [Services](services.md#models)). Only the text of the parts is sent: the images attached to a part are not part of
 it and the model never sees them.
 
 An `LLMChatMessage` can carry `LLMAttachment`s (images, audio, files) for models that accept them, and the OpenAI
@@ -371,7 +372,8 @@ the `ThreadCopyRequestAttributes` of the thread that called `stream` and records
 The same request is counted for the **book** it was made for (the tokens column of the [writing statistics](domain-model.md#writing-statistics-manuscriptstatistic-activityinterval-manuscriptsize)):
 the caller opens a `UsageContext` (a thread-local scope like `UnmeteredScope`, `try (UsageContext _ = UsageContext.open(book)) { service.stream(...); }`)
 around the call that starts the request; `OpenAICompatibleInferenceService` reads `UsageContext.current()` once in that thread, keeps the id of the
-book in its `Request` and opens it again around `UsageService.record` in the stream threads. `UsageServiceImpl.record` then adds the tokens
+book in its `Request` and opens it again around `UsageService.record` in the stream threads. `UsageServiceImpl.record` then tells the
+`UsageListener` beans (the platform knows no books), and `BookUsageCounter` adds the tokens
 (`StatisticCounts.tokens`, one request) to the day's row of the book through `ManuscriptStatisticService.count`, whoever the user is: the row is
 the owner's of the book, and a thread without a user counts for the book too. A call without a context counts for the AI only. The generation
 (`InferenceStep`), summaries, impersonate, redraft, annotate (all its stages) and the agent runs (the working copy, see the agents note
@@ -425,8 +427,12 @@ caller hears `onPartChanged` (a step changed the part: the story tab shows it ag
 over, or there were none; the tab calls the deprecated `AutoAnnotate.finished` there), and `onWarning` with the stop or the failure.
 A regeneration of a part ends the phase of its earlier generation (`endAfterPart` in `generateNextTurn`).
 
-The core binds two steps, `AutoAnnotateSteps` (`ui.dialogs.story`, a bean of `services-config.xml`): the automatic annotation
-(`REVIEW`) and the redraft that addresses its notes (`REWRITE`), with the settings of the book (`Manuscript.autoAnnotate*`); a result
+The core binds three steps, `AutoAnnotateSteps` (`ui.dialogs.story`, a bean of `services-config.xml`): the automatic annotation
+(`REVIEW`), the [phrase watch list](../user/books/annotations.md#watching-for-phrases) (`phraseWatch`, `REVIEW`, when
+`Manuscript.phraseWatch`: `PhraseWatchService.scan` turns the hits of `PhraseMatcher` (`domain.components`, no model) into
+annotations of source `PHRASE`, counted in `NOTES_ADDED`) and the redraft that addresses the notes of both (`REWRITE`), with the
+settings of the book (`Manuscript.autoAnnotate*`); a redraft applied without asking is scanned again and redrafted again while it
+brings new hits, `REDRAFT_ROUNDS` = 3 rounds at most; a result
 the book does not take without asking opens `AnnotateDialog.openResult` / `RedraftDialog.openResult` in the page that generated and
 from the panel's Review, a window that is a part of the phase's entry (`FloatingWindow.partOf`).
 

@@ -1,6 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs.manuscript;
 
-import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.model.ImageAnchor;
 import com.github.enerccio.marginalia.domain.model.ImageAttachment;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
@@ -10,6 +10,7 @@ import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.ResourceService;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
 import com.github.enerccio.marginalia.ui.components.PartView;
@@ -104,7 +105,7 @@ class ImagesDialogTest extends MarginaliaTestBase {
 
     /** A place of the picker is a ring; the chosen one has it filled (a CSS class on the dot the button holds). */
     private static boolean isChosen(Button place) {
-        return place.getIcon() != null && place.getIcon().getElement().getClassList().contains(com.github.enerccio.marginalia.CssStyles.IMAGE_ANCHOR_DOT_SELECTED);
+        return place.getIcon() != null && place.getIcon().getElement().getClassList().contains(com.github.enerccio.marginalia.MarginaliaCssStyles.IMAGE_ANCHOR_DOT_SELECTED);
     }
 
     private Checkbox checkbox(String label) {
@@ -127,27 +128,27 @@ class ImagesDialogTest extends MarginaliaTestBase {
     @Test
     void anImageIsAfterTheTextUntilTheAuthorPlacesIt() throws Exception {
         assertThat(saved().anchor()).isNull();
-        assertThat(isChosen(button(loc.getValue(L.ENUM_IMAGE_ANCHOR_BOTTOM_CENTER)))).isTrue();
+        assertThat(isChosen(button(loc.getValue(M_L.ENUM_IMAGE_ANCHOR_BOTTOM_CENTER)))).isTrue();
         assertThat(checkbox(loc.getValue(L.LABEL_AUTOMATIC)).getValue()).isTrue();
         assertThat(width().isEnabled()).isFalse();
     }
 
     @Test
     void thePlaceIsChosenInThePickerAndSaved() throws Exception {
-        button(loc.getValue(L.ENUM_IMAGE_ANCHOR_TOP_LEFT)).click();
+        button(loc.getValue(M_L.ENUM_IMAGE_ANCHOR_TOP_LEFT)).click();
 
         assertThat(saved().anchor()).isEqualTo(ImageAnchor.TOP_LEFT);
         assertThat(changed.get().getImages().getFirst().anchor()).isEqualTo(ImageAnchor.TOP_LEFT);
         // the picker shows the new place, the caption is kept
-        assertThat(isChosen(button(loc.getValue(L.ENUM_IMAGE_ANCHOR_TOP_LEFT)))).isTrue();
-        assertThat(isChosen(button(loc.getValue(L.ENUM_IMAGE_ANCHOR_BOTTOM_CENTER)))).isFalse();
+        assertThat(isChosen(button(loc.getValue(M_L.ENUM_IMAGE_ANCHOR_TOP_LEFT)))).isTrue();
+        assertThat(isChosen(button(loc.getValue(M_L.ENUM_IMAGE_ANCHOR_BOTTOM_CENTER)))).isFalse();
         assertThat(saved().caption()).isEqualTo("The map");
     }
 
     @Test
     void aChangeOfThePlaceDoesNotBuildTheDialogAgain() throws Exception {
-        Button place = button(loc.getValue(L.ENUM_IMAGE_ANCHOR_CENTER_RIGHT));
-        Checkbox wrap = checkbox(loc.getValue(L.LABEL_IMAGE_WRAP));
+        Button place = button(loc.getValue(M_L.ENUM_IMAGE_ANCHOR_CENTER_RIGHT));
+        Checkbox wrap = checkbox(loc.getValue(M_L.LABEL_IMAGE_WRAP));
         IntegerField width = width();
         com.vaadin.flow.component.textfield.TextField caption = components().filter(com.vaadin.flow.component.textfield.TextField.class::isInstance)
                 .map(com.vaadin.flow.component.textfield.TextField.class::cast).findFirst().orElseThrow();
@@ -155,24 +156,24 @@ class ImagesDialogTest extends MarginaliaTestBase {
         place.click();
 
         // the same components, the new place shown in them (a new set would flash and lose the focus of the caption)
-        assertThat(button(loc.getValue(L.ENUM_IMAGE_ANCHOR_CENTER_RIGHT))).isSameAs(place);
-        assertThat(checkbox(loc.getValue(L.LABEL_IMAGE_WRAP))).isSameAs(wrap);
+        assertThat(button(loc.getValue(M_L.ENUM_IMAGE_ANCHOR_CENTER_RIGHT))).isSameAs(place);
+        assertThat(checkbox(loc.getValue(M_L.LABEL_IMAGE_WRAP))).isSameAs(wrap);
         assertThat(width()).isSameAs(width);
         assertThat(components().filter(com.vaadin.flow.component.textfield.TextField.class::isInstance).findFirst().orElseThrow()).isSameAs(caption);
         assertThat(isChosen(place)).isTrue();
-        assertThat(isChosen(button(loc.getValue(L.ENUM_IMAGE_ANCHOR_BOTTOM_CENTER)))).isFalse();
+        assertThat(isChosen(button(loc.getValue(M_L.ENUM_IMAGE_ANCHOR_BOTTOM_CENTER)))).isFalse();
         // what the layout offers follows it: with the text flowing beside the image it is at most 60 percent wide, with the check box set from the dialog itself
         assertThat(width.getMax()).isEqualTo(saved().maxWidth());
         wrap.setValue(true);
         fromClientEvent(wrap, false);
         assertThat(width.getMax()).isEqualTo(com.github.enerccio.marginalia.domain.model.ImageAttachment.MAX_WRAPPED_WIDTH);
-        assertThat(checkbox(loc.getValue(L.LABEL_IMAGE_WRAP))).isSameAs(wrap);
+        assertThat(checkbox(loc.getValue(M_L.LABEL_IMAGE_WRAP))).isSameAs(wrap);
     }
 
     @Test
     void theTextCanFlowAroundAnImageAtTheSideOrOnBothSidesOfOneInTheMiddle() throws Exception {
-        button(loc.getValue(L.ENUM_IMAGE_ANCHOR_CENTER_RIGHT)).click();
-        Checkbox wrap = checkbox(loc.getValue(L.LABEL_IMAGE_WRAP));
+        button(loc.getValue(M_L.ENUM_IMAGE_ANCHOR_CENTER_RIGHT)).click();
+        Checkbox wrap = checkbox(loc.getValue(M_L.LABEL_IMAGE_WRAP));
         assertThat(wrap.isEnabled()).isTrue();
         wrap.setValue(true);
         fromClientEvent(wrap, false);
@@ -183,9 +184,9 @@ class ImagesDialogTest extends MarginaliaTestBase {
         assertThat(width().getMax()).isEqualTo(ImageAttachment.MAX_WRAPPED_WIDTH);
 
         // in the middle the text is on both sides, with even less room for the picture
-        button(loc.getValue(L.ENUM_IMAGE_ANCHOR_CENTER_CENTER)).click();
+        button(loc.getValue(M_L.ENUM_IMAGE_ANCHOR_CENTER_CENTER)).click();
         assertThat(saved().wrap()).isTrue();
-        assertThat(checkbox(loc.getValue(L.LABEL_IMAGE_WRAP)).isEnabled()).isTrue();
+        assertThat(checkbox(loc.getValue(M_L.LABEL_IMAGE_WRAP)).isEnabled()).isTrue();
         assertThat(width().getMax()).isEqualTo(ImageAttachment.MAX_SURROUNDED_WIDTH);
     }
 
@@ -211,8 +212,8 @@ class ImagesDialogTest extends MarginaliaTestBase {
 
     @Test
     void theCaptionIsKeptWhenThePlaceChanges() throws Exception {
-        button(loc.getValue(L.ENUM_IMAGE_ANCHOR_BOTTOM_RIGHT)).click();
-        button(loc.getValue(L.ENUM_IMAGE_ANCHOR_TOP_CENTER)).click();
+        button(loc.getValue(M_L.ENUM_IMAGE_ANCHOR_BOTTOM_RIGHT)).click();
+        button(loc.getValue(M_L.ENUM_IMAGE_ANCHOR_TOP_CENTER)).click();
 
         ImageAttachment kept = saved();
         assertThat(kept.caption()).isEqualTo("The map");
@@ -222,7 +223,7 @@ class ImagesDialogTest extends MarginaliaTestBase {
 
     @Test
     void theDialogOffersThePreviewOfThePartAsTheViewerShowsIt() {
-        button(loc.getValue(L.LABEL_PREVIEW_AS_VIEWER)).click();
+        button(loc.getValue(M_L.LABEL_PREVIEW_AS_VIEWER)).click();
 
         assertThat(previewed).isTrue();
     }
@@ -234,15 +235,15 @@ class ImagesDialogTest extends MarginaliaTestBase {
 
         PartView view = new PartView("One.\n\nTwo.\n\nThree.", List.of(end, top));
 
-        List<String> shape = view.getChildren().map(c -> c.getClassNames().contains(CssStyles.PART_PICTURES) ? "pictures" : "text").toList();
+        List<String> shape = view.getChildren().map(c -> c.getClassNames().contains(MarginaliaCssStyles.PART_PICTURES) ? "pictures" : "text").toList();
         assertThat(shape).containsExactly("pictures", "text", "pictures");
-        assertThat(view.getClassNames()).contains(CssStyles.PART_VIEW);
+        assertThat(view.getClassNames()).contains(MarginaliaCssStyles.PART_VIEW);
 
-        Div floated = (Div) all(view).filter(c -> c.getClassNames().contains(CssStyles.PART_PICTURE_FLOAT_RIGHT)).findFirst().orElseThrow();
+        Div floated = (Div) all(view).filter(c -> c.getClassNames().contains(MarginaliaCssStyles.PART_PICTURE_FLOAT_RIGHT)).findFirst().orElseThrow();
         assertThat(floated.getStyle().get("width")).isEqualTo("30%");
-        assertThat(floated.getClassNames()).contains(CssStyles.PART_PICTURE, CssStyles.PART_PICTURE_SIZED);
+        assertThat(floated.getClassNames()).contains(MarginaliaCssStyles.PART_PICTURE, MarginaliaCssStyles.PART_PICTURE_SIZED);
 
-        Div block = (Div) all(view).filter(c -> c.getClassNames().contains(CssStyles.PART_PICTURES_LEFT)).findFirst().orElseThrow();
+        Div block = (Div) all(view).filter(c -> c.getClassNames().contains(MarginaliaCssStyles.PART_PICTURES_LEFT)).findFirst().orElseThrow();
         assertThat(block.getChildren().findFirst().orElseThrow().getStyle().get("width")).isNull();
     }
 
@@ -253,13 +254,13 @@ class ImagesDialogTest extends MarginaliaTestBase {
 
         PartView view = new PartView("One" + lorem + "\n\nTwo" + lorem + "\n\nThree" + lorem, List.of(middle));
 
-        Div band = (Div) all(view).filter(c -> c.getClassNames().contains(CssStyles.PART_BAND)).findFirst().orElseThrow();
+        Div band = (Div) all(view).filter(c -> c.getClassNames().contains(MarginaliaCssStyles.PART_BAND)).findFirst().orElseThrow();
         assertThat(band.getStyle().get("grid-template-columns")).isEqualTo("1fr 25% 1fr");
         List<Component> cells = band.getChildren().toList();
         assertThat(cells).hasSize(3);
-        assertThat(cells.get(0).getClassNames()).contains(CssStyles.PART_BAND_TEXT);
-        assertThat(cells.get(1).getClassNames()).contains(CssStyles.PART_BAND_MIDDLE);
-        assertThat(cells.get(2).getClassNames()).contains(CssStyles.PART_BAND_TEXT);
+        assertThat(cells.get(0).getClassNames()).contains(MarginaliaCssStyles.PART_BAND_TEXT);
+        assertThat(cells.get(1).getClassNames()).contains(MarginaliaCssStyles.PART_BAND_MIDDLE);
+        assertThat(cells.get(2).getClassNames()).contains(MarginaliaCssStyles.PART_BAND_TEXT);
     }
 
     @Test

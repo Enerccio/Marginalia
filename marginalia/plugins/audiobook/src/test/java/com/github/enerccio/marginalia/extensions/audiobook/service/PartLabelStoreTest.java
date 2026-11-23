@@ -2,7 +2,9 @@ package com.github.enerccio.marginalia.extensions.audiobook.service;
 
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
+import com.github.enerccio.marginalia.extensions.audiobook.label.Age;
 import com.github.enerccio.marginalia.extensions.audiobook.label.Delivery;
+import com.github.enerccio.marginalia.extensions.audiobook.label.Gender;
 import com.github.enerccio.marginalia.extensions.audiobook.label.PieceLabel;
 import com.google.gson.JsonObject;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,6 +49,18 @@ class PartLabelStoreTest {
 
     private static final List<PieceLabel> LABELS = List.of(new PieceLabel(0, "Narrator", Delivery.NEUTRAL, 0.5, ""),
             new PieceLabel(1, "Tom\u00e1\u0161", Delivery.WHISPER, 0.25, "[sigh] Cold wall,"));
+
+    @Test
+    void theGenderAndAgeOfAnUnnamedSpeakerAreKeptAndOldLabelsHaveNone() {
+        PartLabelStore store = new PartLabelStore(messages);
+        List<PieceLabel> labels = List.of(new PieceLabel(0, "Narrator", Delivery.NEUTRAL, 0.5, ""),
+                new PieceLabel(1, "The guard", Delivery.ANGRY, 0.7, "", Gender.MALE, Age.ELDERLY));
+        store.put(part.getUuid(), "key-2", labels);
+        assertEquals(labels, new PartLabelStore(messages).find(part.getUuid(), "key-2"));
+        // labels stored before the fields existed have no "gender" and "age": they read as null
+        com.google.gson.JsonObject stored = part.getAttributes().getAsJsonObject(ResourceAudioStore.KEY).getAsJsonObject("labels");
+        assertFalse(stored.getAsJsonArray("labels").get(0).getAsJsonObject().has("gender"));
+    }
 
     @Test
     void theLabelsComeBackAsTheyWentIn() {

@@ -1,7 +1,7 @@
 # Audiobook - TODO
 
 Status: **working, not finished**: steps 1 to 8, 10, 11 and 12 below are built and were checked in the application and on the author's server (queue, player, labelling, cast, studio,
-spoken form, automatic conversion, export, commands, manual); missing are the sound effects (9b), other engines (9) and the items listed as *Not done*
+spoken form, automatic conversion, export, commands, manual) and a second engine, Higgs Audio v3 in ComfyUI (step 9, 2026-11-14); missing are the sound effects (9b) and the items listed as *Not done*
 under each step. What stands below was tried on the author's own server on 2026-11-08 (an AMD R9700 Pro, LiteLLM in front
 of everything); a line says **Decided** when it is, **Not tried** / **Open** when it is not. Numbers are one listener, one machine, few samples.
 
@@ -172,6 +172,59 @@ section (the lexicon has a `script` field per word, no pronunciation): a `pronun
 spoken-form step substitutes it. Engines that take phonemes (Piper, Kokoro through espeak-ng) could be exact but cannot clone voices and sound worse; training a voice on a conlang is not realistic. The
 audiobook can also read the English source of a speech (dubbing) as a per-language choice. **Not tried:** a pronunciation field, other candidate languages (Turkish, Japanese kana).
 
+## Higgs on the R9700: precision and checks (2026-11-15)
+
+Tested on the author's ComfyUI (R9700, ROCm 7.2, TTS Audio Suite), seed 42 unless noted, checked by ear and by Granite ASR:
+
+- **bf16 is broken there.** With `dtype: auto` (bf16) short narrator lines came out as gibberish or as the sound they describe ("The banging continued,
+  rhythmic and aggressive." gave 11 knocks, 11.4 s), longer ones half hallucinated in a wrong voice; other seeds sometimes worked (luck). The same three
+  pieces in fp32 were word-perfect (3 of 3). bf16 + `attention: eager` was still noise, so it is not the attention kernel. Default: fp32.
+- **The clip's transcript (`reference_text`) does not help**: in bf16 it leaked words of the transcript into the piece and once said "show!"; in fp32 the
+  words were right but the user heard the voice change (2 of 2 pieces). `sendClipText` stays, off by default.
+- **Granite ASR in bf16** gave gibberish from the second recognition on in a container session; in float32 5 of 6 pieces were read right (0-9 % word
+  error). The 6th looped ("peterS. 2 2 2 ...") at the same point with and without a repetition penalty: not a glitch: the user heard that piece
+  fine (and the same as the take with the transcript), so it was a Granite loop; the word check makes such a piece again for nothing (a false
+  positive costs one take, the best take is kept). The `albus` piece with the transcript had the wrong voice (3rd confirmation for keeping
+  `sendClipText` off). Possible later: when a transcript repeats one token many times, recognise it once more before counting it as a failure.
+- **Length is not enough**: bf16 noise had normal lengths. The length check catches babbling, the word check the rest.
+- **RAM**: fp32 Higgs is ~16 GB and ComfyUI's `/free {"unload_models": true}` only parks it in host RAM; loading Granite next to it OOM-killed the
+  container (21.7 GB RSS). The word check runs after the batch under the recogniser's own GPU lock; with lock steps that restart ComfyUI, the two never
+  share the RAM.
+- The suite caches identical requests even with `enable_audio_cache: false` ("Using cached Higgs Audio v3 audio"): vary the text or seed when testing.
+
+## Cleanup of clips on ComfyUI (2026-11-15)
+
+Done: clips have a name, a folder and versions (`ClipInfo` in the user settings, keyed by the resource uuid); a version is made with ffmpeg or with a
+cleanup preset (`CleanupConfig`/`CleanupPreset`/`CleanupStep`, `clean.ComfyCleaner` over `comfy.ComfyClient`) under its own GPU lock; Voices and
+clips is a `TabDock` (Actors | Clips | Clip) whose layout is kept in `AudiobookSettings.voicesLayout`. Unit tests; **not tried in a running
+application** (the window, the tree, the dock layout).
+
+Tried on the author's ComfyUI (R9700, TTS Audio Suite `VocalRemovalNode` / `VoiceFixerNode`) with the user's 16 s narrator clip and a copy with pink
+noise, 50 Hz hum and an echo added:
+
+- `MELBAND/MelBandRoformer_fp32` (vocals): the voice is output 0 (*extracted*), 27 s with the download of 900 MB, then about 15 s. The node logs "Model
+  with inverted outputs detected - swapping", so the suite already fixes the order for that model.
+- `MELBAND/denoise_mel_band_roformer_sdr_27.99`: the voice is output 1 (*remaining*); the download ran at about 3 MB/s (10 min).
+- `UVR/UVR-DeNoise`: the download of the suite answered 404. `UVR/UVR-DeEcho-DeReverb`: `module 'samplerate' has no attribute 'resample'` (another
+  package named `samplerate` in the container). Left out of the default presets; the de-echo would need the right package in the container.
+- `VoiceFixerNode` mode 0: 34 s, a very low floor (-69 dB) but it changes the voice more; a preset of its own, not in *Film or game clip*.
+- The plugin's *Film or game clip* (vocals → denoise) through `ComfyCleaner`: the noisy copy went from floor -38 dB (*Poor*, background) to -89 dB
+  (*Clean*), the original clip from -46 dB to -64 dB, about 25 s a clip. Not judged by ear yet.
+
+- The user's own clips: *Film or game clip* gave a clean voice, but owl hoots of the source stayed (a hoot is tonal and syllable-like: a vocals model
+  keeps it as voice). On that clip BS-Roformer vocals, MelBand + the aggressive denoise and MelBand at aggressiveness 20 hardly differed; MDX23C
+  InstVoc broke the voice completely. Separation models do not remove animal sounds.
+
+Done: **Trim** in the Clip tab (keep a range or cut it out, as a version; `ClipTrim`, 16-bit wav in Java with 10 ms fades, else `Ffmpeg.trim`), a
+player with a seek bar and **Download**. Not tried in a running application.
+
+- De-reverb: after `samplerate` 0.2.4 was installed in the container (0.1.0 needed the missing system `libsamplerate`), `UVR-DeEcho-DeReverb`
+  works (about 5 s for 16 s; the voice is the *remaining* output). On the user's 11 s film clip the user liked vocals → de-reverb → denoise best,
+  better than vocals → denoise (which made the room stand out) or with the de-reverb last. Now the default *Film or game clip* and *Remove echo*.
+
+Open: a speech-only enhancement model (DeepFilterNet, Resemble Enhance:
+another node pack); whether a separated clip clones better with Higgs; the de-echo models.
+
 ## Open
 
 - **The audio as a `Resource` (done):** `ResourceAudioStore` stores every piece and every joined part as a `Resource` linked to its part; the index (cache key -> resource uuid) is in the part's `attributes` under the plugin's key, so the audio travels with the book; a replaced audio is soft deleted (the files stay until the *Resource Files* garbage collection); wav is stored as well as mp3. The readers of a published book are served by `ResourceService.readForReader` (the book is viewable by the user at every request, the resource is the owner's and linked to a part of that book; the content type is told from the bytes). Still to check by hand: how the Resources tab shows a non-image file and how a backup of a long audiobook behaves (size).
@@ -313,7 +366,47 @@ audiobook can also read the English source of a speech (dubbing) as a per-langua
    checked to be the same word, is a later idea); the rules are **English only** (numbers in Czech, Japanese counters, kana readings by a dictionary of the language: none); roman numerals and dates in the body, "St."
    (saint or street), "No. 5", a number next to a unit ("5 km"), phone numbers, and "$5 million" are read plainly or wrongly; the dictionary is per book (no user-level or folder-level one, no import from the
    conlang translator plugin, whose words could fill it); no check that a respelling is read as meant (hear it in the studio).
-9. **Engines with their own API** (a tagged multi-speaker script like Dia's `[S1]` / `[S2]`) as more backends, or a generic HTTP template backend (the same gap the Image Generator has).
+9. ✅/◐ **Engines with their own API.** **Higgs Audio v3 in ComfyUI** is the second engine (`BackendConfig.MODEL_HIGGS`, `HiggsComfyBackend`, `HiggsText`), done 2026-11-14:
+   the backend posts a built-in workflow of the TTS Audio Suite nodes (`HiggsAudioV3EngineNode` -> `UnifiedTTSTextNode` with `LoadAudio` + `CharacterVoicesNode` for a clip ->
+   `SaveAudioMP3` 128k, or `SaveAudio` flac converted to wav), polls `/history`, fetches `/view`, uploads clips with `/upload/image`, reads voices and clips from `/object_info`, and
+   calls `POST /free {"free_memory": true}` after every piece. `HiggsText` turns the labels into Higgs tokens in the entry text: the delivery of a piece of speech into
+   `<|emotion:...|>` / `<|style:whispering|>` / `<|style:shouting|>` (from intensity 0.2; `<|prosody:expressive_high|>` from 0.8), a sound tag into `<|sfx:...|>` plus the sound written
+   out, or only the sound written out where Higgs has no token (groan, pant, moan, gasp, clear throat, shush). The labelling offers the tags of the book's model (`Tags.forModel`;
+   17 for Higgs) and eight more deliveries (fearful, surprised, tender, sarcastic, pleading, desperate, disgusted, aroused); a Higgs book allows a tag per 30 words, not 80.
+   **What was found on the author's server** (AMD R9700, ROCm 7.2, `yanwk/comfyui-boot:rocm`, torch 2.13.0+rocm7.2, TTS Audio Suite v5.10.8):
+   - **Higgs v3 works**: 20 test clips in the author's cloned voice (laugh, cry, groan, pant, moan, scream, whisper, sigh, each with emotion tags) were all judged good by the author;
+     groan, pant and moan, which have no token, came out right as an emotion plus the sound written out. sdpa and eager attention both sounded fine.
+   - **The ROCm crash**: generating again on the engine the suite keeps loaded crashed the GPU (`HSA_STATUS_ERROR_EXCEPTION ... code: 0x1016`, ComfyUI aborts) at the third piece
+     without anything in between, never with `/free` between pieces (17 of 17 with `free_memory` only, the weights stay loaded; 25 of 25 with a full unload). The cost is about 3.4 s
+     a piece (ComfyUI runs the voice and engine nodes again). Not known which half of `free_memory` (the emptied CUDA cache or the reset node cache) avoids it.
+   - **Fish Audio S2 Pro does not work** on that card: constant -1.0 samples (NaN). The default SDPA kernels give wrong values there (the codec's round trip of a clip correlated 0.04
+     with the original on the GPU, 0.68 with math attention and on the CPU); with math attention and an fp32 codec the text model still gives NaN. Its load peaks at about 19 GB of host RAM.
+   - **Setup traps** (in the server how-to): pip into `/root/.local` (`PIP_USER=true` + a volume) with `PIP_CONSTRAINT` on the installed torch/numpy versions; never the suite's whole
+     `install.py` (it can reinstall a CUDA torch); `librosa` is not in its `requirements.txt`.
+   **Labelling for Higgs** (`gemma-4-31b-it-MM` through LiteLLM, thinking off, a 20-piece kitchen scene written for the test, 3 samples per variant, about 1084 completion tokens, 55 s):
+   speakers right in 9 of 9; *"You look funny," he mocked her* -> SARCASTIC 9 of 9; *"You look funny," she giggled* -> AMUSED, no `[giggle]`, 9 of 9; `[groan]` and `[pant]` put into
+   the speech that the narration just before describes, 9 of 9; "burst out laughing", "a long, contented moan" and "cried quietly" before a speech got no tag (0 of 9). The limit of
+   one tag per 80 words was not the reason (30 gave the same), nor was the wording (a sentence asking for the sounds the narration names around a speech changed nothing, 3 samples).
+   **So the code adds them** (`SoundCues`, Higgs only so Turbo books keep their audio): the narration next to a speech in its paragraph (an attribution after it, lower case,
+   or the narration before it) is searched for a sound (English verbs and phrases: giggled, burst out laughing, a soft moan, whimpered, panting, out of breath, cried quietly, burst
+   into tears...), skipping denials (stifled, didn't, fought back), complaints (moaned about), things (the wind moaned, the floorboards groaned), another named speaker, and a bare
+   "she cried" (an exclamation); the sound goes to the start of the speech when the model gave it no tag. On the kitchen scene it added the giggle, the laugh, the moan and the crying the
+   model had left out; the audio was made (69 s). The narrator is read plainly on Higgs: no sound and no mood, also for a speech the model gave the narrator.
+   **The "whoosh"** (heard by the author at the end of most pieces): 13 of 20 pieces of the scene ended at -30 to -40 dB straight into the pause instead of fading;
+   after the last word Higgs breathes or starts another sound and the clip ends in it (the single sigh clip too: "...so much", a short gap, a rising sound cut at the
+   end). `BreathTrim` (with ffmpeg: the piece comes as flac, is trimmed, faded out over 40 ms and stored as mp3 96k or wav) cuts a tail after a gap of 150 ms (quiet, at most
+   0.6 s) or 250 ms (at most 0.25 s), else 250 ms after the last voiced window. A first rule that also cut the hissy end after the last voiced window took the "ch" of "much"
+   (the author heard "so mu-"): an unvoiced end is a consonant as often as a breath. The author found the trimmed scene right; a softer whoosh inside some pieces ("Mmmh...
+   Finally", "she whispered") is generated with the words and stays.
+   **The whoosh inside the lines was the reference clip.** The first test clip (`vtest.wav`, cut from a film) has no real pause in 12.5 s and its quietest parts at
+   -47 dB, 28 dB under the speech; a low-pass (5k, 7k), ffmpeg `afftdn` and an Audacity-like profile reduction of the output made no audible difference (the author).
+   With a clip from a voice actor's database (`vtest2.wav`, 17 s, pauses at -64 dB, 55 dB under the speech) the same scene had **no artifacts** (the author's ears).
+   So the plugin measures clips (`ClipQuality`: Clean from a 45 dB margin, Poor under 35 dB, distorted or shorter than 8 s) in **Voices and clips** (`VoicesDialog`:
+   actors and clips, play, replace everywhere, clean a copy with ffmpeg, delete unused) and reports a clip that is not clean when it is added. `Ffmpeg.cleanVoice`
+   (high-pass 70 Hz + `afftdn` at the measured floor) lowered the film clip's floor by 3 dB only (still Poor): the advice is to clean a clip by hand.
+   **Open:** other languages of the narration for the cues, the default hooks of the form for
+   ComfyUI (`/gpu/comfy/start`, `/gpu/comfy/stop`), a run in the application, a long part, more voices. Other engines (a tagged multi-speaker script like Dia's `[S1]` / `[S2]`, a
+   generic HTTP template backend) are still not done.
 9b. **Sound effects and ambience** (after the speech works): cues next to the segments of a part, proposed by the LLM from the text with a position and a kind (`one-shot` or `bed`); each cue a prompt for the
    sound backend (ComfyUI with the graph above, another backend, cached by prompt and seed; the prompt describes a single sound, dry) or a file of the user's own library; the mix with ffmpeg (levels, ducking
    under speech, fades, one-shots placed at irregular intervals, a bed under a stretch of segments).
@@ -359,6 +452,56 @@ audiobook can also read the English source of a speech (dubbing) as a per-langua
     by me (the author's run showed *Model not loaded* after the first piece: the server log has `/api/unload`, which Marginalia never sends: a startup wrapper of the container unloads the model once the server answers and its wait
     ended after the first request: the how-to says so); a `/v1/audio/speech` mode for a LiteLLM route that carries the speech without the pass-throughs of `/tts` (no exaggeration, no upload of clips); the sound effects (step 9b).
     (LiteLLM routes and pass-throughs, the two hook scripts, the controller and its socket proxy and the Chatterbox container with `pykakasi` are in the how-to; ComfyUI with the graph waits for the sound effects.)
+13. ✅/◐ **Voices for unnamed speakers: gender and age bases, variants of one clip** (planned and built 2026-11-16; **built and unit-tested, not tried in a running application or with a real labelling model yet**). Today every speaker the cast does not know gets the one
+    *Other speakers* actor (`Cast.fallbackActorId`), so the guard, the innkeeper and the girl at the window share a voice. Goal: one or two recordings voice all minor
+    characters distinctly, stable across chapters and re-runs.
+    *What was tested* (2026-11-16, the author's R9700, Higgs v3 fp32, seed 42, one 18-word line; the author listened, Granite read the first set back word-perfect):
+    Higgs clones a reference clip changed with ffmpeg `rubberband` without trouble. Pitch **down** is robust (male −1 with tempo 0.93, −2, −3 st, formants shifted: all fine,
+    −2 "radically different, but good"); **up** is fragile (male +2 "a bit weird"; from the female clip +3 fine, +5 tolerable, +7 "alien"). Formants only ±1 st (two passes:
+    shift with `formant=shifted`, back with `formant=preserved`), tempo 0.93 / 1.07 and an EQ tilt (treble ±4 dB at 3 kHz, bass ∓2 dB at 150 Hz) are all usable. Not tried:
+    Chatterbox with changed clips, other clips, more lines.
+    - **Labelling.** `PieceLabel` gets `gender` (male / female / unknown) and `age` (child / teen / adult / elderly / unknown), asked only for speakers that are not in
+      the cast list; a stored label without them reads as unknown. The sentence that asks for them is added to the instruction **only when the cast of the book uses
+      the bases** (`{{#if extras}}` in the template, `LabelPromptData.extras`): the label cache is keyed by the instruction (`LabelService.cacheKey`), so a changed
+      built-in prompt would re-label every part of every book. A user template without the sentence still gets the fields (they are in the JSON schema). The sentence
+      in all eight `AudiobookDefaults*`.
+    - **Cast.** Next to *Narrator* and *Other speakers*: **Other men**, **Other women**, optional **Children** (empty: the women's base, shifted up). New
+      `Cast.extras`: the unnamed speakers seen so far by normalised name (`Cast.normalize`) with the gender and age they got **first** (later labels do not flip them)
+      and an optional pinned variant. `Cast.voice` takes the label's gender and age: cast member → base of the gender (children: the children's base) → *Other speakers*
+      → narrator; with no bases set nothing changes. `CastDialog` lists the extras (name, gender, age, the variant, a preview, pin / reroll, delete).
+    - **Variants.** A small fixed grid, not continuous values: pitch with formants shifted −3 / −2 / −1 / 0 / +1 st, formants only −1 / 0 / +1, tempo 0.93 / 1 / 1.07,
+      EQ dark / flat / bright (135 per base). The variant of an extra = SHA-256 of book uuid + normalised name modulo the grid (pinned one wins); age and gender add
+      on top: girl = children's base +3..+4 st; boy = children's base +2..+3 st and formants −1 (darker); teen girl = women's base +1..+2; teen boy = **men's** base
+      0..+1 (+2 on the male clip was already weird); elderly = own base −1 st and tempo 0.93. The children's base is the women's clip; a Children actor, when set,
+      is used as it is instead: a girl not raised, a boy −1 st and formants −1. The sum is clamped to −4..+1 st for adults and teen boys, ≤ +2 for a teen
+      girl, ≤ +4 for children (≤ +1 from an own children's voice). The grid and the clamps are constants of
+      one class (`VoiceShift`: parse / print / the ffmpeg filter), so a change re-voices only what it changes.
+    - **Identity.** The variant is part of the voice: `VoiceRef` gets an optional variant, text form `clip:<uuid>~p-2.f+1.t107.eqD`, which is in the piece's cache key
+      (`ScriptEntry.key`), so a new variant or grid re-voices exactly the pieces it touches. Only a **clip** can have a variant; an actor whose voice is a voice of the
+      server (`predefined:`) is used as it is.
+    - **Storage.** A variant is made once, when a batch first resolves it (`ClipVoices.resolve`), and kept as a **hidden version of its base clip**: a resource with
+      `ClipInfo.parent` = the base and `madeWith` = "variant p-2 f+1 t1.07 eq dark", found through a new `ClipInfo.variants` (variant → resource uuid) on the base.
+      Hidden from the clip library and the voice pickers, deleted with the base, kept in backups and exports (a book voiced on the server keeps its voices on a machine
+      without ffmpeg). The upload to the speech server is unchanged (`ensureReference` names a clip by its SHA-256 and skips one the server has).
+    - **Without ffmpeg** (`Ffmpeg.available()`): a variant that is **stored** is used anyway; a missing one is not made, the **base clip** is sent and the variant is left
+      out of the `VoiceRef` (decided when the script is built), so the piece's key says "base" and the first run with ffmpeg re-voices those pieces. The cast dialog says
+      so ("ffmpeg not found: unnamed speakers share the base voice"); the gender bases work without it.
+    - **Also:** the commands (`audiobook-cast` shows the bases and the extras), plugin localization (new constants with ja, zh, fr, es, de, ko, it), the user manual
+      (`manual/user/extensions/audiobook.md`: the bases, the extras, what ffmpeg adds), README, CHANGELOG (one *Added* entry).
+    - **Tests.** `Cast.voice` with bases, gender, age and the fallback chain; first gender sticks; the hash is stable and spreads over the grid; clamps; `VoiceRef`
+      round trip with and without a variant (old texts still parse); the key changes with the variant; no ffmpeg → base and no suffix, stored variant → used; the
+      instruction has the sentence only with bases; old stored labels read as unknown; `VoiceVariant` filter strings.
+    - **As built:** `script.VoiceShift` (grid, hash, offsets, clamps, filter), `VoiceRef.shift`, `Cast` bases + `CastExtra`, `PieceLabel.gender/age` (**not required**
+      by the schema: an answer without them stays valid), `LabelPrompt.system(..., extras)` with the sentence in all eight `AudiobookDefaults*` (attached to
+      the tagged_text line, so without it the instruction is byte-identical to before), `ClipVoices.ShiftedClips` (stored copy → made and stored → base clip),
+      `ClipInfo.shift/shifted`, `Ffmpeg.filter/hasFilter` (`rubberband` must be in the build; checked once per program), `AudiobookService.shiftable()` /
+      `keepExtras` (the extras a script met are saved into the cast read again) / `extraVoice`, the cast window, `/audiobook-cast`. The pin of the plan
+      is the reroll (a speaker keeps their variation anyway). Tests: `VoiceShiftTest`, `CastTest`, `ClipVoicesTest`, `ClipLibraryTest`, `ScriptTest`,
+      `LabelingTest`, `PartLabelStoreTest`, `ScriptFromLabelsTest`, `FfmpegTest` (a real rubberband run).
+    - **Not done:** a run in the application (the cast window, a labelling with a real model that fills in gender and age, the made copies on Higgs);
+      the boy (+2 st, formants −1) and teen boy (men's clip, 0..+1) offsets were not heard; whether the Docker image's ffmpeg has rubberband was not checked.
+    - **Open:** the two passes of the formants-only shift are a guess at what rubberband does (sounded fine once); whether Higgs follows the tempo of the clip (the lengths
+      did not show it); a per-speaker Higgs style token (`<|style:..|>`) as another knob; two extras of one scene can still draw the same variant (reroll in the cast).
 
 ## Notes
 

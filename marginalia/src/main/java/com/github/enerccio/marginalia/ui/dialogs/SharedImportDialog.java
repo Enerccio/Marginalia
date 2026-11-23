@@ -10,6 +10,8 @@ import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.LorebookService;
 import com.github.enerccio.marginalia.domain.service.ProtocolService;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.components.LorebookPreview;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
@@ -90,13 +92,13 @@ public class SharedImportDialog<T extends OwnedEntity, R> extends Dialog {
     }
 
     private void create() {
-        setHeaderTitle(loc.getValue(L.LABEL_IMPORT_FROM_OTHER_USER));
+        setHeaderTitle(loc.getValue(M_L.LABEL_IMPORT_FROM_OTHER_USER));
         setWidth("min(1000px, 95vw)");
         setHeight("min(700px, 90vh)");
         setResizable(true);
         setCloseOnEsc(true);
 
-        Span help = new Span(loc.getValue(L.MSG_IMPORT_FROM_OTHER_USER));
+        Span help = new Span(loc.getValue(M_L.MSG_IMPORT_FROM_OTHER_USER));
         help.addClassNames(CssStyles.HINT_TEXT, CssStyles.WHITE_SPACE_NORMAL);
 
         empty.setText(emptyText);
@@ -112,7 +114,7 @@ public class SharedImportDialog<T extends OwnedEntity, R> extends Dialog {
             name.addClassNames(CssStyles.TEXT_BOLD, CssStyles.WHITE_SPACE_NORMAL, CssStyles.WRAP_ANYWHERE);
             return name;
         }).setHeader(loc.getValue(L.LABEL_NAME)).setFlexGrow(2);
-        grid.addColumn(this::authorOf).setHeader(loc.getValue(L.LABEL_AUTHOR)).setFlexGrow(1);
+        grid.addColumn(this::authorOf).setHeader(loc.getValue(M_L.LABEL_AUTHOR)).setFlexGrow(1);
         if (descriptionOf != null) {
             grid.addComponentColumn(item -> {
                 String description = StringUtils.defaultString(descriptionOf.apply(item));
@@ -125,7 +127,7 @@ public class SharedImportDialog<T extends OwnedEntity, R> extends Dialog {
             }).setHeader(loc.getValue(L.LABEL_DESCRIPTION)).setFlexGrow(2);
         }
         grid.addComponentColumn(item -> {
-            Button importButton = new Button(loc.getValue(L.LABEL_IMPORT), Solid.FILE_IMPORT.create(), event -> importItem(item));
+            Button importButton = new Button(loc.getValue(M_L.LABEL_IMPORT), Solid.FILE_IMPORT.create(), event -> importItem(item));
             importButton.setThemeName("primary small");
             return importButton;
         }).setFlexGrow(0).setWidth(UIConstants.TOOL_COLUMN_SIZE_LARGE);
@@ -198,14 +200,14 @@ public class SharedImportDialog<T extends OwnedEntity, R> extends Dialog {
     private void importItem(T item) {
         try {
             R copy = importer.importShared(item);
-            Notification.success(String.format(loc.getValue(L.MSG_IMPORTED_FROM_OTHER_USER), nameOf.apply(item)));
+            Notification.success(String.format(loc.getValue(M_L.MSG_IMPORTED_FROM_OTHER_USER), nameOf.apply(item)));
             close();
             if (onImported != null) {
                 onImported.accept(copy);
             }
         } catch (IllegalArgumentException e) {
             // the author took it back, or deleted it, while the list was open
-            Notification.warning(loc.getValue(L.MSG_NOT_SHARED_ANY_MORE));
+            Notification.warning(loc.getValue(M_L.MSG_NOT_SHARED_ANY_MORE));
             reload();
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
@@ -220,7 +222,7 @@ public class SharedImportDialog<T extends OwnedEntity, R> extends Dialog {
      */
     public static SharedImportDialog<Lorebook, Lorebook> forLorebooks(Localization loc, LorebookService lorebookService,
                                                                       Consumer<Lorebook> onImported) {
-        return new SharedImportDialog<>(loc, loc.getValue(L.MSG_NO_SHARED_LOREBOOKS), lorebookService::findAllShared,
+        return new SharedImportDialog<>(loc, loc.getValue(M_L.MSG_NO_SHARED_LOREBOOKS), lorebookService::findAllShared,
                 Lorebook::getName, Lorebook::getDescription,
                 lorebook -> {
                     LorebookPreview preview = new LorebookPreview().create();
@@ -240,7 +242,7 @@ public class SharedImportDialog<T extends OwnedEntity, R> extends Dialog {
      */
     public static SharedImportDialog<Protocol, Protocol> forProtocols(Localization loc, ProtocolService protocolService,
                                                                       Consumer<Protocol> onImported) {
-        return new SharedImportDialog<>(loc, loc.getValue(L.MSG_NO_SHARED_PROTOCOLS), protocolService::findAllShared,
+        return new SharedImportDialog<>(loc, loc.getValue(M_L.MSG_NO_SHARED_PROTOCOLS), protocolService::findAllShared,
                 Protocol::getName, null, protocol -> protocolDetails(loc, protocol),
                 source -> protocolService.importShared(source, null), onImported);
     }
@@ -263,7 +265,7 @@ public class SharedImportDialog<T extends OwnedEntity, R> extends Dialog {
     /**
      * A "label: value" line, nothing when there is no value (the setting is not used).
      */
-    private static Component line(Localization loc, L label, Object value) {
+    private static Component line(Localization loc, LocalizationKey label, Object value) {
         HorizontalLayout line = new HorizontalLayout();
         line.setPadding(false);
         line.setSpacing(false);

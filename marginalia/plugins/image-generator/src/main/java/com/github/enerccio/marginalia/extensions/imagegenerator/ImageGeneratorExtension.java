@@ -9,6 +9,8 @@ import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtensionD
 import com.github.enerccio.marginalia.domain.service.NotificationService;
 import com.github.enerccio.marginalia.domain.service.OsgiService;
 import com.github.enerccio.marginalia.extensions.ExtensionHasCss;
+import com.github.enerccio.marginalia.extensions.InheritedSetting;
+import com.github.enerccio.marginalia.extensions.InheritedSettingRegistry;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
 import com.github.enerccio.marginalia.extensions.imagegenerator.model.ImageSettings;
 import com.github.enerccio.marginalia.extensions.imagegenerator.service.ImageGeneratorService;
@@ -49,6 +51,9 @@ public class ImageGeneratorExtension implements MarginaliaExtension, ExtensionHa
     @Autowired
     private NotificationService notificationService;
 
+    @Autowired
+    private InheritedSettingRegistry inheritedSettings;
+
     private static final String SETTINGS_PANEL_KEY = ImageSettings.KEY + ".settingsPanel";
     /** The sources of the notifications that the prompt is written or the image is made, see {@code NotificationService}. */
     public static final String NOTIFY_PROMPT = ImageSettings.KEY + ".prompt";
@@ -69,6 +74,20 @@ public class ImageGeneratorExtension implements MarginaliaExtension, ExtensionHa
         menuRegistry.register(bundle.getSymbolicName(),
                 StoryMenuItem.card(MENU_ITEM_KEY, l -> T.localized(GENERATE_IMAGE), (story, card) -> open(story.getCurrentManuscript(), card))
                         .icon(Solid.IMAGE::create));
+
+        // the look of a book: a book or a folder can change what the user set in the panel
+        inheritedSettings.register(bundle.getSymbolicName(),
+                InheritedSetting.textArea(ImageGeneratorService.STYLE_SETTING, () -> T.localized(STYLE))
+                        .group(() -> T.localized(IMAGE_GENERATOR))
+                        .help(() -> T.localized(PUT_IN_FRONT_OF_EVERY_PROMPT))
+                        .userValue(() -> imageService.getSettings().getStylePrefix())
+                        .fallback(() -> ""));
+        inheritedSettings.register(bundle.getSymbolicName(),
+                InheritedSetting.textArea(ImageGeneratorService.NEGATIVE_SETTING, () -> T.localized(NEGATIVE_PROMPT))
+                        .group(() -> T.localized(IMAGE_GENERATOR))
+                        .help(() -> T.localized(NEGATIVE_PROMPT_HELP))
+                        .userValue(() -> imageService.getSettings().getNegativePrompt())
+                        .fallback(() -> ""));
 
         // the defaults are a panel of Settings → Extension Settings
         userPartDecorator = new ExtensionDecorator() {
@@ -153,6 +172,7 @@ public class ImageGeneratorExtension implements MarginaliaExtension, ExtensionHa
         imageService.shutdown();
         // the settings menus that are open hide the item and it runs nothing any more
         menuRegistry.unregisterAll(bundle.getSymbolicName());
+        inheritedSettings.unregisterAll(bundle.getSymbolicName());
         if (userPartDecorator != null) {
             extensionService.unregisterDecorator(userPartDecorator);
         }

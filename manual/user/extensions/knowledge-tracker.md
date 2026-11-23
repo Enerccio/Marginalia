@@ -24,6 +24,22 @@ The left sidebar of the [story editor](../books/story-editor.md) gets a **Knowle
 **Track a character** asks for a **name** and, optionally, **aliases**: the other names the character is written as in the
 *Present Characters* field of a part, separated by commas. A name or an alias can belong to one tracked character only.
 
+**Import from the Character Tracker** (the person icon next to **Track a character**) starts tracking characters of the
+[Character Tracker](character-tracker.md) of the same book. It lists the characters the book does not track yet (as a name
+or an alias) with their taglines, all of them ticked; untick the ones to leave out and press **Import**. Only the names are
+taken: the tagline and the note describe a character, they are not something it knows. With **Their relationships count as
+meetings** an imported character has met the people it is related to in the Character Tracker (they are written into its
+**Has met** list as if you had written them, so processing keeps them).
+
+**Who has met whom** (the handshake icon, next to the import) sets the meetings between tracked characters at once, without
+writing names. Pick a character on the left; on the right every other tracked character has a check box, ticked when the
+picked one has met them. Tick to add the meeting, untick to remove it; each change is saved at once and the cards show it
+when you close the window. A meeting goes one way: ticking Thomas for Fiora does not tick Fiora for Thomas, unless **Mutual** is ticked: then every tick
+or untick is made on both sides at once, which is quicker when the two know each other already (it applies to the changes you
+make while it is ticked, not to meetings that are set already). A ticked meeting
+counts as yours (processing keeps it); one you untick that the story shows comes back if that part is read again. It needs
+at least two tracked characters.
+
 Open a character with the arrow on its card to see what it knows:
 
 | | |
@@ -36,7 +52,7 @@ Open a character with the arrow on its card to see what it knows:
 | **Delete** | Removes an item for good, after a question. Retract keeps it, so use it when in doubt. |
 | **Select items** (next to **Add knowledge**) | Delete many items quickly: every item of the character, old ones included, gets a check box. **Select all** / **Deselect all** ticks or clears them, **Delete selected (n)** removes the ticked ones for good after one question, **Cancel** leaves the selection. |
 | **Has met** | The people the character has met, noted by [processing](#processing). Processing can note a name that is not a person (a note in the present characters field): open **Edit** and change the **Has met** list, one name after another separated by commas. The names you write stay when the story is read again; one you remove comes back only if the part it was seen in is read again. |
-| **Old knowledge (n)** | Collapsed by default. Each old item can be **copied**, **edited**, **restored** (it is active again, from now on) or deleted. |
+| **Old knowledge (n)** | Collapsed by default. Each old item says why it is old: *retracted* (with the number of the part whose reading retracted it, when the model did), *declined* in a review, or *tidied*. It can be **copied**, **edited**, **restored** (it is active again, from now on) or deleted. |
 
 ### Mass changes
 
@@ -51,6 +67,8 @@ the part it was learned in. Tick items in as many grids as you like (the box in 
 | **Retract selected (n)** | The ticked active items become old knowledge, as **Retract** does for one. |
 | **Restore selected (n)** | The ticked old items are active again, from now on. |
 | **Delete selected (n)** | Removes the ticked items for good, after one question. |
+| **Copy selected (n)** | Copies the ticked items, of all the characters, to paste them to another character. |
+| **Paste (n)** (in the header of every character) | Adds the copied items to that character. A pasted item counts as written by hand (an initial one stays initial) and keeps its kind, its lock and whether it is old; one the character has already (the same kind and text) is skipped. The copied items stay until the next copy, also after the window is closed, so they can be pasted to several characters. |
 
 The counts on the buttons say how many of the ticked items each one changes. The ticks stay after a change, so retracted
 items can be deleted next.
@@ -118,6 +136,9 @@ annotation and redraft, if the book has them); if you add, edit or delete parts 
   redrafted it) is marked; nothing is reprocessed by itself because of it. The button of a row, **Reprocess from here**,
   takes back what came from that part and the later ones (items and retractions you wrote by hand stay) and reads them again.
 
+When you scroll down the list of characters past these buttons, **Process now**, **Process next part** and **Tidy knowledge**
+are also offered in the bar at the top of the tab, so you can process without scrolling back up.
+
 What the plugin does by itself, when **Process new parts automatically** is on (it is off by default):
 
 - Before a generation starts, the parts written since the last time are processed, so the prompt knows who has met whom. A part
@@ -147,6 +168,24 @@ automatically** in the Processing section of the tab: who got what or lost what,
 editable, but every row has a **Revert** button: an added item is declined (it stays under *Old knowledge*, as a declined
 addition does in the review), a retracted item becomes active again. A row whose item you edited, deleted or retracted
 by hand since is left alone. The log keeps the last 200 changes.
+
+### Returning to an earlier point
+
+Before every run that changes the knowledge (a run of the tab with or without a review, the automatic reading of new parts, the
+`knowledge-process` and `knowledge-tidy` commands, a tidy, and a reading without the model) the tracker takes a **checkpoint**: the
+whole state of its characters as the run found it, with the place it had read up to (*Start of the book* before the first run).
+**Checkpoints** in the Processing panel lists them, newest first: the part the tracker had read up to, the time, what kind of run
+came next and how much it added and retracted. Only checkpoints whose part is on the active branch are listed.
+
+**Return to this point** on a row undoes that run and everything after it: the characters and their knowledge, the processed
+parts and the log of automatic changes are those of the checkpoint, and the next run reads the parts after its part again, the
+ones of the undone run too. Your settings and the start point stay as they are now. It asks first, because everything learned
+after the checkpoint is undone, the changes you made by hand since then too; what the tracker had is kept as a checkpoint
+(*before a return to a checkpoint*), so you can go back to it. Use it when a run or a series of runs went wrong, or after you
+restored an older backup of the book and want the tracker to catch up from a point you trust.
+
+The tracker keeps the last 20 checkpoints of a book. They are kept among your files (*Resources*, grouped by the book), not in the
+book, so book backups and copies do not include them.
 
 With **Ask before applying** off the new part is read as soon as it is final: when the generation is over, or, if the
 book has the automatic annotation (and redraft) or a translation on, when that is done, so the model reads the text you keep and works
@@ -248,6 +287,11 @@ The gear next to *Track a character*:
 | **Separators of this book** | How the present characters field is split into names, one per line (a new line is `\n`). A word such as `and` splits between spaces, so *Jack and Jill* stays one name until you add it. |
 | **My separators (all books)** | The same for all your books. The book's own separators win; with neither, the built-in ones are used. |
 
+**Use these settings for new books** (under the model settings) saves the settings of this book, the reading with the model,
+the model and the protocol included, as the ones a book starts with where the Knowledge Tracker was never used, so a new book
+reads with your model from its first run. The separators of the book stay with it. **Forget the settings for new books** goes back
+to the built-in settings. Books that already use the tracker keep their own settings.
+
 ## Prompts
 
 The system message of the reading (**Knowledge extraction prompt**) and the one of the tidy pass (**Knowledge tidy prompt**) are
@@ -317,4 +361,5 @@ The command line splits its arguments at spaces: put a list of characters in quo
 
 ## Storage
 
-Everything is stored with the book (in its attributes), so it is part of [book backups](../books/backups.md) and copies.
+Everything is stored with the book (in its attributes), so it is part of [book backups](../books/backups.md) and copies. The
+[checkpoints](#returning-to-an-earlier-point) are not: they are files of yours linked to the book.

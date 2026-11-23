@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.dialogs.bookimport;
 
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ArchiveImportRunner;
 import com.github.enerccio.marginalia.utils.MarkdownArchive;
@@ -25,13 +26,13 @@ final class ArchiveSource extends BookImportSource {
     }
 
     @Override
-    L label() {
-        return L.LABEL_IMPORT_FROM_ARCHIVE;
+    LocalizationKey label() {
+        return M_L.LABEL_IMPORT_FROM_ARCHIVE;
     }
 
     @Override
-    L description() {
-        return intoBook ? L.MSG_IMPORT_ARCHIVE_TO_BOOK : L.MSG_IMPORT_ARCHIVE_NEW_BOOK;
+    LocalizationKey description() {
+        return intoBook ? M_L.MSG_IMPORT_ARCHIVE_TO_BOOK : M_L.MSG_IMPORT_ARCHIVE_NEW_BOOK;
     }
 
     @Override
@@ -51,7 +52,7 @@ final class ArchiveSource extends BookImportSource {
 
     @Override
     String invalid(String fileName) {
-        return loc.getValue(L.MSG_INVALID_ARCHIVE);
+        return loc.getValue(M_L.MSG_INVALID_ARCHIVE);
     }
 
     @Override
@@ -62,7 +63,7 @@ final class ArchiveSource extends BookImportSource {
 
     @Override
     String status() {
-        return content == null ? "" : String.format(loc.getValue(L.MSG_ARCHIVE_FILES_READY), content.items().size());
+        return content == null ? "" : String.format(loc.getValue(M_L.MSG_ARCHIVE_FILES_READY), content.items().size());
     }
 
     @Override

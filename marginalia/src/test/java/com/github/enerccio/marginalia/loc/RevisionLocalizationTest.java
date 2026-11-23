@@ -14,17 +14,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 class RevisionLocalizationTest extends MarginaliaTestBase {
 
     @Autowired
-    private Localization loc;
+    private MarginaliaLocalization loc;
 
     @Test
     void everySourceAndEveryDetailHasAText() {
         for (RevisionSource source : RevisionSource.values()) {
-            L key = loc.getRevisionSource(source);
+            LocalizationKey key = loc.getRevisionSource(source);
             assertThat(key).as(source.name()).isNotNull();
             assertThat(loc.getValue(key)).as(source.name()).isNotBlank();
         }
         for (RevisionDetail detail : RevisionDetail.values()) {
-            L key = loc.getRevisionDetail(detail);
+            LocalizationKey key = loc.getRevisionDetail(detail);
             assertThat(key).as(detail.name()).isNotNull();
             assertThat(loc.getValue(key)).as(detail.name()).isNotBlank();
         }

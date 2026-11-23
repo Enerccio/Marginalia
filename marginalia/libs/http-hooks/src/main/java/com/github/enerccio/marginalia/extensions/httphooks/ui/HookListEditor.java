@@ -2,6 +2,9 @@ package com.github.enerccio.marginalia.extensions.httphooks.ui;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.extensions.httphooks.HttpHook;
+import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
+import com.github.enerccio.marginalia.ui.widgets.SettingsChanges;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -31,18 +34,34 @@ public class HookListEditor extends VerticalLayout {
 
     private final Labels labels;
     private final String rowClassName;
+    /** For the resizable headers and body; null: plain text areas. */
+    private final Localization loc;
     private final VerticalLayout rows = new VerticalLayout();
     private final List<Row> list = new ArrayList<>();
 
     /** @param rowClassName a CSS class for the frame of a row, null for none */
     public HookListEditor(Labels labels, String rowClassName) {
+        this(labels, rowClassName, null);
+    }
+
+    /**
+     * @param rowClassName a CSS class for the frame of a row, null for none
+     * @param loc          the localization of the page: the headers and the body scroll in a fixed height and expand like the other text
+     *                     areas ({@code ResizableTextArea}); null leaves them plain
+     */
+    public HookListEditor(Labels labels, String rowClassName, Localization loc) {
+        this.loc = loc;
         this.labels = labels;
         this.rowClassName = rowClassName;
         setPadding(false);
         setSpacing(true);
         rows.setPadding(false);
         rows.setSpacing(true);
-        Button add = new Button(labels.addRequest(), Solid.PLUS.create(), e -> addRow(new HttpHook(), UnaryOperator.identity()));
+        Button add = new Button(labels.addRequest(), Solid.PLUS.create(), e -> {
+            addRow(new HttpHook(), UnaryOperator.identity());
+            // a new row is not a value change: tell the settings page (it also starts to track the row's fields)
+            SettingsChanges.changed(this);
+        });
         add.setThemeName("tertiary small");
         add(rows, add);
     }
@@ -103,6 +122,7 @@ public class HookListEditor extends VerticalLayout {
                 list.remove(this);
                 rows.remove(this);
                 number();
+                SettingsChanges.changed(HookListEditor.this);
             });
             delete.setThemeName("tertiary small");
             delete.setTooltipText(labels.removeRequest());
@@ -113,9 +133,14 @@ public class HookListEditor extends VerticalLayout {
             url.setWidthFull();
             method.setWidth("8em");
             headers.setWidthFull();
-            headers.setMinHeight("4em");
             body.setWidthFull();
-            body.setMinHeight("4em");
+            if (loc != null) {
+                ResizableTextArea.install(loc, headers, "64px");
+                ResizableTextArea.install(loc, body, "64px");
+            } else {
+                headers.setMinHeight("4em");
+                body.setMinHeight("4em");
+            }
             for (IntegerField f : List.of(timeout, wait)) {
                 f.setMin(0);
                 f.setMax(f == timeout ? HttpHook.MAX_TIMEOUT_SECONDS : HttpHook.MAX_WAIT_SECONDS);

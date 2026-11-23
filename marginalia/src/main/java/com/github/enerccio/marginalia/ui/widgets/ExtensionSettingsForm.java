@@ -7,7 +7,7 @@ import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.extensions.InheritedSetting;
 import com.github.enerccio.marginalia.extensions.InheritedSetting.Choice;
 import com.github.enerccio.marginalia.extensions.InheritedSettingRegistry;
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
@@ -91,7 +91,7 @@ public class ExtensionSettingsForm {
         layout.setWidthFull();
         List<InheritedSettingRegistry.Group> groups = registry.groups();
         if (!groups.isEmpty()) {
-            Span title = new Span(loc.getValue(L.LABEL_EXTENSION_SETTINGS));
+            Span title = new Span(loc.getValue(M_L.LABEL_EXTENSION_SETTINGS));
             title.addClassName(CssStyles.SECTION_TITLE);
             layout.add(title);
         }

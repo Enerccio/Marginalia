@@ -15,7 +15,8 @@ import com.github.enerccio.marginalia.domain.service.function.FunctionContinuati
 import com.github.enerccio.marginalia.domain.service.function.FunctionDefinition;
 import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMAttachment;
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
+import com.github.enerccio.marginalia.loc.M_L;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,7 +76,7 @@ public final class CommandFunctions {
     public static final int MAX_IMAGES = 8;
 
     /** A text argument that starts with this is a reference to a file, see the class description. */
-    public static final String FILE_PREFIX = "@file:";
+    public static final String FILE_PREFIX = AgentFileTools.FILE_PREFIX;
 
     private static final int MAX_NAME_LENGTH = 64;
     private static final int SUFFIX_LENGTH = 6;
@@ -126,7 +127,7 @@ public final class CommandFunctions {
      *
      * @param approval who decides in the {@code ASK} mode, null when nobody can
      */
-    public static FunctionSet forAgent(CommandService commands, Agent agent, Function<L, String> lookup, Approval approval) {
+    public static FunctionSet forAgent(CommandService commands, Agent agent, Function<LocalizationKey, String> lookup, Approval approval) {
         return forAgent(commands, agent, lookup, approval, null);
     }
 
@@ -137,7 +138,7 @@ public final class CommandFunctions {
      * @param files reads the text of a file of the agent by its path and fails with the reason (the message goes to the
      *              model); null when the agent has no files, the arguments are then passed as they are
      */
-    public static FunctionSet forAgent(CommandService commands, Agent agent, Function<L, String> lookup, Approval approval,
+    public static FunctionSet forAgent(CommandService commands, Agent agent, Function<LocalizationKey, String> lookup, Approval approval,
                                        Function<String, String> files) {
         return forAgent(commands, agent, lookup, approval, files, null);
     }
@@ -148,7 +149,7 @@ public final class CommandFunctions {
      *
      * @param commandResults where the result of each call is put, null to keep none
      */
-    public static FunctionSet forAgent(CommandService commands, Agent agent, Function<L, String> lookup, Approval approval,
+    public static FunctionSet forAgent(CommandService commands, Agent agent, Function<LocalizationKey, String> lookup, Approval approval,
                                        Function<String, String> files, CommandResults commandResults) {
         return forAgent(commands, agent, lookup, approval, files, commandResults, null);
     }
@@ -161,7 +162,7 @@ public final class CommandFunctions {
      *               (the message goes to the model); null when the agent has no files, the commands then have no
      *               image parameters for the model
      */
-    public static FunctionSet forAgent(CommandService commands, Agent agent, Function<L, String> lookup, Approval approval,
+    public static FunctionSet forAgent(CommandService commands, Agent agent, Function<LocalizationKey, String> lookup, Approval approval,
                                        Function<String, String> files, CommandResults commandResults,
                                        Function<String, LLMAttachment> images) {
         return forAgent(commands, agent, lookup, approval, files, commandResults, images, null);
@@ -173,7 +174,7 @@ public final class CommandFunctions {
      *
      * @param cage the scope of the commands and the handles; null runs them in the scope of the session, with the uuids
      */
-    public static FunctionSet forAgent(CommandService commands, Agent agent, Function<L, String> lookup, Approval approval,
+    public static FunctionSet forAgent(CommandService commands, Agent agent, Function<LocalizationKey, String> lookup, Approval approval,
                                        Function<String, String> files, CommandResults commandResults,
                                        Function<String, LLMAttachment> images, CommandCage cage) {
         return create(commands, agent.getAllowedCommands(), agent.getDestructiveMode(), lookup, approval, files, commandResults, images, cage);
@@ -186,7 +187,7 @@ public final class CommandFunctions {
      * @param approval who decides in the {@code ASK} mode, null when nobody can
      */
     public static FunctionSet create(CommandService commands, Collection<String> allowed, DestructiveCommandMode mode,
-                                     Function<L, String> lookup, Approval approval) {
+                                     Function<LocalizationKey, String> lookup, Approval approval) {
         return create(commands, allowed, mode, lookup, approval, null);
     }
 
@@ -195,7 +196,7 @@ public final class CommandFunctions {
      *              {@link #forAgent(CommandService, Agent, Function, Approval, Function)}
      */
     public static FunctionSet create(CommandService commands, Collection<String> allowed, DestructiveCommandMode mode,
-                                     Function<L, String> lookup, Approval approval, Function<String, String> files) {
+                                     Function<LocalizationKey, String> lookup, Approval approval, Function<String, String> files) {
         return create(commands, allowed, mode, lookup, approval, files, null);
     }
 
@@ -204,7 +205,7 @@ public final class CommandFunctions {
      *                   {@link #forAgent(CommandService, Agent, Function, Approval, Function, CommandResults)}
      */
     public static FunctionSet create(CommandService commands, Collection<String> allowed, DestructiveCommandMode mode,
-                                     Function<L, String> lookup, Approval approval, Function<String, String> files,
+                                     Function<LocalizationKey, String> lookup, Approval approval, Function<String, String> files,
                                      CommandResults commandResults) {
         return create(commands, allowed, mode, lookup, approval, files, commandResults, null);
     }
@@ -214,7 +215,7 @@ public final class CommandFunctions {
      *               {@link #forAgent(CommandService, Agent, Function, Approval, Function, CommandResults, Function)}
      */
     public static FunctionSet create(CommandService commands, Collection<String> allowed, DestructiveCommandMode mode,
-                                     Function<L, String> lookup, Approval approval, Function<String, String> files,
+                                     Function<LocalizationKey, String> lookup, Approval approval, Function<String, String> files,
                                      CommandResults commandResults, Function<String, LLMAttachment> images) {
         return create(commands, allowed, mode, lookup, approval, files, commandResults, images, null);
     }
@@ -224,7 +225,7 @@ public final class CommandFunctions {
      *             {@link #forAgent(CommandService, Agent, Function, Approval, Function, CommandResults, Function, CommandCage)}
      */
     public static FunctionSet create(CommandService commands, Collection<String> allowed, DestructiveCommandMode mode,
-                                     Function<L, String> lookup, Approval approval, Function<String, String> files,
+                                     Function<LocalizationKey, String> lookup, Approval approval, Function<String, String> files,
                                      CommandResults commandResults, Function<String, LLMAttachment> images, CommandCage cage) {
         // the allowlist is completed with the linked commands, and a command that lacks one of them is not offered
         Set<String> names = CommandLinks.resolve(commands.getCommands(), allowed);
@@ -254,7 +255,7 @@ public final class CommandFunctions {
         return FunctionSet.bind(functions.values(), null);
     }
 
-    private static String describe(List<CommandDefinition> forms, Function<L, String> lookup) {
+    private static String describe(List<CommandDefinition> forms, Function<LocalizationKey, String> lookup) {
         CommandDefinition first = forms.getFirst();
         String text = first.llmDescription().get(lookup);
         if (text.isBlank()) {
@@ -295,7 +296,7 @@ public final class CommandFunctions {
         return required;
     }
 
-    private static ObjectNode schema(List<CommandDefinition> forms, Function<L, String> lookup, boolean images) {
+    private static ObjectNode schema(List<CommandDefinition> forms, Function<LocalizationKey, String> lookup, boolean images) {
         ObjectNode properties = JSON.createObjectNode();
         parametersOf(forms).forEach((name, parameters) -> {
             if (isImages(parameters)) {
@@ -323,7 +324,7 @@ public final class CommandFunctions {
      * description of every text parameter (it was half of the size of the definitions of the tools): the note of the runner in
      * the system prompt tells it once, see {@link Defaults#AGENT_RUNNER_NOTE}.
      */
-    private static ObjectNode parameterSchema(List<CommandParameterDefinition> forms, Function<L, String> lookup) {
+    private static ObjectNode parameterSchema(List<CommandParameterDefinition> forms, Function<LocalizationKey, String> lookup) {
         CommandParameterDefinition first = forms.getFirst();
         // forms that disagree about the type take anything
         Class<?> type = forms.stream().allMatch(p -> p.type() == first.type()) ? first.type() : Object.class;
@@ -393,12 +394,12 @@ public final class CommandFunctions {
         return forms.stream().allMatch(p -> p.type() == LLMAttachment[].class);
     }
 
-    private static ObjectNode imagesSchema(List<CommandParameterDefinition> forms, Function<L, String> lookup) {
+    private static ObjectNode imagesSchema(List<CommandParameterDefinition> forms, Function<LocalizationKey, String> lookup) {
         ObjectNode schema = JSON.createObjectNode();
         schema.put("type", "array");
         schema.set("items", JSON.createObjectNode().put("type", "string"));
         String text = forms.stream().map(p -> p.description().get(lookup)).filter(t -> !t.isBlank()).findFirst().orElse("");
-        schema.put("description", (text.isEmpty() ? "" : text + " ") + String.format(lookup.apply(L.DESC_AGENT_IMAGES_ARGUMENT), MAX_IMAGES));
+        schema.put("description", (text.isEmpty() ? "" : text + " ") + String.format(lookup.apply(M_L.DESC_AGENT_IMAGES_ARGUMENT), MAX_IMAGES));
         return schema;
     }
 

@@ -13,6 +13,8 @@ import com.github.enerccio.marginalia.extensions.InheritedSetting;
 import com.github.enerccio.marginalia.extensions.InheritedSettingRegistry;
 import com.github.enerccio.marginalia.extensions.InheritedSettingValues;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.test.ComponentTree;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
@@ -118,11 +120,11 @@ class FolderDialogTest extends MarginaliaTestBase {
         return dialog;
     }
 
-    private TextArea area(FolderDialog dialog, L label) {
+    private TextArea area(FolderDialog dialog, LocalizationKey label) {
         return ComponentTree.all(dialog, TextArea.class).filter(a -> loc.getValue(label).equals(a.getLabel())).findFirst().orElseThrow();
     }
 
-    private TextField line(FolderDialog dialog, L label) {
+    private TextField line(FolderDialog dialog, LocalizationKey label) {
         return ComponentTree.all(dialog, TextField.class).filter(a -> loc.getValue(label).equals(a.getLabel())).findFirst().orElseThrow();
     }
 
@@ -135,8 +137,8 @@ class FolderDialogTest extends MarginaliaTestBase {
         assertThat(dialog.getHeaderTitle()).contains("Sci-fi");
         assertThat(line(dialog, L.LABEL_NAME).getValue()).isEqualTo("Sci-fi");
         assertThat(area(dialog, L.LABEL_DESCRIPTION).getValue()).isEqualTo("Space stories");
-        assertThat(area(dialog, L.LABEL_STYLE).getValue()).isEqualTo("Terse");
-        assertThat(area(dialog, L.LABEL_USER_PROMPT).getValue()).isEmpty();
+        assertThat(area(dialog, M_L.LABEL_STYLE).getValue()).isEqualTo("Terse");
+        assertThat(area(dialog, M_L.LABEL_USER_PROMPT).getValue()).isEmpty();
     }
 
     @Test
@@ -149,16 +151,16 @@ class FolderDialogTest extends MarginaliaTestBase {
         FolderDialog top = dialog(scifi, new AtomicReference<>());
         FolderDialog below = dialog(expanse, new AtomicReference<>());
 
-        TextArea style = area(below, L.LABEL_STYLE);
+        TextArea style = area(below, M_L.LABEL_STYLE);
         assertThat(style.getPlaceholder()).isEqualTo("Terse");
         assertThat(style.getHelperText()).isEqualTo("Inherited from the folder \"Sci-fi\"");
-        TextField tense = line(below, L.LABEL_TENSE);
+        TextField tense = line(below, M_L.LABEL_TENSE);
         assertThat(tense.getPlaceholder()).isEqualTo("Past, from the user");
         assertThat(tense.getHelperText()).isEqualTo("Inherited from your settings");
-        assertThat(area(below, L.LABEL_USER_PROMPT).getHelperText()).isEqualTo("Built-in default");
+        assertThat(area(below, M_L.LABEL_USER_PROMPT).getHelperText()).isEqualTo("Built-in default");
 
-        assertThat(area(top, L.LABEL_STYLE).getHelperText()).as("a field that is set says nothing").isNull();
-        assertThat(line(top, L.LABEL_TENSE).getHelperText()).isEqualTo("Inherited from your settings");
+        assertThat(area(top, M_L.LABEL_STYLE).getHelperText()).as("a field that is set says nothing").isNull();
+        assertThat(line(top, M_L.LABEL_TENSE).getHelperText()).isEqualTo("Inherited from your settings");
     }
 
     @Test
@@ -168,7 +170,7 @@ class FolderDialogTest extends MarginaliaTestBase {
 
         line(dialog, L.LABEL_NAME).setValue("The Expanse");
         area(dialog, L.LABEL_DESCRIPTION).setValue("Leviathan Wakes and so on");
-        area(dialog, L.LABEL_STYLE).setValue("Gritty");
+        area(dialog, M_L.LABEL_STYLE).setValue("Gritty");
         dialog.save();
 
         assertThat(saved.get()).isNotNull();
@@ -217,7 +219,7 @@ class FolderDialogTest extends MarginaliaTestBase {
         assertThat(manuscriptService.getStyle(book)).isEqualTo("Gritty");
 
         FolderDialog dialog = dialog(expanse, new AtomicReference<>());
-        area(dialog, L.LABEL_STYLE).setValue("");
+        area(dialog, M_L.LABEL_STYLE).setValue("");
         dialog.save();
 
         assertThat(folderService.find(expanse.getId()).getStyle()).isNull();
@@ -231,7 +233,7 @@ class FolderDialogTest extends MarginaliaTestBase {
         FolderDialog dialog = dialog(scifi, saved);
 
         line(dialog, L.LABEL_NAME).setValue("Fantasy");
-        area(dialog, L.LABEL_STYLE).setValue("Terse");
+        area(dialog, M_L.LABEL_STYLE).setValue("Terse");
         dialog.save();
 
         assertThat(saved.get()).isNull();
@@ -257,7 +259,7 @@ class FolderDialogTest extends MarginaliaTestBase {
         AtomicReference<Folder> saved = new AtomicReference<>();
         FolderDialog dialog = dialog(scifi, saved);
 
-        area(dialog, L.LABEL_MASTER_TEMPLATE).setValue("{{#if}} broken");
+        area(dialog, M_L.LABEL_MASTER_TEMPLATE).setValue("{{#if}} broken");
         dialog.save();
 
         assertThat(saved.get()).isNull();

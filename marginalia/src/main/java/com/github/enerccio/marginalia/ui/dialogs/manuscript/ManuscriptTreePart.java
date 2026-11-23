@@ -7,7 +7,8 @@ import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.search.FulltextHit;
 import com.github.enerccio.marginalia.domain.traits.*;
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.MarginaliaLocalization;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.components.TreantTree;
 import com.github.enerccio.marginalia.ui.dialogs.story.PartHistoryDialog;
@@ -38,7 +39,7 @@ import java.util.*;
 public class ManuscriptTreePart implements ManuscriptDialogPart {
 
     @Autowired
-    private Localization loc;
+    private MarginaliaLocalization loc;
 
     @Autowired
     private ChatMessageService chatMessageService;
@@ -91,7 +92,7 @@ public class ManuscriptTreePart implements ManuscriptDialogPart {
         content.setSpacing(false);
         content.setFlexGrow(1, scrollPanel);
 
-        container.add(loc.getValue(L.LABEL_BRANCH_TREE), content);
+        container.add(loc.getValue(M_L.LABEL_BRANCH_TREE), content);
         return content;
     }
 
@@ -101,7 +102,7 @@ public class ManuscriptTreePart implements ManuscriptDialogPart {
                     @APILocals(name = "bar", type = HorizontalLayout.class)})
     private HorizontalLayout createSearchBar() {
         searchBox = new ComboBox<>();
-        searchBox.setPlaceholder(loc.getValue(L.LABEL_SEARCH_ALL_BRANCHES));
+        searchBox.setPlaceholder(loc.getValue(M_L.LABEL_SEARCH_ALL_BRANCHES));
         // the history of searches; a combo box without items refuses a value
         searchBox.setItems(searchHistory);
         searchBox.setAllowCustomValue(true);
@@ -116,7 +117,7 @@ public class ManuscriptTreePart implements ManuscriptDialogPart {
             }
         });
 
-        Button searchButton = new Button(loc.getValue(L.LABEL_SEARCH), VaadinIcon.SEARCH.create());
+        Button searchButton = new Button(loc.getValue(M_L.LABEL_SEARCH), VaadinIcon.SEARCH.create());
         searchButton.addClickListener(event -> {
             // the combo box has already searched when the click committed a typed text
             String query = StringUtils.trimToNull(searchBox.getValue());
@@ -125,7 +126,7 @@ public class ManuscriptTreePart implements ManuscriptDialogPart {
             }
         });
 
-        includeVersions.setLabel(loc.getValue(L.LABEL_SEARCH_INCLUDE_VERSIONS));
+        includeVersions.setLabel(loc.getValue(M_L.LABEL_SEARCH_INCLUDE_VERSIONS));
         includeVersions.addValueChangeListener(event -> {
             if (lastQuery != null) {
                 search(lastQuery);
@@ -169,8 +170,8 @@ public class ManuscriptTreePart implements ManuscriptDialogPart {
                     }
                 }
                 searchStatus.setText(hitSnippets.isEmpty()
-                        ? loc.getValue(L.MSG_SEARCH_NO_RESULTS)
-                        : String.format(loc.getValue(L.MSG_SEARCH_RESULTS), hitSnippets.size()));
+                        ? loc.getValue(M_L.MSG_SEARCH_NO_RESULTS)
+                        : String.format(loc.getValue(M_L.MSG_SEARCH_RESULTS), hitSnippets.size()));
                 remember(query);
             }
         } catch (Exception e) {
@@ -187,7 +188,7 @@ public class ManuscriptTreePart implements ManuscriptDialogPart {
             returns = @APIReturn(type = String.class),
             parameters = {@APIParameter(name = "hit", type = FulltextHit.class)})
     private String versionSnippet(FulltextHit hit) {
-        return String.format(loc.getValue(L.MSG_SEARCH_FOUND_IN_VERSION),
+        return String.format(loc.getValue(M_L.MSG_SEARCH_FOUND_IN_VERSION),
                 loc.getDateHourFormat().format(hit.versionTime()), loc.getValue(loc.getRevisionSource(hit.versionSource())))
                 + ": " + hit.snippet();
     }
@@ -568,7 +569,7 @@ public class ManuscriptTreePart implements ManuscriptDialogPart {
                <div class="tree-node-card">
                    <strong>%s</strong>
                </div>
-               """.formatted(HtmlUtils.htmlEscape(loc.getValue(L.LABEL_ROOT)));
+               """.formatted(HtmlUtils.htmlEscape(loc.getValue(M_L.LABEL_ROOT)));
     }
 
     @PublicAPI(from = "1.1.0",
@@ -580,15 +581,15 @@ public class ManuscriptTreePart implements ManuscriptDialogPart {
             locals = {@APILocals(name = "title", type = String.class)})
     private String buildBlockNodeHtml(String blockId, int messageCount, int startIdx, int endIdx) {
         String title = HtmlUtils.htmlEscape(
-                loc.getValue(L.MSG_TREE_BLOCK_TITLE).formatted(messageCount, startIdx, endIdx));
+                loc.getValue(M_L.MSG_TREE_BLOCK_TITLE).formatted(messageCount, startIdx, endIdx));
 
         return """
                <div class="tree-node-card tree-node-block" data-node-id="%s" title="%s">
                    <div class="tree-block-count"><strong>%s</strong></div>
                    <div class="tree-block-subtitle">[%d–%d] • %s</div>
                </div>
-               """.formatted(blockId, title, HtmlUtils.htmlEscape(loc.getValue(L.MSG_TREE_BLOCK_MESSAGES).formatted(messageCount)),
-                startIdx, endIdx, HtmlUtils.htmlEscape(loc.getValue(L.LABEL_CLICK_TO_EXPAND)));
+               """.formatted(blockId, title, HtmlUtils.htmlEscape(loc.getValue(M_L.MSG_TREE_BLOCK_MESSAGES).formatted(messageCount)),
+                startIdx, endIdx, HtmlUtils.htmlEscape(loc.getValue(M_L.LABEL_CLICK_TO_EXPAND)));
     }
 
     @PublicAPI(from = "1.1.0",
@@ -613,16 +614,16 @@ public class ManuscriptTreePart implements ManuscriptDialogPart {
 
         List<String> tooltipLines = new ArrayList<>();
         if (StringUtils.isNotBlank(dateStr)) {
-            tooltipLines.add(loc.getValue(L.LABEL_DATE) + ": " + dateStr);
+            tooltipLines.add(loc.getValue(M_L.LABEL_DATE) + ": " + dateStr);
         }
         if (StringUtils.isNotBlank(scene)) {
-            tooltipLines.add(loc.getValue(L.LABEL_SCENE) + ": " + scene);
+            tooltipLines.add(loc.getValue(M_L.LABEL_SCENE) + ": " + scene);
         }
         if (StringUtils.isNotBlank(presentChars)) {
-            tooltipLines.add(loc.getValue(L.LABEL_PRESENT) + ": " + presentChars);
+            tooltipLines.add(loc.getValue(M_L.LABEL_PRESENT) + ": " + presentChars);
         }
         if (StringUtils.isNotBlank(instructions)) {
-            tooltipLines.add(loc.getValue(L.LABEL_INSTRUCTIONS) + ": " + instructions);
+            tooltipLines.add(loc.getValue(M_L.LABEL_INSTRUCTIONS) + ": " + instructions);
         }
 
         String cardTooltip = HtmlUtils.htmlEscape(String.join("\n", tooltipLines));
@@ -636,19 +637,19 @@ public class ManuscriptTreePart implements ManuscriptDialogPart {
         String sceneHtml = StringUtils.isNotBlank(scene)
                 ? """
                   <div class="tree-node-field"><strong>%s:</strong> %s</div>
-                  """.formatted(HtmlUtils.htmlEscape(loc.getValue(L.LABEL_SCENE)), HtmlUtils.htmlEscape(scene))
+                  """.formatted(HtmlUtils.htmlEscape(loc.getValue(M_L.LABEL_SCENE)), HtmlUtils.htmlEscape(scene))
                 : "";
 
         String presentHtml = StringUtils.isNotBlank(presentChars)
                 ? """
                   <div class="tree-node-field"><strong>%s:</strong> %s</div>
-                  """.formatted(HtmlUtils.htmlEscape(loc.getValue(L.LABEL_PRESENT)), HtmlUtils.htmlEscape(presentChars))
+                  """.formatted(HtmlUtils.htmlEscape(loc.getValue(M_L.LABEL_PRESENT)), HtmlUtils.htmlEscape(presentChars))
                 : "";
 
         String instructionsHtml = StringUtils.isNotBlank(instructions)
                 ? """
                   <div class="tree-node-instructions" title="%s"><strong>%s:</strong> %s</div>
-                  """.formatted(HtmlUtils.htmlEscape(instructions), HtmlUtils.htmlEscape(loc.getValue(L.LABEL_INSTRUCTIONS)), HtmlUtils.htmlEscape(instructions))
+                  """.formatted(HtmlUtils.htmlEscape(instructions), HtmlUtils.htmlEscape(loc.getValue(M_L.LABEL_INSTRUCTIONS)), HtmlUtils.htmlEscape(instructions))
                 : "";
 
         String hitHtml = "";
@@ -657,12 +658,12 @@ public class ManuscriptTreePart implements ManuscriptDialogPart {
                       <div class="tree-node-hit">%s</div>
                       <a class="tree-node-goto" href="#" data-goto-id="%s">%s</a>
                       """.formatted(HtmlUtils.htmlEscape(hitSnippets.get(msg.getId())), msg.getId(),
-                    HtmlUtils.htmlEscape(loc.getValue(L.LABEL_SHOW_IN_STORY)));
+                    HtmlUtils.htmlEscape(loc.getValue(M_L.LABEL_SHOW_IN_STORY)));
             if (versionHits.containsKey(msg.getId())) {
                 hitHtml += """
                            <a class="tree-node-goto" href="#" data-goto-id="%s%s:%s">%s</a>
                            """.formatted(HISTORY_LINK, msg.getId(), HtmlUtils.htmlEscape(versionHits.get(msg.getId()).version()),
-                        HtmlUtils.htmlEscape(loc.getValue(L.LABEL_SHOW_IN_HISTORY)));
+                        HtmlUtils.htmlEscape(loc.getValue(M_L.LABEL_SHOW_IN_HISTORY)));
             }
         }
 

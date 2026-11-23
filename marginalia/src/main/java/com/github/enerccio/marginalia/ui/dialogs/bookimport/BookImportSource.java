@@ -1,6 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs.bookimport;
 
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.vaadin.flow.component.Component;
 
@@ -22,12 +22,12 @@ abstract class BookImportSource {
     /**
      * @return the label of the source in the selector
      */
-    abstract L label();
+    abstract LocalizationKey label();
 
     /**
      * @return what the user is asked to upload
      */
-    abstract L description();
+    abstract LocalizationKey description();
 
     abstract String[] fileTypes();
 

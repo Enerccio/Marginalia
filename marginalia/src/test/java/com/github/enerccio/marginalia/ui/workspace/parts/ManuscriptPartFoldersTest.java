@@ -6,8 +6,8 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.FolderService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
-import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.test.ComponentTree;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
 import com.github.enerccio.marginalia.ui.widgets.FolderBookRow;
@@ -129,7 +129,7 @@ class ManuscriptPartFoldersTest extends MarginaliaTestBase {
     void aFolderIsOpenedFromItsNameAndLeftFromTheBreadcrumb() {
         clickName(row("Sci-fi"));
         assertThat(names()).containsExactly("[Expanse]", "Leviathan");
-        assertThat(ComponentTree.all(view, Button.class).map(Button::getText)).contains(loc.getValue(L.LABEL_BOOKS));
+        assertThat(ComponentTree.all(view, Button.class).map(Button::getText)).contains(loc.getValue(M_L.LABEL_BOOKS));
 
         clickName(row("Expanse"));
         assertThat(names()).containsExactly("Caliban");
@@ -137,7 +137,7 @@ class ManuscriptPartFoldersTest extends MarginaliaTestBase {
         click("Sci-fi");
         assertThat(names()).containsExactly("[Expanse]", "Leviathan");
 
-        click(loc.getValue(L.LABEL_BOOKS));
+        click(loc.getValue(M_L.LABEL_BOOKS));
         assertThat(names()).containsExactly("[Sci-fi]", "Loose");
     }
 
@@ -273,7 +273,7 @@ class ManuscriptPartFoldersTest extends MarginaliaTestBase {
         assertThat(names()).containsExactly("Caliban");
 
         // back at the top level the filter is still set: the name starts with Cal, no book there does
-        click(loc.getValue(L.LABEL_BOOKS));
+        click(loc.getValue(M_L.LABEL_BOOKS));
         assertThat(names()).isEmpty();
         assertThat(part.storeState().has("favorites")).isFalse();
     }

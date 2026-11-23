@@ -4,8 +4,8 @@ import com.github.enerccio.marginalia.extensions.knowledgetracker.model.ItemKind
 import com.github.enerccio.marginalia.extensions.knowledgetracker.model.KnowledgeItem;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.model.KnowledgeState;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.model.TrackedCharacter;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.process.Part;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.scene.PresentCharacters;
+import com.github.enerccio.marginalia.extensions.storytracker.process.Part;
+import com.github.enerccio.marginalia.extensions.storytracker.scene.PresentCharacters;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;

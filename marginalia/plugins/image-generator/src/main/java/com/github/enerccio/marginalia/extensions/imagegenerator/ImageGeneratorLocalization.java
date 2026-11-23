@@ -1,6 +1,11 @@
 package com.github.enerccio.marginalia.extensions.imagegenerator;
 
 import com.github.enerccio.marginalia.extensions.PluginLocalizationBundle;
+import com.github.enerccio.marginalia.extensions.imagegenerator.defaults.*;
+import com.github.enerccio.marginalia.loc.Language;
+import com.github.enerccio.marginalia.loc.L;
+
+import java.util.Map;
 
 /**
  * Texts of the Image Generator in the languages besides English; the English text is the key.
@@ -8,6 +13,17 @@ import com.github.enerccio.marginalia.extensions.PluginLocalizationBundle;
 public class ImageGeneratorLocalization extends PluginLocalizationBundle {
 
     public static final ImageGeneratorLocalization T = new ImageGeneratorLocalization();
+
+    // the built-in prompt texts, one object per prompt language
+    private final ImageGeneratorDefaults englishDefaults = new ImageGeneratorDefaults();
+    private final Map<Language, ImageGeneratorDefaults> translatedDefaults = Map.of(JA, new ImageGeneratorDefaultsJA(), ZH,
+            new ImageGeneratorDefaultsZH(), FR, new ImageGeneratorDefaultsFR(), ES, new ImageGeneratorDefaultsES(), DE,
+            new ImageGeneratorDefaultsDE(), IT, new ImageGeneratorDefaultsIT(), KO, new ImageGeneratorDefaultsKO());
+
+    /** The built-in prompt texts in the prompt language of the user. */
+    public ImageGeneratorDefaults defaults() {
+        return forPromptLanguage(englishDefaults, translatedDefaults);
+    }
 
     public static final String IMAGE_GENERATOR = "Image Generator";
     public static final String GENERATE_IMAGE = "Generate image";
@@ -21,7 +37,6 @@ public class ImageGeneratorLocalization extends PluginLocalizationBundle {
     public static final String NEGATIVE_PROMPT = "Negative prompt";
     public static final String WIDTH = "Width";
     public static final String HEIGHT = "Height";
-    public static final String SIZE_AND_NEGATIVE_PROMPT = "Size and negative prompt";
     public static final String GENERATE = "Generate";
     public static final String REROLL = "Reroll";
     public static final String ACCEPT = "Accept";
@@ -32,14 +47,11 @@ public class ImageGeneratorLocalization extends PluginLocalizationBundle {
     public static final String THE_PROMPT_IS_EMPTY = "The prompt is empty";
     public static final String THE_IMAGE_WAS_ADDED = "The image was added to the part";
     public static final String THE_IMAGE_IS_NOT_VALID = "The server did not return a valid image";
-    public static final String THE_BACKEND_WAS_RELEASED = "The backend was released after the idle time";
-    public static final String THE_AFTER_HOOK_FAILED = "The request after the images failed: %s";
     public static final String GENERATING_FAILED = "Generating the image failed: %s";
     public static final String THE_MODEL_FAILED = "The model failed: %s";
     public static final String STYLE = "Style";
     public static final String PUT_IN_FRONT_OF_EVERY_PROMPT = "Put in front of every prompt, for the look of the book (for example: watercolor, soft light)";
     public static final String INSTRUCTION_FOR_THE_PROMPT_WRITER = "Instruction for the prompt writer";
-    public static final String EMPTY_OR_UNCHANGED_THE_BUILT_IN_TEXT = "Empty or unchanged: the built-in text is used";
     public static final String BACKENDS = "Backends";
     public static final String ADD_A_BACKEND = "Add a backend";
     public static final String DELETE_THE_BACKEND = "Delete the backend";
@@ -55,15 +67,10 @@ public class ImageGeneratorLocalization extends PluginLocalizationBundle {
     public static final String REMOVE_THE_KEY = "Remove the key";
     public static final String MODEL = "Model";
     public static final String WORKFLOW = "Workflow";
-    public static final String API_FORMAT_WORKFLOW = "Workflow of ComfyUI saved with Save (API Format), with {{prompt}}, {{negative}}, {{seed}}, {{width}} and {{height}} where they go";
+    public static final String API_FORMAT_WORKFLOW = "Workflow of ComfyUI saved with Save (API Format), with {{prompt}}, {{negative}}, {{seed}}, {{width}} and {{height}} where they go; {{lora}} and {{lora_strength}} in a LoRA loader let you choose the LoRA in the window";
     public static final String THE_SERVER_IS_LOCAL = "The server is on this machine or on my network";
     public static final String ALLOWS_ADDRESSES_OF_THE_LOCAL_NETWORK = "Allows the addresses of the local network; leave it off for a server in the cloud";
     public static final String TIMEOUT_SECONDS = "Timeout (s)";
-    public static final String RELEASE_AFTER_IDLE_SECONDS = "Release after idle (s)";
-    public static final String THE_REQUEST_AFTER_THE_IMAGES_RUNS = "The request after the images runs this many seconds after the last image; 0 never";
-    public static final String BEFORE_THE_FIRST_IMAGE = "Before the first image";
-    public static final String AFTER_THE_LAST_IMAGE = "After the last image";
-    public static final String A_REQUEST_MADE_AROUND_THE_IMAGES = "Requests made around the images, one after the other, for example to free the memory of the GPU. None does nothing.";
     public static final String ADD_A_REQUEST = "Add a request";
     public static final String REMOVE_THE_REQUEST = "Remove the request";
     public static final String REQUEST = "Request";
@@ -83,8 +90,24 @@ public class ImageGeneratorLocalization extends PluginLocalizationBundle {
     public static final String IMAGE_GENERATOR_WRITE_THE_PROMPT = "Image Generator: write the prompt";
     public static final String IMAGE_GENERATOR_GENERATE_THE_IMAGE = "Image Generator: generate the image";
 
-    public static final String GPU_NAME = "GPU (name)";
-    public static final String GPU_NAME_HELP = "Optional. Name the GPU when this server shares it with other servers (a speech server, another image server), and give the same name there: they then wait for each other instead of unloading each other's model. Empty: only requests to this address wait for each other.";
+    public static final String LORA = "LoRA";
+    public static final String LORA_STRENGTH = "LoRA strength";
+    public static final String NO_LORA = "None";
+    public static final String THE_LORAS_COULD_NOT_BE_READ = "The LoRAs of the server could not be read: %s";
+    public static final String STYLE_FOR_THIS_WINDOW = "The style of the book (its Prompts tab, a folder or your settings); a change here is for this window only";
+    public static final String NEGATIVE_PROMPT_HELP = "What the pictures must not show. A turbo model that runs without guidance (CFG 1) ignores it";
+    public static final String A_BOOK_OR_A_FOLDER_CAN_CHANGE_THESE = "These are your defaults: a book or a folder can change the style and the negative prompt in its Prompts tab, under Extension Settings.";
+    public static final String PROMPT_FORM = "Prompt form";
+    public static final String TAGS_FORM = "Tags (SDXL, Pony, Illustrious)";
+    public static final String SENTENCES_FORM = "Descriptive sentences (Flux, Krea, Qwen-Image, Z-Image)";
+    public static final String FREE_TEXT = "Free text";
+    public static final String PROMPT_FORM_HELP = "How the language model writes the prompt: what the image model of this backend understands best";
+    public static final String KEY_OF_THE_REQUESTS = "Key of the requests around the images";
+    public static final String BEFORE_EACH_IMAGE = "Before each image";
+    public static final String AFTER_EACH_IMAGE = "After each image";
+    public static final String REQUESTS_MADE_AROUND_EACH_IMAGE = "Requests made before and after each image, one after the other, for example to start or stop a container. Freeing the GPU for the language model is the job of the GPU lock. None does nothing.";
+    public static final String GPU_LOCK_HELP = "The GPU lock the administrator set up for the GPU of this server: every image waits for its turn on the GPU, and the lock's steps load the server first (freeing the language model or another server when needed). Empty: no lock.";
+    public static final String KEY_OF_THE_REQUESTS_HELP = "Sent as Authorization: Bearer with every request before and after the images that has no Authorization header of its own (a proxy such as LiteLLM wants it), stored encrypted and never shown again. Empty: the api key above is used.";
 
     @Override
     protected void loadKeys() {
@@ -184,14 +207,6 @@ public class ImageGeneratorLocalization extends PluginLocalizationBundle {
         ko(HEIGHT, "높이");
         it(HEIGHT, "Altezza");
 
-        ja(SIZE_AND_NEGATIVE_PROMPT, "サイズとネガティブプロンプト");
-        zh(SIZE_AND_NEGATIVE_PROMPT, "尺寸和负面提示词");
-        fr(SIZE_AND_NEGATIVE_PROMPT, "Taille et prompt négatif");
-        es(SIZE_AND_NEGATIVE_PROMPT, "Tamaño y prompt negativo");
-        de(SIZE_AND_NEGATIVE_PROMPT, "Größe und negativer Prompt");
-        ko(SIZE_AND_NEGATIVE_PROMPT, "크기와 네거티브 프롬프트");
-        it(SIZE_AND_NEGATIVE_PROMPT, "Dimensione e prompt negativo");
-
         ja(GENERATE, "生成");
         zh(GENERATE, "生成");
         fr(GENERATE, "Générer");
@@ -272,22 +287,6 @@ public class ImageGeneratorLocalization extends PluginLocalizationBundle {
         ko(THE_IMAGE_IS_NOT_VALID, "서버가 올바른 이미지를 반환하지 않았습니다");
         it(THE_IMAGE_IS_NOT_VALID, "Il server non ha restituito un'immagine valida");
 
-        ja(THE_BACKEND_WAS_RELEASED, "待機時間が過ぎたためバックエンドを解放しました");
-        zh(THE_BACKEND_WAS_RELEASED, "空闲时间已过，已释放后端");
-        fr(THE_BACKEND_WAS_RELEASED, "Le moteur a été libéré après le délai d'inactivité");
-        es(THE_BACKEND_WAS_RELEASED, "El backend se liberó tras el tiempo de inactividad");
-        de(THE_BACKEND_WAS_RELEASED, "Das Backend wurde nach der Leerlaufzeit freigegeben");
-        ko(THE_BACKEND_WAS_RELEASED, "유휴 시간 후 백엔드가 해제되었습니다");
-        it(THE_BACKEND_WAS_RELEASED, "Il backend è stato rilasciato dopo il tempo di inattività");
-
-        ja(THE_AFTER_HOOK_FAILED, "画像の後のリクエストが失敗しました: %s");
-        zh(THE_AFTER_HOOK_FAILED, "图像之后的请求失败：%s");
-        fr(THE_AFTER_HOOK_FAILED, "La requête après les images a échoué : %s");
-        es(THE_AFTER_HOOK_FAILED, "Falló la solicitud posterior a las imágenes: %s");
-        de(THE_AFTER_HOOK_FAILED, "Die Anfrage nach den Bildern ist fehlgeschlagen: %s");
-        ko(THE_AFTER_HOOK_FAILED, "이미지 후의 요청이 실패했습니다: %s");
-        it(THE_AFTER_HOOK_FAILED, "La richiesta dopo le immagini non è riuscita: %s");
-
         ja(GENERATING_FAILED, "画像の生成に失敗しました: %s");
         zh(GENERATING_FAILED, "生成图像失败：%s");
         fr(GENERATING_FAILED, "La génération de l'image a échoué : %s");
@@ -327,14 +326,6 @@ public class ImageGeneratorLocalization extends PluginLocalizationBundle {
         de(INSTRUCTION_FOR_THE_PROMPT_WRITER, "Anweisung für den Prompt-Schreiber");
         ko(INSTRUCTION_FOR_THE_PROMPT_WRITER, "프롬프트 작성자에게 주는 지시문");
         it(INSTRUCTION_FOR_THE_PROMPT_WRITER, "Istruzione per chi scrive il prompt");
-
-        ja(EMPTY_OR_UNCHANGED_THE_BUILT_IN_TEXT, "空または未変更の場合は組み込みのテキストを使います");
-        zh(EMPTY_OR_UNCHANGED_THE_BUILT_IN_TEXT, "留空或未更改：使用内置文本");
-        fr(EMPTY_OR_UNCHANGED_THE_BUILT_IN_TEXT, "Vide ou inchangé : le texte intégré est utilisé");
-        es(EMPTY_OR_UNCHANGED_THE_BUILT_IN_TEXT, "Vacío o sin cambios: se usa el texto integrado");
-        de(EMPTY_OR_UNCHANGED_THE_BUILT_IN_TEXT, "Leer oder unverändert: Der eingebaute Text wird verwendet");
-        ko(EMPTY_OR_UNCHANGED_THE_BUILT_IN_TEXT, "비어 있거나 변경하지 않으면: 내장 텍스트를 사용합니다");
-        it(EMPTY_OR_UNCHANGED_THE_BUILT_IN_TEXT, "Vuoto o invariato: viene usato il testo integrato");
 
         ja(BACKENDS, "バックエンド");
         zh(BACKENDS, "后端");
@@ -456,13 +447,13 @@ public class ImageGeneratorLocalization extends PluginLocalizationBundle {
         ko(WORKFLOW, "워크플로");
         it(WORKFLOW, "Workflow");
 
-        ja(API_FORMAT_WORKFLOW, "ComfyUI の Save (API Format) で保存したワークフロー。{{prompt}}、{{negative}}、{{seed}}、{{width}}、{{height}} を入れる場所に書きます");
-        zh(API_FORMAT_WORKFLOW, "用 ComfyUI 的 Save (API Format) 保存的工作流，在相应位置写入 {{prompt}}、{{negative}}、{{seed}}、{{width}} 和 {{height}}");
-        fr(API_FORMAT_WORKFLOW, "Workflow ComfyUI enregistré avec Save (API Format), avec {{prompt}}, {{negative}}, {{seed}}, {{width}} et {{height}} aux bons endroits");
-        es(API_FORMAT_WORKFLOW, "Flujo de trabajo de ComfyUI guardado con Save (API Format), con {{prompt}}, {{negative}}, {{seed}}, {{width}} y {{height}} donde corresponda");
-        de(API_FORMAT_WORKFLOW, "Workflow von ComfyUI, gespeichert mit „Save (API Format)“, mit {{prompt}}, {{negative}}, {{seed}}, {{width}} und {{height}} an den passenden Stellen");
-        ko(API_FORMAT_WORKFLOW, "저장(API 형식)으로 저장한 ComfyUI 워크플로로, {{prompt}}, {{negative}}, {{seed}}, {{width}}, {{height}}가 들어갈 위치에 지정합니다");
-        it(API_FORMAT_WORKFLOW, "Workflow di ComfyUI salvato con Save (API Format), con {{prompt}}, {{negative}}, {{seed}}, {{width}} e {{height}} dove vanno");
+        ja(API_FORMAT_WORKFLOW, "ComfyUI の Save (API Format) で保存したワークフロー。{{prompt}}、{{negative}}、{{seed}}、{{width}}、{{height}} を入れる場所に書きます。LoRA ローダーに {{lora}} と {{lora_strength}} を書くと、ウィンドウで LoRA を選べます");
+        zh(API_FORMAT_WORKFLOW, "用 ComfyUI 的 Save (API Format) 保存的工作流，在相应位置写入 {{prompt}}、{{negative}}、{{seed}}、{{width}} 和 {{height}}；在 LoRA 加载器中写入 {{lora}} 和 {{lora_strength}}，即可在窗口中选择 LoRA");
+        fr(API_FORMAT_WORKFLOW, "Workflow ComfyUI enregistré avec Save (API Format), avec {{prompt}}, {{negative}}, {{seed}}, {{width}} et {{height}} aux bons endroits ; {{lora}} et {{lora_strength}} dans un chargeur de LoRA permettent de choisir la LoRA dans la fenêtre");
+        es(API_FORMAT_WORKFLOW, "Flujo de trabajo de ComfyUI guardado con Save (API Format), con {{prompt}}, {{negative}}, {{seed}}, {{width}} y {{height}} donde corresponda; {{lora}} y {{lora_strength}} en un cargador de LoRA permiten elegir la LoRA en la ventana");
+        de(API_FORMAT_WORKFLOW, "Workflow von ComfyUI, gespeichert mit „Save (API Format)“, mit {{prompt}}, {{negative}}, {{seed}}, {{width}} und {{height}} an den passenden Stellen; {{lora}} und {{lora_strength}} in einem LoRA-Loader machen die LoRA im Fenster wählbar");
+        ko(API_FORMAT_WORKFLOW, "저장(API 형식)으로 저장한 ComfyUI 워크플로로, {{prompt}}, {{negative}}, {{seed}}, {{width}}, {{height}}가 들어갈 위치에 지정합니다. LoRA 로더에 {{lora}}와 {{lora_strength}}를 지정하면 창에서 LoRA를 선택할 수 있습니다");
+        it(API_FORMAT_WORKFLOW, "Workflow di ComfyUI salvato con Save (API Format), con {{prompt}}, {{negative}}, {{seed}}, {{width}} e {{height}} dove vanno; {{lora}} e {{lora_strength}} in un caricatore di LoRA permettono di scegliere la LoRA nella finestra");
 
         ja(THE_SERVER_IS_LOCAL, "サーバーはこのマシンまたはローカルネットワークにあります");
         zh(THE_SERVER_IS_LOCAL, "服务器在本机或我的网络中");
@@ -487,46 +478,6 @@ public class ImageGeneratorLocalization extends PluginLocalizationBundle {
         de(TIMEOUT_SECONDS, "Zeitlimit (s)");
         ko(TIMEOUT_SECONDS, "제한 시간 (초)");
         it(TIMEOUT_SECONDS, "Timeout (s)");
-
-        ja(RELEASE_AFTER_IDLE_SECONDS, "待機後に解放 (秒)");
-        zh(RELEASE_AFTER_IDLE_SECONDS, "空闲后释放（秒）");
-        fr(RELEASE_AFTER_IDLE_SECONDS, "Libérer après inactivité (s)");
-        es(RELEASE_AFTER_IDLE_SECONDS, "Liberar tras inactividad (s)");
-        de(RELEASE_AFTER_IDLE_SECONDS, "Freigeben nach Leerlauf (s)");
-        ko(RELEASE_AFTER_IDLE_SECONDS, "유휴 후 해제 (초)");
-        it(RELEASE_AFTER_IDLE_SECONDS, "Rilascia dopo l'inattività (s)");
-
-        ja(THE_REQUEST_AFTER_THE_IMAGES_RUNS, "最後の画像からこの秒数後に画像後のリクエストを実行します。0 で実行しません");
-        zh(THE_REQUEST_AFTER_THE_IMAGES_RUNS, "最后一张图像之后经过这么多秒执行“之后”的请求；0 表示不执行");
-        fr(THE_REQUEST_AFTER_THE_IMAGES_RUNS, "La requête après les images s'exécute ce nombre de secondes après la dernière image ; 0 jamais");
-        es(THE_REQUEST_AFTER_THE_IMAGES_RUNS, "La solicitud posterior a las imágenes se ejecuta tantos segundos después de la última imagen; 0 nunca");
-        de(THE_REQUEST_AFTER_THE_IMAGES_RUNS, "Die Anfrage nach den Bildern läuft so viele Sekunden nach dem letzten Bild; 0 nie");
-        ko(THE_REQUEST_AFTER_THE_IMAGES_RUNS, "이미지 후의 요청은 마지막 이미지로부터 이 시간(초) 후에 실행됩니다. 0은 실행하지 않음");
-        it(THE_REQUEST_AFTER_THE_IMAGES_RUNS, "La richiesta dopo le immagini viene eseguita questi secondi dopo l'ultima immagine; 0 mai");
-
-        ja(BEFORE_THE_FIRST_IMAGE, "最初の画像の前");
-        zh(BEFORE_THE_FIRST_IMAGE, "第一张图像之前");
-        fr(BEFORE_THE_FIRST_IMAGE, "Avant la première image");
-        es(BEFORE_THE_FIRST_IMAGE, "Antes de la primera imagen");
-        de(BEFORE_THE_FIRST_IMAGE, "Vor dem ersten Bild");
-        ko(BEFORE_THE_FIRST_IMAGE, "첫 이미지 전");
-        it(BEFORE_THE_FIRST_IMAGE, "Prima della prima immagine");
-
-        ja(AFTER_THE_LAST_IMAGE, "最後の画像の後");
-        zh(AFTER_THE_LAST_IMAGE, "最后一张图像之后");
-        fr(AFTER_THE_LAST_IMAGE, "Après la dernière image");
-        es(AFTER_THE_LAST_IMAGE, "Después de la última imagen");
-        de(AFTER_THE_LAST_IMAGE, "Nach dem letzten Bild");
-        ko(AFTER_THE_LAST_IMAGE, "마지막 이미지 후");
-        it(AFTER_THE_LAST_IMAGE, "Dopo l'ultima immagine");
-
-        ja(A_REQUEST_MADE_AROUND_THE_IMAGES, "画像の前後に順番に行うリクエスト (例: GPU のメモリを解放する)。なければ何もしません。");
-        zh(A_REQUEST_MADE_AROUND_THE_IMAGES, "在图像前后按顺序发出的请求（例如释放 GPU 显存）。没有则不执行任何操作。");
-        fr(A_REQUEST_MADE_AROUND_THE_IMAGES, "Requêtes faites autour des images, l'une après l'autre, par exemple pour libérer la mémoire du GPU. Aucune : ne fait rien.");
-        es(A_REQUEST_MADE_AROUND_THE_IMAGES, "Solicitudes que se hacen alrededor de las imágenes, una tras otra, por ejemplo para liberar la memoria de la GPU. Ninguna no hace nada.");
-        de(A_REQUEST_MADE_AROUND_THE_IMAGES, "Anfragen, die um die Bilder herum gemacht werden, nacheinander, zum Beispiel um den Speicher der GPU freizugeben. „Keine“ tut nichts.");
-        ko(A_REQUEST_MADE_AROUND_THE_IMAGES, "이미지 전후에 차례로 실행하는 요청, 예를 들어 GPU 메모리를 비우기 위한 것. 없음은 아무것도 하지 않습니다.");
-        it(A_REQUEST_MADE_AROUND_THE_IMAGES, "Richieste fatte attorno alle immagini, una dopo l'altra, ad esempio per liberare la memoria della GPU. Nessuna non fa nulla.");
 
         ja(ADD_A_REQUEST, "リクエストを追加");
         zh(ADD_A_REQUEST, "添加请求");
@@ -667,20 +618,148 @@ public class ImageGeneratorLocalization extends PluginLocalizationBundle {
         ko(IMAGE_GENERATOR_GENERATE_THE_IMAGE, "이미지 생성기: 이미지 생성");
         it(IMAGE_GENERATOR_GENERATE_THE_IMAGE, "Generatore di immagini: genera l'immagine");
 
-        ja(GPU_NAME, "GPU（名前）");
-        zh(GPU_NAME, "GPU（名称）");
-        fr(GPU_NAME, "GPU (nom)");
-        es(GPU_NAME, "GPU (nombre)");
-        de(GPU_NAME, "GPU (Name)");
-        ko(GPU_NAME, "GPU (이름)");
-        it(GPU_NAME, "GPU (nome)");
+        ja(LORA, "LoRA");
+        zh(LORA, "LoRA");
+        fr(LORA, "LoRA");
+        es(LORA, "LoRA");
+        de(LORA, "LoRA");
+        ko(LORA, "LoRA");
+        it(LORA, "LoRA");
 
-        ja(GPU_NAME_HELP, "任意。このサーバーが他のサーバー (音声サーバーなど) とGPUを共有している場合に名前を付け、他にも同じ名前を指定します。互いのモデルを解放せず、順番に待ちます。空の場合は、このアドレスへのリクエスト同士だけが待ち合います。");
-        zh(GPU_NAME_HELP, "可选。如果此服务器与其他服务器（如语音服务器）共用一块 GPU，请给它起个名字，并在其他服务器上填写相同的名字：它们会互相等待，而不是卸载对方的模型。留空：只有发往此地址的请求会互相等待。");
-        fr(GPU_NAME_HELP, "Facultatif. Nommez le GPU quand ce serveur le partage avec d'autres serveurs (un serveur de synthèse vocale, un autre serveur d'images), et donnez-y le même nom : ils s'attendent alors au lieu de décharger le modèle des autres. Vide : seules les requêtes vers cette adresse s'attendent.");
-        es(GPU_NAME_HELP, "Opcional. Indica el nombre de la GPU cuando este servidor la comparte con otros servidores (un servidor de voz, otro servidor de imágenes) y da allí el mismo nombre: entonces esperan unos a otros en lugar de descargarse mutuamente el modelo. Vacío: solo esperan entre sí las solicitudes a esta dirección.");
-        de(GPU_NAME_HELP, "Optional. Gib der GPU einen Namen, wenn dieser Server sie mit anderen Servern teilt (einem Sprachserver, einem anderen Bildserver), und gib dort denselben Namen an: Sie warten dann aufeinander, statt gegenseitig ihr Modell zu entladen. Leer: Nur Anfragen an diese Adresse warten aufeinander.");
-        ko(GPU_NAME_HELP, "선택 사항. 이 서버가 GPU를 다른 서버(음성 서버, 다른 이미지 서버)와 공유할 때 GPU 이름을 지정하고 그쪽에도 같은 이름을 지정하세요: 그러면 서로의 모델을 언로드하는 대신 서로를 기다립니다. 비워 두면 이 주소로의 요청끼리만 서로 기다립니다.");
-        it(GPU_NAME_HELP, "Facoltativo. Indica il nome della GPU quando questo server la condivide con altri server (un server vocale, un altro server di immagini), e indica lì lo stesso nome: si aspettano allora a vicenda invece di scaricare il modello l'uno dell'altro. Vuoto: si aspettano solo le richieste a questo indirizzo.");
+        ja(LORA_STRENGTH, "LoRA の強さ");
+        zh(LORA_STRENGTH, "LoRA 强度");
+        fr(LORA_STRENGTH, "Force de la LoRA");
+        es(LORA_STRENGTH, "Intensidad de la LoRA");
+        de(LORA_STRENGTH, "LoRA-Stärke");
+        ko(LORA_STRENGTH, "LoRA 강도");
+        it(LORA_STRENGTH, "Intensità della LoRA");
+
+        ja(NO_LORA, "なし");
+        zh(NO_LORA, "无");
+        fr(NO_LORA, "Aucune");
+        es(NO_LORA, "Ninguna");
+        de(NO_LORA, "Keine");
+        ko(NO_LORA, "없음");
+        it(NO_LORA, "Nessuna");
+
+        ja(THE_LORAS_COULD_NOT_BE_READ, "サーバーの LoRA を読み込めませんでした: %s");
+        zh(THE_LORAS_COULD_NOT_BE_READ, "无法读取服务器的 LoRA：%s");
+        fr(THE_LORAS_COULD_NOT_BE_READ, "Impossible de lire les LoRA du serveur : %s");
+        es(THE_LORAS_COULD_NOT_BE_READ, "No se pudieron leer las LoRA del servidor: %s");
+        de(THE_LORAS_COULD_NOT_BE_READ, "Die LoRAs des Servers konnten nicht gelesen werden: %s");
+        ko(THE_LORAS_COULD_NOT_BE_READ, "서버의 LoRA를 읽을 수 없습니다: %s");
+        it(THE_LORAS_COULD_NOT_BE_READ, "Impossibile leggere le LoRA del server: %s");
+
+        ja(STYLE_FOR_THIS_WINDOW, "本のスタイル (本の「プロンプト」タブ、フォルダー、またはあなたの設定)。ここでの変更はこのウィンドウだけに適用されます");
+        zh(STYLE_FOR_THIS_WINDOW, "本书的风格（书的“提示词”选项卡、文件夹或你的设置）；在此处的更改只对本窗口有效");
+        fr(STYLE_FOR_THIS_WINDOW, "Le style du livre (son onglet Prompts, un dossier ou vos paramètres) ; une modification ici ne vaut que pour cette fenêtre");
+        es(STYLE_FOR_THIS_WINDOW, "El estilo del libro (su pestaña Prompts, una carpeta o tus ajustes); un cambio aquí solo vale para esta ventana");
+        de(STYLE_FOR_THIS_WINDOW, "Der Stil des Buchs (sein Tab „Prompts“, ein Ordner oder deine Einstellungen); eine Änderung hier gilt nur für dieses Fenster");
+        ko(STYLE_FOR_THIS_WINDOW, "책의 스타일(책의 프롬프트 탭, 폴더 또는 내 설정). 여기서 바꾼 내용은 이 창에만 적용됩니다");
+        it(STYLE_FOR_THIS_WINDOW, "Lo stile del libro (la sua scheda Prompt, una cartella o le tue impostazioni); una modifica qui vale solo per questa finestra");
+
+        ja(NEGATIVE_PROMPT_HELP, "画像に描いてはいけないもの。ガイダンスなし (CFG 1) で動くターボモデルでは無視されます");
+        zh(NEGATIVE_PROMPT_HELP, "图片中不应出现的内容。不使用引导（CFG 1）运行的 turbo 模型会忽略它");
+        fr(NEGATIVE_PROMPT_HELP, "Ce que les images ne doivent pas montrer. Un modèle turbo qui tourne sans guidage (CFG 1) l'ignore");
+        es(NEGATIVE_PROMPT_HELP, "Lo que las imágenes no deben mostrar. Un modelo turbo que funciona sin guía (CFG 1) lo ignora");
+        de(NEGATIVE_PROMPT_HELP, "Was die Bilder nicht zeigen dürfen. Ein Turbo-Modell ohne Guidance (CFG 1) ignoriert ihn");
+        ko(NEGATIVE_PROMPT_HELP, "그림에 나오면 안 되는 것. 가이던스 없이(CFG 1) 동작하는 터보 모델은 이를 무시합니다");
+        it(NEGATIVE_PROMPT_HELP, "Ciò che le immagini non devono mostrare. Un modello turbo che funziona senza guida (CFG 1) lo ignora");
+
+        ja(A_BOOK_OR_A_FOLDER_CAN_CHANGE_THESE, "これはあなたの既定値です。本やフォルダーは「プロンプト」タブの「拡張機能の設定」で、スタイルとネガティブプロンプトを変更できます。");
+        zh(A_BOOK_OR_A_FOLDER_CAN_CHANGE_THESE, "这些是你的默认值：书或文件夹可以在其“提示词”选项卡的“扩展设置”中更改风格和负面提示词。");
+        fr(A_BOOK_OR_A_FOLDER_CAN_CHANGE_THESE, "Ce sont vos valeurs par défaut : un livre ou un dossier peut changer le style et le prompt négatif dans son onglet Prompts, sous Paramètres des extensions.");
+        es(A_BOOK_OR_A_FOLDER_CAN_CHANGE_THESE, "Estos son tus valores predeterminados: un libro o una carpeta puede cambiar el estilo y el prompt negativo en su pestaña Prompts, en Ajustes de extensiones.");
+        de(A_BOOK_OR_A_FOLDER_CAN_CHANGE_THESE, "Das sind deine Standardwerte: Ein Buch oder ein Ordner kann Stil und Negativ-Prompt in seinem Tab „Prompts“ unter „Erweiterungseinstellungen“ ändern.");
+        ko(A_BOOK_OR_A_FOLDER_CAN_CHANGE_THESE, "이 값은 기본값입니다. 책이나 폴더는 프롬프트 탭의 확장 설정에서 스타일과 네거티브 프롬프트를 바꿀 수 있습니다.");
+        it(A_BOOK_OR_A_FOLDER_CAN_CHANGE_THESE, "Questi sono i tuoi valori predefiniti: un libro o una cartella può cambiare lo stile e il prompt negativo nella sua scheda Prompt, in Impostazioni delle estensioni.");
+
+        ja(PROMPT_FORM, "プロンプトの形式");
+        zh(PROMPT_FORM, "提示词形式");
+        fr(PROMPT_FORM, "Forme du prompt");
+        es(PROMPT_FORM, "Forma del prompt");
+        de(PROMPT_FORM, "Form des Prompts");
+        ko(PROMPT_FORM, "프롬프트 형식");
+        it(PROMPT_FORM, "Forma del prompt");
+
+        ja(TAGS_FORM, "タグ (SDXL、Pony、Illustrious)");
+        zh(TAGS_FORM, "标签（SDXL、Pony、Illustrious）");
+        fr(TAGS_FORM, "Tags (SDXL, Pony, Illustrious)");
+        es(TAGS_FORM, "Etiquetas (SDXL, Pony, Illustrious)");
+        de(TAGS_FORM, "Tags (SDXL, Pony, Illustrious)");
+        ko(TAGS_FORM, "태그 (SDXL, Pony, Illustrious)");
+        it(TAGS_FORM, "Tag (SDXL, Pony, Illustrious)");
+
+        ja(SENTENCES_FORM, "説明文 (Flux、Krea、Qwen-Image、Z-Image)");
+        zh(SENTENCES_FORM, "描述性句子（Flux、Krea、Qwen-Image、Z-Image）");
+        fr(SENTENCES_FORM, "Phrases descriptives (Flux, Krea, Qwen-Image, Z-Image)");
+        es(SENTENCES_FORM, "Frases descriptivas (Flux, Krea, Qwen-Image, Z-Image)");
+        de(SENTENCES_FORM, "Beschreibende Sätze (Flux, Krea, Qwen-Image, Z-Image)");
+        ko(SENTENCES_FORM, "설명 문장 (Flux, Krea, Qwen-Image, Z-Image)");
+        it(SENTENCES_FORM, "Frasi descrittive (Flux, Krea, Qwen-Image, Z-Image)");
+
+        ja(FREE_TEXT, "自由記述");
+        zh(FREE_TEXT, "自定义文本");
+        fr(FREE_TEXT, "Texte libre");
+        es(FREE_TEXT, "Texto libre");
+        de(FREE_TEXT, "Freier Text");
+        ko(FREE_TEXT, "자유 텍스트");
+        it(FREE_TEXT, "Testo libero");
+
+        ja(PROMPT_FORM_HELP, "言語モデルがプロンプトをどう書くか。このバックエンドの画像モデルが最もよく理解する形式を選びます");
+        zh(PROMPT_FORM_HELP, "语言模型如何撰写提示词：选择此后端的图像模型最能理解的形式");
+        fr(PROMPT_FORM_HELP, "Comment le modèle de langage écrit le prompt : ce que le modèle d'images de ce backend comprend le mieux");
+        es(PROMPT_FORM_HELP, "Cómo escribe el prompt el modelo de lenguaje: lo que mejor entiende el modelo de imágenes de este backend");
+        de(PROMPT_FORM_HELP, "Wie das Sprachmodell den Prompt schreibt: was das Bildmodell dieses Backends am besten versteht");
+        ko(PROMPT_FORM_HELP, "언어 모델이 프롬프트를 쓰는 방식: 이 백엔드의 이미지 모델이 가장 잘 이해하는 형식");
+        it(PROMPT_FORM_HELP, "Come il modello linguistico scrive il prompt: ciò che il modello di immagini di questo backend capisce meglio");
+
+        ja(KEY_OF_THE_REQUESTS, "画像の前後のリクエストのキー");
+        zh(KEY_OF_THE_REQUESTS, "图片前后请求的密钥");
+        fr(KEY_OF_THE_REQUESTS, "Clé des requêtes autour des images");
+        es(KEY_OF_THE_REQUESTS, "Clave de las solicitudes alrededor de las imágenes");
+        de(KEY_OF_THE_REQUESTS, "Schlüssel der Anfragen rund um die Bilder");
+        ko(KEY_OF_THE_REQUESTS, "이미지 전후 요청의 키");
+        it(KEY_OF_THE_REQUESTS, "Chiave delle richieste attorno alle immagini");
+
+        ja(KEY_OF_THE_REQUESTS_HELP, "画像の前後のリクエストのうち、独自の Authorization ヘッダーを持たないものすべてに Authorization: Bearer として付けられます (LiteLLM などのプロキシが必要とします)。暗号化して保存され、再表示されません。空: 上の API キーを使います。");
+        zh(KEY_OF_THE_REQUESTS_HELP, "作为 Authorization: Bearer 附加到图片前后每个没有自己 Authorization 请求头的请求（LiteLLM 等代理需要它），加密保存且不再显示。留空：使用上面的 API 密钥。");
+        fr(KEY_OF_THE_REQUESTS_HELP, "Envoyée comme Authorization: Bearer avec chaque requête avant et après les images qui n'a pas d'en-tête Authorization à elle (un proxy comme LiteLLM la demande), stockée chiffrée et jamais réaffichée. Vide : la clé d'API ci-dessus est utilisée.");
+        es(KEY_OF_THE_REQUESTS_HELP, "Se envía como Authorization: Bearer con cada solicitud anterior y posterior a las imágenes que no tenga su propia cabecera Authorization (un proxy como LiteLLM la pide), se guarda cifrada y no se vuelve a mostrar. Vacío: se usa la clave de API de arriba.");
+        de(KEY_OF_THE_REQUESTS_HELP, "Wird als Authorization: Bearer bei jeder Anfrage vor und nach den Bildern gesendet, die keinen eigenen Authorization-Header hat (ein Proxy wie LiteLLM verlangt ihn), verschlüsselt gespeichert und nie wieder angezeigt. Leer: Der API-Schlüssel oben wird verwendet.");
+        ko(KEY_OF_THE_REQUESTS_HELP, "이미지 전후의 요청 중 자체 Authorization 헤더가 없는 모든 요청에 Authorization: Bearer로 전송되며(LiteLLM 같은 프록시가 요구합니다), 암호화되어 저장되고 다시 표시되지 않습니다. 비워 두면 위의 API 키를 사용합니다.");
+        it(KEY_OF_THE_REQUESTS_HELP, "Inviata come Authorization: Bearer con ogni richiesta prima e dopo le immagini che non ha un'intestazione Authorization propria (un proxy come LiteLLM la richiede), memorizzata cifrata e mai più mostrata. Vuoto: viene usata la chiave API qui sopra.");
+
+        ja(BEFORE_EACH_IMAGE, "各画像の前");
+        zh(BEFORE_EACH_IMAGE, "每张图像之前");
+        fr(BEFORE_EACH_IMAGE, "Avant chaque image");
+        es(BEFORE_EACH_IMAGE, "Antes de cada imagen");
+        de(BEFORE_EACH_IMAGE, "Vor jedem Bild");
+        ko(BEFORE_EACH_IMAGE, "각 이미지 전");
+        it(BEFORE_EACH_IMAGE, "Prima di ogni immagine");
+
+        ja(AFTER_EACH_IMAGE, "各画像の後");
+        zh(AFTER_EACH_IMAGE, "每张图像之后");
+        fr(AFTER_EACH_IMAGE, "Après chaque image");
+        es(AFTER_EACH_IMAGE, "Después de cada imagen");
+        de(AFTER_EACH_IMAGE, "Nach jedem Bild");
+        ko(AFTER_EACH_IMAGE, "각 이미지 후");
+        it(AFTER_EACH_IMAGE, "Dopo ogni immagine");
+
+        ja(REQUESTS_MADE_AROUND_EACH_IMAGE, "各画像の前後に順番に行うリクエスト (例: コンテナの起動や停止)。言語モデルのために GPU を空けるのは GPU ロックの役目です。なければ何もしません。");
+        zh(REQUESTS_MADE_AROUND_EACH_IMAGE, "在每张图像前后按顺序发出的请求（例如启动或停止容器）。为语言模型腾出 GPU 由 GPU 锁负责。没有则不执行任何操作。");
+        fr(REQUESTS_MADE_AROUND_EACH_IMAGE, "Requêtes faites avant et après chaque image, l'une après l'autre, par exemple pour démarrer ou arrêter un conteneur. Libérer le GPU pour le modèle de langage est le rôle du verrou GPU. Aucune : ne fait rien.");
+        es(REQUESTS_MADE_AROUND_EACH_IMAGE, "Solicitudes que se hacen antes y después de cada imagen, una tras otra, por ejemplo para arrancar o detener un contenedor. Liberar la GPU para el modelo de lenguaje es tarea del bloqueo de GPU. Ninguna no hace nada.");
+        de(REQUESTS_MADE_AROUND_EACH_IMAGE, "Anfragen vor und nach jedem Bild, nacheinander, zum Beispiel um einen Container zu starten oder zu stoppen. Die GPU für das Sprachmodell freizugeben ist Aufgabe der GPU-Sperre. „Keine“ tut nichts.");
+        ko(REQUESTS_MADE_AROUND_EACH_IMAGE, "각 이미지 전후에 차례로 실행하는 요청, 예를 들어 컨테이너를 시작하거나 멈추기 위한 것. 언어 모델을 위해 GPU를 비우는 것은 GPU 잠금이 맡습니다. 없음은 아무것도 하지 않습니다.");
+        it(REQUESTS_MADE_AROUND_EACH_IMAGE, "Richieste fatte prima e dopo ogni immagine, una dopo l'altra, ad esempio per avviare o fermare un container. Liberare la GPU per il modello linguistico è compito del blocco GPU. Nessuna non fa nulla.");
+
+        ja(GPU_LOCK_HELP, "このサーバーの GPU 用に管理者が設定した GPU ロックです。各画像は GPU の順番を待ち、ロックのステップが先にサーバーをロードします (必要なら言語モデルや他のサーバーを解放します)。空: ロックなし。");
+        zh(GPU_LOCK_HELP, "管理员为此服务器所在 GPU 设置的 GPU 锁：每张图像都会等待轮到自己使用 GPU，锁的步骤会先加载服务器（需要时释放语言模型或其他服务器）。留空：无锁。");
+        fr(GPU_LOCK_HELP, "Le verrou GPU que l'administrateur a configuré pour le GPU de ce serveur : chaque image attend son tour sur le GPU, et les étapes du verrou chargent d'abord le serveur (en libérant le modèle de langage ou un autre serveur si besoin). Vide : aucun verrou.");
+        es(GPU_LOCK_HELP, "El bloqueo de GPU que el administrador configuró para la GPU de este servidor: cada imagen espera su turno en la GPU y los pasos del bloqueo cargan primero el servidor (liberando el modelo de lenguaje u otro servidor si hace falta). Vacío: sin bloqueo.");
+        de(GPU_LOCK_HELP, "Die GPU-Sperre, die der Administrator für die GPU dieses Servers eingerichtet hat: Jedes Bild wartet, bis es an der Reihe ist, und die Schritte der Sperre laden zuerst den Server (und geben bei Bedarf das Sprachmodell oder einen anderen Server frei). Leer: keine Sperre.");
+        ko(GPU_LOCK_HELP, "관리자가 이 서버의 GPU에 설정한 GPU 잠금입니다. 각 이미지는 GPU 차례를 기다리고, 잠금의 단계가 먼저 서버를 로드합니다(필요하면 언어 모델이나 다른 서버를 해제합니다). 비워 두면 잠금 없음.");
+        it(GPU_LOCK_HELP, "Il blocco GPU che l'amministratore ha configurato per la GPU di questo server: ogni immagine attende il suo turno sulla GPU e i passi del blocco caricano prima il server (liberando il modello linguistico o un altro server se serve). Vuoto: nessun blocco.");
     }
 }

@@ -5,7 +5,7 @@ import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
 import com.github.enerccio.marginalia.domain.service.LorebookService;
 import com.github.enerccio.marginalia.domain.service.TokenizerService;
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -107,13 +107,13 @@ public class LorebookTokens {
      * {@code ~123 tokens}
      */
     public String format(long tokens) {
-        return "~" + tokens + " " + loc.getValue(L.LABEL_TOKENS);
+        return "~" + tokens + " " + loc.getValue(M_L.LABEL_TOKENS);
     }
 
     /**
      * The total with the subbooks, in the words of the lorebook view.
      */
     public String formatWithSubbooks(long tokens) {
-        return String.format(loc.getValue(L.LABEL_TOKENS_WITH_SUBBOOKS), tokens);
+        return String.format(loc.getValue(M_L.LABEL_TOKENS_WITH_SUBBOOKS), tokens);
     }
 }

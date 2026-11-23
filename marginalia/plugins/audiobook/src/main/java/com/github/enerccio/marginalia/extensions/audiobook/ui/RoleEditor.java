@@ -38,6 +38,11 @@ class RoleEditor extends VerticalLayout {
         add(voice, rows, add);
     }
 
+    /** Tells the listener the main voice whenever the user changes it ({@code clip:<uuid>}, {@code predefined:...} or blank). */
+    void onVoiceChange(java.util.function.Consumer<String> listener) {
+        voice.addValueChangeListener(e -> listener.accept(e.getValue()));
+    }
+
     /** Writes what the editor shows into the role. */
     void read(Role target) {
         target.setVoice(voice.getValue().strip());

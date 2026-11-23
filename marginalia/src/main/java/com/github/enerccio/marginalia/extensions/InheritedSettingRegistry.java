@@ -8,7 +8,7 @@ import java.util.*;
  * anyway). The settings dialogs of a book and of a folder are built from the settings that are registered when they open; the
  * values stay with the books and the folders while an extension is not loaded and come back with it.
  */
-public class InheritedSettingRegistry {
+public class InheritedSettingRegistry implements ExtensionRegistrations {
 
     /**
      * The settings of one extension, as the dialogs show them: under one title.
@@ -45,6 +45,7 @@ public class InheritedSettingRegistry {
     /**
      * Removes the settings an owner registered.
      */
+    @Override
     public synchronized void unregisterAll(String owner) {
         new ArrayList<>(owners.entrySet()).stream().filter(entry -> Objects.equals(owner, entry.getValue()))
                 .map(Map.Entry::getKey).forEach(this::unregister);

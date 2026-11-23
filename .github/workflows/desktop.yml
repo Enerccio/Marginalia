@@ -57,20 +57,16 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           cache: maven
 
-      - name: Check version matches tag
-        # archive names and the app version come from the POM, a release tag must not publish other version's archives
-        if: startsWith(github.ref, 'refs/tags/v')
-        run: |
-          pom_version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-          tag_version="${GITHUB_REF_NAME#v}"
-          if [ "$pom_version" != "$tag_version" ]; then
-            echo "::error::Tag $GITHUB_REF_NAME does not match the version in pom.xml ($pom_version). Set <version>$tag_version</version> and tag again."
-            exit 1
-          fi
-          echo "Version $pom_version matches tag $GITHUB_REF_NAME"
+      - name: Take the version from the tag
+        # a v* tag is the release version: every POM gets it before the build (tools/version_from_tag.sh); other builds keep pom.xml's
+        working-directory: .
+        shell: bash
+        run: tools/version_from_tag.sh
 
       - name: Test
-        run: mvn test
+        # from the root with -am: the platform module (marginalia/platform) is built first, the tests are the application's
+        working-directory: .
+        run: mvn test -pl marginalia -am
 
       - name: Upload test reports
         if: failure()
@@ -94,14 +90,22 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           cache: maven
 
+      - name: Take the version from the tag
+        # a v* tag is the release version: every POM gets it before the build (tools/version_from_tag.sh); other builds keep pom.xml's
+        working-directory: .
+        shell: bash
+        run: tools/version_from_tag.sh
+
       - name: Install the parent POM
         # the application's POM in the local repository refers to it, the plugins need both
         working-directory: .
         run: mvn -N install
 
       - name: Install the application
-        # the plugins compile against the classes JAR of the application, the frontend is not needed for that
-        run: mvn -DskipTests -Dvaadin.skip=true install
+        # the plugins compile against the classes JAR of the application, the frontend is not needed for that; -am
+        # installs the platform module (marginalia/platform) first
+        working-directory: .
+        run: mvn -DskipTests -Dvaadin.skip=true install -pl marginalia -am
 
       - name: Build and install the libraries
         # what plugins share (marginalia/libs); a plugin embeds the library, so it must be in the local repository first
@@ -125,6 +129,22 @@ jobs:
             echo "::endgroup::"
           done
           ls -l ../../plugin-jars
+
+      - name: Smoke test of the plugins
+        # every JAR is loaded into the Spring context of the tests on a real OSGi framework: it must verify (its decorators name
+        # methods, arguments and locals that exist), load, and unload without leaving anything behind (PluginSmokeTest).
+        # clean: the install above left classes the test compile would not weave again
+        run: >-
+          mvn -Dvaadin.skip=true -Dtest=PluginSmokeTest -Dsurefire.failIfNoSpecifiedTests=false
+          -Dmarginalia.plugins=${{ github.workspace }}/plugin-jars clean test
+
+      - name: Upload the smoke test report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: plugin-smoke-test-report
+          path: marginalia/target/surefire-reports/
+          retention-days: 7
 
       - name: Upload plugins
         uses: actions/upload-artifact@v4
@@ -164,6 +184,12 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           cache: maven
 
+      - name: Take the version from the tag
+        # a v* tag is the release version: every POM gets it before the build (tools/version_from_tag.sh); other builds keep pom.xml's
+        working-directory: .
+        shell: bash
+        run: tools/version_from_tag.sh
+
       - name: Download the plugins
         # the plugin JARs for the full installer, built against this commit by the plugins job
         uses: actions/download-artifact@v4
@@ -173,8 +199,9 @@ jobs:
 
       - name: Build desktop distribution
         # tests ran in the test job; quoted for PowerShell on Windows. The full installer takes the JARs of
-        # target/desktop-plugins (desktop.pluginsDir)
-        run: mvn "-Pdesktop" "-DskipTests" "-Ddesktop.installerRequired=true" "-Ddesktop.skipFull=false" package
+        # target/desktop-plugins (desktop.pluginsDir). From the root with -am, so the platform module is built first
+        working-directory: .
+        run: mvn "-Pdesktop" "-DskipTests" "-Ddesktop.installerRequired=true" "-Ddesktop.skipFull=false" "-pl" "marginalia" "-am" package
 
       - name: Smoke test
         # the native app and the portable launcher script must start the bundled server and serve Marginalia

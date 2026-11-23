@@ -144,4 +144,18 @@ class ComfyUiBackendTest {
             assertEquals(0, server.calls.size());
         }
     }
+
+    @Test
+    void theLorasAreReadFromTheModelsFolder() throws Exception {
+        try (FakeServer server = new FakeServer()) {
+            server.json("/models/loras", 200, "[\"a.safetensors\", \"styles/b.safetensors\"]");
+
+            assertEquals(java.util.List.of("a.safetensors", "styles/b.safetensors"), new ComfyUiBackend(config(server), null, 10).loras());
+        }
+        try (FakeServer server = new FakeServer()) {
+            server.json("/models/loras", 200, "{\"error\": \"no\"}");
+
+            assertThrows(BackendException.class, () -> new ComfyUiBackend(config(server), null, 10).loras());
+        }
+    }
 }

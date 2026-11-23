@@ -11,4 +11,4 @@ access to the passages, `TranslationWriter` that writes a translation into a par
 `TranslatorCommonLocalization` with the Japanese and Chinese texts; the range window `RangeDialog`, the choice of a language of the book and the panel of a book's other languages). A passage is used only when the text at its range still has the hash it was made for (`Span.isEdited`): that contract
 is what lets a second plugin's passages drop out quietly where the first one changed the text, and it has a test.
 
-Build: `mvn install -DskipTests` here (a plugin needs it in the local repository first). `install-plugins.sh`, `marginalia/plugins/Dockerfile` and the workflows do it.
+Build: `mvn install -DskipTests` here (a plugin needs it in the local repository first). `install-plugins.sh`, the root `Dockerfile` and the workflows do it.

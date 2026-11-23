@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.dialogs.manuscript;
 
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.components.SummaryPlanner;
 import com.github.enerccio.marginalia.domain.components.SummaryPlanner.Mode;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
@@ -9,6 +10,7 @@ import com.github.enerccio.marginalia.domain.service.CancellationToken;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.SummaryService;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
 import com.github.enerccio.marginalia.ui.widgets.*;
@@ -99,7 +101,7 @@ public class CreateSummariesDialog extends Dialog {
         try {
             parts = summaryService.unsummarizedParts(manuscript);
             if (parts.isEmpty()) {
-                Notification.warning(loc.getValue(L.MSG_NO_PARTS_WITHOUT_SUMMARY));
+                Notification.warning(loc.getValue(M_L.MSG_NO_PARTS_WITHOUT_SUMMARY));
                 return;
             }
             int total = chatMessageService.getBranchFromLeaf(manuscript.getActiveLeaf()).size();
@@ -112,22 +114,22 @@ public class CreateSummariesDialog extends Dialog {
     }
 
     private void build() {
-        setHeaderTitle(loc.getValue(L.LABEL_CREATE_SUMMARIES));
+        setHeaderTitle(loc.getValue(M_L.LABEL_CREATE_SUMMARIES));
         setWidth("560px");
         setMaxWidth("100vw");
         setCloseOnEsc(false);
         setCloseOnOutsideClick(false);
         floating = new FloatingWindow(this, "summaries", this::getHeaderTitle, this::stopRunning).book(manuscript);
 
-        Span help = new Span(loc.getValue(L.HELP_CREATE_SUMMARIES));
+        Span help = new Span(loc.getValue(M_L.HELP_CREATE_SUMMARIES));
         help.addClassName(CssStyles.HINT_TEXT);
 
-        modeSelect.setLabel(loc.getValue(L.LABEL_SUMMARIES_CUT_BY));
+        modeSelect.setLabel(loc.getValue(M_L.LABEL_SUMMARIES_CUT_BY));
         modeSelect.setItems(Mode.values());
         modeSelect.setItemLabelGenerator(mode -> loc.getValue(switch (mode) {
-            case TOKENS -> L.ENUM_SUMMARY_SPLIT_TOKENS;
-            case CHAPTERS -> L.ENUM_SUMMARY_SPLIT_CHAPTERS;
-            case PARTS -> L.ENUM_SUMMARY_SPLIT_PARTS;
+            case TOKENS -> M_L.ENUM_SUMMARY_SPLIT_TOKENS;
+            case CHAPTERS -> M_L.ENUM_SUMMARY_SPLIT_CHAPTERS;
+            case PARTS -> M_L.ENUM_SUMMARY_SPLIT_PARTS;
         }));
         modeSelect.setWidthFull();
 
@@ -135,24 +137,24 @@ public class CreateSummariesDialog extends Dialog {
         amountField.setStepButtonsVisible(true);
         amountField.setWidthFull();
 
-        minTokensField.setLabel(loc.getValue(L.LABEL_MIN_TOKENS_PER_SUMMARY));
+        minTokensField.setLabel(loc.getValue(M_L.LABEL_MIN_TOKENS_PER_SUMMARY));
         minTokensField.setMin(0);
         minTokensField.setStep(500);
         minTokensField.setStepButtonsVisible(true);
         minTokensField.setValue(DEFAULT_MIN_TOKENS);
         minTokensField.setWidthFull();
-        chaptersHelp.setText(loc.getValue(L.HELP_SUMMARY_CHAPTERS));
+        chaptersHelp.setText(loc.getValue(M_L.HELP_SUMMARY_CHAPTERS));
         chaptersHelp.addClassName(CssStyles.HINT_TEXT);
 
-        upTo.setLabel(loc.getValue(L.LABEL_UP_TO_PART));
-        upTo.setPlaceholder(loc.getValue(L.LABEL_AT_THE_END_OF_THE_STORY));
+        upTo.setLabel(loc.getValue(M_L.LABEL_UP_TO_PART));
+        upTo.setPlaceholder(loc.getValue(M_L.LABEL_AT_THE_END_OF_THE_STORY));
         upTo.setItems(IntStream.range(0, parts.size()).boxed().toList());
         upTo.setItemLabelGenerator(this::partLabel);
         upTo.setClearButtonVisible(true);
         upTo.setAllowCustomValue(false);
         upTo.setWidthFull();
 
-        rest.setLabel(loc.getValue(L.LABEL_ALSO_SUMMARIZE_THE_REST));
+        rest.setLabel(loc.getValue(M_L.LABEL_ALSO_SUMMARIZE_THE_REST));
         rest.setValue(true);
 
         preview.addClassName(CssStyles.TEXT_BOLD);
@@ -169,7 +171,7 @@ public class CreateSummariesDialog extends Dialog {
         add(form);
 
         Button cancel = new Button(loc.getValue(L.LABEL_CANCEL), _ -> close());
-        startButton.setText(loc.getValue(L.LABEL_START));
+        startButton.setText(loc.getValue(M_L.LABEL_START));
         startButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         startButton.addClickListener(_ -> start());
         getFooter().add(cancel, startButton);
@@ -183,7 +185,7 @@ public class CreateSummariesDialog extends Dialog {
     }
 
     private String partLabel(Integer index) {
-        String number = String.format(loc.getValue(L.LABEL_ANNOTATION_PART_NUMBER), firstNumber + index);
+        String number = String.format(loc.getValue(M_L.LABEL_ANNOTATION_PART_NUMBER), firstNumber + index);
         String text = StringUtils.abbreviate(StringUtils.normalizeSpace(parts.get(index).getResponse()), 60);
         return text.isEmpty() ? number : number + ": " + text;
     }
@@ -195,13 +197,13 @@ public class CreateSummariesDialog extends Dialog {
         minTokensField.setVisible(chapters);
         chaptersHelp.setVisible(chapters);
         if (mode == Mode.TOKENS) {
-            amountField.setLabel(loc.getValue(L.LABEL_TOKENS_PER_SUMMARY));
+            amountField.setLabel(loc.getValue(M_L.LABEL_TOKENS_PER_SUMMARY));
             // the step counts from the minimum: with a minimum of 1 only 1, 501, 1001... would be valid
             amountField.setMin(500);
             amountField.setStep(500);
             amountField.setValue(DEFAULT_TOKENS);
         } else if (mode == Mode.PARTS) {
-            amountField.setLabel(loc.getValue(L.LABEL_PARTS_PER_SUMMARY));
+            amountField.setLabel(loc.getValue(M_L.LABEL_PARTS_PER_SUMMARY));
             amountField.setMin(1);
             amountField.setStep(1);
             amountField.setValue(DEFAULT_PARTS);
@@ -237,11 +239,11 @@ public class CreateSummariesDialog extends Dialog {
             }
         }
         if (planned.isEmpty()) {
-            preview.setText(loc.getValue(L.MSG_NO_SUMMARIES_PLANNED));
+            preview.setText(loc.getValue(M_L.MSG_NO_SUMMARIES_PLANNED));
         } else {
             int covered = parts.indexOf(planned.getLast()) + 1;
             long tokens = parts.subList(0, covered).stream().mapToLong(ChatMessage::getTokenCount).sum();
-            preview.setText(String.format(loc.getValue(L.MSG_SUMMARIES_PLANNED), planned.size(), covered, tokens));
+            preview.setText(String.format(loc.getValue(M_L.MSG_SUMMARIES_PLANNED), planned.size(), covered, tokens));
         }
         startButton.setEnabled(!planned.isEmpty());
     }
@@ -255,7 +257,7 @@ public class CreateSummariesDialog extends Dialog {
             @Override
             public void onStep(int number, int total, ChatMessage part) {
                 ui.access(() -> {
-                    progress.setText(String.format(loc.getValue(L.MSG_CREATE_SUMMARIES_PROGRESS), number, total));
+                    progress.setText(String.format(loc.getValue(M_L.MSG_CREATE_SUMMARIES_PROGRESS), number, total));
                     reasoningMarkdown.setContent("");
                     reasoningDetails.setVisible(false);
                     summaryArea.setValue("");
@@ -281,7 +283,7 @@ public class CreateSummariesDialog extends Dialog {
             public void onFinished(int count) {
                 ui.access(() -> {
                     setRunning(false);
-                    Notification.success(String.format(loc.getValue(L.MSG_CREATE_SUMMARIES_FINISHED), count));
+                    Notification.success(String.format(loc.getValue(M_L.MSG_CREATE_SUMMARIES_FINISHED), count));
                     floating.closeForGood();
                     UIPushGuard.push(ui);
                 });
@@ -291,7 +293,7 @@ public class CreateSummariesDialog extends Dialog {
             public void onTerminated(int done) {
                 ui.access(() -> {
                     setRunning(false);
-                    progress.setText(String.format(loc.getValue(L.MSG_CREATE_SUMMARIES_STOPPED), done));
+                    progress.setText(String.format(loc.getValue(M_L.MSG_CREATE_SUMMARIES_STOPPED), done));
                     UIPushGuard.push(ui);
                 });
             }
@@ -300,7 +302,7 @@ public class CreateSummariesDialog extends Dialog {
             public void onError(Throwable throwable, int done) {
                 ui.access(() -> {
                     setRunning(false);
-                    progress.setText(String.format(loc.getValue(L.MSG_CREATE_SUMMARIES_FAILED), done));
+                    progress.setText(String.format(loc.getValue(M_L.MSG_CREATE_SUMMARIES_FAILED), done));
                     UIUtils.inferenceError(loc, throwable);
                     UIPushGuard.push(ui);
                 });
@@ -312,12 +314,12 @@ public class CreateSummariesDialog extends Dialog {
             floating.follow("summaries");
             if (cancellationToken == null) {
                 setRunning(false);
-                progress.setText(loc.getValue(L.LABEL_SUMMARY_ERROR));
-                Notification.error(loc.getValue(L.ERROR_SUMMARY_FAILED));
+                progress.setText(loc.getValue(M_L.LABEL_SUMMARY_ERROR));
+                Notification.error(loc.getValue(M_L.ERROR_SUMMARY_FAILED));
             }
         } catch (Exception e) {
             setRunning(false);
-            progress.setText(loc.getValue(L.LABEL_SUMMARY_ERROR));
+            progress.setText(loc.getValue(M_L.LABEL_SUMMARY_ERROR));
             UIUtils.inferenceError(loc, e);
         }
     }
@@ -331,8 +333,8 @@ public class CreateSummariesDialog extends Dialog {
         floating.size("700px", "500px");
 
         progress.addClassName(CssStyles.TEXT_BOLD);
-        reasoningMarkdown.addClassName(CssStyles.CHAT_MESSAGE_MARKDOWN);
-        reasoningDetails.setSummaryText(loc.getValue(L.LABEL_VIEW_REASONING));
+        reasoningMarkdown.addClassName(MarginaliaCssStyles.CHAT_MESSAGE_MARKDOWN);
+        reasoningDetails.setSummaryText(loc.getValue(M_L.LABEL_VIEW_REASONING));
         reasoningDetails.add(reasoningMarkdown);
         reasoningDetails.setWidthFull();
         reasoningDetails.setVisible(false);

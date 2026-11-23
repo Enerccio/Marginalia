@@ -1,9 +1,11 @@
 package com.github.enerccio.marginalia.ui.dialogs.story;
 
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.collections.AnnotationStatus;
 import com.github.enerccio.marginalia.domain.model.impl.Annotation;
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -30,13 +32,13 @@ public class AnnotationsPanel extends VerticalLayout {
      * Which annotations the list shows.
      */
     enum Filter {
-        OPEN(L.LABEL_ANNOTATION_FILTER_OPEN),
-        CLOSED(L.LABEL_ANNOTATION_FILTER_CLOSED),
-        ALL(L.LABEL_ALL);
+        OPEN(M_L.LABEL_ANNOTATION_FILTER_OPEN),
+        CLOSED(M_L.LABEL_ANNOTATION_FILTER_CLOSED),
+        ALL(M_L.LABEL_ALL);
 
-        private final L label;
+        private final LocalizationKey label;
 
-        Filter(L label) {
+        Filter(LocalizationKey label) {
             this.label = label;
         }
 
@@ -72,7 +74,7 @@ public class AnnotationsPanel extends VerticalLayout {
         setSizeFull();
         setPadding(false);
         setSpacing(false);
-        addClassNames(CssStyles.GAP_S, CssStyles.ANNOTATION_PANEL);
+        addClassNames(CssStyles.GAP_S, MarginaliaCssStyles.ANNOTATION_PANEL);
 
         filter.setItems(Filter.values());
         filter.setItemLabelGenerator(item -> loc.getValue(item.label));
@@ -119,9 +121,9 @@ public class AnnotationsPanel extends VerticalLayout {
                 .thenComparingInt(a -> a.getStart() == null ? -1 : a.getStart())
                 .thenComparing(Annotation::getId));
 
-        summary.setText(String.format(loc.getValue(L.MSG_ANNOTATIONS_SUMMARY), open, shown.size()));
+        summary.setText(String.format(loc.getValue(M_L.MSG_ANNOTATIONS_SUMMARY), open, shown.size()));
         if (shown.isEmpty()) {
-            Span none = new Span(loc.getValue(L.MSG_ANNOTATIONS_NONE));
+            Span none = new Span(loc.getValue(M_L.MSG_ANNOTATIONS_NONE));
             none.addClassName(CssStyles.HINT_TEXT);
             list.add(none);
             return;
@@ -131,7 +133,7 @@ public class AnnotationsPanel extends VerticalLayout {
         int drawn = 0;
         for (Annotation annotation : shown) {
             if (drawn++ >= LIMIT) {
-                Span more = new Span(String.format(loc.getValue(L.MSG_ANNOTATIONS_LIMITED), LIMIT, shown.size()));
+                Span more = new Span(String.format(loc.getValue(M_L.MSG_ANNOTATIONS_LIMITED), LIMIT, shown.size()));
                 more.addClassName(CssStyles.HINT_TEXT);
                 list.add(more);
                 break;
@@ -147,13 +149,13 @@ public class AnnotationsPanel extends VerticalLayout {
     private Span partHeader(Annotation annotation) {
         Integer position = positions.get(annotation.getPartId());
         if (position == null) {
-            Span other = new Span(loc.getValue(L.MSG_ANNOTATION_OTHER_BRANCH));
-            other.addClassNames(CssStyles.ANNOTATION_PART, CssStyles.TEXT_SECONDARY);
+            Span other = new Span(loc.getValue(M_L.MSG_ANNOTATION_OTHER_BRANCH));
+            other.addClassNames(MarginaliaCssStyles.ANNOTATION_PART, CssStyles.TEXT_SECONDARY);
             return other;
         }
         Span header = new Span();
-        header.addClassName(CssStyles.ANNOTATION_PART);
-        Button go = new Button(String.format(loc.getValue(L.LABEL_ANNOTATION_PART_NUMBER), position),
+        header.addClassName(MarginaliaCssStyles.ANNOTATION_PART);
+        Button go = new Button(String.format(loc.getValue(M_L.LABEL_ANNOTATION_PART_NUMBER), position),
                 event -> host.goToPart(annotation));
         go.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
         header.add(go);

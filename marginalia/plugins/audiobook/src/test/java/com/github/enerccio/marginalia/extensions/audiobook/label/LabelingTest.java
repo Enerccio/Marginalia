@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.extensions.audiobook.label;
 import com.github.enerccio.marginalia.domain.service.TemplateService;
 import com.github.enerccio.marginalia.domain.service.impl.TemplateServiceImpl;
 import com.github.enerccio.marginalia.domain.service.structured.StructuredOutputs;
+import com.github.enerccio.marginalia.extensions.audiobook.model.BackendConfig;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -152,6 +153,40 @@ class LabelingTest {
     }
 
     @Test
+    void theTagsOfferedAreThoseOfTheSpeechModelAndSoAreTheLabels() throws Exception {
+        String turbo = LabelPrompt.system(TEMPLATES, null, List.of("Marta"), BackendConfig.MODEL_TURBO);
+        String higgs = LabelPrompt.system(TEMPLATES, null, List.of("Marta"), BackendConfig.MODEL_HIGGS);
+        String original = LabelPrompt.system(TEMPLATES, null, List.of("Marta"), BackendConfig.MODEL_ORIGINAL);
+
+        assertTrue(higgs.contains("[moan]") && higgs.contains("[pant]") && higgs.contains("[cry]"), higgs);
+        assertFalse(turbo.contains("[moan]"));
+        assertEquals(turbo, original, "a model without tags gets Turbo's, as before (the script drops them)");
+        assertEquals(turbo, sys("Marta"));
+        assertNotEquals(LabelService.cacheKey("text", turbo), LabelService.cacheKey("text", higgs), "labels made for Turbo are not taken for Higgs");
+    }
+
+    @Test
+    void theGenderAndAgeAreAskedOnlyForACastWithBaseVoicesSoOtherBooksKeepTheirLabels() throws Exception {
+        String plain = LabelPrompt.system(TEMPLATES, null, List.of("Marta"), BackendConfig.MODEL_HIGGS);
+        String extras = LabelPrompt.system(TEMPLATES, null, List.of("Marta"), BackendConfig.MODEL_HIGGS, true);
+
+        assertFalse(plain.contains("\"gender\""), plain);
+        // the instruction without them is the one the stored labels were made under: no line, no blank line where the block is
+        assertTrue(plain.contains("has no tag.\nPieces marked \"context\""), plain);
+        assertEquals(plain, LabelPrompt.system(TEMPLATES, null, List.of("Marta"), BackendConfig.MODEL_HIGGS, false));
+        assertTrue(extras.contains("\"gender\" and \"age\"") && extras.contains("ELDERLY"), extras);
+        assertNotEquals(LabelService.cacheKey("text", plain), LabelService.cacheKey("text", extras));
+    }
+
+    @Test
+    void aStoredLabelWithoutGenderAndAgeHasNeither() {
+        PieceLabel old = new PieceLabel(1, "Guard", Delivery.ANGRY, 0.7, "");
+        assertNull(old.gender());
+        assertNull(old.age());
+        assertEquals(Gender.UNKNOWN, Gender.orUnknown(old.gender()));
+    }
+
+    @Test
     void theLabelsAreAskedOnceAndStoredWhenComplete() throws Exception {
         Map<String, List<PieceLabel>> stored = new HashMap<>();
         LabelStore store = new LabelStore() {
@@ -227,6 +262,15 @@ class LabelingTest {
         assertEquals("[sigh] Then you won't mind.", answer.labels().get(1).taggedText());
         assertTrue(StructuredOutputs.validate(schema, "{\"labels\": [{\"id\": 0, \"speaker\": \"Narrator\", \"delivery\": \"NEUTRAL\", \"intensity\": 0.5, \"tagged_text\": \"\"}]}").valid());
         assertFalse(StructuredOutputs.validate(schema, "{\"labels\": [{\"id\": 0, \"speaker\": \"Narrator\", \"delivery\": \"FURIOUS\", \"intensity\": 0.5, \"tagged_text\": \"\"}]}").valid());
+        // the gender and the age of an unnamed speaker: offered, not required, read back
+        assertTrue(text.contains("\"ELDERLY\"") && text.contains("\"FEMALE\""), text);
+        LabelAnswer guard = StructuredOutputs.parse("""
+                {"labels": [{"id": 3, "speaker": "The guard", "delivery": "ANGRY", "intensity": 0.6, "tagged_text": "", "gender": "MALE", "age": "ELDERLY"}]}""",
+                LabelAnswer.class);
+        assertEquals(Gender.MALE, guard.labels().getFirst().gender());
+        assertEquals(Age.ELDERLY, guard.labels().getFirst().age());
+        assertNull(answer.labels().get(1).gender(), "an answer without them");
+        assertFalse(StructuredOutputs.validate(schema, "{\"labels\": [{\"id\": 0, \"speaker\": \"A\", \"delivery\": \"NEUTRAL\", \"intensity\": 0.5, \"tagged_text\": \"\", \"age\": \"ANCIENT\"}]}").valid());
     }
 
     @Test

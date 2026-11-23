@@ -1,10 +1,12 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
 import com.github.enerccio.marginalia.ui.LLMInteract;
-import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.components.PromptTokenBreakdown;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.ChartJs;
 import com.google.gson.Gson;
@@ -57,7 +59,7 @@ public class TokenUsageDialog extends Dialog implements LLMInteract {
                     @APILocals(name = "closeButton", type = Button.class),
                     @APILocals(name = "footerLayout", type = HorizontalLayout.class)})
     public void create() {
-        setHeaderTitle(loc.getValue(L.LABEL_TOKEN_USAGE));
+        setHeaderTitle(loc.getValue(M_L.LABEL_TOKEN_USAGE));
         setWidth("850px");
         setHeight("700px");
         setResizable(true);
@@ -68,7 +70,7 @@ public class TokenUsageDialog extends Dialog implements LLMInteract {
         content.setSpacing(true);
 
         if (breakdown == null) {
-            content.add(new Div(loc.getValue(L.MSG_TOKEN_USAGE_UNAVAILABLE)));
+            content.add(new Div(loc.getValue(M_L.MSG_TOKEN_USAGE_UNAVAILABLE)));
         } else {
             addSectionsChart(content);
             addMessagesChart(content);
@@ -100,20 +102,20 @@ public class TokenUsageDialog extends Dialog implements LLMInteract {
         List<String> colors = new ArrayList<>();
 
         addSection(labels, values, colors, L.LABEL_JAILBREAK, breakdown.getJailbreakTokens());
-        addSection(labels, values, colors, L.LABEL_TOKEN_TEMPLATE, breakdown.getTemplateTokens());
-        addSection(labels, values, colors, L.LABEL_TOKEN_LORE, breakdown.getLoreTokens());
-        addSection(labels, values, colors, L.LABEL_SUMMARIES, breakdown.getSummaryTokens());
-        addSection(labels, values, colors, L.LABEL_TOKEN_STORY, breakdown.getHistoryTokens());
-        addSection(labels, values, colors, L.LABEL_TOKEN_USER_LORE, breakdown.getUserLoreTokens());
-        addSection(labels, values, colors, L.LABEL_TOKEN_USER_PROMPT, breakdown.getUserPromptTokens());
-        addSection(labels, values, colors, L.LABEL_TOKEN_RESERVED, breakdown.getReservedTokens());
+        addSection(labels, values, colors, M_L.LABEL_TOKEN_TEMPLATE, breakdown.getTemplateTokens());
+        addSection(labels, values, colors, M_L.LABEL_TOKEN_LORE, breakdown.getLoreTokens());
+        addSection(labels, values, colors, M_L.LABEL_SUMMARIES, breakdown.getSummaryTokens());
+        addSection(labels, values, colors, M_L.LABEL_TOKEN_STORY, breakdown.getHistoryTokens());
+        addSection(labels, values, colors, M_L.LABEL_TOKEN_USER_LORE, breakdown.getUserLoreTokens());
+        addSection(labels, values, colors, M_L.LABEL_TOKEN_USER_PROMPT, breakdown.getUserPromptTokens());
+        addSection(labels, values, colors, M_L.LABEL_TOKEN_RESERVED, breakdown.getReservedTokens());
 
         long used = values.stream().mapToLong(Long::longValue).sum();
         if (breakdown.getContextTokens() > 0) {
-            addSection(labels, values, colors, L.LABEL_TOKEN_RESPONSE, breakdown.getResponseTokens());
+            addSection(labels, values, colors, M_L.LABEL_TOKEN_RESPONSE, breakdown.getResponseTokens());
             long free = breakdown.getContextTokens() - used - breakdown.getResponseTokens();
             if (free > 0) {
-                labels.add(loc.getValue(L.LABEL_TOKEN_FREE));
+                labels.add(loc.getValue(M_L.LABEL_TOKEN_FREE));
                 values.add(free);
                 colors.add(COLOR_FREE);
             }
@@ -131,25 +133,25 @@ public class TokenUsageDialog extends Dialog implements LLMInteract {
         ChartJs chart = new ChartJs();
         chart.setChartConfig(gson.toJson(config));
 
-        Div summary = new Div(loc.getValue(L.LABEL_TOKEN_CONTEXT) + ": " + breakdown.getContextTokens()
-                + " | " + loc.getValue(L.LABEL_TOKENS) + ": " + used);
-        summary.addClassName(CssStyles.TOKEN_USAGE_SUMMARY);
+        Div summary = new Div(loc.getValue(M_L.LABEL_TOKEN_CONTEXT) + ": " + breakdown.getContextTokens()
+                + " | " + loc.getValue(M_L.LABEL_TOKENS) + ": " + used);
+        summary.addClassName(MarginaliaCssStyles.TOKEN_USAGE_SUMMARY);
         content.add(summary, chart);
         if (breakdown.getCutMessages() > 0) {
-            Div cut = new Div(String.format(loc.getValue(L.MSG_TOKEN_CUT), breakdown.getCutMessages(), breakdown.getCutTokens()));
-            cut.addClassName(CssStyles.TOKEN_USAGE_SUMMARY);
+            Div cut = new Div(String.format(loc.getValue(M_L.MSG_TOKEN_CUT), breakdown.getCutMessages(), breakdown.getCutTokens()));
+            cut.addClassName(MarginaliaCssStyles.TOKEN_USAGE_SUMMARY);
             content.add(cut);
         }
     }
 
-    @PublicAPI(from = "1.1.0",
+    @PublicAPI(from = "1.9.0",
             returns = @APIReturn(type = void.class),
             parameters = {@APIParameter(name = "labels", type = List.class),
                     @APIParameter(name = "values", type = List.class),
                     @APIParameter(name = "colors", type = List.class),
-                    @APIParameter(name = "label", type = L.class),
+                    @APIParameter(name = "label", type = LocalizationKey.class),
                     @APIParameter(name = "tokens", type = long.class)})
-    private void addSection(List<String> labels, List<Long> values, List<String> colors, L label, long tokens) {
+    private void addSection(List<String> labels, List<Long> values, List<String> colors, LocalizationKey label, long tokens) {
         if (tokens <= 0) {
             return;
         }
@@ -186,7 +188,7 @@ public class TokenUsageDialog extends Dialog implements LLMInteract {
         }
 
         Map<String, Object> dataset = new LinkedHashMap<>();
-        dataset.put("label", loc.getValue(L.LABEL_TOKENS));
+        dataset.put("label", loc.getValue(M_L.LABEL_TOKENS));
         dataset.put("data", values);
         dataset.put("backgroundColor", colors);
 
@@ -198,9 +200,9 @@ public class TokenUsageDialog extends Dialog implements LLMInteract {
         ChartJs chart = new ChartJs();
         chart.setChartConfig(gson.toJson(config));
 
-        Div summary = new Div(loc.getValue(L.LABEL_TOKENS) + ": " + breakdown.getPayloadTokens());
-        summary.addClassName(CssStyles.TOKEN_USAGE_SUMMARY);
-        content.add(new H4(loc.getValue(L.LABEL_PAYLOAD_MESSAGES)), summary, chart);
+        Div summary = new Div(loc.getValue(M_L.LABEL_TOKENS) + ": " + breakdown.getPayloadTokens());
+        summary.addClassName(MarginaliaCssStyles.TOKEN_USAGE_SUMMARY);
+        content.add(new H4(loc.getValue(M_L.LABEL_PAYLOAD_MESSAGES)), summary, chart);
     }
 
     @PublicAPI(from = "1.1.0",
@@ -211,9 +213,9 @@ public class TokenUsageDialog extends Dialog implements LLMInteract {
             return "";
         }
         return switch (role) {
-            case "SYSTEM" -> loc.getValue(L.LABEL_SYSTEM);
+            case "SYSTEM" -> loc.getValue(M_L.LABEL_SYSTEM);
             case "USER" -> loc.getValue(L.LABEL_USER);
-            case "ASSISTANT" -> loc.getValue(L.LABEL_ASSISTANT);
+            case "ASSISTANT" -> loc.getValue(M_L.LABEL_ASSISTANT);
             default -> role;
         };
     }

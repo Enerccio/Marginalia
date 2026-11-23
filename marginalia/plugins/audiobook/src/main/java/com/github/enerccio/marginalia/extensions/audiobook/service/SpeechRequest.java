@@ -10,10 +10,16 @@ import com.github.enerccio.marginalia.extensions.audiobook.model.BackendConfig;
  * @param voice        the file name of the voice on the server (a predefined one, or the name {@link SpeechBackend#ensureReference} gave a clip)
  * @param language     the language code for the multilingual model, null for none (the other models ignore it)
  * @param exaggeration 0.25 to 2.0, the original model and the multilingual one; Turbo ignores it
- * @param seed         a seed changes the take; 0 lets the server choose
+ * @param seed          a seed changes the take; 0 lets the server choose
+ * @param referenceText the words spoken in the clip (Higgs, when the backend sends them), null for none
  */
 public record SpeechRequest(String text, VoiceMode voiceMode, String voice, String language, double exaggeration, double cfgWeight,
-                            double temperature, double speed, int seed, String format, int chunkSize) {
+                            double temperature, double speed, int seed, String format, int chunkSize, String referenceText) {
+
+    public SpeechRequest(String text, VoiceMode voiceMode, String voice, String language, double exaggeration, double cfgWeight,
+                         double temperature, double speed, int seed, String format, int chunkSize) {
+        this(text, voiceMode, voice, language, exaggeration, cfgWeight, temperature, speed, seed, format, chunkSize, null);
+    }
 
     public enum VoiceMode {
         PREDEFINED("predefined"), CLONE("clone");
@@ -37,14 +43,18 @@ public record SpeechRequest(String text, VoiceMode voiceMode, String voice, Stri
     }
 
     public SpeechRequest withLanguage(String language) {
-        return new SpeechRequest(text, voiceMode, voice, language, exaggeration, cfgWeight, temperature, speed, seed, format, chunkSize);
+        return new SpeechRequest(text, voiceMode, voice, language, exaggeration, cfgWeight, temperature, speed, seed, format, chunkSize, referenceText);
     }
 
     public SpeechRequest withExaggeration(double exaggeration) {
-        return new SpeechRequest(text, voiceMode, voice, language, exaggeration, cfgWeight, temperature, speed, seed, format, chunkSize);
+        return new SpeechRequest(text, voiceMode, voice, language, exaggeration, cfgWeight, temperature, speed, seed, format, chunkSize, referenceText);
+    }
+
+    public SpeechRequest withReferenceText(String referenceText) {
+        return new SpeechRequest(text, voiceMode, voice, language, exaggeration, cfgWeight, temperature, speed, seed, format, chunkSize, referenceText);
     }
 
     public SpeechRequest withSeed(int seed) {
-        return new SpeechRequest(text, voiceMode, voice, language, exaggeration, cfgWeight, temperature, speed, seed, format, chunkSize);
+        return new SpeechRequest(text, voiceMode, voice, language, exaggeration, cfgWeight, temperature, speed, seed, format, chunkSize, referenceText);
     }
 }

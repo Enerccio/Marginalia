@@ -2,20 +2,25 @@ package com.github.enerccio.marginalia.domain.service.impl;
 
 import com.github.enerccio.marginalia.domain.collections.Language;
 import com.github.enerccio.marginalia.domain.listener.ExtendableEntityListener;
+import com.github.enerccio.marginalia.domain.model.WatchedPhrase;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.PromptField;
 import com.github.enerccio.marginalia.extensions.InheritedSetting;
 import com.github.enerccio.marginalia.extensions.InheritedSettingRegistry;
 import com.github.enerccio.marginalia.extensions.InheritedSettingValues;
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang3.StringUtils;
 
+import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -25,6 +30,10 @@ import java.util.Map;
  * ({@link BackupFolders}) or from the user settings are written, a built-in default stays unset: the other side has its own.
  */
 final class BackupInheritance {
+
+    private static final Gson GSON = new Gson();
+    private static final Type PHRASE_LIST = new TypeToken<List<WatchedPhrase>>() {
+    }.getType();
 
     private BackupInheritance() {
     }
@@ -97,6 +106,11 @@ final class BackupInheritance {
                 }
             }
         }
+        List<WatchedPhrase> phrases = inlinePhrases(own, path, user);
+        if (phrases != null) {
+            inherited.setWatchedPhrases(phrases);
+            any = true;
+        }
         if (!any) {
             return;
         }
@@ -154,6 +168,43 @@ final class BackupInheritance {
             ownValues.forEach((key, value) -> InheritedSettingValues.set(inherited, key, value));
         }
         return added;
+    }
+
+    /**
+     * The phrase watch list the book uses, as its own: the user's, the folders' from the top down and the book's, a nearer entry of the
+     * same phrase in place of the other and the entries that are off left out; null when the user settings and the folders add nothing.
+     */
+    private static List<WatchedPhrase> inlinePhrases(Manuscript own, JsonArray path, UserSetting user) {
+        Map<String, WatchedPhrase> entries = new LinkedHashMap<>();
+        if (user != null) {
+            user.getWatchedPhrases().forEach(phrase -> putPhrase(entries, phrase));
+        }
+        for (JsonElement element : path) {
+            JsonObject level = element.isJsonObject() ? element.getAsJsonObject() : null;
+            if (level == null || !level.has(BackupFolders.PHRASES) || !level.get(BackupFolders.PHRASES).isJsonArray()) {
+                continue;
+            }
+            try {
+                List<WatchedPhrase> listed = GSON.fromJson(level.get(BackupFolders.PHRASES), PHRASE_LIST);
+                if (listed != null) {
+                    listed.forEach(phrase -> putPhrase(entries, phrase));
+                }
+            } catch (RuntimeException ignored) {
+                // a list this version can't read
+            }
+        }
+        if (entries.isEmpty()) {
+            return null;
+        }
+        own.getWatchedPhrases().forEach(phrase -> putPhrase(entries, phrase));
+        return entries.values().stream().filter(phrase -> !phrase.isDisabled()).toList();
+    }
+
+    private static void putPhrase(Map<String, WatchedPhrase> entries, WatchedPhrase phrase) {
+        if (phrase != null && StringUtils.isNotBlank(phrase.getPhrase())) {
+            entries.remove(phrase.key());
+            entries.put(phrase.key(), phrase.copy());
+        }
     }
 
     private static JsonObject serialized(Manuscript manuscript, ExtendableEntityListener listener) throws Exception {

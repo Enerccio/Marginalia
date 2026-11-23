@@ -1,6 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs.story;
 
-import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.service.MessageRevisionService;
 import com.github.enerccio.marginalia.loc.Localization;
@@ -37,7 +37,7 @@ public class CardAuthorship {
             return marks;
         }
         if (generating) {
-            marks.add(new TextMarkup.Mark(0, response.length(), CssStyles.GENERATED_TEXT));
+            marks.add(new TextMarkup.Mark(0, response.length(), MarginaliaCssStyles.GENERATED_TEXT));
             return marks;
         }
         if (!response.equals(text)) {
@@ -50,7 +50,7 @@ public class CardAuthorship {
             }
         }
         for (int[] range : ranges) {
-            marks.add(new TextMarkup.Mark(range[0], range[1], CssStyles.GENERATED_TEXT));
+            marks.add(new TextMarkup.Mark(range[0], range[1], MarginaliaCssStyles.GENERATED_TEXT));
         }
         return marks;
     }

@@ -54,6 +54,8 @@ The cog of a folder opens its settings (the **Organise** window has the same but
   keeps for the books in the folder and the folders below it. Of all the limits above a book the strictest applies.
 - **Extension Settings**, when a loaded [extension](../extensions/index.md) has settings that books inherit, see
   [Settings of extensions](prompts.md#settings-of-extensions).
+- **Phrase watch list**: the phrases the books in the folder are checked for, added to the ones of your settings and of the
+  folders above, see [Watching for phrases](annotations.md#watching-for-phrases).
 
 Everything is optional. An empty field is *inherited*, and says so: the grey text in the field is the value it inherits,
 and the line under it tells where that comes from. Press **Save** to save the folder; the name and description can be

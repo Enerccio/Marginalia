@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.components.LorebookView;
 import com.vaadin.flow.component.button.Button;
@@ -39,7 +40,7 @@ public class LorebookDialog extends Dialog implements LLMInteract {
                     @APILocals(name = "closeButton", type = Button.class)})
     public void create() {
         boolean isEdit = lorebook != null && lorebook.getId() != null;
-        setHeaderTitle(isEdit ? loc.getValue(L.LABEL_EDIT_LOREBOOK) : loc.getValue(L.LABEL_NEW_LOREBOOK));
+        setHeaderTitle(isEdit ? loc.getValue(M_L.LABEL_EDIT_LOREBOOK) : loc.getValue(M_L.LABEL_NEW_LOREBOOK));
         setWidth("1050px");
         setHeight("750px");
         setCloseOnEsc(false);

@@ -11,7 +11,7 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.dto.PreProm
 import com.github.enerccio.marginalia.domain.templates.TemplateContext;
 import com.github.enerccio.marginalia.domain.templates.TemplateVariables;
 import com.github.enerccio.marginalia.extensions.PartTextRegistry;
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
 import org.slf4j.Logger;
@@ -83,7 +83,7 @@ public abstract class GenerationStepBase implements GenerationStep {
     public void step(GenerationController controller) throws Exception {
         try (InRequestScope _ = new InRequestScope(controller.getRequestAttributes())) {
             if (Thread.interrupted()) {
-                controller.getUIListener().onSimpleError(loc.getValue(L.MSG_INTERRUPTED));
+                controller.getUIListener().onSimpleError(loc.getValue(M_L.MSG_INTERRUPTED));
                 controller.jumpTo(GenerationStepType.CLEANUP);
                 return;
             }
@@ -259,7 +259,7 @@ public abstract class GenerationStepBase implements GenerationStep {
             GenerationController.FromEventCallback onComplete) throws Exception {
         try (InRequestScope _ = new InRequestScope(controller.getRequestAttributes())) {
             if (Thread.interrupted()) {
-                controller.getUIListener().onSimpleError(loc.getValue(L.MSG_INTERRUPTED));
+                controller.getUIListener().onSimpleError(loc.getValue(M_L.MSG_INTERRUPTED));
                 controller.jumpTo(GenerationStepType.CLEANUP);
                 return;
             }

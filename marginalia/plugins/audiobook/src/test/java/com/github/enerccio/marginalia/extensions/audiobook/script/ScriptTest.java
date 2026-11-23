@@ -24,6 +24,33 @@ class ScriptTest {
     }
 
     @Test
+    void aShiftedClipRoundTripsAsTextAndOnlyAClipCanBeShifted() {
+        VoiceShift shift = new VoiceShift(-2, 1, 107, VoiceShift.Eq.BRIGHT);
+        VoiceRef shifted = VoiceRef.clip("abc-123").withShift(shift);
+        assertEquals("clip:abc-123~p-2.f+1.t107.eB", shifted.toString());
+        assertEquals(shifted, VoiceRef.parse(shifted.toString()));
+        assertEquals("abc-123", shifted.id());
+        assertEquals(VoiceRef.clip("abc-123"), shifted.base());
+        // the text of a voice made before shifts existed reads as before
+        assertNull(VoiceRef.parse("clip:abc-123").shift());
+        // a voice of the server can't be changed here; a ~ in its file name is just a name
+        assertNull(VoiceRef.predefined("Henry.wav").withShift(shift).shift());
+        assertEquals(VoiceRef.predefined("a~b.wav"), VoiceRef.parse("predefined:a~b.wav"));
+        // no change is no shift
+        assertEquals(VoiceRef.clip("x"), VoiceRef.clip("x").withShift(new VoiceShift(0, 0, 100, VoiceShift.Eq.FLAT)));
+        assertThrows(IllegalArgumentException.class, () -> VoiceRef.parse("clip:~p-2.f+1.t107.eB"));
+        assertThrows(IllegalArgumentException.class, () -> VoiceRef.parse("clip:abc~nonsense"));
+    }
+
+    @Test
+    void aStoredScriptWithoutShiftsReadsBackAndAShiftSurvivesGson() {
+        com.google.gson.Gson gson = new com.google.gson.Gson();
+        assertEquals(VoiceRef.clip("abc"), gson.fromJson("{\"kind\":\"CLIP\",\"id\":\"abc\"}", VoiceRef.class));
+        VoiceRef shifted = VoiceRef.clip("abc").withShift(new VoiceShift(-1, 0, 93, VoiceShift.Eq.DARK));
+        assertEquals(shifted, gson.fromJson(gson.toJson(shifted), VoiceRef.class));
+    }
+
+    @Test
     void theKeyCoversWhatChangesTheSoundAndNothingElse() {
         ScriptEntry base = entry("The door was heavy.");
         String key = base.key();
@@ -32,6 +59,10 @@ class ScriptTest {
         assertNotEquals(key, entry("The door was light.").key());
         assertNotEquals(key, base.withSeed(43).key());
         assertNotEquals(key, new ScriptEntry("Narrator", base.text(), VoiceRef.clip("x"), base.model(), null, 0.5, 0.5, 0.8, 1.0, 42, 240, "mp3", 0.6).key());
+        // another variation of the same clip is another sound
+        assertNotEquals(new ScriptEntry("Guard", base.text(), VoiceRef.clip("x"), base.model(), null, 0.5, 0.5, 0.8, 1.0, 42, 240, "mp3", 0.6).key(),
+                new ScriptEntry("Guard", base.text(), VoiceRef.clip("x").withShift(new VoiceShift(-2, 0, 100, VoiceShift.Eq.FLAT)), base.model(), null, 0.5, 0.5,
+                        0.8, 1.0, 42, 240, "mp3", 0.6).key());
         assertNotEquals(key, new ScriptEntry("Narrator", base.text(), NARRATOR, BackendConfig.MODEL_MULTILINGUAL, null, 0.5, 0.5, 0.8, 1.0, 42, 240, "mp3", 0.6).key());
         assertNotEquals(key, new ScriptEntry("Narrator", base.text(), NARRATOR, base.model(), "ja", 0.5, 0.5, 0.8, 1.0, 42, 240, "mp3", 0.6).key());
         assertNotEquals(key, new ScriptEntry("Narrator", base.text(), NARRATOR, base.model(), null, 0.9, 0.5, 0.8, 1.0, 42, 240, "mp3", 0.6).key());

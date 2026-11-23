@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.ui.dialogs.story;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.components.RevisionClearing;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -58,7 +59,7 @@ public class ClearHistoryDialog extends Dialog {
         setHeaderTitle(title);
         setWidth("min(520px, 95vw)");
 
-        keepSnapshots.setLabel(loc.getValue(L.LABEL_KEEP_SAVED_VERSIONS));
+        keepSnapshots.setLabel(loc.getValue(M_L.LABEL_KEEP_SAVED_VERSIONS));
         keepSnapshots.setValue(true);
         keepSnapshots.addValueChangeListener(_ -> refresh());
 
@@ -67,7 +68,7 @@ public class ClearHistoryDialog extends Dialog {
         content.addClassName(CssStyles.GAP_S);
         add(content);
 
-        clear.setText(loc.getValue(L.LABEL_CLEAR_HISTORY));
+        clear.setText(loc.getValue(M_L.LABEL_CLEAR_HISTORY));
         clear.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_ERROR);
         clear.addClickListener(_ -> run());
         getFooter().add(new Button(loc.getValue(L.LABEL_CANCEL), _ -> close()), clear);
@@ -79,10 +80,10 @@ public class ClearHistoryDialog extends Dialog {
         try {
             RevisionClearing preview = clearing.preview(keepSnapshots.getValue());
             if (preview.versions() == 0) {
-                question.setText(loc.getValue(L.MSG_HISTORY_NOTHING_TO_CLEAR));
+                question.setText(loc.getValue(M_L.MSG_HISTORY_NOTHING_TO_CLEAR));
                 clear.setEnabled(false);
             } else {
-                question.setText(String.format(loc.getValue(L.MSG_HISTORY_CONFIRM_CLEAR), preview.versions(),
+                question.setText(String.format(loc.getValue(M_L.MSG_HISTORY_CONFIRM_CLEAR), preview.versions(),
                         FileUtils.byteCountToDisplaySize(preview.bytes())));
                 clear.setEnabled(true);
             }
@@ -95,7 +96,7 @@ public class ClearHistoryDialog extends Dialog {
         try {
             RevisionClearing cleared = clearing.clear(keepSnapshots.getValue());
             close();
-            Notification.success(String.format(loc.getValue(L.MSG_HISTORY_CLEARED), cleared.versions()));
+            Notification.success(String.format(loc.getValue(M_L.MSG_HISTORY_CLEARED), cleared.versions()));
             done.run();
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);

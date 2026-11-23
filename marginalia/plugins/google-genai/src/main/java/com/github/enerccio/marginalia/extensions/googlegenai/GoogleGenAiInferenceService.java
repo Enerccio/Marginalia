@@ -66,8 +66,8 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
     @Autowired
     private AILimitService limitService;
 
-    @Autowired
-    private ActivityTracker activityTracker;
+    @Autowired(required = false)
+    private RequestActivity activityTracker;
 
     private final ExtensionAI ai;
     private final GoogleGenAiSettings settings;
@@ -119,8 +119,8 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
      * The time the request of the book is on the wire, for the generation time of the writing statistics; nothing for a request that
      * is not metered or has no book (and in a test without the application).
      */
-    private ActivityTracker.Registration generating(Run run) {
-        return run.metered && activityTracker != null ? activityTracker.generate(run.book) : ActivityTracker.NONE;
+    private RequestActivity.Registration generating(Run run) {
+        return run.metered && activityTracker != null ? activityTracker.generate(run.book) : RequestActivity.NONE;
     }
 
     // ---- models and connection
@@ -230,7 +230,7 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
                     }
                     long began = System.nanoTime();
                     GenerateContentResponse response;
-                    try (ActivityTracker.Registration generating = generating(run)) {
+                    try (RequestActivity.Registration generating = generating(run)) {
                         response = sdk.models.generateContent(model, prepared.contents(), config);
                     }
                     long millis = (System.nanoTime() - began) / 1_000_000;
@@ -321,7 +321,7 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
                         return;
                     }
                     // from the moment the request is sent to the end of the answer (the recorder below is called whichever way it ends)
-                    ActivityTracker.Registration generating = generating(run);
+                    RequestActivity.Registration generating = generating(run);
                     ResponseStream<GenerateContentResponse> stream;
                     try {
                         stream = sdk.models.generateContentStream(model, contents, config);
@@ -384,7 +384,7 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
                         return;
                     }
                     GenerateContentResponse response;
-                    try (ActivityTracker.Registration generating = generating(run)) {
+                    try (RequestActivity.Registration generating = generating(run)) {
                         response = sdk.models.generateContent(model, contents, config);
                     }
                     Answer answer = new Answer();

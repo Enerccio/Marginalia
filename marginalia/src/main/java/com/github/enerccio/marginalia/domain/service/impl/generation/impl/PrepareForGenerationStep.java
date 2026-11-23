@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service.impl.generation.impl;
 
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
@@ -7,7 +8,6 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.Events;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationController;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationStepBase;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationStepType;
-import com.github.enerccio.marginalia.loc.L;
 
 public class PrepareForGenerationStep extends GenerationStepBase {
 
@@ -17,7 +17,7 @@ public class PrepareForGenerationStep extends GenerationStepBase {
             // rehydrate and check AI/Protocol
             AI aiModel = aiService.find(controller.getAi());
             if (aiModel == null) {
-                controller.getUIListener().onSimpleError(loc.getValue(L.ERROR_AI_NOT_SET));
+                controller.getUIListener().onSimpleError(loc.getValue(M_L.ERROR_AI_NOT_SET));
                 controller.jumpTo(GenerationStepType.CLEANUP);
                 return;
             }
@@ -25,7 +25,7 @@ public class PrepareForGenerationStep extends GenerationStepBase {
 
             Protocol protocol = protocolService.find(controller.getProtocol());
             if (protocol == null) {
-                controller.getUIListener().onSimpleError(loc.getValue(L.ERROR_PROTOCOL_NOT_SET));
+                controller.getUIListener().onSimpleError(loc.getValue(M_L.ERROR_PROTOCOL_NOT_SET));
                 controller.jumpTo(GenerationStepType.CLEANUP);
                 return;
             }

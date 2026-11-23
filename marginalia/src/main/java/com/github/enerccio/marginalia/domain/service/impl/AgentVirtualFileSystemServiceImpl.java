@@ -11,6 +11,7 @@ import com.github.enerccio.marginalia.domain.service.agent.*;
 import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
+import com.github.enerccio.marginalia.loc.MarginaliaLocalization;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -50,7 +51,7 @@ public class AgentVirtualFileSystemServiceImpl implements AgentVirtualFileSystem
     private Configuration configuration;
 
     @Autowired
-    private Localization loc;
+    private MarginaliaLocalization loc;
 
     @Autowired
     @Lazy
@@ -129,7 +130,7 @@ public class AgentVirtualFileSystemServiceImpl implements AgentVirtualFileSystem
         }
         Agent agent = storedAgent(stored.getAgent());
         // the instructions are read here: a changed text applies when the run is opened again, as in the system prompt
-        return VirtualFileSystem.ofRun(RunFolder.of(home(), stored.getUuid(), agent.getUuid()), limitsOf(agent),
+        return AgentFileSystem.ofRun(RunFolder.of(home(), stored.getUuid(), agent.getUuid()), limitsOf(agent),
                 lockOf(agent.getUuid()), agentService.getInstructions(agent));
     }
 
@@ -147,7 +148,7 @@ public class AgentVirtualFileSystemServiceImpl implements AgentVirtualFileSystem
     @CommonTxReadOnly
     public VirtualFileSystem openWorkspace(Agent agent) throws Exception {
         Agent stored = storedAgent(agent);
-        return VirtualFileSystem.ofWorkspace(RunFolder.workspaceOf(home(), stored.getUuid()), limitsOf(stored),
+        return AgentFileSystem.ofWorkspace(RunFolder.workspaceOf(home(), stored.getUuid()), limitsOf(stored),
                 lockOf(stored.getUuid()));
     }
 
@@ -161,7 +162,7 @@ public class AgentVirtualFileSystemServiceImpl implements AgentVirtualFileSystem
 
     @Override
     public FunctionSet getFileTools(VirtualFileSystem fileSystem, CommandResults commandResults) {
-        return inferenceServices.getFunctionRegistry().bind(AgentFileTools.class, new AgentFileToolsImpl(fileSystem, AgentFileToolsImpl.REGEX_MILLIS, commandResults, loc::getDefaults));
+        return inferenceServices.getFunctionRegistry().bind(AgentFileTools.class, new AgentFileToolsImpl(fileSystem, AgentFileToolsImpl.REGEX_MILLIS, commandResults, () -> loc.getDefaults().agentFileHint()));
     }
 
     @Override

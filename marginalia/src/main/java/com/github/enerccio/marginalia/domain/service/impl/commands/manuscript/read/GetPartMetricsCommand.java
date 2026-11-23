@@ -1,9 +1,9 @@
 package com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.read;
 
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.traits.*;
-import com.github.enerccio.marginalia.loc.L;
 import com.google.gson.JsonObject;
 
 /**
@@ -14,23 +14,32 @@ public class GetPartMetricsCommand extends ManuscriptReadSupport {
 
     static final String NAME = "get-part-metrics";
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_GET_PART_METRICS,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_GET_PART_METRICS, llmDescription = L.DESC_COMMAND_GET_PART_METRICS_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_GET_PART_METRICS_RETURN))
+                    @CommandParameter(name = "part", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_GET_PART_METRICS,
+            description = M_L.DESC_COMMAND_GET_PART_METRICS,
+            llmDescription = M_L.DESC_COMMAND_GET_PART_METRICS_LLM,
+            parameters = @MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_PART_PARAM),
+            returns = M_L.DESC_COMMAND_GET_PART_METRICS_RETURN)
     public void getPartMetrics(CommandContext context) throws Exception {
         partMetrics(context, ref(context, "part"), null);
     }
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_GET_PART_METRICS,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_GET_PART_METRICS, llmDescription = L.DESC_COMMAND_GET_PART_METRICS_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM),
-                    @CommandParameter(name = "branch", type = String.class, description = L.DESC_COMMAND_BRANCH_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_GET_PART_METRICS_RETURN))
+                    @CommandParameter(name = "part", type = String.class),
+                    @CommandParameter(name = "branch", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_GET_PART_METRICS,
+            description = M_L.DESC_COMMAND_GET_PART_METRICS,
+            llmDescription = M_L.DESC_COMMAND_GET_PART_METRICS_LLM,
+            parameters = {@MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_PART_PARAM),
+                    @MarginaliaParameterText(name = "branch", description = M_L.DESC_COMMAND_BRANCH_PARAM)},
+            returns = M_L.DESC_COMMAND_GET_PART_METRICS_RETURN)
     public void getPartMetricsBranch(CommandContext context) throws Exception {
         partMetrics(context, ref(context, "part"), ref(context, "branch"));
     }

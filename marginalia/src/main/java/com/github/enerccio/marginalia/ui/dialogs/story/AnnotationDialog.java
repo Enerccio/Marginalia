@@ -1,7 +1,9 @@
 package com.github.enerccio.marginalia.ui.dialogs.story;
 
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.vaadin.flow.component.button.Button;
@@ -59,7 +61,7 @@ public class AnnotationDialog extends Dialog {
 
     private AnnotationDialog(String passage, Saved saved) {
         this.saved = saved;
-        setHeaderTitle(loc.getValue(L.LABEL_ANNOTATION_NEW));
+        setHeaderTitle(loc.getValue(M_L.LABEL_ANNOTATION_NEW));
         setWidth("min(560px, 95vw)");
 
         VerticalLayout content = new VerticalLayout();
@@ -69,21 +71,21 @@ public class AnnotationDialog extends Dialog {
 
         if (StringUtils.isNotBlank(passage)) {
             Div quote = new Div(new Span(StringUtils.abbreviate(passage.strip(), 400)));
-            quote.addClassName(CssStyles.ANNOTATION_QUOTE);
+            quote.addClassName(MarginaliaCssStyles.ANNOTATION_QUOTE);
             content.add(quote);
         } else {
-            Span whole = new Span(loc.getValue(L.MSG_ANNOTATION_WHOLE_PART));
+            Span whole = new Span(loc.getValue(M_L.MSG_ANNOTATION_WHOLE_PART));
             whole.addClassName(CssStyles.HINT_TEXT);
             content.add(whole);
         }
 
-        note.setLabel(loc.getValue(L.LABEL_NOTE));
+        note.setLabel(loc.getValue(M_L.LABEL_NOTE));
         note.setWidthFull();
         note.setMinHeight("120px");
         type.setLabel(loc.getValue(L.LABEL_TYPE));
         type.setWidthFull();
-        type.setPlaceholder(loc.getValue(L.MSG_ANNOTATION_TYPE_PLACEHOLDER));
-        sendToPrompt.setLabel(loc.getValue(L.LABEL_ANNOTATION_SEND_TO_PROMPT));
+        type.setPlaceholder(loc.getValue(M_L.MSG_ANNOTATION_TYPE_PLACEHOLDER));
+        sendToPrompt.setLabel(loc.getValue(M_L.LABEL_ANNOTATION_SEND_TO_PROMPT));
         content.add(note, type, sendToPrompt);
         add(content);
 
@@ -97,7 +99,7 @@ public class AnnotationDialog extends Dialog {
     private void save() {
         if (StringUtils.isBlank(note.getValue())) {
             note.setInvalid(true);
-            note.setErrorMessage(loc.getValue(L.MSG_ANNOTATION_NOTE_REQUIRED));
+            note.setErrorMessage(loc.getValue(M_L.MSG_ANNOTATION_NOTE_REQUIRED));
             return;
         }
         close();

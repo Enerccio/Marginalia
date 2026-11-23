@@ -11,6 +11,7 @@ import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.SummaryService.BlockTexts;
 import com.github.enerccio.marginalia.domain.service.SummaryService.SummaryBlock;
 import com.github.enerccio.marginalia.domain.service.impl.inference.tokenizer.JavaTokkitStrategy;
+import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.domain.service.search.replace.EntityTextSearch;
 import com.github.enerccio.marginalia.domain.service.search.replace.EntityTextSearch.FieldChange;
 import com.github.enerccio.marginalia.domain.service.search.replace.TaskProgress;
@@ -317,7 +318,8 @@ public class ManuscriptReplaceServiceImpl implements ManuscriptReplaceService {
             if (change.kind() == Kind.MESSAGE) {
                 // saving serializes the fields of the object it gets, a lazy proxy of the part has none
                 ChatMessage message = Hibernate.unproxy(chatMessageService.find(change.id()), ChatMessage.class);
-                if (!unchanged(message, change)) {
+                if (!unchanged(message, change) || Runs.holder(message, Runs.Operation.EDIT) != null) {
+                    // edited or deleted since the plan, or a generation writes it now: left as it is, counted as skipped
                     skipped++;
                     continue;
                 }

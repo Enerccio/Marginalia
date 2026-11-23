@@ -12,6 +12,7 @@ import com.github.enerccio.marginalia.domain.service.LorebookService;
 import com.github.enerccio.marginalia.domain.service.TagRelationService;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.components.*;
 import com.github.enerccio.marginalia.ui.dialogs.search.LorebookSearchReplaceDialog;
@@ -255,9 +256,9 @@ public class LorebookEditorDialog extends Dialog {
         totalSpan.addClassName(CssStyles.HINT_TEXT);
         withSubbooksSpan = new Span();
         withSubbooksSpan.addClassName(CssStyles.HINT_TEXT);
-        Button countAll = new Button(loc.getValue(L.LABEL_COUNT_TOKENS_WITH_SUBBOOKS), event -> countWithSubbooks());
+        Button countAll = new Button(loc.getValue(M_L.LABEL_COUNT_TOKENS_WITH_SUBBOOKS), event -> countWithSubbooks());
         countAll.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE, ButtonVariant.LUMO_SMALL);
-        Button searchReplace = new Button(loc.getValue(L.LABEL_SEARCH_AND_REPLACE), Solid.EXCHANGE_ALT.create(),
+        Button searchReplace = new Button(loc.getValue(M_L.LABEL_SEARCH_AND_REPLACE), Solid.EXCHANGE_ALT.create(),
                 event -> openSearchReplace());
         searchReplaceButton = searchReplace;
         HorizontalLayout header = new HorizontalLayout(totalSpan, countAll, withSubbooksSpan, searchReplace);
@@ -267,14 +268,14 @@ public class LorebookEditorDialog extends Dialog {
 
         dock = new TabDock();
         dock.setSizeFull();
-        dock.add(LIST_TAB, loc.getValue(L.LABEL_ENTRIES), createList());
+        dock.add(LIST_TAB, loc.getValue(M_L.LABEL_ENTRIES), createList());
         dock.setMinimizable(LIST_TAB, false);
         dock.setOnClose(this::tabClosed);
         dock.setOnStateChange(this::tabShown);
 
         lockText = new Span();
         lockText.addClassName(CssStyles.TEXT_ERROR);
-        Button checkAgain = new Button(loc.getValue(L.LABEL_CHECK_AGAIN), Solid.REFRESH.create(), event -> checkLock());
+        Button checkAgain = new Button(loc.getValue(M_L.LABEL_CHECK_AGAIN), Solid.REFRESH.create(), event -> checkLock());
         checkAgain.addThemeVariants(ButtonVariant.LUMO_SMALL);
         lockBar = new HorizontalLayout(lockText, checkAgain);
         lockBar.setWidthFull();
@@ -338,12 +339,12 @@ public class LorebookEditorDialog extends Dialog {
                     @APILocals(name = "toolbar", type = HorizontalLayout.class),
                     @APILocals(name = "list", type = VerticalLayout.class)})
     private Component createList() {
-        Button newEntry = new Button(loc.getValue(L.LABEL_ADD_ENTRY), Solid.PLUS_CIRCLE.create(), event -> createEntry());
+        Button newEntry = new Button(loc.getValue(M_L.LABEL_ADD_ENTRY), Solid.PLUS_CIRCLE.create(), event -> createEntry());
         newEntry.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         newEntryButton = newEntry;
 
         searchField = new TextField();
-        searchField.setPlaceholder(loc.getValue(L.LABEL_SEARCH));
+        searchField.setPlaceholder(loc.getValue(M_L.LABEL_SEARCH));
         searchField.setPrefixComponent(Solid.SEARCH.create());
         searchField.setClearButtonVisible(true);
         searchField.setValueChangeMode(ValueChangeMode.LAZY);
@@ -362,15 +363,15 @@ public class LorebookEditorDialog extends Dialog {
         iconOnly(refresh, loc.getValue(L.LABEL_REFRESH));
 
         Button massEdit = new Button(Solid.TABLE.create(), event -> openMassEdit());
-        iconOnly(massEdit, loc.getValue(L.LABEL_MASS_EDIT));
+        iconOnly(massEdit, loc.getValue(M_L.LABEL_MASS_EDIT));
         massEditButton = massEdit;
         Button tagEntries = new Button(Solid.TAGS.create(), event -> openTagEntries());
-        iconOnly(tagEntries, loc.getValue(L.LABEL_TAG_ENTRIES));
+        iconOnly(tagEntries, loc.getValue(M_L.LABEL_TAG_ENTRIES));
         tagEntriesButton = tagEntries;
         Button preview = new Button(Solid.EYE.create(), event -> openActivationPreview());
-        iconOnly(preview, loc.getValue(L.LABEL_PREVIEW_ACTIVATION));
+        iconOnly(preview, loc.getValue(M_L.LABEL_PREVIEW_ACTIVATION));
 
-        includeSubbooks = new Checkbox(loc.getValue(L.LABEL_INCLUDE_SUB_LOREBOOKS));
+        includeSubbooks = new Checkbox(loc.getValue(M_L.LABEL_INCLUDE_SUB_LOREBOOKS));
         includeSubbooks.addValueChangeListener(event -> {
             if (event.isFromClient()) {
                 subbooksChanged();
@@ -381,8 +382,8 @@ public class LorebookEditorDialog extends Dialog {
         targetBook.setItemLabelGenerator(book -> StringUtils.defaultString(book.getName()));
         targetBook.setAllowCustomValue(false);
         targetBook.setWidth("10em");
-        targetBook.setAriaLabel(loc.getValue(L.LABEL_LOREBOOK));
-        targetBook.setTooltipText(loc.getValue(L.LABEL_LOREBOOK));
+        targetBook.setAriaLabel(loc.getValue(M_L.LABEL_LOREBOOK));
+        targetBook.setTooltipText(loc.getValue(M_L.LABEL_LOREBOOK));
         targetBook.setVisible(false);
 
         HorizontalLayout toolbar = new HorizontalLayout(newEntry, targetBook, massEdit, tagEntries, preview, refresh, searchField,
@@ -398,10 +399,10 @@ public class LorebookEditorDialog extends Dialog {
         grid.addThemeVariants(GridVariant.LUMO_COMPACT, GridVariant.LUMO_ROW_STRIPES);
         // the column of the check mark is as narrow as the mark, it needs no title (the tooltip of the cell says it)
         grid.addComponentColumn(this::enabledMark).setFlexGrow(0).setWidth("2.5em");
-        grid.addComponentColumn(this::nameCell).setHeader(loc.getValue(L.LABEL_ENTRY_NAME))
+        grid.addComponentColumn(this::nameCell).setHeader(loc.getValue(M_L.LABEL_ENTRY_NAME))
                 .setComparator(entry -> StringUtils.defaultString(entry.getName()).toLowerCase()).setFlexGrow(1);
         // a narrow list beside the open entries: the tags and the filter are in the entry tab
-        grid.addColumn(LorebookEntry::getOrder).setHeader(loc.getValue(L.LABEL_ORDER)).setSortable(true)
+        grid.addColumn(LorebookEntry::getOrder).setHeader(loc.getValue(M_L.LABEL_ORDER)).setSortable(true)
                 .setFlexGrow(0).setWidth("5.5em");
         grid.addComponentColumn(this::rowActions).setHeader("").setFlexGrow(0).setWidth("5.5em");
         grid.addItemDoubleClickListener(event -> openEntry(event.getItem(), false));
@@ -435,8 +436,8 @@ public class LorebookEditorDialog extends Dialog {
 
         Button openNew = new Button(Solid.ARROW_UP_RIGHT_FROM_SQUARE.create(), event -> openEntry(entry, true));
         openNew.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
-        openNew.setTooltipText(loc.getValue(L.LABEL_OPEN_IN_NEW_TAB));
-        openNew.setAriaLabel(loc.getValue(L.LABEL_OPEN_IN_NEW_TAB));
+        openNew.setTooltipText(loc.getValue(M_L.LABEL_OPEN_IN_NEW_TAB));
+        openNew.setAriaLabel(loc.getValue(M_L.LABEL_OPEN_IN_NEW_TAB));
 
         Button delete = new Button(Solid.TRASH.create(), event -> deleteEntry(entry));
         delete.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE, ButtonVariant.LUMO_ERROR);
@@ -458,7 +459,7 @@ public class LorebookEditorDialog extends Dialog {
     private Component enabledMark(LorebookEntry entry) {
         Component mark = entry.isEnabled() ? Solid.CHECK.create() : new Span();
         if (entry.isEnabled()) {
-            UIUtils.addTooltip(mark, loc.getValue(L.LABEL_ENABLED));
+            UIUtils.addTooltip(mark, loc.getValue(M_L.LABEL_ENABLED));
         }
         return mark;
     }
@@ -661,7 +662,7 @@ public class LorebookEditorDialog extends Dialog {
             locals = {@APILocals(name = "name", type = String.class),
                     @APILocals(name = "book", type = Lorebook.class)})
     private String caption(LorebookEntry entry) {
-        String name = StringUtils.defaultIfBlank(entry.getName(), loc.getValue(L.LABEL_NEW_LOREBOOK_ENTRY));
+        String name = StringUtils.defaultIfBlank(entry.getName(), loc.getValue(M_L.LABEL_NEW_LOREBOOK_ENTRY));
         Lorebook book = lorebookOf(entry);
         // an entry of a sub lorebook says which one
         return Objects.equals(book.getId(), lorebook.getId()) ? name : name + " (" + StringUtils.defaultString(book.getName()) + ")";
@@ -737,7 +738,7 @@ public class LorebookEditorDialog extends Dialog {
             LorebookEntry entry = new LorebookEntry();
             Lorebook target = includeSubbooks.getValue() && targetBook.getValue() != null ? targetBook.getValue() : lorebook;
             entry.setLorebook(target);
-            entry.setName(loc.getValue(L.LABEL_NEW_LOREBOOK_ENTRY));
+            entry.setName(loc.getValue(M_L.LABEL_NEW_LOREBOOK_ENTRY));
             entry.setEnabled(true);
             entry.setOrder(100);
             entry = lorebookEntryService.save(entry);
@@ -796,9 +797,9 @@ public class LorebookEditorDialog extends Dialog {
     private void locked(String agent, boolean refused) {
         boolean wasLocked = lockedBy != null;
         lockedBy = agent;
-        String text = String.format(loc.getValue(L.ERROR_LOREBOOK_LOCKED), agent);
-        if (refused || (wasLocked && lockText.getText().endsWith(loc.getValue(L.MSG_LAST_CHANGE_NOT_SAVED)))) {
-            text += " " + loc.getValue(L.MSG_LAST_CHANGE_NOT_SAVED);
+        String text = String.format(loc.getValue(M_L.ERROR_LOREBOOK_LOCKED), agent);
+        if (refused || (wasLocked && lockText.getText().endsWith(loc.getValue(M_L.MSG_LAST_CHANGE_NOT_SAVED)))) {
+            text += " " + loc.getValue(M_L.MSG_LAST_CHANGE_NOT_SAVED);
         }
         lockText.setText(text);
         lockBar.setVisible(true);
@@ -850,7 +851,7 @@ public class LorebookEditorDialog extends Dialog {
     private void entryGone(LorebookEntryEditor editor) {
         tabs.entrySet().stream().filter(tab -> tab.getValue() == editor).map(Map.Entry::getKey).findFirst()
                 .ifPresent(dock::close);
-        Notification.warning(loc.getValue(L.MSG_ENTRY_DELETED_ELSEWHERE));
+        Notification.warning(loc.getValue(M_L.MSG_ENTRY_DELETED_ELSEWHERE));
         loadEntries(false);
     }
 

@@ -1,8 +1,11 @@
 package com.github.enerccio.marginalia.ui.menu;
 
+import com.github.enerccio.marginalia.extensions.ExtensionRegistrations;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.story.BookHistoryActions;
 import com.github.enerccio.marginalia.ui.dialogs.story.StoryCard;
@@ -32,7 +35,7 @@ import java.util.stream.Collectors;
  * {@link StoryMenuItem#position positions} order the entries of a level. {@link #children} and {@link #positionOf} tell where things
  * are now, for an extension that wants its item somewhere.
  */
-public class StoryMenuRegistry implements InitializingBean {
+public class StoryMenuRegistry implements InitializingBean, ExtensionRegistrations {
 
     private static final String APPLICATION = "marginalia";
 
@@ -91,7 +94,7 @@ public class StoryMenuRegistry implements InitializingBean {
         return group;
     }
 
-    public synchronized MenuGroup group(String owner, MenuKind kind, String path, L label) {
+    public synchronized MenuGroup group(String owner, MenuKind kind, String path, LocalizationKey label) {
         return group(owner, kind, path, loc -> loc.getValue(label));
     }
 
@@ -128,6 +131,7 @@ public class StoryMenuRegistry implements InitializingBean {
     /**
      * Removes the items an owner registered.
      */
+    @Override
     public synchronized void unregisterAll(String owner) {
         new ArrayList<>(owners.entrySet()).stream().filter(entry -> Objects.equals(owner, entry.getValue()))
                 .map(Map.Entry::getKey).forEach(this::unregister);
@@ -389,60 +393,62 @@ public class StoryMenuRegistry implements InitializingBean {
     }
 
     private void registerToolsItems() {
-        application(StoryMenuItem.tools(StoryMenuKeys.SEARCH_REPLACE, L.LABEL_SEARCH_AND_REPLACE, StoryEditor::openSearchReplaceDialog)
+        application(StoryMenuItem.tools(StoryMenuKeys.SEARCH_REPLACE, M_L.LABEL_SEARCH_AND_REPLACE, StoryEditor::openSearchReplaceDialog)
                 .enabledWhen((part, card) -> notGenerating(part)).icon(Solid.EXCHANGE_ALT::create).actionId(ShortcutActions.STORY_SEARCH_REPLACE).defaultKey("Ctrl+Shift+h")
                 .separatorAfter());
 
-        group(APPLICATION, MenuKind.TOOLS, StoryMenuKeys.GROUP_APPEARANCE, L.LABEL_APPEARANCE).icon(Solid.PALETTE::create);
-        group(APPLICATION, MenuKind.TOOLS, StoryMenuKeys.GROUP_ANALYSIS, L.LABEL_ANALYSIS).icon(Solid.MAGNIFYING_GLASS_CHART::create);
-        group(APPLICATION, MenuKind.TOOLS, StoryMenuKeys.GROUP_IMPORT_EXPORT, L.LABEL_IMPORT_AND_EXPORT)
+        group(APPLICATION, MenuKind.TOOLS, StoryMenuKeys.GROUP_APPEARANCE, M_L.LABEL_APPEARANCE).icon(Solid.PALETTE::create);
+        group(APPLICATION, MenuKind.TOOLS, StoryMenuKeys.GROUP_ANALYSIS, M_L.LABEL_ANALYSIS).icon(Solid.MAGNIFYING_GLASS_CHART::create);
+        group(APPLICATION, MenuKind.TOOLS, StoryMenuKeys.GROUP_IMPORT_EXPORT, M_L.LABEL_IMPORT_AND_EXPORT)
                 .icon(Solid.ARROW_RIGHT_ARROW_LEFT::create).separatorAfter();
-        group(APPLICATION, MenuKind.TOOLS, StoryMenuKeys.GROUP_CLEAN_UP, L.LABEL_CLEANUP).icon(Solid.BROOM::create);
-        group(APPLICATION, MenuKind.TOOLS, StoryMenuKeys.GROUP_LAYOUT, L.LABEL_LAYOUT).icon(Solid.TABLE_COLUMNS::create).phone(false);
+        group(APPLICATION, MenuKind.TOOLS, StoryMenuKeys.GROUP_CLEAN_UP, M_L.LABEL_CLEANUP).icon(Solid.BROOM::create);
+        group(APPLICATION, MenuKind.TOOLS, StoryMenuKeys.GROUP_LAYOUT, M_L.LABEL_LAYOUT).icon(Solid.TABLE_COLUMNS::create).phone(false);
 
-        application(StoryMenuItem.tools(StoryMenuKeys.CHANGE_STYLES, L.LABEL_CHANGE_STYLES, null)
+        application(StoryMenuItem.tools(StoryMenuKeys.CHANGE_STYLES, M_L.LABEL_CHANGE_STYLES, null)
                 .icon(Solid.PEN_FANCY::create).choices(StoryEditor::getPartStyleChoices).path(StoryMenuKeys.GROUP_APPEARANCE));
-        application(StoryMenuItem.tools(StoryMenuKeys.HIGHLIGHT_GENERATED, L.LABEL_HIGHLIGHT_GENERATED_TEXT,
+        application(StoryMenuItem.tools(StoryMenuKeys.HIGHLIGHT_GENERATED, M_L.LABEL_HIGHLIGHT_GENERATED_TEXT,
                         part -> part.setShowGeneratedDiff(!part.isShowGeneratedDiff()))
                 .icon(Solid.HIGHLIGHTER::create).checkedWhen(StoryEditor::isShowGeneratedDiff)
                 .path(StoryMenuKeys.GROUP_APPEARANCE));
-        application(StoryMenuItem.tools(StoryMenuKeys.ANNOTATIONS_IN_MARGIN, L.LABEL_ANNOTATIONS_IN_MARGIN,
+        application(StoryMenuItem.tools(StoryMenuKeys.ANNOTATIONS_IN_MARGIN, M_L.LABEL_ANNOTATIONS_IN_MARGIN,
                         part -> part.setAnnotationsInMargin(!part.isAnnotationsInMargin()))
                 .icon(Solid.COMMENT_ALT::create).checkedWhen(StoryEditor::isAnnotationsInMargin).phone(false)
                 .path(StoryMenuKeys.GROUP_APPEARANCE));
 
-        application(StoryMenuItem.tools(StoryMenuKeys.ANNOTATE_RANGE, L.LABEL_ANNOTATE_BATCH, StoryEditor::openAnnotateRangeDialog)
+        application(StoryMenuItem.tools(StoryMenuKeys.ANNOTATE_RANGE, M_L.LABEL_ANNOTATE_BATCH, StoryEditor::openAnnotateRangeDialog)
                 .icon(Solid.COMMENT_DOTS::create).path(StoryMenuKeys.GROUP_ANALYSIS));
-        application(StoryMenuItem.tools(StoryMenuKeys.CREATE_SUMMARIES, L.LABEL_CREATE_SUMMARIES, StoryEditor::openCreateSummariesDialog)
+        application(StoryMenuItem.tools(StoryMenuKeys.CREATE_SUMMARIES, M_L.LABEL_CREATE_SUMMARIES, StoryEditor::openCreateSummariesDialog)
                 .icon(Solid.ALIGN_LEFT::create).path(StoryMenuKeys.GROUP_ANALYSIS));
-        application(StoryMenuItem.tools(StoryMenuKeys.LORE_NOTES, L.LABEL_TAKE_LORE_NOTES, StoryEditor::openLoreNotesDialog)
+        application(StoryMenuItem.tools(StoryMenuKeys.LORE_NOTES, M_L.LABEL_TAKE_LORE_NOTES, StoryEditor::openLoreNotesDialog)
                 .icon(Solid.FILE_ALT::create).path(StoryMenuKeys.GROUP_ANALYSIS));
-        application(StoryMenuItem.tools(StoryMenuKeys.AUTO_ANNOTATE, L.LABEL_AUTO_ANNOTATE, StoryEditor::openAutoAnnotateDialog)
+        application(StoryMenuItem.tools(StoryMenuKeys.AUTO_ANNOTATE, M_L.LABEL_AUTO_ANNOTATE, StoryEditor::openAutoAnnotateDialog)
                 .icon(Solid.ROBOT::create).checkedWhen(StoryEditor::isAutoAnnotate).path(StoryMenuKeys.GROUP_ANALYSIS));
-        application(StoryMenuItem.tools(StoryMenuKeys.BRANCH_TOKENS, L.LABEL_BRANCH_TOKENS, StoryEditor::openBranchTokensDialog)
+        application(StoryMenuItem.tools(StoryMenuKeys.PHRASE_WATCH, M_L.LABEL_PHRASE_WATCH, StoryEditor::openPhraseWatchDialog)
+                .icon(Solid.HIGHLIGHTER::create).checkedWhen(StoryEditor::isPhraseWatch).path(StoryMenuKeys.GROUP_ANALYSIS));
+        application(StoryMenuItem.tools(StoryMenuKeys.BRANCH_TOKENS, M_L.LABEL_BRANCH_TOKENS, StoryEditor::openBranchTokensDialog)
                 .icon(Solid.CHART_BAR::create).path(StoryMenuKeys.GROUP_ANALYSIS));
-        application(StoryMenuItem.tools(StoryMenuKeys.LORE_USAGE, L.LABEL_LORE_USAGE, StoryEditor::openLoreUsageDialog)
+        application(StoryMenuItem.tools(StoryMenuKeys.LORE_USAGE, M_L.LABEL_LORE_USAGE, StoryEditor::openLoreUsageDialog)
                 .icon(Solid.BOOK_OPEN::create).path(StoryMenuKeys.GROUP_ANALYSIS));
-        application(StoryMenuItem.tools(StoryMenuKeys.STATISTICS, L.LABEL_STATISTICS, StoryEditor::openStatisticsDialog)
+        application(StoryMenuItem.tools(StoryMenuKeys.STATISTICS, M_L.LABEL_STATISTICS, StoryEditor::openStatisticsDialog)
                 .icon(Solid.CHART_LINE::create).path(StoryMenuKeys.GROUP_ANALYSIS));
 
-        application(StoryMenuItem.tools(StoryMenuKeys.IMPORT_ARCHIVE, L.LABEL_IMPORT, StoryEditor::openArchiveImportDialog)
+        application(StoryMenuItem.tools(StoryMenuKeys.IMPORT_ARCHIVE, M_L.LABEL_IMPORT, StoryEditor::openArchiveImportDialog)
                 .enabledWhen((part, card) -> notGenerating(part)).icon(Solid.FILE_IMPORT::create).path(StoryMenuKeys.GROUP_IMPORT_EXPORT));
-        application(StoryMenuItem.tools(StoryMenuKeys.EXPORT, L.LABEL_EXPORT_STORY, StoryEditor::openExportDialog)
+        application(StoryMenuItem.tools(StoryMenuKeys.EXPORT, M_L.LABEL_EXPORT_STORY, StoryEditor::openExportDialog)
                 .icon(Solid.FILE_EXPORT::create).path(StoryMenuKeys.GROUP_IMPORT_EXPORT));
 
-        application(StoryMenuItem.tools(StoryMenuKeys.CLEAR_BOOK_HISTORY, L.LABEL_CLEAR_BOOK_HISTORY,
+        application(StoryMenuItem.tools(StoryMenuKeys.CLEAR_BOOK_HISTORY, M_L.LABEL_CLEAR_BOOK_HISTORY,
                         part -> new BookHistoryActions(part.getCurrentManuscript()).clear())
                 .icon(Solid.HISTORY::create).path(StoryMenuKeys.GROUP_CLEAN_UP));
-        application(StoryMenuItem.tools(StoryMenuKeys.EMPTY_HISTORY_TRASH, L.LABEL_EMPTY_BOOK_HISTORY_TRASH,
+        application(StoryMenuItem.tools(StoryMenuKeys.EMPTY_HISTORY_TRASH, M_L.LABEL_EMPTY_BOOK_HISTORY_TRASH,
                         part -> new BookHistoryActions(part.getCurrentManuscript()).emptyTrash())
                 .icon(Solid.TRASH_RESTORE::create).path(StoryMenuKeys.GROUP_CLEAN_UP));
-        application(StoryMenuItem.tools(StoryMenuKeys.MASS_DELETE, L.LABEL_MASS_DELETE, StoryEditor::toggleMassDelete)
+        application(StoryMenuItem.tools(StoryMenuKeys.MASS_DELETE, M_L.LABEL_MASS_DELETE, StoryEditor::toggleMassDelete)
                 .enabledWhen((part, card) -> notGenerating(part)).icon(Solid.TRASH::create).checkedWhen(StoryEditor::isMassDelete).path(StoryMenuKeys.GROUP_CLEAN_UP));
 
-        application(StoryMenuItem.tools(StoryMenuKeys.SAVE_LAYOUT_AS_DEFAULT, L.LABEL_SAVE_LAYOUT_AS_DEFAULT, StoryEditor::saveLayoutAsDefault)
+        application(StoryMenuItem.tools(StoryMenuKeys.SAVE_LAYOUT_AS_DEFAULT, M_L.LABEL_SAVE_LAYOUT_AS_DEFAULT, StoryEditor::saveLayoutAsDefault)
                 .icon(Solid.TABLE_COLUMNS::create).phone(false).path(StoryMenuKeys.GROUP_LAYOUT));
-        application(StoryMenuItem.tools(StoryMenuKeys.RESTORE_LAYOUT, L.LABEL_RESTORE_DEFAULT_LAYOUT, StoryEditor::confirmRestoreDefaultLayout)
+        application(StoryMenuItem.tools(StoryMenuKeys.RESTORE_LAYOUT, M_L.LABEL_RESTORE_DEFAULT_LAYOUT, StoryEditor::confirmRestoreDefaultLayout)
                 .icon(Solid.TABLE_COLUMNS::create).phone(false).path(StoryMenuKeys.GROUP_LAYOUT));
     }
 
@@ -452,55 +458,55 @@ public class StoryMenuRegistry implements InitializingBean {
                 .contextLabel((loc, part, card) -> loc.getValue(card != null && card.isEditing() ? L.LABEL_SAVE : L.LABEL_EDIT))
                 .hintAction((part, card) -> card != null && card.isEditing() ? ShortcutActions.STORY_SAVE_EDIT : ShortcutActions.STORY_EDIT)
                 .actionId(ShortcutActions.STORY_EDIT).defaultKey("e"));
-        application(StoryMenuItem.card(StoryMenuKeys.DISCARD, L.LABEL_DISCARD_CHANGES, (part, card) -> card.discardEdit())
+        application(StoryMenuItem.card(StoryMenuKeys.DISCARD, M_L.LABEL_DISCARD_CHANGES, (part, card) -> card.discardEdit())
                 .visibleWhen((part, card) -> card != null && card.isEditing()));
-        application(StoryMenuItem.card(StoryMenuKeys.REGENERATE, L.LABEL_REGENERATE, (part, card) -> card.regenerate())
+        application(StoryMenuItem.card(StoryMenuKeys.REGENERATE, M_L.LABEL_REGENERATE, (part, card) -> card.regenerate())
                 .visibleWhen((part, card) -> card != null && card.isLast()).enabledWhen((part, card) -> notBusy(card))
                 .actionId(ShortcutActions.STORY_REGENERATE).defaultKey("r"));
-        application(StoryMenuItem.card(StoryMenuKeys.SWIPE, L.LABEL_SWIPE, (part, card) -> card.swipe())
+        application(StoryMenuItem.card(StoryMenuKeys.SWIPE, M_L.LABEL_SWIPE, (part, card) -> card.swipe())
                 .visibleWhen((part, card) -> card != null && card.isLast()).enabledWhen((part, card) -> notBusy(card))
                 .actionId(ShortcutActions.STORY_SWIPE).defaultKey("s"));
         // the text that is redrafted is the saved one
         application(StoryMenuItem.card(StoryMenuKeys.REDRAFT, L.LABEL_REDRAFT, (part, card) -> card.redraft())
                 .visibleWhen((part, card) -> card != null && !card.isEditing() && StringUtils.isNotBlank(card.getMessage().getResponse()))
                 .enabledWhen((part, card) -> notBusy(card)));
-        application(StoryMenuItem.card(StoryMenuKeys.HISTORY, L.LABEL_HISTORY, (part, card) -> card.openHistory())
-                .contextLabel((loc, part, card) -> card == null || card.getHistoryCount() == 0 ? loc.getValue(L.LABEL_HISTORY)
-                        : String.format(loc.getValue(L.LABEL_HISTORY_WITH_COUNT), card.getHistoryCount()))
+        application(StoryMenuItem.card(StoryMenuKeys.HISTORY, M_L.LABEL_HISTORY, (part, card) -> card.openHistory())
+                .contextLabel((loc, part, card) -> card == null || card.getHistoryCount() == 0 ? loc.getValue(M_L.LABEL_HISTORY)
+                        : String.format(loc.getValue(M_L.LABEL_HISTORY_WITH_COUNT), card.getHistoryCount()))
                 .visibleWhen((part, card) -> card != null && !card.isEditing() && card.getMessage().getId() != null));
-        application(StoryMenuItem.card(StoryMenuKeys.IMAGES, L.LABEL_IMAGES, (part, card) -> card.openImagesDialog()));
-        application(StoryMenuItem.card(StoryMenuKeys.IMAGE_PREVIEW, L.LABEL_PREVIEW_AS_VIEWER, (part, card) -> card.openImagePreview())
+        application(StoryMenuItem.card(StoryMenuKeys.IMAGES, M_L.LABEL_IMAGES, (part, card) -> card.openImagesDialog()));
+        application(StoryMenuItem.card(StoryMenuKeys.IMAGE_PREVIEW, M_L.LABEL_PREVIEW_AS_VIEWER, (part, card) -> card.openImagePreview())
                 .visibleWhen((part, card) -> card != null && !card.getMessage().getImages().isEmpty()).separatorAfter());
 
-        group(APPLICATION, MenuKind.CARD, StoryMenuKeys.GROUP_ANNOTATE, L.LABEL_ANNOTATIONS);
-        group(APPLICATION, MenuKind.CARD, StoryMenuKeys.GROUP_TRANSLATE, L.LABEL_TRANSLATE).icon(Solid.LANGUAGE::create);
-        application(StoryMenuItem.card(StoryMenuKeys.ANNOTATE_PART, L.LABEL_ANNOTATE_PART, (part, card) -> card.annotatePart())
+        group(APPLICATION, MenuKind.CARD, StoryMenuKeys.GROUP_ANNOTATE, M_L.LABEL_ANNOTATIONS);
+        group(APPLICATION, MenuKind.CARD, StoryMenuKeys.GROUP_TRANSLATE, M_L.LABEL_TRANSLATE).icon(Solid.LANGUAGE::create);
+        application(StoryMenuItem.card(StoryMenuKeys.ANNOTATE_PART, M_L.LABEL_ANNOTATE_PART, (part, card) -> card.annotatePart())
                 .visibleWhen((part, card) -> card != null && card.getMessage().getId() != null).path(StoryMenuKeys.GROUP_ANNOTATE));
         application(StoryMenuItem.card(StoryMenuKeys.ANNOTATE_WITH_AI, L.LABEL_ANNOTATE_WITH_AI, (part, card) -> card.annotateWithAi())
                 .visibleWhen((part, card) -> hasText(card) && !card.isEditing()).enabledWhen((part, card) -> notBusy(card))
                 .path(StoryMenuKeys.GROUP_ANNOTATE));
 
         group(APPLICATION, MenuKind.CARD, StoryMenuKeys.GROUP_SUMMARY, L.LABEL_SUMMARY);
-        application(StoryMenuItem.card(StoryMenuKeys.SUMMARY, L.LABEL_GENERATE_SUMMARY, (part, card) -> card.openSummaryDialog())
-                .contextLabel((loc, part, card) -> loc.getValue(hasSummary(card) ? L.LABEL_SHOW_SUMMARY : L.LABEL_GENERATE_SUMMARY))
+        application(StoryMenuItem.card(StoryMenuKeys.SUMMARY, M_L.LABEL_GENERATE_SUMMARY, (part, card) -> card.openSummaryDialog())
+                .contextLabel((loc, part, card) -> loc.getValue(hasSummary(card) ? M_L.LABEL_SHOW_SUMMARY : M_L.LABEL_GENERATE_SUMMARY))
                 .path(StoryMenuKeys.GROUP_SUMMARY));
-        application(StoryMenuItem.card(StoryMenuKeys.DELETE_SUMMARY, L.LABEL_DELETE_SUMMARY, (part, card) -> card.confirmDeleteSummary())
+        application(StoryMenuItem.card(StoryMenuKeys.DELETE_SUMMARY, M_L.LABEL_DELETE_SUMMARY, (part, card) -> card.confirmDeleteSummary())
                 .enabledWhen((part, card) -> hasSummary(card)).path(StoryMenuKeys.GROUP_SUMMARY));
 
-        group(APPLICATION, MenuKind.CARD, StoryMenuKeys.GROUP_INSPECT, L.LABEL_INSPECT);
-        application(StoryMenuItem.card(StoryMenuKeys.SHOW_PROMPT, L.LABEL_SHOW_PROMPT, (part, card) -> card.showPrompt())
+        group(APPLICATION, MenuKind.CARD, StoryMenuKeys.GROUP_INSPECT, M_L.LABEL_INSPECT);
+        application(StoryMenuItem.card(StoryMenuKeys.SHOW_PROMPT, M_L.LABEL_SHOW_PROMPT, (part, card) -> card.showPrompt())
                 .path(StoryMenuKeys.GROUP_INSPECT));
-        application(StoryMenuItem.card(StoryMenuKeys.COMPARE_PROMPT, L.LABEL_COMPARE_PROMPT, (part, card) -> card.comparePrompt())
+        application(StoryMenuItem.card(StoryMenuKeys.COMPARE_PROMPT, M_L.LABEL_COMPARE_PROMPT, (part, card) -> card.comparePrompt())
                 .path(StoryMenuKeys.GROUP_INSPECT));
-        application(StoryMenuItem.card(StoryMenuKeys.TOKEN_USAGE, L.LABEL_TOKEN_USAGE, (part, card) -> card.showTokenUsage())
+        application(StoryMenuItem.card(StoryMenuKeys.TOKEN_USAGE, M_L.LABEL_TOKEN_USAGE, (part, card) -> card.showTokenUsage())
                 .path(StoryMenuKeys.GROUP_INSPECT));
-        application(StoryMenuItem.card(StoryMenuKeys.CARD_LORE_USAGE, L.LABEL_LORE_USAGE, (part, card) -> card.showLoreUsage())
+        application(StoryMenuItem.card(StoryMenuKeys.CARD_LORE_USAGE, M_L.LABEL_LORE_USAGE, (part, card) -> card.showLoreUsage())
                 .path(StoryMenuKeys.GROUP_INSPECT));
 
-        group(APPLICATION, MenuKind.CARD, StoryMenuKeys.GROUP_BRANCH_MERGE, L.LABEL_BRANCH_AND_MERGE).separatorAfter();
-        application(StoryMenuItem.card(StoryMenuKeys.BRANCH, L.LABEL_BRANCH_STORY, (part, card) -> card.branch())
+        group(APPLICATION, MenuKind.CARD, StoryMenuKeys.GROUP_BRANCH_MERGE, M_L.LABEL_BRANCH_AND_MERGE).separatorAfter();
+        application(StoryMenuItem.card(StoryMenuKeys.BRANCH, M_L.LABEL_BRANCH_STORY, (part, card) -> card.branch())
                 .enabledWhen((part, card) -> notKeptInPlace(card)).path(StoryMenuKeys.GROUP_BRANCH_MERGE));
-        application(StoryMenuItem.card(StoryMenuKeys.MERGE, L.LABEL_MERGE_INTO_PREVIOUS, (part, card) -> card.mergeIntoPrevious())
+        application(StoryMenuItem.card(StoryMenuKeys.MERGE, M_L.LABEL_MERGE_INTO_PREVIOUS, (part, card) -> card.mergeIntoPrevious())
                 .visibleWhen((part, card) -> card != null && card.getMessage().getParent() != null)
                 .enabledWhen((part, card) -> notBusy(card) && notKeptInPlace(card)).path(StoryMenuKeys.GROUP_BRANCH_MERGE));
 
@@ -533,11 +539,11 @@ public class StoryMenuRegistry implements InitializingBean {
 
     private void registerTextItems() {
         // the translations of the extensions; the group is hidden while nothing is in it
-        group(APPLICATION, MenuKind.TEXT, StoryMenuKeys.GROUP_TRANSLATE, L.LABEL_TRANSLATE).icon(Solid.LANGUAGE::create);
+        group(APPLICATION, MenuKind.TEXT, StoryMenuKeys.GROUP_TRANSLATE, M_L.LABEL_TRANSLATE).icon(Solid.LANGUAGE::create);
         // only here, not in the menu of the part: opening that menu takes the selection away
-        application(StoryMenuItem.text(StoryMenuKeys.TEXT_ANNOTATE_SELECTION, L.LABEL_ANNOTATE_SELECTION, (part, card) -> card.annotateSelection())
+        application(StoryMenuItem.text(StoryMenuKeys.TEXT_ANNOTATE_SELECTION, M_L.LABEL_ANNOTATE_SELECTION, (part, card) -> card.annotateSelection())
                 .actionId(ShortcutActions.STORY_ANNOTATE_SELECTION).defaultKey("a"));
-        application(StoryMenuItem.text(StoryMenuKeys.TEXT_REDRAFT_SELECTION, L.LABEL_REDRAFT_SELECTION, (part, card) -> card.redraftSelection())
+        application(StoryMenuItem.text(StoryMenuKeys.TEXT_REDRAFT_SELECTION, M_L.LABEL_REDRAFT_SELECTION, (part, card) -> card.redraftSelection())
                 .enabledWhen((part, card) -> notBusy(card)));
         application(StoryMenuItem.text(StoryMenuKeys.TEXT_COPY, L.LABEL_COPY, (part, card) -> card.copySelection()));
     }

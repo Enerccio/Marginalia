@@ -1,12 +1,14 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
-import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.components.PromptComparison;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.MessagePrompt;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.MessagePromptService;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -75,7 +77,7 @@ public class PromptComparisonDialog extends Dialog {
     }
 
     public void create() throws Exception {
-        setHeaderTitle(loc.getValue(L.LABEL_COMPARE_PROMPT));
+        setHeaderTitle(loc.getValue(M_L.LABEL_COMPARE_PROMPT));
         setWidth("1100px");
         setHeight("800px");
         setResizable(true);
@@ -89,9 +91,9 @@ public class PromptComparisonDialog extends Dialog {
         String currentPrompt = messagePromptService.getBuiltPrompt(part);
         List<Candidate> candidates = currentPrompt == null ? List.of() : candidates();
         if (currentPrompt == null) {
-            content.add(new Div(loc.getValue(L.MSG_PROMPT_COMPARE_NO_PROMPT)));
+            content.add(new Div(loc.getValue(M_L.MSG_PROMPT_COMPARE_NO_PROMPT)));
         } else if (candidates.isEmpty()) {
-            content.add(new Div(loc.getValue(L.MSG_PROMPT_COMPARE_NO_CANDIDATE)));
+            content.add(new Div(loc.getValue(M_L.MSG_PROMPT_COMPARE_NO_CANDIDATE)));
         } else {
             buildContent(content, currentPrompt, candidates);
         }
@@ -144,11 +146,11 @@ public class PromptComparisonDialog extends Dialog {
 
     private String candidateLabel(Candidate candidate) {
         String text = StringUtils.abbreviate(StringUtils.normalizeSpace(StringUtils.defaultString(candidate.message().getResponse())), 70);
-        return (candidate.alternative() ? loc.getValue(L.LABEL_COMPARE_ALTERNATIVE) + ": " : "") + text;
+        return (candidate.alternative() ? loc.getValue(M_L.LABEL_COMPARE_ALTERNATIVE) + ": " : "") + text;
     }
 
     private void buildContent(VerticalLayout content, String currentPrompt, List<Candidate> candidates) {
-        ComboBox<Candidate> with = new ComboBox<>(loc.getValue(L.LABEL_COMPARE_WITH));
+        ComboBox<Candidate> with = new ComboBox<>(loc.getValue(M_L.LABEL_COMPARE_WITH));
         with.setItems(candidates);
         with.setItemLabelGenerator(this::candidateLabel);
         with.setAllowCustomValue(false);
@@ -156,31 +158,31 @@ public class PromptComparisonDialog extends Dialog {
 
         verdict = new Div();
         shared = new Div();
-        shared.addClassName(CssStyles.TOKEN_USAGE_SUMMARY);
+        shared.addClassName(MarginaliaCssStyles.TOKEN_USAGE_SUMMARY);
 
         grid = new Grid<>(PromptComparison.Row.class, false);
         grid.addThemeVariants(GridVariant.LUMO_COMPACT, GridVariant.LUMO_ROW_STRIPES);
         grid.setHeight("230px");
         grid.setSelectionMode(Grid.SelectionMode.SINGLE);
         grid.addColumn(row -> row.index() + 1).setHeader("#").setAutoWidth(true).setFlexGrow(0);
-        grid.addColumn(row -> roleName(row)).setHeader(loc.getValue(L.LABEL_ROLE)).setAutoWidth(true).setFlexGrow(0);
+        grid.addColumn(row -> roleName(row)).setHeader(loc.getValue(M_L.LABEL_ROLE)).setAutoWidth(true).setFlexGrow(0);
         grid.addColumn(row -> statusName(row.status())).setHeader(loc.getValue(L.LABEL_STATUS)).setAutoWidth(true).setFlexGrow(0);
         grid.addColumn(row -> row.cached() == null ? "" : row.cached().content().length())
-                .setHeader(loc.getValue(L.LABEL_COMPARE_EARLIER_PROMPT) + " (" + loc.getValue(L.LABEL_COMPARE_CHARACTERS) + ")");
+                .setHeader(loc.getValue(M_L.LABEL_COMPARE_EARLIER_PROMPT) + " (" + loc.getValue(M_L.LABEL_COMPARE_CHARACTERS) + ")");
         grid.addColumn(row -> row.current() == null ? "" : row.current().content().length())
-                .setHeader(loc.getValue(L.LABEL_COMPARE_THIS_PROMPT) + " (" + loc.getValue(L.LABEL_COMPARE_CHARACTERS) + ")");
-        grid.addColumn(row -> row.cacheKept() ? "" : loc.getValue(L.LABEL_COMPARE_READ_AGAIN))
-                .setHeader(loc.getValue(L.LABEL_COMPARE_CACHE));
+                .setHeader(loc.getValue(M_L.LABEL_COMPARE_THIS_PROMPT) + " (" + loc.getValue(M_L.LABEL_COMPARE_CHARACTERS) + ")");
+        grid.addColumn(row -> row.cacheKept() ? "" : loc.getValue(M_L.LABEL_COMPARE_READ_AGAIN))
+                .setHeader(loc.getValue(M_L.LABEL_COMPARE_CACHE));
         grid.setPartNameGenerator(row -> {
             if (comparison == null || row.cacheKept()) {
                 return null;
             }
-            return row.index() == comparison.getFirstDifference() ? CssStyles.PROMPT_COMPARE_FIRST_DIFFERENCE : CssStyles.PROMPT_COMPARE_LOST;
+            return row.index() == comparison.getFirstDifference() ? MarginaliaCssStyles.PROMPT_COMPARE_FIRST_DIFFERENCE : MarginaliaCssStyles.PROMPT_COMPARE_LOST;
         });
         grid.addSelectionListener(event -> showTexts(event.getFirstSelectedItem().orElse(null)));
 
-        cachedText = textArea(loc.getValue(L.LABEL_COMPARE_EARLIER_PROMPT));
-        currentText = textArea(loc.getValue(L.LABEL_COMPARE_THIS_PROMPT));
+        cachedText = textArea(loc.getValue(M_L.LABEL_COMPARE_EARLIER_PROMPT));
+        currentText = textArea(loc.getValue(M_L.LABEL_COMPARE_THIS_PROMPT));
         HorizontalLayout texts = new HorizontalLayout(cachedText, currentText);
         texts.setWidthFull();
         texts.setPadding(false);
@@ -207,7 +209,7 @@ public class PromptComparisonDialog extends Dialog {
     private void compare(Candidate candidate, String currentPrompt) {
         comparison = PromptComparison.compare(candidate.prompt(), currentPrompt);
         if (comparison == null) {
-            verdict.setText(loc.getValue(L.MSG_PROMPT_COMPARE_UNREADABLE));
+            verdict.setText(loc.getValue(M_L.MSG_PROMPT_COMPARE_UNREADABLE));
             shared.setText("");
             grid.setItems(List.of());
             showTexts(null);
@@ -216,11 +218,11 @@ public class PromptComparisonDialog extends Dialog {
         verdict.setText(loc.getValue(verdictKey(comparison.getVerdict())));
 
         String position = comparison.getFirstDifference() < 0
-                ? loc.getValue(L.MSG_PROMPT_COMPARE_NO_DIFFERENCE)
-                : String.format(loc.getValue(L.MSG_PROMPT_COMPARE_FIRST_DIFFERENCE), comparison.getFirstDifference() + 1,
+                ? loc.getValue(M_L.MSG_PROMPT_COMPARE_NO_DIFFERENCE)
+                : String.format(loc.getValue(M_L.MSG_PROMPT_COMPARE_FIRST_DIFFERENCE), comparison.getFirstDifference() + 1,
                 comparison.getFirstDifferenceChar());
         long tokens = part.getBuiltPromptTokens() == null ? 0 : Math.round(comparison.getSharedShare() * part.getBuiltPromptTokens());
-        shared.setText(position + " " + String.format(loc.getValue(L.MSG_PROMPT_COMPARE_SHARED),
+        shared.setText(position + " " + String.format(loc.getValue(M_L.MSG_PROMPT_COMPARE_SHARED),
                 Math.round(comparison.getSharedShare() * 100), comparison.getSharedChars(), comparison.getCurrentChars(),
                 tokens, part.getBuiltPromptTokens() == null ? 0 : part.getBuiltPromptTokens()));
 
@@ -261,32 +263,32 @@ public class PromptComparisonDialog extends Dialog {
             return "";
         }
         return switch (role) {
-            case "SYSTEM" -> loc.getValue(L.LABEL_SYSTEM);
+            case "SYSTEM" -> loc.getValue(M_L.LABEL_SYSTEM);
             case "USER" -> loc.getValue(L.LABEL_USER);
-            case "ASSISTANT" -> loc.getValue(L.LABEL_ASSISTANT);
+            case "ASSISTANT" -> loc.getValue(M_L.LABEL_ASSISTANT);
             default -> role;
         };
     }
 
     private String statusName(PromptComparison.Status status) {
         return loc.getValue(switch (status) {
-            case SAME -> L.ENUM_PART_CHANGE_SAME;
-            case CHANGED -> L.ENUM_MERGE_CHANGE_CHANGED;
-            case ADDED -> L.ENUM_MERGE_CHANGE_ADDED;
-            case REMOVED -> L.ENUM_MERGE_CHANGE_DELETED;
+            case SAME -> M_L.ENUM_PART_CHANGE_SAME;
+            case CHANGED -> M_L.ENUM_MERGE_CHANGE_CHANGED;
+            case ADDED -> M_L.ENUM_MERGE_CHANGE_ADDED;
+            case REMOVED -> M_L.ENUM_MERGE_CHANGE_DELETED;
         });
     }
 
-    private static L verdictKey(PromptComparison.Verdict verdict) {
+    private static LocalizationKey verdictKey(PromptComparison.Verdict verdict) {
         return switch (verdict) {
-            case IDENTICAL -> L.MSG_PROMPT_COMPARE_IDENTICAL;
-            case EXTENDED -> L.MSG_PROMPT_COMPARE_EXTENDED;
-            case SHORTENED -> L.MSG_PROMPT_COMPARE_SHORTENED;
-            case LAST_MESSAGE -> L.MSG_PROMPT_COMPARE_LAST_MESSAGE;
-            case SYSTEM_CHANGED -> L.MSG_PROMPT_COMPARE_SYSTEM_CHANGED;
-            case HISTORY_SHIFTED -> L.MSG_PROMPT_COMPARE_HISTORY_SHIFTED;
-            case HISTORY_CHANGED -> L.MSG_PROMPT_COMPARE_HISTORY_CHANGED;
-            case ROLE_CHANGED -> L.MSG_PROMPT_COMPARE_ROLE_CHANGED;
+            case IDENTICAL -> M_L.MSG_PROMPT_COMPARE_IDENTICAL;
+            case EXTENDED -> M_L.MSG_PROMPT_COMPARE_EXTENDED;
+            case SHORTENED -> M_L.MSG_PROMPT_COMPARE_SHORTENED;
+            case LAST_MESSAGE -> M_L.MSG_PROMPT_COMPARE_LAST_MESSAGE;
+            case SYSTEM_CHANGED -> M_L.MSG_PROMPT_COMPARE_SYSTEM_CHANGED;
+            case HISTORY_SHIFTED -> M_L.MSG_PROMPT_COMPARE_HISTORY_SHIFTED;
+            case HISTORY_CHANGED -> M_L.MSG_PROMPT_COMPARE_HISTORY_CHANGED;
+            case ROLE_CHANGED -> M_L.MSG_PROMPT_COMPARE_ROLE_CHANGED;
         };
     }
 }

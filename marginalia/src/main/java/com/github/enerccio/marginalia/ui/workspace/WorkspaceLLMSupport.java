@@ -1,6 +1,8 @@
 package com.github.enerccio.marginalia.ui.workspace;
 
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.LLMInteraction;
@@ -19,17 +21,17 @@ import java.util.stream.Collectors;
  */
 public final class WorkspaceLLMSupport {
 
-    private static final Map<String, L> LABELS = new LinkedHashMap<>();
+    private static final Map<String, LocalizationKey> LABELS = new LinkedHashMap<>();
     static {
-        LABELS.put("books", L.LABEL_BOOKS);
-        LABELS.put("lorebooks", L.LABEL_LOREBOOKS);
-        LABELS.put("settings", L.LABEL_SETTINGS);
+        LABELS.put("books", M_L.LABEL_BOOKS);
+        LABELS.put("lorebooks", M_L.LABEL_LOREBOOKS);
+        LABELS.put("settings", M_L.LABEL_SETTINGS);
         LABELS.put("protocols", L.LABEL_PROTOCOLS);
-        LABELS.put("models", L.LABEL_MODELS);
-        LABELS.put("agents", L.LABEL_AGENTS);
-        LABELS.put("resources", L.LABEL_RESOURCES);
+        LABELS.put("models", M_L.LABEL_MODELS);
+        LABELS.put("agents", M_L.LABEL_AGENTS);
+        LABELS.put("resources", M_L.LABEL_RESOURCES);
         LABELS.put("trash", L.LABEL_TRASH);
-        LABELS.put("admin", L.LABEL_ADMIN);
+        LABELS.put("admin", M_L.LABEL_ADMIN);
     }
 
     private WorkspaceLLMSupport() {
@@ -75,7 +77,7 @@ public final class WorkspaceLLMSupport {
     }
 
     private static String label(Localization loc, String key) {
-        L label = LABELS.get(key);
+        LocalizationKey label = LABELS.get(key);
         return label == null ? String.valueOf(key) : loc.getValue(label);
     }
 

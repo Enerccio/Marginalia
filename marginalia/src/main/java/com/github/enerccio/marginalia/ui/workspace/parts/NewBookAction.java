@@ -8,7 +8,7 @@ import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.ArchiveImportService.Insertion;
 import com.github.enerccio.marginalia.domain.traits.*;
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.TextInputDialog;
 import com.github.enerccio.marginalia.ui.dialogs.bookimport.AfterImportDialog;
@@ -74,7 +74,7 @@ public class NewBookAction {
             returns = @APIReturn(type = void.class),
             locals = {@APILocals(name = "dialog", type = TextInputDialog.class)})
     public void run() {
-        TextInputDialog dialog = new TextInputDialog.Builder(loc.getValue(L.LABEL_NEW_BOOK), name -> {
+        TextInputDialog dialog = new TextInputDialog.Builder(loc.getValue(M_L.LABEL_NEW_BOOK), name -> {
             try {
                 opener.open(createBook(name));
             } catch (Exception e) {
@@ -94,7 +94,7 @@ public class NewBookAction {
     public void runImport() {
         BookImportDialog.show((run, name) -> {
             // the import is checked and read before the book is made, a book is not left empty by a bad file
-            Manuscript manuscript = createBook(StringUtils.defaultIfBlank(name, loc.getValue(L.LABEL_NEW_BOOK)));
+            Manuscript manuscript = createBook(StringUtils.defaultIfBlank(name, loc.getValue(M_L.LABEL_NEW_BOOK)));
             // a stopped import leaves the book with the parts until then, it is opened too
             run.run(manuscript, Insertion.END, imported -> {
                 Manuscript book = manuscriptService.find(manuscript);

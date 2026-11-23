@@ -8,6 +8,9 @@ import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Language;
 import com.github.enerccio.marginalia.loc.LocalizationBundle;
 import com.github.enerccio.marginalia.loc.LocalizationBundleBase;
+import com.github.enerccio.marginalia.loc.M_L;
+import com.github.enerccio.marginalia.loc.TextBundle;
+import com.github.enerccio.marginalia.loc.TextBundleBase;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -25,7 +28,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * <ul>
  *     <li>{@code X-Test-Fail-Start} - the activator throws</li>
  *     <li>{@code X-Test-Fail-Load} - {@code onExtensionLoad} throws</li>
- *     <li>{@code X-Test-Language} - the extension brings a localization bundle of the language with this code</li>
+ *     <li>{@code X-Test-Language} - the extension brings a localization bundle of the language with this code, and
+ *     application texts of it</li>
  *     <li>{@code X-Test-Link-Error-Load} - {@code onExtensionLoad} fails as code built for another version does
  *     ({@code NoSuchFieldError})</li>
  *     <li>{@code X-Test-Link-Error-Language} - its localization bundle names a key this version doesn't have</li>
@@ -67,6 +71,12 @@ public class TestExtensionActivator implements BundleActivator {
         }
 
         @Override
+        public List<TextBundle<?>> getTextBundles() {
+            String code = bundle == null ? null : bundle.getHeaders().get("X-Test-Language");
+            return code == null ? List.of() : List.of(new TestTexts(Language.of(code)));
+        }
+
+        @Override
         public void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
             this.bundle = bundle;
             LOADED.merge(key(bundle), 1, Integer::sum);
@@ -81,6 +91,29 @@ public class TestExtensionActivator implements BundleActivator {
         @Override
         public void onExtensionUnload(Bundle b, OsgiService osgiService, ExtensionService extensionService) {
             UNLOADED.merge(key(b), 1, Integer::sum);
+        }
+    }
+
+    /**
+     * The application's texts of the language: one, {@code M_L.LABEL_ADD_BOOK}.
+     */
+    public static class TestTexts extends TextBundleBase<M_L> {
+
+        private final Language language;
+
+        TestTexts(Language language) {
+            super(M_L.class);
+            this.language = language;
+            setValue(M_L.LABEL_ADD_BOOK, "add book in " + language);
+        }
+
+        @Override
+        protected void loadMessages() {
+        }
+
+        @Override
+        public Language getLanguage() {
+            return language;
         }
     }
 

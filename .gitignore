@@ -5,6 +5,7 @@
 /data/
 /marginalia/src/main/bundles/
 /marginalia/target
+/marginalia/platform/target
 /marginalia/plugins/*/target
 /marginalia/libs/*/target
 retype.manifest

@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.ui.dialogs.agent;
 
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.vaadin.flow.component.button.Button;
@@ -46,12 +47,12 @@ public class AgentStopDialog extends Dialog implements LLMInteract {
                     @APILocals(name = "footer", type = HorizontalLayout.class)})
     public void create() {
         setHeaderTitle(loc.getValue(L.LABEL_STOP));
-        add(new Span(String.format(loc.getValue(L.MSG_CONFIRM_STOP_RUN), agentName)));
+        add(new Span(String.format(loc.getValue(M_L.MSG_CONFIRM_STOP_RUN), agentName)));
 
         Button cancelButton = new Button(loc.getValue(L.LABEL_CANCEL), event -> close());
-        keepButton = new Button(loc.getValue(L.LABEL_STOP_AND_KEEP), event -> stop(true));
+        keepButton = new Button(loc.getValue(M_L.LABEL_STOP_AND_KEEP), event -> stop(true));
         keepButton.setVisible(canKeep);
-        discardButton = new Button(loc.getValue(L.LABEL_STOP_AND_DISCARD), event -> stop(false));
+        discardButton = new Button(loc.getValue(M_L.LABEL_STOP_AND_DISCARD), event -> stop(false));
         discardButton.setThemeName("error");
         HorizontalLayout footer = new HorizontalLayout(cancelButton, discardButton, keepButton);
         footer.setWidthFull();

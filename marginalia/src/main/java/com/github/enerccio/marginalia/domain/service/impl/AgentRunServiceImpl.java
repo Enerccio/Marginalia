@@ -12,6 +12,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.repository.AgentRunRepository;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.*;
+import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.domain.service.AgentService.AgentGrant;
 import com.github.enerccio.marginalia.domain.service.AgentService.ResolvedProfile;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService.AgenticCopy;
@@ -112,6 +113,8 @@ public class AgentRunServiceImpl extends ExtendableServiceImpl<AgentRun, AgentRu
             throw new IllegalArgumentException("The agent does not exist");
         }
         checkCanWork(stored, true);
+        // a book open in a window (or worked on by another run) would change under the copy the agent works on
+        Runs.check(stored.getManuscript(), Runs.Operation.START_AGENT);
         checkCopyQuota(userService.find(currentUser.getId()));
 
         AgentRun run = new AgentRun();

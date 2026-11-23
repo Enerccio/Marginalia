@@ -13,6 +13,7 @@ import com.github.enerccio.marginalia.domain.service.search.Sorter;
 import com.github.enerccio.marginalia.domain.service.search.Sorter.Ordering;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.LLMInteraction;
@@ -111,7 +112,7 @@ public class PhoneManuscriptPart implements ManuscriptSection {
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = String.class))
     public String getName() {
-        return loc.getValue(L.LABEL_BOOKS);
+        return loc.getValue(M_L.LABEL_BOOKS);
     }
 
     @PublicAPI(from = "1.8.0",
@@ -136,7 +137,7 @@ public class PhoneManuscriptPart implements ManuscriptSection {
         mainLayout.setPadding(true);
         mainLayout.setSpacing(true);
 
-        Button addBookButton = new Button(loc.getValue(L.LABEL_ADD_BOOK), Solid.PLUS.create(),
+        Button addBookButton = new Button(loc.getValue(M_L.LABEL_ADD_BOOK), Solid.PLUS.create(),
                 event -> new NewBookAction(this::openManuscript, currentFolder).run());
         addBookButton.setThemeName("primary");
         this.addBookButton = addBookButton;
@@ -144,19 +145,19 @@ public class PhoneManuscriptPart implements ManuscriptSection {
         Button refreshButton = new Button(Solid.REFRESH.create(), event -> refreshGrid());
 
         Button importButton = new Button(Solid.FILE_IMPORT.create(), event -> new NewBookAction(this::openManuscript, currentFolder).runImport());
-        importButton.setTooltipText(loc.getValue(L.LABEL_IMPORT));
+        importButton.setTooltipText(loc.getValue(M_L.LABEL_IMPORT));
 
         searchButton = new Button(Solid.SEARCH.create(), event -> openSearchDialog());
         searchButton.setTooltipText(loc.getValue(L.LABEL_ADVANCED_SEARCH));
 
         Button statisticsButton = new Button(Solid.CHART_LINE.create(), event -> openStatisticsDialog());
-        statisticsButton.setTooltipText(loc.getValue(L.LABEL_STATISTICS));
+        statisticsButton.setTooltipText(loc.getValue(M_L.LABEL_STATISTICS));
 
         // folders are made here and the windows that work on many books are in a menu, as on the desktop
         Button newFolderButton = new Button(Solid.FOLDER_PLUS.create(), event -> new FolderActions().create(currentFolder, _ -> refreshGrid()));
         newFolderButton.setTooltipText(loc.getValue(L.LABEL_NEW_FOLDER));
         Button manageButton = new Button(Solid.ELLIPSIS_V.create());
-        manageButton.setAriaLabel(loc.getValue(L.LABEL_MANAGE));
+        manageButton.setAriaLabel(loc.getValue(M_L.LABEL_MANAGE));
         createManageMenu(manageButton);
 
         HorizontalLayout headerLayout = new HorizontalLayout(addBookButton, newFolderButton, searchButton, statisticsButton, importButton, refreshButton, manageButton);
@@ -169,7 +170,7 @@ public class PhoneManuscriptPart implements ManuscriptSection {
         breadcrumb = new FlexLayout();
         breadcrumb.setAlignItems(FlexComponent.Alignment.CENTER);
         breadcrumb.addClassNames(CssStyles.FLEX_WRAP, CssStyles.GAP_S);
-        includeSubfolders = new Checkbox(loc.getValue(L.LABEL_INCLUDE_SUBFOLDERS));
+        includeSubfolders = new Checkbox(loc.getValue(M_L.LABEL_INCLUDE_SUBFOLDERS));
         includeSubfolders.addValueChangeListener(_ -> {
             refreshGrid();
             notifyStateChanged();
@@ -198,7 +199,7 @@ public class PhoneManuscriptPart implements ManuscriptSection {
         });
 
         MultiSelectComboBox<Tag> tagFilter = new MultiSelectComboBox<>();
-        tagFilter.setPlaceholder(loc.getValue(L.LABEL_TAGS));
+        tagFilter.setPlaceholder(loc.getValue(M_L.LABEL_TAGS));
         tagFilter.setWidthFull();
         tagFilter.setItemLabelGenerator(Tag::getValue);
         tagFilter.setClearButtonVisible(true);
@@ -353,7 +354,7 @@ public class PhoneManuscriptPart implements ManuscriptSection {
             dialog.create();
             dialog.open();
         });
-        cloneButton.setTooltipText(loc.getValue(L.LABEL_CLONE_BOOK));
+        cloneButton.setTooltipText(loc.getValue(M_L.LABEL_CLONE_BOOK));
 
         Button deleteButton = new Button(Solid.TRASH.create(), _ ->
                 ConfirmDialog.show(loc.getValue(L.MSG_CONFIRM_DELETE), () -> {
@@ -374,7 +375,7 @@ public class PhoneManuscriptPart implements ManuscriptSection {
                 UIUtils.internalServerError(loc, e);
             }
         });
-        starButton.setTooltipText(loc.getValue(L.LABEL_FAVORITES));
+        starButton.setTooltipText(loc.getValue(M_L.LABEL_FAVORITES));
 
         // the quick move: pick the folder, nothing else of the folder is edited on the phone
         Button moveButton = new Button(Solid.FOLDER_OPEN.create(), _ -> {
@@ -382,7 +383,7 @@ public class PhoneManuscriptPart implements ManuscriptSection {
                 new FolderActions().moveBooks(List.of(manuscript), manuscript.getFolder(), this::refreshGrid);
             }
         });
-        moveButton.setTooltipText(loc.getValue(L.LABEL_MOVE_TO_FOLDER));
+        moveButton.setTooltipText(loc.getValue(M_L.LABEL_MOVE_TO_FOLDER));
 
         // two short rows keep the text wide enough for a phone
         HorizontalLayout firstRow = new HorizontalLayout(editButton, cloneButton, deleteButton);
@@ -434,7 +435,7 @@ public class PhoneManuscriptPart implements ManuscriptSection {
         nameLine.setAlignItems(FlexComponent.Alignment.CENTER);
         textLayout.add(nameLine);
 
-        Span booksSpan = new Span(loc.getValue(L.LABEL_BOOKS) + ": " + row.getBooks());
+        Span booksSpan = new Span(loc.getValue(M_L.LABEL_BOOKS) + ": " + row.getBooks());
         booksSpan.addClassName(CssStyles.HINT_TEXT);
         textLayout.add(booksSpan);
 
@@ -473,7 +474,7 @@ public class PhoneManuscriptPart implements ManuscriptSection {
         tools.setOpenOnClick(true);
         tools.addItem(loc.getValue(L.LABEL_RENAME), _ -> new FolderActions().rename(row.getFolder(), _ -> refreshGrid()));
         tools.addItem(loc.getValue(L.LABEL_FOLDER_SETTINGS), _ -> new FolderDialog(row.getFolder(), _ -> refreshGrid()).show());
-        tools.addItem(loc.getValue(L.LABEL_DELETE_FOLDER), _ -> new FolderActions().delete(row.getFolder(), this::refreshGrid));
+        tools.addItem(loc.getValue(M_L.LABEL_DELETE_FOLDER), _ -> new FolderActions().delete(row.getFolder(), this::refreshGrid));
         HorizontalLayout line = new HorizontalLayout(textLayout, toolsButton);
         line.setWidthFull();
         line.setPadding(false);
@@ -518,12 +519,12 @@ public class PhoneManuscriptPart implements ManuscriptSection {
                     @APILocals(name = "button", type = Button.class)})
     private void updateBreadcrumb() throws Exception {
         breadcrumb.removeAll();
-        Button top = new Button(loc.getValue(L.LABEL_BOOKS), VaadinIcon.HOME.create(), _ -> openFolder(null));
+        Button top = new Button(loc.getValue(M_L.LABEL_BOOKS), VaadinIcon.HOME.create(), _ -> openFolder(null));
         top.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
         breadcrumb.add(top);
         if (inFavorites) {
             breadcrumb.add(new Span("/"));
-            Span current = new Span(loc.getValue(L.LABEL_FAVORITES));
+            Span current = new Span(loc.getValue(M_L.LABEL_FAVORITES));
             current.addClassName(CssStyles.TEXT_BOLD);
             breadcrumb.add(current);
             return;
@@ -594,7 +595,7 @@ public class PhoneManuscriptPart implements ManuscriptSection {
                 boolean filtered = StringUtils.isNotEmpty(filterValues.getName())
                         || (filterValues.getTags() != null && !filterValues.getTags().isEmpty());
                 if (!favorites.isEmpty() && currentFolder == null && !includeSubfolders.getValue() && !filtered) {
-                    favoritesLabel = loc.getValue(L.LABEL_FAVORITES);
+                    favoritesLabel = loc.getValue(M_L.LABEL_FAVORITES);
                 }
             }
             grid.setItems(new FolderBookProvider(folders, ids, folderService.countBooksByFolder(), folderService.getPaths(),
@@ -654,7 +655,7 @@ public class PhoneManuscriptPart implements ManuscriptSection {
         menu.setOpenOnClick(true);
         menu.addItem(loc.getValue(L.LABEL_ORGANISE), _ -> openOrganiseDialog());
         menu.addItem(loc.getValue(L.LABEL_TAG_BOOKS), _ -> openTagDialog(MultiTagDialog.Kind.BOOKS));
-        menu.addItem(loc.getValue(L.LABEL_TAG_FOLDERS), _ -> openTagDialog(MultiTagDialog.Kind.FOLDERS));
+        menu.addItem(loc.getValue(M_L.LABEL_TAG_FOLDERS), _ -> openTagDialog(MultiTagDialog.Kind.FOLDERS));
         menu.addItem(loc.getValue(L.LABEL_MASS_CHANGE_MODEL_PROTOCOL), _ -> {
             MassChangeModelProtocolDialog dialog = new MassChangeModelProtocolDialog(this::refreshGrid, currentFolder);
             dialog.create();

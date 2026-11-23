@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.domain.traits.APIReturn;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.domain.traits.PublicAPI;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
@@ -47,18 +48,18 @@ public class AgentResumeDialog extends Dialog implements LLMInteract {
             locals = {@APILocals(name = "cancelButton", type = Button.class),
                     @APILocals(name = "footer", type = HorizontalLayout.class)})
     public void create() {
-        setHeaderTitle(loc.getValue(L.LABEL_RESUME));
+        setHeaderTitle(loc.getValue(M_L.LABEL_RESUME));
         setWidth("520px");
         UIUtils.fitPhone(this, false);
 
-        noteField = new TextArea(loc.getValue(L.LABEL_AGENT_RESUME_NOTE));
-        noteField.setHelperText(loc.getValue(L.HELP_AGENT_RESUME_NOTE));
+        noteField = new TextArea(loc.getValue(M_L.LABEL_AGENT_RESUME_NOTE));
+        noteField.setHelperText(loc.getValue(M_L.HELP_AGENT_RESUME_NOTE));
         noteField.setMinRows(4);
         noteField.setWidthFull();
         add(noteField);
 
         Button cancelButton = new Button(loc.getValue(L.LABEL_CANCEL), event -> close());
-        resumeButton = new Button(loc.getValue(L.LABEL_RESUME), event -> {
+        resumeButton = new Button(loc.getValue(M_L.LABEL_RESUME), event -> {
             close();
             onResume.accept(noteField.getValue().strip());
         });

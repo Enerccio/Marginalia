@@ -1,10 +1,10 @@
 package com.github.enerccio.marginalia.extensions.translatorcommon.ui;
 
+import com.github.enerccio.marginalia.loc.M_L;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.search.replace.TextSearch;
 import com.github.enerccio.marginalia.extensions.translatorcommon.service.SourceReplace;
-import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.ui.dialogs.search.SearchReplaceDialog;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.button.Button;
@@ -70,9 +70,9 @@ public class SourceSearchReplaceDialog extends SearchReplaceDialog {
                     .toList();
             return new SearchResult(items, null, replacing -> {
                 SourceReplace.Result result = replace.apply(plan, replacing);
-                String message = String.format(loc.getValue(L.MSG_REPLACE_DONE), result.hits(), result.changed());
+                String message = String.format(loc.getValue(M_L.MSG_REPLACE_DONE), result.hits(), result.changed());
                 return result.skipped() == 0 ? message
-                        : message + "\n" + String.format(loc.getValue(L.MSG_REPLACE_SKIPPED), result.skipped());
+                        : message + "\n" + String.format(loc.getValue(M_L.MSG_REPLACE_SKIPPED), result.skipped());
             });
         };
     }

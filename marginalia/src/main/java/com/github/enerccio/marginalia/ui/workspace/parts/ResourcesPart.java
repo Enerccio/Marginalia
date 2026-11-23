@@ -8,6 +8,7 @@ import com.github.enerccio.marginalia.domain.service.ResourceService;
 import com.github.enerccio.marginalia.domain.service.ResourceService.ResourceLink;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.components.MessageImages;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
@@ -96,7 +97,7 @@ public class ResourcesPart implements WorkspaceComponent {
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = String.class))
     public String getName() {
-        return loc.getValue(L.LABEL_RESOURCES);
+        return loc.getValue(M_L.LABEL_RESOURCES);
     }
 
     @PublicAPI(from = "1.1.0",
@@ -123,7 +124,7 @@ public class ResourcesPart implements WorkspaceComponent {
             headerLayout.addClassName(CssStyles.FLEX_WRAP);
         }
 
-        Span titleSpan = new Span(loc.getValue(L.LABEL_RESOURCES));
+        Span titleSpan = new Span(loc.getValue(M_L.LABEL_RESOURCES));
         titleSpan.addClassName(CssStyles.SECTION_TITLE);
 
         deleteSelectedButton = new Button(loc.getValue(L.LABEL_DELETE_SELECTED), Solid.TRASH.create(), event -> deleteSelected());
@@ -141,7 +142,7 @@ public class ResourcesPart implements WorkspaceComponent {
         grid.setSizeFull();
         GridMultiSelectionModel<Row> selection = (GridMultiSelectionModel<Row>) grid.setSelectionMode(Grid.SelectionMode.MULTI);
         selection.setSelectAllCheckboxVisibility(GridMultiSelectionModel.SelectAllCheckboxVisibility.VISIBLE);
-        grid.setEmptyStateText(loc.getValue(L.MSG_RESOURCES_EMPTY));
+        grid.setEmptyStateText(loc.getValue(M_L.MSG_RESOURCES_EMPTY));
         grid.setMultiSort(false);
         // selection survives loading other pages of the lazy table
         grid.setDataProvider(new RowProvider());
@@ -157,7 +158,7 @@ public class ResourcesPart implements WorkspaceComponent {
 
         // the group (the object that uses the resources) opens to its resources: the picture and name of each
         grid.addComponentHierarchyColumn(this::nameOf)
-                .setHeader(loc.getValue(L.LABEL_LINKED_OBJECT)).setSortProperty("originalName").setFlexGrow(3);
+                .setHeader(loc.getValue(M_L.LABEL_LINKED_OBJECT)).setSortProperty("originalName").setFlexGrow(3);
 
         grid.addColumn(row -> row.isGroup() ? "" : StringUtils.defaultString(row.resource().getMimeType()))
                 .setHeader(loc.getValue(L.LABEL_TYPE)).setSortProperty("mimeType").setFlexGrow(1);
@@ -224,12 +225,12 @@ public class ResourcesPart implements WorkspaceComponent {
         try {
             ResourceLink link = resourceService.describeGroup(group);
             if (link == null) {
-                title = new Span(loc.getValue(L.MSG_RESOURCE_NOT_LINKED));
+                title = new Span(loc.getValue(M_L.MSG_RESOURCE_NOT_LINKED));
                 title.addClassName(CssStyles.TEXT_SECONDARY);
             } else if (link.present()) {
                 title = new Span(link.description());
             } else {
-                title = new Span(String.format(loc.getValue(L.MSG_RESOURCE_LINK_MISSING), link.description()));
+                title = new Span(String.format(loc.getValue(M_L.MSG_RESOURCE_LINK_MISSING), link.description()));
                 title.addClassName(CssStyles.TEXT_ERROR);
             }
         } catch (Exception e) {
@@ -358,7 +359,7 @@ public class ResourcesPart implements WorkspaceComponent {
 
         Button replaceButton = new Button(Solid.UPLOAD.create(), event -> openReplaceDialog(resource));
         replaceButton.setThemeName("tertiary");
-        UIUtils.addTooltip(replaceButton, loc.getValue(L.LABEL_REPLACE_CONTENT));
+        UIUtils.addTooltip(replaceButton, loc.getValue(M_L.LABEL_REPLACE_CONTENT));
 
         Button deleteButton = new Button(Solid.TRASH.create(), event ->
                 ConfirmDialog.show(loc.getValue(L.MSG_CONFIRM_DELETE), () -> delete(List.of(resource))));
@@ -370,7 +371,7 @@ public class ResourcesPart implements WorkspaceComponent {
         if (isAudio(resource)) {
             Button playButton = new Button(Solid.PLAY.create());
             playButton.setThemeName("tertiary");
-            UIUtils.addTooltip(playButton, loc.getValue(L.LABEL_PLAY));
+            UIUtils.addTooltip(playButton, loc.getValue(M_L.LABEL_PLAY));
             AudioPlayback playback = new AudioPlayback(resource, fileName, playButton, actions);
             playButton.addClickListener(event -> playback.toggle());
             actions.addComponentAsFirst(playButton);
@@ -443,7 +444,7 @@ public class ResourcesPart implements WorkspaceComponent {
             playing = true;
             current = this;
             button.setIcon(Solid.PAUSE.create());
-            UIUtils.addTooltip(button, loc.getValue(L.LABEL_PAUSE));
+            UIUtils.addTooltip(button, loc.getValue(M_L.LABEL_PAUSE));
         }
 
         void stop() {
@@ -459,7 +460,7 @@ public class ResourcesPart implements WorkspaceComponent {
                 current = null;
             }
             button.setIcon(Solid.PLAY.create());
-            UIUtils.addTooltip(button, loc.getValue(L.LABEL_PLAY));
+            UIUtils.addTooltip(button, loc.getValue(M_L.LABEL_PLAY));
         }
     }
 
@@ -493,7 +494,7 @@ public class ResourcesPart implements WorkspaceComponent {
             return;
         }
         List<Resource> resources = List.copyOf(selected);
-        ConfirmDialog.show(String.format(loc.getValue(L.MSG_CONFIRM_DELETE_RESOURCES), resources.size()), () -> delete(resources));
+        ConfirmDialog.show(String.format(loc.getValue(M_L.MSG_CONFIRM_DELETE_RESOURCES), resources.size()), () -> delete(resources));
     }
 
     @PublicAPI(from = "1.1.0",
@@ -519,7 +520,7 @@ public class ResourcesPart implements WorkspaceComponent {
                     @APILocals(name = "content", type = VerticalLayout.class)})
     private void openReplaceDialog(Resource resource) {
         Dialog dialog = new Dialog();
-        dialog.setHeaderTitle(loc.getValue(L.LABEL_REPLACE_CONTENT));
+        dialog.setHeaderTitle(loc.getValue(M_L.LABEL_REPLACE_CONTENT));
         dialog.setWidth("450px");
 
         boolean image = resource.getMimeType() != null && resource.getMimeType().startsWith("image/");
@@ -527,10 +528,10 @@ public class ResourcesPart implements WorkspaceComponent {
             try {
                 resourceService.replace(resource, metadata.fileName(), data, metadata.contentType());
                 dialog.close();
-                Notification.success(loc.getValue(L.MSG_RESOURCE_REPLACED));
+                Notification.success(loc.getValue(M_L.MSG_RESOURCE_REPLACED));
                 refreshGrid();
             } catch (IllegalArgumentException e) {
-                Notification.error(loc.getValue(L.ERROR_INVALID_IMAGE));
+                Notification.error(loc.getValue(M_L.ERROR_INVALID_IMAGE));
             } catch (Exception e) {
                 UIUtils.internalServerError(loc, e);
             }
@@ -540,7 +541,7 @@ public class ResourcesPart implements WorkspaceComponent {
             upload.setAcceptedMimeTypes("image/png", "image/jpeg", "image/gif", "image/webp");
             upload.setMaxFileSize(ResourceService.MAX_IMAGE_BYTES);
         }
-        upload.setUploadButton(new Button(loc.getValue(L.LABEL_REPLACE_CONTENT), Solid.UPLOAD.create()));
+        upload.setUploadButton(new Button(loc.getValue(M_L.LABEL_REPLACE_CONTENT), Solid.UPLOAD.create()));
 
         VerticalLayout content = new VerticalLayout(upload);
         content.setPadding(false);

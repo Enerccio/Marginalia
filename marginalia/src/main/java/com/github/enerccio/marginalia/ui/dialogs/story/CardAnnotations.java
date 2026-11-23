@@ -2,13 +2,14 @@ package com.github.enerccio.marginalia.ui.dialogs.story;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.collections.AnnotationStatus;
 import com.github.enerccio.marginalia.domain.model.impl.Annotation;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.service.AnnotationService;
 import com.github.enerccio.marginalia.domain.service.RedraftService;
-import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.widgets.LazyContextMenu;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
@@ -86,16 +87,16 @@ public class CardAnnotations {
         this.redraftSelection = redraftSelection;
 
         badge.setThemeName("tertiary small");
-        badge.addClassName(CssStyles.ANNOTATION_BADGE);
+        badge.addClassName(MarginaliaCssStyles.ANNOTATION_BADGE);
         badge.setVisible(false);
         badge.addClickListener(event -> show(null));
 
-        anchor.addClassName(CssStyles.ANNOTATION_ANCHOR);
+        anchor.addClassName(MarginaliaCssStyles.ANNOTATION_ANCHOR);
         popover.setTarget(anchor);
         popover.setOpenOnClick(false);
         margin.setPadding(false);
         margin.setSpacing(false);
-        margin.addClassNames(CssStyles.ANNOTATION_MARGIN, CssStyles.GAP_S);
+        margin.addClassNames(MarginaliaCssStyles.ANNOTATION_MARGIN, CssStyles.GAP_S);
         margin.setVisible(false);
         JavascriptLibrary.linkMarginNotes(response.getElement(), margin.getElement());
         JavascriptLibrary.fireAnnotationClickEvent(response.getElement(), anchor.getElement());
@@ -154,7 +155,7 @@ public class CardAnnotations {
         int count = generating ? 0 : annotations.openCount(message.get().getId());
         badge.setVisible(count > 0);
         badge.setText(String.valueOf(count));
-        badge.setTooltipText(String.format(loc.getValue(L.MSG_ANNOTATIONS_OPEN_COUNT), count));
+        badge.setTooltipText(String.format(loc.getValue(M_L.MSG_ANNOTATIONS_OPEN_COUNT), count));
         fillMargin(generating);
     }
 
@@ -200,7 +201,7 @@ public class CardAnnotations {
         VerticalLayout content = new VerticalLayout();
         content.setPadding(false);
         content.setSpacing(false);
-        content.addClassNames(CssStyles.GAP_S, CssStyles.ANNOTATION_POPOVER);
+        content.addClassNames(CssStyles.GAP_S, MarginaliaCssStyles.ANNOTATION_POPOVER);
         for (Annotation annotation : shown) {
             content.add(new AnnotationView(annotation, annotations, host));
         }
@@ -270,7 +271,7 @@ public class CardAnnotations {
                 int start = range.length == 2 ? Integer.parseInt(range[0]) : 0;
                 int end = range.length == 2 ? Integer.parseInt(range[1]) : 0;
                 if (end <= start) {
-                    Notification.warning(loc.getValue(L.MSG_ANNOTATION_SELECT_TEXT));
+                    Notification.warning(loc.getValue(M_L.MSG_ANNOTATION_SELECT_TEXT));
                     return;
                 }
                 saveEdit.run();
@@ -280,14 +281,14 @@ public class CardAnnotations {
         }
         JavascriptLibrary.getSelectionContext(response.getElement(), AnnotationService.CONTEXT_LENGTH / 2).then(String.class, json -> {
             if (StringUtils.isBlank(json)) {
-                Notification.warning(loc.getValue(L.MSG_ANNOTATION_SELECT_TEXT));
+                Notification.warning(loc.getValue(M_L.MSG_ANNOTATION_SELECT_TEXT));
                 return;
             }
             JsonObject selection = JsonParser.parseString(json).getAsJsonObject();
             int[] range = StoryAnnotations.locate(StringUtils.defaultString(message.get().getResponse()),
                     selection.get("text").getAsString(), selection.get("before").getAsString(), selection.get("after").getAsString());
             if (range == null) {
-                Notification.warning(loc.getValue(L.MSG_ANNOTATION_NOT_IN_SOURCE));
+                Notification.warning(loc.getValue(M_L.MSG_ANNOTATION_NOT_IN_SOURCE));
                 return;
             }
             action.accept(range);

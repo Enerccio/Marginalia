@@ -76,6 +76,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
     public static final String TAB_NAME = "Tab Name";
     public static final String CANNOT_CLOSE_THE_LAST_TAB = "Cannot close the last tab";
     public static final String SIDEQUERY_ANSWER_A_QUESTION = "SideQuery: answer a question";
+    public static final String NAMING_THE_TAB = "Naming the tab";
 
     @Override
     protected void loadKeys() {
@@ -614,5 +615,13 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         de(SIDEQUERY_ANSWER_A_QUESTION, "Nebenabfrage: eine Frage beantworten");
         ko(SIDEQUERY_ANSWER_A_QUESTION, "사이드 쿼리: 질문에 답하기");
         it(SIDEQUERY_ANSWER_A_QUESTION, "Query laterale: rispondi a una domanda");
+
+        ja(NAMING_THE_TAB, "タブに名前を付けています");
+        zh(NAMING_THE_TAB, "正在为标签页命名");
+        fr(NAMING_THE_TAB, "Nommage de l'onglet");
+        es(NAMING_THE_TAB, "Poniendo nombre a la pestaña");
+        de(NAMING_THE_TAB, "Der Tab wird benannt");
+        ko(NAMING_THE_TAB, "탭 이름을 짓는 중");
+        it(NAMING_THE_TAB, "Denominazione della scheda");
     }
 }

@@ -1,13 +1,13 @@
 package com.github.enerccio.marginalia.domain.templates;
 
-import com.github.enerccio.marginalia.domain.traits.LocalizedTemplateDescription;
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.domain.traits.MarginaliaTemplateDescription;
+import com.github.enerccio.marginalia.loc.M_L;
 
 public class SummaryTemplateData extends TemplateData {
 
-    @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_BACKGROUND_LORE)
+    @MarginaliaTemplateDescription(loc = M_L.DESC_TEMPLATE_BACKGROUND_LORE)
     private String backgroundLore;
-    @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_MANUSCRIPT)
+    @MarginaliaTemplateDescription(loc = M_L.DESC_TEMPLATE_MANUSCRIPT)
     private String text;
 
     public String getBackgroundLore() {

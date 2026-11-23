@@ -4,7 +4,7 @@ order: 51
 covers:
   - marginalia/libs/http-hooks
   - marginalia/plugins/image-generator/src/main/java
-verified: f7e7de02b
+verified: f337fe83d
 ---
 
 # http-hooks
@@ -21,7 +21,7 @@ verified: f7e7de02b
   before reading anything when `Content-Length` already announces more. The default is `Http.MAX_BYTES` (32 MB); `HookRunner` reads at most 1 MB. A bigger answer is a
   `BackendException` ("is too big"), never an allocation.
 - A connect timeout of 10 s and a timeout per request that the caller gives.
-- **`ServerGoneException`** (a `BackendException`) is what `send` throws when the server did not answer at all (refused, reset, timed out: "Cannot reach ..."); a plugin can tell a server that is down from one that refused (an HTTP error answer is a plain `BackendException`) and start it again. The Audiobook's `ChatterboxBackend` throws it for a 503 ("no model loaded") too, and `RecoveringBackend` restarts the server and repeats the piece once.
+- **`ServerGoneException`** (a `BackendException`) is what `send` throws when the server did not answer at all (refused, reset, timed out: "Cannot reach <host>: <what failed>", with `Http.describe(error)`, the first message in the chain of causes, so a `ConnectException` without one does not read "null"); a plugin can tell a server that is down from one that refused (an HTTP error answer is a plain `BackendException`) and start it again. The Audiobook's `ChatterboxBackend` throws it for a 503 ("no model loaded") too, and `RecoveringBackend` restarts the server and repeats the piece once.
 - `excerpt(response)` (the first 400 characters, for an error message) and `requireOk(response, what)`.
 
 The client speaks **HTTP/1.1 only**. The JDK client otherwise offers an upgrade to HTTP/2 on a plain connection (`Upgrade: h2c`), and an ASGI server (uvicorn with httptools: LiteLLM, FastAPI servers such as Chatterbox-TTS-Server) then takes the body of a POST for upgrade data and hands the application an empty request (a 422 "field required"); the JDK's own test server tolerates the header, so only a real server shows it.
@@ -33,7 +33,7 @@ check of a connection, not a poll of the server) as a **call** of the job of the
 `Jobs` in [Services](../../services.md)). It records the host of `baseUrl` (never the path or the query), the model, the start and the end, and how it
 ended: a `BackendException` with the message `Cancelled` is a cancelled call, any other failure a failed one (the exception is thrown again). A call
 outside of a job becomes a job of its own with the kind `autoKind` (the name of the plugin); a plugin that does a unit of work of many calls (a chapter
-converted piece by piece) opens a job around them with `Jobs.open`. The Audiobook wraps `ChatterboxBackend.synthesize`, the Image Generator
+converted piece by piece) opens a job around them with `Jobs.open`. The Audiobook wraps `ChatterboxBackend.synthesize` and `HiggsComfyBackend.synthesize`, the Image Generator
 `OpenAiImagesBackend.generate` and `ComfyUiBackend.generate` (there the call is the whole run, queued and polled until the image is there).
 
 ## The guard: `UrlGuard`
@@ -44,10 +44,17 @@ server is on this machine or on my network* is off) every address the host resol
 (IPv4-compatible, NAT64 `64:ff9b::/96`) is judged by the IPv4 address. Call it for **every** address the plugin is about to use, also the ones a server hands back (the
 `url` of an image).
 
-The host is resolved by the guard and again by the HTTP client at connect time. Java caches a lookup for 30 seconds by default (`networkaddress.cache.ttl`), so the client gets
-the answer the guard checked; a JVM configured without that cache would let a name that changes its address in between through. That is not closed in the library.
+The judgement is the application's: `OutboundAddressGuard.isPrivate` (`domain.security`, the same class the agent webhook uses), seen by the plugin through boot
+delegation. The check of `UrlGuard` gives the user an early, readable error; the call itself is held to it again when it connects. An address `UrlGuard.check(url, false)`
+passed is remembered (by value, while a request holds the `URI`), and `Http.send` sends its request with a second client, the one of `OutboundAddressGuard.publicOnly`: its
+proxy selector looks the host up **once**, when the connection opens, refuses it when one of the addresses is private, and for `http` connects to exactly the address it
+checked (it names that address as the proxy, so the request line carries the whole URL and the `Host` header stays). A name whose DNS answer changes between the check and
+the connection (DNS rebinding) is refused with a `BackendException` "... mark the backend as local to use it", before anything is sent. For `https` the client connects
+directly and looks the host up a second time; a changed answer can't be used there, because the certificate must be valid for the host name, which a server of the private
+network can't show for someone else's name, and nothing is sent before that check. A `URI` that never went through `UrlGuard.check(url, false)` (a local backend, a
+call that is not checked) is sent by the plain client as before.
 
-`UrlGuard.origin(url)` is `scheme://host:port` in lower case, the key of a gate.
+`UrlGuard.origin(url)` is `scheme://host:port` in lower case: what two settings that call the same server have in common.
 
 ## The hook: `HttpHook` and `HookRunner`
 
@@ -69,34 +76,30 @@ A swap is usually **several requests** (unload the language model, start a conta
 The Image Generator's `BackendConfig` keeps `beforeHooks` and `afterHooks` as lists and reads the single `before` / `after` hook of an older setting as a list of one (setting a list
 drops the old one).
 
-## The gate: `GpuGate`
+## Taking turns on a GPU: not here
 
-With one GPU, a hook of one user must not run in the middle of the work of another: the *after* hook of a window that closed unloads the model, and the image of the other user
-fails. `GpuGate.forBackend(gpuName, url)` returns the gate of the GPU: the one the backend names in its *GPU* setting (the same name, case aside, gives the same gate in every plugin), else the gate of the server (`GpuGate.forAddress(url)`: the same `scheme://host:port` gives the same gate, however many users' settings name it):
+Up to 1.8 the library had `GpuGate` (over the application's `SharedGate`), a gate keyed by a GPU name or a server address that the plugins
+held around their hooks. Both are gone: taking turns on a shared GPU is a feature of the application, `GpuService` with the GPUs, locks and
+steps the administrator sets up (see [GPU locks](../gpu-locks.md)). A backend stores the uuid of a lock, takes it for each job
+(`gpuService.acquire(lockUuid, cancelled)`) and runs its own hooks **inside** it. The Image Generator does that per image (`ImageJob`), the
+Audiobook per batch or sample (`SpeechBatch`).
 
-```java
-gate.acquire(mode, cancelled, before);   // the first holder runs the before hook; the others of the same mode wait for it, then run none; another mode waits for the holders to be gone
-try {
-    gate.exclusive(cancelled, () -> backend.generate(...));   // one piece of work at a time, in the order they came
-} finally {
-    String error = gate.release(after);                       // the last holder runs the after hook
-}
-```
+## A key for the requests: `HookKeys`
 
-`acquire` that fails holds nothing; a failed `release` hook is returned as the message (the GPU is free anyway). `exclusive` takes a `BooleanSupplier` that is asked while it waits,
-so a user who aborts does not wait for the others. The hooks that run are those of the user who comes first and last.
-
-The **mode** is what the before hook leaves loaded (the Audiobook: its address and speech model; the Image Generator: address, type, model and workflow), written with the name of the plugin so that two plugins never share a load. Holders of one mode share it; somebody who needs another waits until they are gone and runs their own before hook. The line is fair: once somebody waits for another mode, nobody else joins the holders. The gates are kept by the application (`SharedGate`, in `com.github.enerccio.marginalia.extensions`), not by the class that each plugin embeds, so two plugins on one GPU find the same gate when their backends name the same GPU.
-
-In the Image Generator the `ImageSession` (one per window: it holds the backend while the user rerolls, and ends on accept, close or idle time) calls `acquire` before its first
-image and `release` when it ends; every image is made in `exclusive`.
+A proxy in front of the models (LiteLLM) wants its key on the unload request too. `HookKeys.withBearer(hooks, key, reveal)` returns copies of the
+requests with `Authorization: Bearer <key>` added to every one that has no `Authorization` header of its own (the stored requests are not changed,
+empty ones are left out, a blank key returns the list as it is), so a plugin keeps the key encrypted in one field of its backend instead of in the
+headers of every request. The Audiobook and the Image Generator pass their *Key of the requests*, else the api key.
 
 ## The settings form: `HookListEditor`
 
 `ui.HookListEditor` (Vaadin) is the form of a list of hooks, one row for each request with a button that removes it and one that adds a request. A plugin builds it with
-its own localized `Labels` and a CSS class for the frame of a row, shows a list with `show(hooks, reveal)` and reads it back with `read(protect)` (empty rows left out). The headers are
+its own localized `Labels`, a CSS class for the frame of a row and the application's `Localization` (`HookListEditor(labels, rowClassName, loc)`:
+the headers and the body are then `ResizableTextArea`s; the library is not woven, so the plugin passes the `loc` of its own `@Configurable` form,
+created in the constructor body, not in a field initializer; the two-argument constructor leaves them plain), shows a list with `show(hooks, reveal)` and reads it back with `read(protect)` (empty rows left out). The headers are
 shown opened and stored protected, so the plugin passes the functions of `InferenceServices` (`revealSecret`, `protectSecret`). The Image Generator and the Audiobook use it for their
-before and after lists.
+before and after lists. Adding or removing a request is reported to the settings page with `SettingsChanges.changed` (see
+[UI extensions](../ui-extensions.md)), so it counts as an unsaved change; `show` does not report (it is loading).
 
 ## Using it
 

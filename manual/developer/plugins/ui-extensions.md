@@ -1,7 +1,7 @@
 ---
 label: Extending the UI
 order: 70
-verified: 3cbdfc044
+verified: 9860afee8
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui
   - marginalia/src/main/java/com/github/enerccio/marginalia/instruct
@@ -246,8 +246,8 @@ Registering a key again replaces the item. Instruction Exporter is the whole of 
 | `StoryMenuItem.card(key, label, action)` | menu of a part | `BiConsumer<StoryEditor, StoryCard>`: `(story, card) -> ...` |
 | `StoryMenuItem.text(key, label, action)` | right click menu of the text | `BiConsumer<StoryEditor, StoryCard>` |
 
-`label` is a `Function<Localization, String>` (`loc -> "My item"`, or `loc -> loc.getValue(L.X)` for text of the application; a plugin cannot add keys to `L`, use
-`Localization.getCurrentLanguage()` for your own table), and the overloads with an `L` key are for the application's own items. The label is also the
+`label` is a `Function<Localization, String>` (`loc -> "My item"`, or `loc -> loc.getValue(M_L.X)` for text of the application; a plugin cannot add keys to `L` or `M_L`, use
+`Localization.getCurrentLanguage()` for your own table), and the overloads with a `LocalizationKey` are for the application's own items. The label is also the
 name of the action in the key bindings table, so make it say what the action does.
 
 `StoryEditor` is the story tab (the desktop or the phone one): `getCurrentManuscript()` (the book it shows **now**, read it when the action runs, the tab loads other
@@ -350,6 +350,12 @@ reviewerService.saveSettings(form.save(), userSetting);     // writes into userS
 Changes in the panel's fields are tracked like the application's own: any value change outside of
 `UserPart.refresh` (and its decorators) locks the workspace navigation until the user saves or discards. Fill the form
 in the `refresh` decorator, not later (e.g. from a background thread), or the loaded values count as changes.
+Fields the panel builds later (the rows of a list, the fields of another item it shows after a selection) are tracked
+after the next change: `UserPart` walks its layout again after every change (`trackAllChanges`). A change that is not a
+value change of a field (a row added or removed, a button that clears a stored key) is reported with
+`SettingsChanges.changed(component)` (`ui.widgets`): the nearest ancestor that listens (`UserPart` listens on its layout
+with `SettingsChanges.listen`) marks the settings as changed and tracks the new fields; outside of the settings page the call
+does nothing. `HookListEditor` of `http-hooks` reports its *Add a request* and its bin this way.
 
 Saving on enter lets the application's own `settingService.save(userSetting)` store the plugin's values too. Note that
 `save()` returns early when the application's own fields don't validate - then the plugin's values are not stored
@@ -385,12 +391,13 @@ What plugins can't do:
   Vaadin component and add-on the application already uses (Vaadin core components, the FontAwesome icons,
   Viritin's `VTabSheet`...), but `@CssImport`, `@JsModule`, `@NpmPackage` and add-ons with their own web
   components don't work from a plugin. Style with the classes of `CssStyles`
-  (`addClassName(CssStyles.TEXT_SECONDARY)`), which the application's `shared-styles.css` defines. A style only your
+  (`addClassName(CssStyles.TEXT_SECONDARY)`: the shared look, defined by the platform's `platform-styles.css`) and of
+  `MarginaliaCssStyles` (Marginalia's own, such as the annotation marks, defined by its `shared-styles.css`). A style only your
   plugin uses goes into a CSS file in the bundle's `src/main/resources` that the application puts into the page for
   you ([Styles of a plugin](#styles-of-a-plugin)), with its class names as constants in the plugin. Use `getStyle()` only for a value known at runtime.
   Charts are the exception: the application's `ChartJs` widget (`ui.widgets`) draws any Chart.js configuration given as
   JSON, so a plugin can show a chart without a frontend module of its own.
-- **Add localization keys.** `Localization` knows only the application's `L` keys. A plugin translates the texts of
+- **Add localization keys.** `Localization` knows only the keys of the platform (`L`) and the application (`M_L`). A plugin translates the texts of
   its own UI with a `PluginLocalizationBundle` ([Texts in several languages](#texts-in-several-languages)). A plugin
   can also add a *language* for the application's texts, see
   [Example plugin → Chinese localization](example.md#walkthrough-chinese-localization).
@@ -398,7 +405,7 @@ What plugins can't do:
 
 ### Texts in several languages
 
-A plugin can't add keys to the `L` enum, so the texts of its UI are the English sentences themselves, kept as
+A plugin can't add keys to the `L` or `M_L` enums, so the texts of its UI are the English sentences themselves, kept as
 `String` constants of the plugin's bundle class (never as literals in the UI code).
 `PluginLocalizationBundle` (package `extensions`) turns one into the text of the language of the current session
 (`Localization.getCurrentLanguage()`): `localized(message)` returns the translation, and the English `message` when the
@@ -527,7 +534,7 @@ public class MyPanel extends VerticalLayout implements LLMInteract {
   `AIDialog` (`getLLMProblems`); the other elements use the defaults of the interface.
 - What a user was shown that went wrong is recorded for you: your `Notification.error` / `warning` (the application's
   `ui.widgets.Notification`) and `UIUtils.showError` / `showValidationErrors` / `inferenceError` write it to the session's problem
-  log, which the model reads with `read_last_errors` ([What went wrong](../ui.md#what-went-wrong-the-problem-log)). Say what is wrong in the message (the model gets the text the user saw).
+  log, which the model reads with `read_last_errors` ([What went wrong](../ui.md#what-went-wrong-the-problem-log)). Say what is wrong in the message (the model gets the text the user saw). An error stays on the screen until the user closes it (the duration given to `Notification.error` is ignored).
 
 ## Styles of a plugin
 

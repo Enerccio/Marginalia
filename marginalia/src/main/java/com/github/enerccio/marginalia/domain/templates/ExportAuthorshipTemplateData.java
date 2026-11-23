@@ -2,7 +2,9 @@ package com.github.enerccio.marginalia.domain.templates;
 
 import com.github.enerccio.marginalia.domain.components.BookAuthorship;
 import com.github.enerccio.marginalia.domain.traits.LocalizedTemplateDescription;
+import com.github.enerccio.marginalia.domain.traits.MarginaliaTemplateDescription;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -12,19 +14,19 @@ public class ExportAuthorshipTemplateData extends TemplateData {
 
     @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_MANUSCRIPT_NAME)
     private final String title;
-    @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_EXPORT_AUTHOR)
+    @MarginaliaTemplateDescription(loc = M_L.DESC_TEMPLATE_EXPORT_AUTHOR)
     private final String author;
-    @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_EXPORT_TOTAL_WORDS)
+    @MarginaliaTemplateDescription(loc = M_L.DESC_TEMPLATE_EXPORT_TOTAL_WORDS)
     private final long totalWords;
-    @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_EXPORT_WRITTEN_WORDS)
+    @MarginaliaTemplateDescription(loc = M_L.DESC_TEMPLATE_EXPORT_WRITTEN_WORDS)
     private final long writtenWords;
-    @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_EXPORT_GENERATED_WORDS)
+    @MarginaliaTemplateDescription(loc = M_L.DESC_TEMPLATE_EXPORT_GENERATED_WORDS)
     private final long generatedWords;
-    @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_EXPORT_WRITTEN_PERCENT)
+    @MarginaliaTemplateDescription(loc = M_L.DESC_TEMPLATE_EXPORT_WRITTEN_PERCENT)
     private final long writtenPercent;
-    @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_EXPORT_GENERATED_PERCENT)
+    @MarginaliaTemplateDescription(loc = M_L.DESC_TEMPLATE_EXPORT_GENERATED_PERCENT)
     private final long generatedPercent;
-    @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_EXPORT_MODELS)
+    @MarginaliaTemplateDescription(loc = M_L.DESC_TEMPLATE_EXPORT_MODELS)
     private final String models;
 
     /**

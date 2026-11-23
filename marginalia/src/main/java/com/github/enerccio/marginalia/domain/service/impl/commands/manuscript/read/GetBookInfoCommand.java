@@ -1,16 +1,17 @@
 package com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.read;
 
 import com.github.enerccio.marginalia.domain.model.impl.AI;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Tag;
 import com.github.enerccio.marginalia.domain.service.PromptField;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.traits.Command;
+import com.github.enerccio.marginalia.domain.traits.MarginaliaCommandTexts;
 import com.github.enerccio.marginalia.domain.traits.CommandDataSeverity;
 import com.github.enerccio.marginalia.domain.traits.CommandParameterSignature;
 import com.github.enerccio.marginalia.domain.traits.CommandReturn;
-import com.github.enerccio.marginalia.loc.L;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
@@ -22,11 +23,14 @@ public class GetBookInfoCommand extends ManuscriptReadSupport {
 
     static final String NAME = "get-book-info";
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_GET_BOOK_INFO,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_GET_BOOK_INFO, llmDescription = L.DESC_COMMAND_GET_BOOK_INFO_LLM,
             signature = @CommandParameterSignature,
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_GET_BOOK_INFO_RETURN))
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_GET_BOOK_INFO,
+            description = M_L.DESC_COMMAND_GET_BOOK_INFO,
+            llmDescription = M_L.DESC_COMMAND_GET_BOOK_INFO_LLM,
+            returns = M_L.DESC_COMMAND_GET_BOOK_INFO_RETURN)
     public void getBookInfo(CommandContext context) throws Exception {
         bookInfo(context);
     }

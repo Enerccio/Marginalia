@@ -1,6 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs.story;
 
-import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.collections.AnnotationSource;
 import com.github.enerccio.marginalia.domain.collections.AnnotationStatus;
 import com.github.enerccio.marginalia.domain.model.impl.AnchoredPassage;
@@ -94,7 +94,7 @@ class StoryAnnotationsTest extends MarginaliaTestBase {
         TextMarkup.Mark mark = marks.getFirst();
         assertThat(mark.start()).isEqualTo(start("They talked"));
         assertThat(mark.end()).isEqualTo(start("They talked") + "They talked for hours.".length());
-        assertThat(mark.cssClass()).contains(CssStyles.ANNOTATION_MARK).contains(CssStyles.ANNOTATION_MARK_AUTHOR);
+        assertThat(mark.cssClass()).contains(MarginaliaCssStyles.ANNOTATION_MARK).contains(MarginaliaCssStyles.ANNOTATION_MARK_AUTHOR);
         assertThat(mark.attributes()).contains(StoryAnnotations.MARK_ATTRIBUTE + "=\"" + open.getUuid() + "\"");
     }
 
@@ -105,9 +105,9 @@ class StoryAnnotationsTest extends MarginaliaTestBase {
         make("bar", "By an extension", AnnotationSource.PLUGIN);
 
         assertThat(annotations.marks(part, TEXT)).extracting(TextMarkup.Mark::cssClass)
-                .anyMatch(c -> c.contains(CssStyles.ANNOTATION_MARK_AI))
-                .anyMatch(c -> c.contains(CssStyles.ANNOTATION_MARK_AGENT))
-                .anyMatch(c -> c.contains(CssStyles.ANNOTATION_MARK_PLUGIN));
+                .anyMatch(c -> c.contains(MarginaliaCssStyles.ANNOTATION_MARK_AI))
+                .anyMatch(c -> c.contains(MarginaliaCssStyles.ANNOTATION_MARK_AGENT))
+                .anyMatch(c -> c.contains(MarginaliaCssStyles.ANNOTATION_MARK_PLUGIN));
     }
 
     @Test

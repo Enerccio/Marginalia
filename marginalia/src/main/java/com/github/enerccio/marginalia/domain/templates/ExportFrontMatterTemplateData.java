@@ -1,7 +1,7 @@
 package com.github.enerccio.marginalia.domain.templates;
 
-import com.github.enerccio.marginalia.domain.traits.LocalizedTemplateDescription;
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.domain.traits.MarginaliaTemplateDescription;
+import com.github.enerccio.marginalia.loc.M_L;
 
 /**
  * The values of the front matter template of an export (the YAML block that static site generators and Obsidian read). The title and the
@@ -9,13 +9,13 @@ import com.github.enerccio.marginalia.loc.L;
  */
 public class ExportFrontMatterTemplateData extends TemplateData {
 
-    @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_EXPORT_QUOTED_TITLE)
+    @MarginaliaTemplateDescription(loc = M_L.DESC_TEMPLATE_EXPORT_QUOTED_TITLE)
     private final String title;
-    @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_EXPORT_QUOTED_AUTHOR)
+    @MarginaliaTemplateDescription(loc = M_L.DESC_TEMPLATE_EXPORT_QUOTED_AUTHOR)
     private final String author;
-    @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_EXPORT_LANGUAGE)
+    @MarginaliaTemplateDescription(loc = M_L.DESC_TEMPLATE_EXPORT_LANGUAGE)
     private final String language;
-    @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_EXPORT_DATE)
+    @MarginaliaTemplateDescription(loc = M_L.DESC_TEMPLATE_EXPORT_DATE)
     private final String exportDate;
 
     /**

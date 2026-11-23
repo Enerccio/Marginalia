@@ -1,14 +1,16 @@
 package com.github.enerccio.marginalia.extensions.audiobook.model;
 
+import com.github.enerccio.marginalia.extensions.audiobook.label.Age;
+import com.github.enerccio.marginalia.extensions.audiobook.label.Gender;
 import com.github.enerccio.marginalia.extensions.audiobook.script.VoiceRef;
+import com.github.enerccio.marginalia.extensions.audiobook.script.VoiceShift;
 import com.google.gson.Gson;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 class CastTest {
 
@@ -107,6 +109,124 @@ class CastTest {
         assertEquals("predefined:Stranger.wav", voice(cast, "Ghost", "NEUTRAL", null));
         assertEquals("predefined:Stranger.wav", voice(cast, "Gone", "NEUTRAL", null));
         assertEquals("predefined:Stranger.wav", voice(cast, "Broken", "NEUTRAL", null));
+    }
+
+    /** The cast with base voices for unnamed speakers: men, women, and (when {@code children}) a voice of its own for children. */
+    private Cast withBases(boolean children) {
+        Cast cast = cast();
+        actor("men", "clip:men");
+        actor("women", "clip:women");
+        cast.setMenActorId("men");
+        cast.setWomenActorId("women");
+        if (children) {
+            actor("kids", "clip:kids");
+            cast.setChildrenActorId("kids");
+        }
+        return cast;
+    }
+
+    private VoiceRef extra(Cast cast, String speaker, Gender gender, Age age, boolean shiftable) {
+        return cast.voice(speaker, "NEUTRAL", null, gender, age, "book-1", actors::get, BACKEND, v -> shiftable);
+    }
+
+    @Test
+    void withoutBasesNothingChangesForUnnamedSpeakers() {
+        Cast cast = cast();
+        assertFalse(cast.usesExtras());
+        assertEquals("predefined:Stranger.wav", extra(cast, "The guard", Gender.MALE, Age.ADULT, true).toString());
+    }
+
+    @Test
+    void anUnnamedSpeakerGetsTheBaseOfTheirGenderShiftedIntoAPersonOfTheirOwn() {
+        Cast cast = withBases(false);
+        assertTrue(cast.usesExtras());
+
+        VoiceRef guard = extra(cast, "The guard", Gender.MALE, Age.ADULT, true);
+        assertEquals("men", guard.id());
+        assertEquals(VoiceShift.pick("book-1", "The guard", 0, Gender.MALE, Age.ADULT, false), guard.shift());
+        assertEquals("women", extra(cast, "The innkeeper", Gender.FEMALE, Age.ADULT, true).id());
+        // a teenage boy is the men's clip, a teenage girl the women's
+        assertEquals("men", extra(cast, "The squire", Gender.MALE, Age.TEEN, true).id());
+        assertEquals("women", extra(cast, "The maid", Gender.FEMALE, Age.TEEN, true).id());
+        // no gender: the fallback, also varied (it is a clip only when it is one)
+        assertEquals("predefined:Stranger.wav", extra(cast, "Someone", Gender.UNKNOWN, Age.ADULT, true).toString());
+        // named characters and the narrator are never shifted
+        assertEquals("clip:marta", extra(cast, "Marta", Gender.FEMALE, Age.ADULT, true).toString());
+        assertEquals("clip:narrator", extra(cast, "Narrator", Gender.MALE, Age.ADULT, true).toString());
+    }
+
+    @Test
+    void aChildIsTheChildrensVoiceElseTheWomensRaised() {
+        VoiceRef fromWomen = extra(withBases(false), "The girl", Gender.FEMALE, Age.CHILD, true);
+        assertEquals("women", fromWomen.id());
+        assertTrue(fromWomen.shift().pitch() >= 3, fromWomen.toString());
+
+        VoiceRef own = extra(withBases(true), "The girl", Gender.FEMALE, Age.CHILD, true);
+        assertEquals("kids", own.id());
+        assertTrue(own.shift() == null || own.shift().pitch() <= 1, own.toString());
+        // a boy too: children's voices are the women's when the cast has none
+        assertEquals("women", extra(withBases(false), "The boy", Gender.MALE, Age.CHILD, true).id());
+    }
+
+    @Test
+    void whenTheShiftedClipCantBeHadTheBaseClipSpeaks() {
+        VoiceRef guard = extra(withBases(false), "The guard", Gender.MALE, Age.ADULT, false);
+        assertEquals("clip:men", guard.toString());
+    }
+
+    @Test
+    void theNarratorStandingInForAnUnnamedSpeakerIsNotShifted() {
+        Cast cast = withBases(false);
+        cast.setMenActorId(null);
+        cast.setFallbackActorId(null);
+        assertEquals("clip:narrator", extra(cast, "The guard", Gender.MALE, Age.ADULT, true).toString());
+    }
+
+    @Test
+    void theFirstGenderAndAgeOfAnUnnamedSpeakerStickAndAnUnknownOneIsFilledInLater() {
+        Cast cast = withBases(false);
+        assertTrue(cast.learnExtra("The guard", Gender.UNKNOWN, Age.ADULT));
+        assertTrue(cast.learnExtra("the guard", Gender.MALE, Age.ELDERLY), "the unknown gender is filled in");
+        assertFalse(cast.learnExtra("THE GUARD", Gender.FEMALE, Age.CHILD), "known values do not flip");
+        assertEquals(1, cast.getExtras().size());
+        CastExtra guard = cast.findExtra("The Guard");
+        assertEquals(Gender.MALE, guard.getGender());
+        assertEquals(Age.ADULT, guard.getAge());
+        // a later label that says otherwise does not change the voice
+        assertEquals("men", extra(cast, "The guard", Gender.FEMALE, Age.CHILD, true).id());
+        // characters and the narrator are not remembered as unnamed speakers
+        assertFalse(cast.learnExtra("Marta", Gender.FEMALE, Age.ADULT));
+        assertFalse(cast.learnExtra("Narrator", Gender.MALE, Age.ADULT));
+    }
+
+    @Test
+    void anotherVariationIsAnotherShiftOfTheSameBase() {
+        Cast cast = withBases(false);
+        cast.learnExtra("The guard", Gender.MALE, Age.ADULT);
+        VoiceRef before = extra(cast, "The guard", null, null, true);
+        int differs = 0;
+        for (int i = 1; i <= 5; i++) {
+            cast.findExtra("The guard").setReroll(i);
+            VoiceRef after = extra(cast, "The guard", null, null, true);
+            assertEquals("men", after.id());
+            differs += after.equals(before) ? 0 : 1;
+        }
+        assertTrue(differs >= 4, "rerolls that changed the voice: " + differs);
+    }
+
+    @Test
+    void theBasesAndTheUnnamedSpeakersSurviveTheJsonOfTheBookAndAnOldCastHasNone() {
+        Gson gson = new Gson();
+        Cast cast = withBases(true);
+        cast.learnExtra("The guard", Gender.MALE, Age.ELDERLY);
+        Cast back = gson.fromJson(gson.toJson(cast), Cast.class);
+        assertEquals("men", back.getMenActorId());
+        assertEquals("kids", back.getChildrenActorId());
+        assertEquals(Age.ELDERLY, back.findExtra("the guard").getAge());
+
+        Cast old = gson.fromJson("{\"narratorActorId\":\"narrator\"}", Cast.class);
+        assertFalse(old.usesExtras());
+        assertTrue(old.getExtras().isEmpty());
     }
 
     @Test

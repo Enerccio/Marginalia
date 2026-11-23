@@ -1,10 +1,10 @@
 ---
 label: Example plugin
 order: 60
-verified: f7e7de02b
+verified: f337fe83d
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/extensions
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/ExtensionService.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/ExtensionService.java
   - marginalia/plugins/chaptermarker
   - marginalia/plugins/chineselocalization
   - marginalia/src/main/java/com/github/enerccio/marginalia/loc
@@ -420,7 +420,7 @@ detail.
 
 `marginalia/plugins/chineselocalization` adds Simplified Chinese to the language selector of the workspace. It is the
 smallest possible plugin - no decorators, no UI, no data - and shows the third optional interface of an extension
-besides `ExtensionHasCss`: `ExtensionHasLocalization`.
+besides `ExtensionHasCss`: `ExtensionHasLocalization`, with `ExtensionHasLocalizedPrompts` for the prompts.
 
 ```
 chineselocalization/
@@ -429,7 +429,8 @@ chineselocalization/
     ├── ChineseLocalizationActivator.java   registers the extension service
     ├── ChineseLocalizationExtension.java   returns the bundle and the prompts
     ├── DefaultsZH.java                     the built-in prompts in Chinese
-    └── LocalizationBundleZH.java           the texts
+    ├── LocalizationBundleZH.java           the language: the texts of the platform (L) and the formats
+    └── MarginaliaLocalizationBundleZH.java the texts of the application (M_L)
 ```
 
 The `pom.xml` is the one of the other plugins without what the plugin doesn't use: it needs only the application
@@ -437,10 +438,10 @@ The `pom.xml` is the one of the other plugins without what the plugin doesn't us
 since there is no `@Configurable` class, and no Vaadin.
 
 **The extension** implements `MarginaliaExtension` as always - both methods stay empty, there is nothing to set up -
-and `ExtensionHasLocalization`:
+and `ExtensionHasLocalization` (the languages of the interface) and `ExtensionHasLocalizedPrompts` (the built-in prompts):
 
 ```java
-public class ChineseLocalizationExtension implements MarginaliaExtension, ExtensionHasLocalization {
+public class ChineseLocalizationExtension implements MarginaliaExtension, ExtensionHasLocalization, ExtensionHasLocalizedPrompts {
 
     @Override
     public void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
@@ -456,23 +457,31 @@ public class ChineseLocalizationExtension implements MarginaliaExtension, Extens
     }
 
     @Override
+    public List<TextBundle<?>> getTextBundles() {
+        return List.of(new MarginaliaLocalizationBundleZH());
+    }
+
+    @Override
     public List<Defaults> getPromptDefaults() {
         return List.of(new DefaultsZH());
     }
 }
 ```
 
-Marginalia calls `getLocalizationBundles()` and `getPromptDefaults()` right after `onExtensionLoad` and registers the
-bundles and the prompts in `Localization` (`registerBundle`, `registerDefaults`); when the extension is unloaded they are
-removed again. `getPromptDefaults()` is optional (none by default): `DefaultsZH` extends the application's `Defaults` and
+Marginalia calls `getLocalizationBundles()` and `getTextBundles()` right after `onExtensionLoad`, and `getPromptDefaults()` once the extension is
+loaded, and registers the bundles and the prompts in `Localization` (`registerBundle`, `registerTexts`, `registerDefaults`); when the
+extension is unloaded they are removed again. The prompts are a separate interface, `ExtensionHasLocalizedPrompts`
+(the prompts belong to Marginalia's writing, not to the platform its interface languages are part of), so an extension
+without prompts leaves it out: `DefaultsZH` extends the application's `Defaults` and
 overrides every text with its Chinese prompt, which adds Chinese to the *Prompt language* of the settings, independent of
 the language of the interface. `DefaultsZHTest` checks that it translates every text and keeps the Handlebars tags and the
 placeholders of the English one. Nothing else is needed: the language shows
 up in the `LanguageSelector` of every workspace the next time it is attached, and a user who picks it is shown the
 whole UI in it after the page reloads.
 
-**The bundle** extends `LocalizationBundleBase`: `loadMessages()` fills the texts with `setValue`, the other
-methods describe the language.
+**The bundles.** The texts are split like the keys: the platform's `L` and the application's `M_L`. The language
+itself is the `LocalizationBundle`, which extends `LocalizationBundleBase`: `loadMessages()` fills the `L` texts with
+`setValue`, the other methods describe the language.
 
 ```java
 public class LocalizationBundleZH extends LocalizationBundleBase {
@@ -507,6 +516,28 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
 }
 ```
 
+The texts of the application are a `TextBundleBase<M_L>` of the same language, which has only them:
+
+```java
+public class MarginaliaLocalizationBundleZH extends TextBundleBase<M_L> {
+
+    public MarginaliaLocalizationBundleZH() {
+        super(M_L.class);
+    }
+
+    @Override
+    public Language getLanguage() {
+        return Language.of("zh");
+    }
+
+    @Override
+    protected void loadMessages() {
+        setValue(M_L.LABEL_BOOKS, "书籍");
+        // ... one setValue for every key of M_L
+    }
+}
+```
+
 What to take from it:
 
 - a **language code** is the identity of a bundle: only one bundle per code exists. A second one is refused (and
@@ -515,7 +546,7 @@ What to take from it:
   a warning listing the missing keys when the bundle is registered. A plugin built for an older version keeps working
   when the application adds keys;
 - the **placeholders** (`%s`, `%d`) of a text must match the English text in number and order of their types, the
-  application formats the text with them. Copy `LocalizationBundleEN` as the start and translate in place;
+  application formats the text with them. Copy `LocalizationBundleEN` and `MarginaliaLocalizationBundleEN` as the start and translate in place;
 - the bundle is created in `getLocalizationBundles()`, and the texts are looked up when needed, so a plugin's own
   user interface that uses `Localization` gets the right language without more work;
 - unloading the plugin makes sessions that used its language fall back to the default one - nothing is lost, the

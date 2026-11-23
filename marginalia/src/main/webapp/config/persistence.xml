@@ -32,6 +32,9 @@
         <class>com.github.enerccio.marginalia.domain.model.impl.Usage</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.Job</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.JobCall</class>
+        <class>com.github.enerccio.marginalia.domain.model.impl.Gpu</class>
+        <class>com.github.enerccio.marginalia.domain.model.impl.GpuStep</class>
+        <class>com.github.enerccio.marginalia.domain.model.impl.GpuLock</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.ManuscriptStatistic</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.ActivityInterval</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.ManuscriptSize</class>
@@ -40,6 +43,7 @@
         <class>com.github.enerccio.marginalia.domain.model.impl.AgentMessage</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.AgentRunPair</class>
         <class>com.github.enerccio.marginalia.domain.security.model.Permission</class>
+        <class>com.github.enerccio.marginalia.domain.security.model.ApiKey</class>
 
         <class>com.github.enerccio.marginalia.domain.model.impl.OpenAICompatible</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.ExtensionAI</class>

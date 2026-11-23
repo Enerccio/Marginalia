@@ -1,0 +1,109 @@
+package com.github.enerccio.marginalia.bound;
+
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
+import com.github.enerccio.marginalia.loc.Language;
+import com.github.enerccio.marginalia.ui.workspace.BaseWorkspace;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
+
+/**
+ * Session scoped state of the user's session: the languages, the workspace, the help chat, the problems, data of extensions. The
+ * bean is the application's {@link MarginaliaSessionPoint}, which adds the open book.
+ */
+public class SessionPoint {
+
+    private volatile Language language;
+
+    private volatile Language promptLanguage;
+
+    private volatile BaseWorkspace workspace;
+
+    private final List<LLMChatMessage> helpChat = Collections.synchronizedList(new ArrayList<>());
+
+    private final ProblemLog problems = new ProblemLog();
+
+    private final Map<String, Object> pluginData = new ConcurrentHashMap<>();
+
+    /**
+     * Free storage of this session for extensions, which cannot add fields to this class: keep your data under a key
+     * named like the extension (its package, for example). It lives as long as the session and is never saved. Keep
+     * the value itself (not this bean) in code that runs off the request.
+     */
+    public Map<String, Object> getPluginData() {
+        return pluginData;
+    }
+
+    /**
+     * The value under the key, created with {@code create} the first time (atomically).
+     *
+     * @throws ClassCastException when another type was stored under the key
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T getPluginData(String key, Supplier<T> create) {
+        return (T) pluginData.computeIfAbsent(key, k -> create.get());
+    }
+
+    /**
+     * Language of the UI of this session, {@code null} until one is set (the default language is used then). Set from
+     * the settings of the user when the workspace is opened.
+     */
+    public Language getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(Language language) {
+        this.language = language;
+    }
+
+    /**
+     * Language of the built-in prompts of this session ({@code Localization.getDefaults()}), {@code null} until one is
+     * set (English is used then). Set from the settings of the user at the login and when the user changes it; in an
+     * agent run the language of the agent.
+     */
+    public Language getPromptLanguage() {
+        return promptLanguage;
+    }
+
+    public void setPromptLanguage(Language promptLanguage) {
+        this.promptLanguage = promptLanguage;
+    }
+
+    /**
+     * The workspace of the page the user logged in on, {@code null} before the login completes. It is the way for code
+     * that has no UI component at hand (a command, a service) to reach what the user sees: the open part, the open book.
+     * A session shared by several browser tabs holds the workspace of the page that logged in last; the workspace of
+     * a given page is {@code ApplicationPoint.getUIs().get(ui)}. Touching its components from a thread without the UI
+     * lock goes through {@code ui.access(...)}.
+     */
+    public BaseWorkspace getWorkspace() {
+        return workspace;
+    }
+
+    public void setWorkspace(BaseWorkspace workspace) {
+        this.workspace = workspace;
+    }
+
+    /**
+     * The conversation of the help assistant in this session, the user's questions and its answers in order (the
+     * instructions and the manual tools are added to each request, not kept here). Synchronized: the answers are
+     * added from the thread of the request. Keep the list itself (not this bean) in code that runs off the request.
+     */
+    public List<LLMChatMessage> getHelpChat() {
+        return helpChat;
+    }
+
+    /**
+     * What went wrong for the user in this session, as it was shown to them (errors, inference failures, forms that
+     * could not be saved): the help assistant reads it to explain a failure. Keep the log itself (not this bean) in
+     * code that runs off the request, see {@link com.github.enerccio.marginalia.utils.UiProblems}.
+     */
+    public ProblemLog getProblems() {
+        return problems;
+    }
+
+}

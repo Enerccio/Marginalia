@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.domain.model.impl;
 import com.github.enerccio.marginalia.domain.collections.Language;
 import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
 import com.github.enerccio.marginalia.domain.model.PlannedScene;
+import com.github.enerccio.marginalia.domain.model.WatchedPhrase;
 import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
 import com.github.enerccio.marginalia.domain.traits.CleanupReference;
 import com.github.enerccio.marginalia.domain.traits.CleanupReference.Policy;
@@ -194,6 +195,21 @@ public class Manuscript extends ExtendableEntity {
     @ExtendedAttribute
     @Transient
     private Boolean autoAnnotateAcceptRedraft;
+
+    /**
+     * The phrase watch list of the book itself ({@code PhraseWatchService}): added to the lists above, an entry with the same phrase replaces theirs.
+     */
+    @ExtendedAttribute(inject = true, injectPrefix = "watchedPhrases")
+    @Transient
+    private List<WatchedPhrase> watchedPhrases = new ArrayList<>();
+
+    /**
+     * The parts generated in the book are scanned for the phrases of the watch list and every hit is annotated (a step after the
+     * automatic annotation, no model call).
+     */
+    @ExtendedAttribute
+    @Transient
+    private Boolean phraseWatch;
 
     @ExtendedAttribute
     @Transient
@@ -547,5 +563,24 @@ public class Manuscript extends ExtendableEntity {
 
     public void setBackupStrategyCurrentValue(String backupStrategyCurrentValue) {
         this.backupStrategyCurrentValue = backupStrategyCurrentValue;
+    }
+
+    public List<WatchedPhrase> getWatchedPhrases() {
+        if (watchedPhrases == null) {
+            watchedPhrases = new ArrayList<>();
+        }
+        return watchedPhrases;
+    }
+
+    public void setWatchedPhrases(List<WatchedPhrase> watchedPhrases) {
+        this.watchedPhrases = watchedPhrases == null ? new ArrayList<>() : new ArrayList<>(watchedPhrases);
+    }
+
+    public Boolean getPhraseWatch() {
+        return phraseWatch != null && phraseWatch;
+    }
+
+    public void setPhraseWatch(Boolean phraseWatch) {
+        this.phraseWatch = phraseWatch;
     }
 }

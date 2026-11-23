@@ -69,4 +69,54 @@ class BackendConfigTest {
 
         assertEquals(1, config.getAfterHooks().size());
     }
+
+    @Test
+    void theLoraChoiceHasDefaultsAndFollowsTheWorkflow() {
+        BackendConfig config = GSON.fromJson("{\"name\": \"ComfyUI\"}", BackendConfig.class);
+        assertNull(config.getLora());
+        assertEquals(1.0, config.getLoraStrength());
+        assertFalse(config.usesLora());
+
+        config.setWorkflow("{\"2\": {\"inputs\": {\"lora_name\": \"{{lora}}\"}}}");
+        assertTrue(config.usesLora());
+        config.setType(BackendType.OPENAI);
+        assertFalse(config.usesLora(), "only ComfyUI runs a workflow");
+
+        config.setLora("x.safetensors");
+        config.setLoraStrength(0);
+        BackendConfig read = GSON.fromJson(GSON.toJson(config), BackendConfig.class);
+        assertEquals("x.safetensors", read.getLora());
+        assertEquals(0.0, read.getLoraStrength());
+    }
+
+    @Test
+    void theInstructionFollowsThePromptForm() {
+        BackendConfig old = GSON.fromJson("{\"name\": \"ComfyUI\"}", BackendConfig.class);
+        assertFalse(old.hasPromptForm());
+        assertEquals(PromptForm.TAGS, old.getPromptForm());
+        assertEquals(PromptForm.TAGS.instruction(), old.instructionFor(null));
+        assertEquals("my words", old.instructionFor("my words"), "a backend from before keeps the instruction the user had");
+
+        old.setPromptForm(PromptForm.SENTENCES);
+        assertEquals(PromptForm.SENTENCES.instruction(), old.instructionFor("my words"));
+
+        old.setPromptForm(PromptForm.CUSTOM);
+        assertEquals(PromptForm.TAGS.instruction(), old.instructionFor("my words"), "free text left empty writes tags");
+        old.setPromptInstruction("Write a haiku.");
+        BackendConfig read = GSON.fromJson(GSON.toJson(old), BackendConfig.class);
+        assertEquals(PromptForm.CUSTOM, read.getPromptForm());
+        assertEquals("Write a haiku.", read.instructionFor(null));
+    }
+
+    @Test
+    void theLorasTheServerListedAreRemembered() {
+        BackendConfig config = GSON.fromJson("{\"name\": \"ComfyUI\"}", BackendConfig.class);
+        assertTrue(config.getKnownLoras().isEmpty());
+
+        config.setKnownLoras(List.of("a.safetensors", "styles/b.safetensors"));
+        config.getKnownLoras().clear();
+        BackendConfig read = GSON.fromJson(GSON.toJson(config), BackendConfig.class);
+
+        assertEquals(List.of("a.safetensors", "styles/b.safetensors"), read.getKnownLoras(), "a copy is handed out, the stored list stays");
+    }
 }

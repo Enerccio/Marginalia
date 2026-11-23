@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.service.AgentService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.widgets.BookLabels;
@@ -71,7 +72,7 @@ public class AgentCloneDialog extends Dialog implements LLMInteract {
                     @APILocals(name = "manuscript", type = Manuscript.class),
                     @APILocals(name = "e", type = Exception.class)})
     public void create() {
-        setHeaderTitle(loc.getValue(L.LABEL_CLONE_AGENT));
+        setHeaderTitle(loc.getValue(M_L.LABEL_CLONE_AGENT));
         setWidth("460px");
         UIUtils.fitPhone(this, false);
         setCloseOnEsc(false);
@@ -91,7 +92,7 @@ public class AgentCloneDialog extends Dialog implements LLMInteract {
         add(content);
 
         Button cancelButton = new Button(loc.getValue(L.LABEL_CANCEL), event -> close());
-        cloneButton = new Button(loc.getValue(L.LABEL_CLONE_AGENT), event -> cloneAgent());
+        cloneButton = new Button(loc.getValue(M_L.LABEL_CLONE_AGENT), event -> cloneAgent());
         cloneButton.setThemeName("primary");
         HorizontalLayout footer = new HorizontalLayout(cancelButton, cloneButton);
         footer.setWidthFull();
@@ -114,7 +115,7 @@ public class AgentCloneDialog extends Dialog implements LLMInteract {
                 manuscriptCombo.setValue(books.getFirst());
             }
             if (books.isEmpty()) {
-                manuscriptCombo.setHelperText(loc.getValue(L.MSG_AGENT_NO_FREE_BOOK));
+                manuscriptCombo.setHelperText(loc.getValue(M_L.MSG_AGENT_NO_FREE_BOOK));
                 cloneButton.setEnabled(false);
             }
         } catch (Exception e) {

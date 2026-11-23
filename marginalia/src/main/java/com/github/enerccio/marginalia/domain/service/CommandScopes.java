@@ -3,16 +3,18 @@ package com.github.enerccio.marginalia.domain.service;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.command.CommandScope;
+import com.github.enerccio.marginalia.domain.service.command.CommandScopeSource;
 
 /**
  * Makes the {@link CommandScope}s commands run in.
  */
-public interface CommandScopes {
+public interface CommandScopes extends CommandScopeSource {
 
     /**
      * The scope of the user at the command bar: the book that is open in their session (read again every time it is asked,
      * the user may open another one), asking by a dialog.
      */
+    @Override
     CommandScope session();
 
     /**
@@ -38,5 +40,14 @@ public interface CommandScopes {
      * @throws IllegalArgumentException when the book does not exist
      */
     CommandScope forManuscript(Manuscript manuscript);
+
+    /**
+     * The scope of a call of the HTTP API: the given book, as it is stored at the moment, or no book for a command that needs none.
+     * Nobody can be asked: a question is answered with {@code confirm}, what the caller sent with the call.
+     *
+     * @param manuscript the book, null for none
+     * @throws IllegalArgumentException when the book is given and does not exist
+     */
+    CommandScope forApi(Manuscript manuscript, boolean confirm);
 
 }

@@ -88,7 +88,7 @@ class PermissionsDialogTest extends MarginaliaTestBase {
         // the test user was given CREATE_AI
         assertThat(dialog.getTypes()).containsExactlyInAnyOrder(PermissionType.HELPER, PermissionType.CREATE_AI);
         assertThat(dialog.getAvailableTypes()).containsExactlyInAnyOrder(PermissionType.AGENTS, PermissionType.NOTIFICATIONS,
-                PermissionType.VERSION_HISTORY);
+                PermissionType.VERSION_HISTORY, PermissionType.API);
         assertThat(combo(dialog).isEnabled()).isTrue();
         assertThat(button(dialog, "Save").isEnabled()).isFalse();
         assertThat(dialog.isDirty()).isFalse();
@@ -145,7 +145,7 @@ class PermissionsDialogTest extends MarginaliaTestBase {
     void addingOffersOnlyTheTypesTheUserHasNoneOf() throws Exception {
         PermissionsDialog dialog = dialog();
         assertThat(dialog.getAvailableTypes()).containsExactlyInAnyOrder(PermissionType.HELPER, PermissionType.AGENTS,
-                PermissionType.NOTIFICATIONS, PermissionType.VERSION_HISTORY);
+                PermissionType.NOTIFICATIONS, PermissionType.VERSION_HISTORY, PermissionType.API);
         assertThat(button(dialog, "Add permission").isEnabled()).isFalse();
 
         combo(dialog).setValue(PermissionType.HELPER);
@@ -154,7 +154,7 @@ class PermissionsDialogTest extends MarginaliaTestBase {
 
         assertThat(dialog.getTypes()).contains(PermissionType.HELPER);
         assertThat(dialog.getAvailableTypes()).containsExactlyInAnyOrder(PermissionType.AGENTS, PermissionType.NOTIFICATIONS,
-                PermissionType.VERSION_HISTORY);
+                PermissionType.VERSION_HISTORY, PermissionType.API);
         assertThat(button(dialog, "Save").isEnabled()).isTrue();
         assertThat(permissionService.getPermission(user, PermissionType.HELPER)).as("not stored yet").isNull();
 

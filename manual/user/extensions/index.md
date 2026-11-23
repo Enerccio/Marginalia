@@ -6,10 +6,11 @@ icon: plug
 
 # Extensions
 
-Extensions add features to Marginalia without changing the application itself. Twenty-three extensions come with Marginalia:
+Extensions add features to Marginalia without changing the application itself. Thirty extensions come with Marginalia:
 
 | Extension | What it adds |
 |---|---|
+| [xAI Grok](grok.md) | xAI's Grok models as an inference provider, over xAI's own API, with the reasoning shown apart from the answer. |
 | [Arc Outline](arc-outline.md) | The arcs of the book and their chapters, with their state, in the sidebar; the model can write an arc for you. |
 | [Anthropic Claude](anthropic.md) | Anthropic's Claude models as an inference provider, over Anthropic's own API, with the thinking summaries shown as reasoning. |
 | [Audiobook](audiobook.md) | Turns a book into an audiobook with a speech server: a voice for the narrator and each character, a studio for the final version, export as mp3 with chapter marks. [Setting up the speech server](audiobook-server.md). |
@@ -19,7 +20,7 @@ Extensions add features to Marginalia without changing the application itself. T
 | [Chapter Marker](chapter-marker.md) | Chapter titles in the story outline, from Markdown headings in the parts. |
 | [Character Tracker](character-tracker.md) | The characters of the book with their relationships, and a map of them. |
 | [Conlang Translator](conlang-translator.md) | The speech of your characters in a constructed language you describe, with the English kept behind it for the models and a click for the reader. |
-| [Gemma 4 tools fix](gemma-4-tools-fix.md) | Makes function calling work with Gemma 4 models whose API wants another role for tool results. |
+| [Gemma 4 tools fix](gemma-4-tools-fix.md) | Makes function calling work with old Gemma 4 models whose API wants another role for tool results; not needed with a current chat template. |
 | [Google Gemini](google-genai.md) | Google's Gemini models as an inference provider, over Google's own API, with the thinking summaries shown as reasoning. |
 | [Image Generator](image-generator.md) | Makes an image for a part of the story: the model writes the prompt, ComfyUI or an OpenAI-style images API draws it, you reroll and accept it. |
 | [Prompt History](prompt-history.md) | Keeps the last 20 requests sent to the models in your session (and per agent run), with the answers and the reasoning, for debugging plugins and checking prompts; opened from Settings → Extension Settings or the console of an agent. |
@@ -37,6 +38,7 @@ Extensions add features to Marginalia without changing the application itself. T
 | [Reviewer](reviewer.md) | Reviews of story parts written by the model - reader reactions, critique. |
 | [Side Query](side-query.md) | A chat with the model about your book, next to the story. |
 | [Converter](sillytavern-converter.md) | A SillyTavern chat next to the story and turn details the model prepares from it, to rewrite the chat as a story; or the parts of an older book (from a backup or the book itself) with their instructions, to redraft it. |
+| [State Tracker](state-tracker.md) | The current state of tracked characters (clothes, what they carry, the weapon at hand, injuries, mood, or your own categories), put into the prompt so the model keeps to it. |
 | [Story Notes](story-notes.md) | A small wiki of your own pages (tags, links between them) in the sidebar, for plots, ideas and rules of the world; the plot wizard and agents can read and change the pages you allow. |
 | [Read Aloud](tts-reader.md) | Reads a published book aloud in the viewer, with the voice of your device. |
 | [Chinese localization](chinese-localization.md) | Simplified Chinese as a language of the user interface. |

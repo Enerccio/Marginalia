@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.Restorable;
 import com.github.enerccio.marginalia.ui.RestorableState;
@@ -63,10 +64,10 @@ public class NewTurnForm implements Restorable {
         content.setPadding(true);
         content.setSpacing(false);
 
-        Span title = new Span(loc.getValue(L.LABEL_NEW_TURN_INSTRUCTIONS));
+        Span title = new Span(loc.getValue(M_L.LABEL_NEW_TURN_INSTRUCTIONS));
         title.addClassName(CssStyles.TEXT_BOLD);
 
-        sceneSettingField = new TextArea(loc.getValue(L.LABEL_SCENE_SETTING));
+        sceneSettingField = new TextArea(loc.getValue(M_L.LABEL_SCENE_SETTING));
         sceneSettingField.setWidthFull();
         ResizableTextArea.install(loc, sceneSettingField, "100px");
         sceneSettingField.addValueChangeListener(e -> {
@@ -75,7 +76,7 @@ public class NewTurnForm implements Restorable {
             fireChanged(e.isFromClient());
         });
 
-        povCharacterField = new TextField(loc.getValue(L.LABEL_POV_CHARACTER));
+        povCharacterField = new TextField(loc.getValue(M_L.LABEL_POV_CHARACTER));
         povCharacterField.setWidthFull();
         povCharacterField.addValueChangeListener(e -> {
             pendingPovCharacter = e.getValue();
@@ -83,7 +84,7 @@ public class NewTurnForm implements Restorable {
             fireChanged(e.isFromClient());
         });
 
-        presentCharactersField = new TextArea(loc.getValue(L.LABEL_PRESENT_CHARACTERS));
+        presentCharactersField = new TextArea(loc.getValue(M_L.LABEL_PRESENT_CHARACTERS));
         presentCharactersField.setWidthFull();
         ResizableTextArea.install(loc, presentCharactersField, "80px");
         presentCharactersField.addValueChangeListener(e -> {
@@ -92,7 +93,7 @@ public class NewTurnForm implements Restorable {
             fireChanged(e.isFromClient());
         });
 
-        instructionsField = new TextArea(loc.getValue(L.LABEL_INSTRUCTIONS));
+        instructionsField = new TextArea(loc.getValue(M_L.LABEL_INSTRUCTIONS));
         instructionsField.setWidthFull();
         ResizableTextArea.install(loc, instructionsField, "120px");
         instructionsField.addValueChangeListener(e -> {
@@ -101,7 +102,7 @@ public class NewTurnForm implements Restorable {
             fireChanged(e.isFromClient());
         });
 
-        Button generateBtn = new Button(loc.getValue(L.LABEL_GENERATE), Solid.PLAY.create(), event -> onGenerate.run());
+        Button generateBtn = new Button(loc.getValue(M_L.LABEL_GENERATE), Solid.PLAY.create(), event -> onGenerate.run());
         generateBtn.setThemeName("primary small");
         generateBtn.setWidthFull();
         generateButton = generateBtn;
@@ -189,7 +190,7 @@ public class NewTurnForm implements Restorable {
             parameters = {@APIParameter(name = "key", type = String.class)})
     public void setGenerateShortcut(String key) {
         if (generateButton != null) {
-            generateButton.setTooltipText(key == null ? null : loc.getValue(L.LABEL_GENERATE) + " (" + key + ")");
+            generateButton.setTooltipText(key == null ? null : loc.getValue(M_L.LABEL_GENERATE) + " (" + key + ")");
         }
     }
 

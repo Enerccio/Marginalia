@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.dialogs.manuscript;
 
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.model.ImageAnchor;
 import com.github.enerccio.marginalia.domain.model.ImageAttachment;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
@@ -9,6 +10,7 @@ import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ResourceService;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.components.MessageImages;
@@ -71,7 +73,7 @@ public class ImagesDialog extends Dialog implements LLMInteract {
     public ImagesDialog(ChatMessage message, Consumer<ChatMessage> onChanged, Runnable preview) {
         this.message = message;
 
-        setHeaderTitle(loc.getValue(L.LABEL_IMAGES));
+        setHeaderTitle(loc.getValue(M_L.LABEL_IMAGES));
         setWidth("760px");
         setMaxHeight("80vh");
 
@@ -85,7 +87,7 @@ public class ImagesDialog extends Dialog implements LLMInteract {
                 images.add(new ImageAttachment(resource.getUuid(), ""));
                 store(images, onChanged);
             } catch (IllegalArgumentException e) {
-                Notification.error(loc.getValue(L.ERROR_INVALID_IMAGE));
+                Notification.error(loc.getValue(M_L.ERROR_INVALID_IMAGE));
             } catch (Exception e) {
                 UIUtils.internalServerError(loc, e);
             }
@@ -95,13 +97,13 @@ public class ImagesDialog extends Dialog implements LLMInteract {
         upload.setMaxFileSize(ResourceService.MAX_IMAGE_BYTES);
         upload.setUploadButton(new Button(loc.getValue(L.LABEL_ADD_IMAGE), VaadinIcon.PICTURE.create()));
         upload.setDropAllowed(true);
-        upload.addFileRejectedListener(_ -> Notification.error(loc.getValue(L.ERROR_INVALID_IMAGE)));
+        upload.addFileRejectedListener(_ -> Notification.error(loc.getValue(M_L.ERROR_INVALID_IMAGE)));
 
         VerticalLayout content = new VerticalLayout(upload, list);
         content.setPadding(false);
         add(content);
         if (preview != null) {
-            Button show = new Button(loc.getValue(L.LABEL_PREVIEW_AS_VIEWER), VaadinIcon.EYE.create(), _ -> preview.run());
+            Button show = new Button(loc.getValue(M_L.LABEL_PREVIEW_AS_VIEWER), VaadinIcon.EYE.create(), _ -> preview.run());
             getFooter().add(show);
         }
         getFooter().add(new Button(loc.getValue(L.LABEL_CLOSE), _ -> close()));
@@ -182,26 +184,26 @@ public class ImagesDialog extends Dialog implements LLMInteract {
         ImageAnchor anchor = attachment.effectiveAnchor();
 
         Div picker = new Div();
-        picker.addClassName(CssStyles.IMAGE_ANCHOR_PICKER);
+        picker.addClassName(MarginaliaCssStyles.IMAGE_ANCHOR_PICKER);
         List<Div> dots = new ArrayList<>();
         for (ImageAnchor candidate : ImageAnchor.values()) {
             boolean selected = candidate == anchor;
             Div dot = new Div();
             dots.add(dot);
-            dot.addClassName(CssStyles.IMAGE_ANCHOR_DOT);
+            dot.addClassName(MarginaliaCssStyles.IMAGE_ANCHOR_DOT);
             if (selected) {
-                dot.addClassName(CssStyles.IMAGE_ANCHOR_DOT_SELECTED);
+                dot.addClassName(MarginaliaCssStyles.IMAGE_ANCHOR_DOT_SELECTED);
             }
             Button button = new Button(dot,
                     _ -> change(index, current -> current.withLayout(candidate, current.wrap(), current.width()), true, onChanged));
             button.setThemeName("tertiary icon");
-            String name = loc.getValue(L.valueOf("ENUM_IMAGE_ANCHOR_" + candidate.name()));
+            String name = loc.getValue(M_L.valueOf("ENUM_IMAGE_ANCHOR_" + candidate.name()));
             button.setAriaLabel(name);
             UIUtils.addTooltip(button, name);
             picker.add(button);
         }
 
-        Checkbox wrap = new Checkbox(loc.getValue(L.LABEL_IMAGE_WRAP), attachment.wrap());
+        Checkbox wrap = new Checkbox(loc.getValue(M_L.LABEL_IMAGE_WRAP), attachment.wrap());
         wrap.addValueChangeListener(e -> {
             if (e.isFromClient()) {
                 change(index, current -> current.withLayout(current.anchor(), e.getValue(), current.width()), true, onChanged);
@@ -209,7 +211,7 @@ public class ImagesDialog extends Dialog implements LLMInteract {
         });
 
         Checkbox automatic = new Checkbox(loc.getValue(L.LABEL_AUTOMATIC), attachment.width() == null);
-        IntegerField width = new IntegerField(loc.getValue(L.LABEL_IMAGE_WIDTH));
+        IntegerField width = new IntegerField(loc.getValue(M_L.LABEL_IMAGE_WIDTH));
         width.setMin(ImageAttachment.MIN_WIDTH);
         width.setMax(attachment.maxWidth());
         width.setStepButtonsVisible(true);
@@ -235,12 +237,12 @@ public class ImagesDialog extends Dialog implements LLMInteract {
         ((HorizontalLayout) options.getComponentAt(1)).setAlignItems(FlexComponent.Alignment.END);
         HorizontalLayout row = new HorizontalLayout(picker, options);
         row.setAlignItems(FlexComponent.Alignment.START);
-        Span hint = new Span(loc.getValue(L.HELP_IMAGE_LAYOUT));
+        Span hint = new Span(loc.getValue(M_L.HELP_IMAGE_LAYOUT));
         hint.addClassNames(CssStyles.TEXT_S, CssStyles.TEXT_SECONDARY);
         syncs.put(index, saved -> {
             ImageAnchor now = saved.effectiveAnchor();
             for (int i = 0; i < dots.size(); i++) {
-                dots.get(i).setClassName(CssStyles.IMAGE_ANCHOR_DOT_SELECTED, ImageAnchor.values()[i] == now);
+                dots.get(i).setClassName(MarginaliaCssStyles.IMAGE_ANCHOR_DOT_SELECTED, ImageAnchor.values()[i] == now);
             }
             wrap.setValue(saved.wrap());
             automatic.setValue(saved.width() == null);
@@ -276,7 +278,7 @@ public class ImagesDialog extends Dialog implements LLMInteract {
                     continue;
                 }
 
-                TextField caption = new TextField(loc.getValue(L.LABEL_IMAGE_CAPTION));
+                TextField caption = new TextField(loc.getValue(M_L.LABEL_IMAGE_CAPTION));
                 caption.setWidthFull();
                 caption.setValue(attachment.caption() == null ? "" : attachment.caption());
                 caption.addValueChangeListener(e -> {
@@ -307,8 +309,8 @@ public class ImagesDialog extends Dialog implements LLMInteract {
                     }
                 });
                 remove.setThemeName("tertiary icon error");
-                remove.setAriaLabel(loc.getValue(L.LABEL_REMOVE_IMAGE));
-                UIUtils.addTooltip(remove, loc.getValue(L.LABEL_REMOVE_IMAGE));
+                remove.setAriaLabel(loc.getValue(M_L.LABEL_REMOVE_IMAGE));
+                UIUtils.addTooltip(remove, loc.getValue(M_L.LABEL_REMOVE_IMAGE));
 
                 VerticalLayout fields = new VerticalLayout(caption, layoutControls(attachment, index, onChanged));
                 fields.setPadding(false);

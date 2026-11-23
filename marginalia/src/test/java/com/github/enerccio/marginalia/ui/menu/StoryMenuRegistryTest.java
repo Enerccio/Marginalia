@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.ui.menu;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
 import com.github.enerccio.marginalia.ui.dialogs.story.StoryCard;
@@ -85,7 +86,7 @@ class StoryMenuRegistryTest extends MarginaliaTestBase {
                         yield null;
                     }
                     case "isAnnotationsInMargin" -> Boolean.FALSE;
-                    case "isAutoAnnotate" -> Boolean.FALSE;
+                    case "isAutoAnnotate", "isPhraseWatch" -> Boolean.FALSE;
                     case "isMassDelete" -> Boolean.FALSE;
                     // no book: nothing is generated
                     case "getCurrentManuscript" -> null;
@@ -133,13 +134,13 @@ class StoryMenuRegistryTest extends MarginaliaTestBase {
         assertThat(keys(registry.definition(MenuKind.TOOLS, false, null))).containsExactly(
                 StoryMenuKeys.SEARCH_REPLACE,
                 StoryMenuKeys.CHANGE_STYLES, StoryMenuKeys.HIGHLIGHT_GENERATED, StoryMenuKeys.ANNOTATIONS_IN_MARGIN,
-                StoryMenuKeys.ANNOTATE_RANGE, StoryMenuKeys.CREATE_SUMMARIES, StoryMenuKeys.LORE_NOTES, StoryMenuKeys.AUTO_ANNOTATE, StoryMenuKeys.BRANCH_TOKENS, StoryMenuKeys.LORE_USAGE, StoryMenuKeys.STATISTICS,
+                StoryMenuKeys.ANNOTATE_RANGE, StoryMenuKeys.CREATE_SUMMARIES, StoryMenuKeys.LORE_NOTES, StoryMenuKeys.AUTO_ANNOTATE, StoryMenuKeys.PHRASE_WATCH, StoryMenuKeys.BRANCH_TOKENS, StoryMenuKeys.LORE_USAGE, StoryMenuKeys.STATISTICS,
                 StoryMenuKeys.IMPORT_ARCHIVE, StoryMenuKeys.EXPORT,
                 StoryMenuKeys.CLEAR_BOOK_HISTORY, StoryMenuKeys.EMPTY_HISTORY_TRASH, StoryMenuKeys.MASS_DELETE,
                 StoryMenuKeys.SAVE_LAYOUT_AS_DEFAULT, StoryMenuKeys.RESTORE_LAYOUT);
         assertThat(keys(registry.definition(MenuKind.TOOLS, true, null))).containsExactly(
                 StoryMenuKeys.SEARCH_REPLACE, StoryMenuKeys.CHANGE_STYLES, StoryMenuKeys.HIGHLIGHT_GENERATED,
-                StoryMenuKeys.ANNOTATE_RANGE, StoryMenuKeys.CREATE_SUMMARIES, StoryMenuKeys.LORE_NOTES, StoryMenuKeys.AUTO_ANNOTATE, StoryMenuKeys.BRANCH_TOKENS, StoryMenuKeys.LORE_USAGE, StoryMenuKeys.STATISTICS,
+                StoryMenuKeys.ANNOTATE_RANGE, StoryMenuKeys.CREATE_SUMMARIES, StoryMenuKeys.LORE_NOTES, StoryMenuKeys.AUTO_ANNOTATE, StoryMenuKeys.PHRASE_WATCH, StoryMenuKeys.BRANCH_TOKENS, StoryMenuKeys.LORE_USAGE, StoryMenuKeys.STATISTICS,
                 StoryMenuKeys.IMPORT_ARCHIVE, StoryMenuKeys.EXPORT,
                 StoryMenuKeys.CLEAR_BOOK_HISTORY, StoryMenuKeys.EMPTY_HISTORY_TRASH, StoryMenuKeys.MASS_DELETE);
         assertThat(ids(registry.definition(MenuKind.TOOLS, false, null).getRoots())).containsExactly(
@@ -235,10 +236,10 @@ class StoryMenuRegistryTest extends MarginaliaTestBase {
         BuiltMenu built = definition.build(menu, loc, editor(new AtomicReference<>(false), calls), () -> card);
 
         assertThat(textOf(built.get(StoryMenuKeys.EDIT))).isEqualTo(loc.getValue(L.LABEL_EDIT));
-        assertThat(textOf(built.get(StoryMenuKeys.HISTORY))).as("no count while the part has no versions").isEqualTo(loc.getValue(L.LABEL_HISTORY));
+        assertThat(textOf(built.get(StoryMenuKeys.HISTORY))).as("no count while the part has no versions").isEqualTo(loc.getValue(M_L.LABEL_HISTORY));
         history[0] = 3;
         built.refresh();
-        assertThat(textOf(built.get(StoryMenuKeys.HISTORY))).isEqualTo(String.format(loc.getValue(L.LABEL_HISTORY_WITH_COUNT), 3));
+        assertThat(textOf(built.get(StoryMenuKeys.HISTORY))).isEqualTo(String.format(loc.getValue(M_L.LABEL_HISTORY_WITH_COUNT), 3));
         history[0] = 0;
         built.refresh();
         assertThat(keyOf(built.get(StoryMenuKeys.EDIT))).isEqualTo("e");
@@ -544,9 +545,9 @@ class StoryMenuRegistryTest extends MarginaliaTestBase {
     @Test
     void theKeyBindingsNameAnItemWithTheGroupsItIsIn() {
         assertThat(ShortcutRegistry.get("menu." + StoryMenuKeys.STATISTICS).getLabel(loc))
-                .isEqualTo(loc.getValue(L.LABEL_ANALYSIS) + " \u203A " + loc.getValue(L.LABEL_STATISTICS));
+                .isEqualTo(loc.getValue(M_L.LABEL_ANALYSIS) + " \u203A " + loc.getValue(M_L.LABEL_STATISTICS));
         assertThat(ShortcutRegistry.get("menu." + StoryMenuKeys.CHANGE_STYLES)).as("it holds a sub menu, it is no action").isNull();
         assertThat(ShortcutRegistry.get("menu." + StoryMenuKeys.EXPORT).getLabel(loc))
-                .isEqualTo(loc.getValue(L.LABEL_IMPORT_AND_EXPORT) + " \u203A " + loc.getValue(L.LABEL_EXPORT_STORY));
+                .isEqualTo(loc.getValue(M_L.LABEL_IMPORT_AND_EXPORT) + " \u203A " + loc.getValue(M_L.LABEL_EXPORT_STORY));
     }
 }

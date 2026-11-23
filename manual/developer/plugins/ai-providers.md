@@ -2,19 +2,20 @@
 label: Inference providers from a plugin
 order: 62
 covers:
-  - marginalia/src/main/java/com/github/enerccio/marginalia/extensions/ExtensionAIFactory.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/extensions/ExtensionAIForm.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/model/impl/ExtensionAI.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/InferenceServices.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/InferenceSession.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/UsageContext.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/InferenceServicesImpl.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/ui/dialogs/AIDialog.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/utils/AITypes.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/extensions/ExtensionAIFactory.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/extensions/ExtensionAIForm.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/model/impl/ExtensionAI.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/InferenceServices.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/InferenceSession.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/UsageContext.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/impl/InferenceServicesImpl.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/ui/dialogs/AIDialog.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/utils/AITypes.java
   - marginalia/src/main/resources/migration/V14__extension_ai.sql
   - marginalia/plugins/google-genai
   - marginalia/plugins/anthropic
-verified: f7e7de02b
+  - marginalia/plugins/grok
+verified: f337fe83d
 ---
 
 # Inference providers from a plugin
@@ -23,7 +24,7 @@ A plugin can bring a model API of its own. The user then creates an AI of the ty
 provider of the plugin in the AI dialog, and the AI works like an OpenAI-compatible one: books use it, it is shared and
 limited, its usage is counted. The bundled
 [Google Gemini](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/google-genai) plugin is the
-worked example, [Anthropic Claude](#the-anthropic-claude-plugin) a second one.
+worked example, [Anthropic Claude](#the-anthropic-claude-plugin) a second one and [xAI Grok](#the-xai-grok-plugin) a third, without an SDK.
 
 ```mermaid
 flowchart LR
@@ -125,16 +126,22 @@ What a service has to take care of itself, because nothing above it does:
 | **Agents** | The runner of an [agent](../agents.md) asks with `InferenceService.round(payload, protocol, functions, callback)`: one request, the text, the reasoning and the calls the model wants made handed to `onRound` (they are **not** called) with a `RoundUsage` (tokens, and a `RoundStats` of what is known: the cache, the reasoning, the time, why it ended; -1 or null for what the provider does not tell). The default throws `UnsupportedOperationException`, so a service that does not implement it can not be given to an agent. |
 | **Callbacks** | `stream` hands chunks one at a time: call `onChunk(controller, type, text)` and wait for `controller.continueInference()` before the next, then `onCompletion()`. `ChunkType.REASONING` is the thinking, shown apart from the answer. Check `callback.isDead()` and the `CancellationToken` between chunks and end with `onCancel()`. Cut a blocked read short by cancelling the HTTP call when the token is cancelled (the Google plugin does it with an OkHttp interceptor). |
 | **Thinking sent back** | The setting **Send the thinking back** (`OpenAICompatible.reasoningPassthrough`) belongs to the OpenAI-compatible provider and is not shown for the type Extension: `OpenAICompatibleInferenceService` adds the `reasoning` of an assistant `LLMChatMessage` to the request as `reasoning_content` (`reasoningInTurn` says the answer is of the current turn, which `Between tool calls` needs). A provider of a plugin decides for itself what its API wants back: the Anthropic and Google plugins send the signed thinking blocks and thought signatures, which travel with the calls in `LLMToolCall`'s signature. |
-| **Listeners** | While a listener watches the requests (`InferenceSession.addListener`, see [Models](../services.md#models); since 1.8.0 the job log of the application installs one at startup, so always), `InferenceServices.forAI` returns your service wrapped in `ObservedInferenceService`, and always in `GatedInferenceService` (the connections of the AI, see `AIGate` in [Services](../services.md#models)); a service has nothing to do for either, but must not rely on `forAI` returning its own class: `forAI(ai).unwrap(MyService.class)` reaches it (the token counting of `anthropic` and `google-genai` does). A request of yours may be sent later, from another thread, with the caller's request scope, usage, session and job restored; a tool loop inside your `stream` must call the functions through `FunctionSet.call` (it gives the connection back while they run). |
+| **Listeners** | While a listener watches the requests (`InferenceSession.addListener`, see [Models](../services.md#models); since 1.8.0 the job log of the application installs one at startup, so always), `InferenceServices.forAI` returns your service wrapped in `ObservedInferenceService`, in `PlacedInferenceService` when the AI places parts of the request (`PromptPlacements.needed`: images before the text, function definitions or a rule, see [Services](../services.md#models); the payload you get is a copy with them in place), and always in `GatedInferenceService` (the connections of the AI, see `AIGate` in [Services](../services.md#models), and the [GPU lock](gpu-locks.md) of the AI, `AI.gpuLock`, which it takes after the connection; the AI dialog shows the lock for an extension AI too); a service has nothing to do for either, but must not rely on `forAI` returning its own class: `forAI(ai).unwrap(MyService.class)` reaches it (the token counting of `anthropic` and `google-genai` does). A request of yours may be sent later, from another thread, with the caller's request scope, usage, session and job restored; a tool loop inside your `stream` must call the functions through `FunctionSet.call` (it gives the connection back while they run). |
 | **Functions** | When a `FunctionSet` is passed, offer its definitions, run the calls the model makes with `FunctionSet.call(...)` (asynchronously, in the request scope), report each with `onFunctionCall`, ask again with the results, up to `MAX_FUNCTION_ROUNDS`. See `callFunctions` in the Google plugin. |
 | **Tokens** | `countTokens` is called very often (every part of the prompt): do not make a request for it per call. `TokenizerService.countTokensApprox` is local. A provider with real tokenizers (several, or a different one per URL) overrides `ExtensionAIFactory.createTokenizerResolver()` and calls `TokenizerService.countTokens(ai, text)` from `countTokens`. The `TokenizerResolver` gives each of its AIs a `TokenizerKey` (`TokenizerKey.of(id)` or `TokenizerKey.of(id, secret)`, which keeps only an HMAC fingerprint of the secret; AIs with an equal key share the tokenizer that worked) and the `TokenizerStrategy` list to try for it. It is asked for the AIs of the provider only, once per registered factory. `countTokens` is also called inside read-write transactions (they hold the database write lock): `TokenizerService` counts approximately there, a provider that does not use it must not make a slow request in `countTokens`. |
 
-**Images of the lore.** An AI with `isSendLoreImages()` gets the images of the activated lorebook entries as image
+**Images of the lore.** A multimodal AI (`isMultimodal()`) gets the images of the activated lorebook entries as image
 attachments (`LLMAttachment`): of a user message of their own after the system prompt (answered by a short assistant
 message) or of the final user message, see [Generation pipeline](../generation-pipeline.md). A provider needs nothing
-for it beyond sending the image attachments of any message. Only the OpenAI-compatible service also writes the
-attachments of a *system* message (`AI.isLoreImagesInSystem()`, `toSystemMessage`); the AI dialog shows that checkbox for
-the OpenAI-compatible type only, so an extension provider never gets the flag.
+for it beyond sending the image attachments of any message, in the order the message gives: the parts of
+`LLMChatMessage.getAttachmentsBeforeText()`, the text, then `getAttachmentsAfterText()` (the images come first when the AI's
+*Image placement* is *Before the text*; the `anthropic`, `google-genai` and `grok` plugins do it). Only the OpenAI-compatible
+service also writes the attachments of a *system* message (`AI.getImagePlacement()` `SYSTEM`, `toSystemMessage`); the AI
+dialog offers that placement for the OpenAI-compatible type only, so an extension provider never gets it.
+
+**Function definitions and the rule.** The AI settings *Function definitions* and *Function call rule* are applied before your
+service sees the request (`PlacedInferenceService`, see Listeners): the definitions written into the latest user message and the
+rule are already in the text of the messages. Send the `FunctionSet` as tools as always.
 
 ## Tokenizers for OpenAI-compatible AIs
 
@@ -266,3 +273,20 @@ does not, come along. Where it differs from the Google plugin:
 - **Tests.** `AnthropicServiceTest` runs the real SDK against `FakeAnthropicServer` (a JDK `HttpServer` that streams scripted
   server-sent events): chunks, usage, the request bodies, the function loop with signed thinking, `infer` with a schema, `round`,
   the error statuses, and a stalled stream that is cancelled. That is the way to test a provider without an API key.
+
+## The xAI Grok plugin
+
+`marginalia/plugins/grok` has the same classes as the other two (`GrokActivator`, `GrokExtension`, `GrokFactory`, `GrokSettings`,
+`GrokForm`, `GrokInferenceService`, `GrokMessages`, `GrokErrors`) and embeds nothing: the xAI API is OpenAI-shaped REST, so
+`GrokClient` talks to it with the OkHttp and Jackson of the application (provided, boot-delegated). Where it differs:
+
+- **Own HTTP client.** `GrokClient` sends JSON, retries 408/409/429/5xx and connection errors with growing waits, and reads the
+  streamed answer as server-sent events (`GrokClient.Stream`: `data:` lines up to `[DONE]`). Cancelling the OkHttp `Call` (the
+  `CancellationToken` of the run) fails a read that waits for the next chunk. A body that ends without `[DONE]` or a
+  `finish_reason` is a cut connection (`Type.CONNECTION`).
+- **Usage.** xAI reports `reasoning_tokens` apart from `completion_tokens` and bills both, so `TokenUsage.of` adds them (when
+  `total_tokens` says they are not already inside).
+- **Reasoning effort** is `reasoning_effort`, which only `grok-3-mini` takes (`GrokSettings.EffortMode`: auto / always / never).
+- **Tokens** are counted by `POST /tokenize-text` through the `TokenizerResolver` (`GROK_TOKENIZE_TEXT`), cached per text, with a
+  one minute pause on the estimate after a failure.
+- **Tests.** `GrokServiceTest` runs the service against `FakeGrokServer` (a JDK `HttpServer` with scripted SSE chunks).

@@ -2,10 +2,13 @@ package com.github.enerccio.marginalia.ui.dialogs.story;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.model.PlannedScene;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.PlannerService;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.MergeTurnsDialog;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
@@ -77,18 +80,18 @@ public class PlannerPanel extends VerticalLayout {
         setPadding(false);
         setSpacing(false);
 
-        Button add = new Button(loc.getValue(L.LABEL_ADD_SCENE), Solid.PLUS.create(), _ -> {
+        Button add = new Button(loc.getValue(M_L.LABEL_ADD_SCENE), Solid.PLUS.create(), _ -> {
             Manuscript current = book.get();
             if (current != null) {
-                new PlannedSceneDialog(loc, loc.getValue(L.LABEL_NEW_SCENE), new PlannedScene(), scene ->
+                new PlannedSceneDialog(loc, loc.getValue(M_L.LABEL_NEW_SCENE), new PlannedScene(), scene ->
                         run(() -> plannerService.add(current, scene))).open();
             }
         });
         add.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         summary.addClassName(CssStyles.TEXT_SECONDARY);
-        Button importBranch = new Button(loc.getValue(L.LABEL_IMPORT_FROM_BRANCH), Solid.FILE_IMPORT.create(), _ -> confirmImport());
+        Button importBranch = new Button(loc.getValue(M_L.LABEL_IMPORT_FROM_BRANCH), Solid.FILE_IMPORT.create(), _ -> confirmImport());
         importBranch.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        importBranch.setTooltipText(loc.getValue(L.HELP_PLANNER_IMPORT_FROM_BRANCH));
+        importBranch.setTooltipText(loc.getValue(M_L.HELP_PLANNER_IMPORT_FROM_BRANCH));
         HorizontalLayout bar = new HorizontalLayout(add, importBranch, summary);
         bar.setWrap(true);
         bar.setAlignItems(FlexComponent.Alignment.CENTER);
@@ -122,9 +125,9 @@ public class PlannerPanel extends VerticalLayout {
             return;
         }
         long done = scenes.stream().filter(PlannedScene::isDone).count();
-        summary.setText(scenes.isEmpty() ? "" : loc.getValue(L.MSG_PLANNER_SUMMARY).formatted(done, scenes.size()));
+        summary.setText(scenes.isEmpty() ? "" : loc.getValue(M_L.MSG_PLANNER_SUMMARY).formatted(done, scenes.size()));
         if (scenes.isEmpty()) {
-            Span none = new Span(loc.getValue(L.MSG_PLANNER_NONE));
+            Span none = new Span(loc.getValue(M_L.MSG_PLANNER_NONE));
             none.addClassNames(CssStyles.HINT_TEXT, CssStyles.PRE_WRAP);
             Div hint = new Div(none);
             list.add(hint);
@@ -145,36 +148,36 @@ public class PlannerPanel extends VerticalLayout {
         String detail = StringUtils.firstNonBlank(scene.getInstructions(), scene.getSceneSetting());
         if (StringUtils.isNotBlank(detail)) {
             Div text = new Div(new Span(detail));
-            text.addClassName(CssStyles.PLANNER_SCENE_TEXT);
+            text.addClassName(MarginaliaCssStyles.PLANNER_SCENE_TEXT);
             content.add(text);
         }
-        String doneTooltip = loc.getValue(scene.isDone() ? L.LABEL_MARK_NOT_DONE : L.LABEL_MARK_DONE);
+        String doneTooltip = loc.getValue(scene.isDone() ? M_L.LABEL_MARK_NOT_DONE : M_L.LABEL_MARK_DONE);
         return TurnRow.builder(content)
                 .done(scene.isDone(), doneTooltip, value -> run(() -> plannerService.setDone(current, scene.getUuid(), value)))
-                .onClick(loc.getValue(L.LABEL_USE_IN_NEXT_TURN), () -> {
+                .onClick(loc.getValue(M_L.LABEL_USE_IN_NEXT_TURN), () -> {
                     if (!host.open(scene)) {
-                        Notification.warning(loc.getValue(L.MSG_PLANNER_NO_TURN_FORM));
+                        Notification.warning(loc.getValue(M_L.MSG_PLANNER_NO_TURN_FORM));
                     }
                 })
                 .moveUp(action(L.LABEL_MOVE_UP, index > 0, () -> run(() -> plannerService.move(current, scene.getUuid(), -1))))
                 .moveDown(action(L.LABEL_MOVE_DOWN, next != null, () -> run(() -> plannerService.move(current, scene.getUuid(), 1))))
-                .insert(action(L.LABEL_INSERT_SCENE_BELOW, true, () -> new PlannedSceneDialog(loc, loc.getValue(L.LABEL_NEW_SCENE),
+                .insert(action(M_L.LABEL_INSERT_SCENE_BELOW, true, () -> new PlannedSceneDialog(loc, loc.getValue(M_L.LABEL_NEW_SCENE),
                         new PlannedScene(), added -> run(() -> plannerService.insert(current, scene.getUuid(), added))).open()))
-                .merge(action(L.LABEL_MERGE_WITH_NEXT_SCENE, next != null, () -> merge(current, scene, next)))
-                .edit(action(L.LABEL_EDIT, true, () -> new PlannedSceneDialog(loc, loc.getValue(L.LABEL_EDIT_SCENE), scene,
+                .merge(action(M_L.LABEL_MERGE_WITH_NEXT_SCENE, next != null, () -> merge(current, scene, next)))
+                .edit(action(L.LABEL_EDIT, true, () -> new PlannedSceneDialog(loc, loc.getValue(M_L.LABEL_EDIT_SCENE), scene,
                         changed -> run(() -> plannerService.update(current, changed))).open()))
                 .delete(action(L.LABEL_DELETE, true, () -> confirmDelete(current, scene)))
                 .build();
     }
 
-    private TurnRow.Action action(L tooltip, boolean enabled, Runnable run) {
+    private TurnRow.Action action(LocalizationKey tooltip, boolean enabled, Runnable run) {
         return new TurnRow.Action(loc.getValue(tooltip), enabled, run);
     }
 
     private void confirmDelete(Manuscript current, PlannedScene scene) {
         ConfirmDialog confirm = new ConfirmDialog();
         confirm.setHeader(loc.getValue(L.LABEL_DELETE));
-        confirm.setText(loc.getValue(L.MSG_PLANNER_DELETE_CONFIRM).formatted(scene.getTitle()));
+        confirm.setText(loc.getValue(M_L.MSG_PLANNER_DELETE_CONFIRM).formatted(scene.getTitle()));
         confirm.setCancelable(true);
         confirm.setConfirmText(loc.getValue(L.LABEL_DELETE));
         confirm.setConfirmButtonTheme("error primary");
@@ -184,7 +187,7 @@ public class PlannerPanel extends VerticalLayout {
 
     /** Shows the two scenes joined, for the author to edit, and makes one scene of them. */
     private void merge(Manuscript current, PlannedScene scene, PlannedScene next) {
-        new MergeTurnsDialog(loc, loc.getValue(L.LABEL_MERGE_WITH_NEXT_SCENE), toTurn(scene), toTurn(next), PlannerService.MAX_TITLE_LENGTH,
+        new MergeTurnsDialog(loc, loc.getValue(M_L.LABEL_MERGE_WITH_NEXT_SCENE), toTurn(scene), toTurn(next), PlannerService.MAX_TITLE_LENGTH,
                 merged -> run(() -> plannerService.merge(current, scene.getUuid(), next.getUuid(), new PlannedScene(merged.title(),
                         merged.sceneSetting(), merged.povCharacter(), merged.presentCharacters(), merged.instructions())))).open();
     }
@@ -200,16 +203,16 @@ public class PlannerPanel extends VerticalLayout {
             return;
         }
         ConfirmDialog confirm = new ConfirmDialog();
-        confirm.setHeader(loc.getValue(L.LABEL_IMPORT_FROM_BRANCH));
-        confirm.setText(loc.getValue(L.MSG_PLANNER_IMPORT_CONFIRM));
+        confirm.setHeader(loc.getValue(M_L.LABEL_IMPORT_FROM_BRANCH));
+        confirm.setText(loc.getValue(M_L.MSG_PLANNER_IMPORT_CONFIRM));
         confirm.setCancelable(true);
-        confirm.setConfirmText(loc.getValue(L.LABEL_IMPORT));
+        confirm.setConfirmText(loc.getValue(M_L.LABEL_IMPORT));
         confirm.addConfirmListener(_ -> run(() -> {
             int added = plannerService.importBranch(current);
             if (added == 0) {
-                Notification.warning(loc.getValue(L.MSG_PLANNER_IMPORT_NONE));
+                Notification.warning(loc.getValue(M_L.MSG_PLANNER_IMPORT_NONE));
             } else {
-                Notification.success(loc.getValue(L.MSG_PLANNER_IMPORTED).formatted(added));
+                Notification.success(loc.getValue(M_L.MSG_PLANNER_IMPORTED).formatted(added));
             }
         }));
         confirm.open();

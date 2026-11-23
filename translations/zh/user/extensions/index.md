@@ -6,7 +6,7 @@ icon: plug
 
 # 扩展
 
-扩展可以为 Marginalia 添加功能，而不会改动应用本身。Marginalia 随附二十三个扩展：
+扩展可以为 Marginalia 添加功能，而不会改动应用本身。Marginalia 随附三十个扩展：
 
 | 扩展 | 添加的内容 |
 |---|---|
@@ -37,6 +37,7 @@ icon: plug
 | [Reviewer](reviewer.md) | 由模型撰写的故事部分评论，包括读者反应和批评。 |
 | [Side Query](side-query.md) | 在故事旁边与模型就你的书籍进行对话。 |
 | [Converter](sillytavern-converter.md) | 在故事旁边显示 SillyTavern 聊天记录，以及模型根据它准备的转换细节，用于将聊天重写为故事；或者将旧书籍的部分内容（来自备份或书籍本身）及其指令载入，以便重新改写。 |
+| [State Tracker](state-tracker.md) | 被追踪角色的当前状态（衣着、随身物品、手边的武器、伤势、情绪或你自定义的类别），放入提示词，使模型保持一致。 |
 | [Story Notes](story-notes.md) | 侧边栏中一个由你自己的页面组成的小型维基（页面可添加标签并相互链接），用于记录情节、想法和世界规则；情节向导和智能体可以读取并修改你允许的页面。 |
 | [Read Aloud](tts-reader.md) | 在阅读器中使用你设备的声音朗读已发布的书籍。 |
 | [Chinese localization](chinese-localization.md) | 将简体中文作为用户界面的语言。 |

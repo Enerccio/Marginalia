@@ -457,7 +457,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
      * model of the user.
      */
     private ModelSelection requireModel(CommandContext context) throws Exception {
-        CommandScope.ModelChoice scoped = context.getScope().getModel();
+        CommandScope.ModelChoice scoped = CommandScope.of(context).getModel();
         if (scoped != null && scoped.ai() != null) {
             return new ModelSelection(scoped.ai(), scoped.protocol());
         }

@@ -3,7 +3,7 @@ package com.github.enerccio.marginalia.extensions.knowledgetracker.ui;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.model.KnowledgeState;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.model.MetPerson;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.model.TrackedCharacter;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.scene.PresentCharacters;
+import com.github.enerccio.marginalia.extensions.storytracker.scene.PresentCharacters;
 import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
 import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.vaadin.flow.component.button.Button;

@@ -10,6 +10,8 @@ import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.LLMInteract;
@@ -149,13 +151,13 @@ public class PhoneManuscriptDialog extends Dialog implements ManuscriptWindow {
         content.setSpacing(false);
         content.addClassName(CssStyles.OVERFLOW_HIDDEN);
 
-        infoTab = addPart(L.LABEL_INFO_PART, infoPart, content);
-        addPart(L.LABEL_PROMPT_PART, promptPart, content);
-        addPart(L.LABEL_LOREBOOK, lorebookPart, content);
-        storyTab = addPart(L.LABEL_STORY_PART, storyPart, content);
+        infoTab = addPart(M_L.LABEL_INFO_PART, infoPart, content);
+        addPart(M_L.LABEL_PROMPT_PART, promptPart, content);
+        addPart(M_L.LABEL_LOREBOOK, lorebookPart, content);
+        storyTab = addPart(M_L.LABEL_STORY_PART, storyPart, content);
         storyPartComponent = tabToContent.get(storyTab);
-        addPart(L.LABEL_BRANCH_TREE, treePart, content);
-        addPart(L.LABEL_BACKUPS, backupPart, content);
+        addPart(M_L.LABEL_BRANCH_TREE, treePart, content);
+        addPart(M_L.LABEL_BACKUPS, backupPart, content);
 
         VerticalLayout mainLayout = new VerticalLayout(tabs, content);
         mainLayout.setSizeFull();
@@ -189,14 +191,14 @@ public class PhoneManuscriptDialog extends Dialog implements ManuscriptWindow {
         tabToContent.forEach((tab, component) -> component.setVisible(tab == tabs.getSelectedTab()));
     }
 
-    @PublicAPI(from = "1.1.0",
+    @PublicAPI(from = "1.9.0",
             returns = @APIReturn(type = Tab.class),
-            parameters = {@APIParameter(name = "label", type = L.class),
+            parameters = {@APIParameter(name = "label", type = LocalizationKey.class),
                     @APIParameter(name = "part", type = PhoneManuscriptDialogPart.class),
                     @APIParameter(name = "content", type = VerticalLayout.class)},
             locals = {@APILocals(name = "component", type = Component.class),
                     @APILocals(name = "tab", type = Tab.class)})
-    private Tab addPart(L label, PhoneManuscriptDialogPart part, VerticalLayout content) throws Exception {
+    private Tab addPart(LocalizationKey label, PhoneManuscriptDialogPart part, VerticalLayout content) throws Exception {
         Component component = part.create();
         Tab tab = new Tab(loc.getValue(label));
         tabs.add(tab);
@@ -327,7 +329,7 @@ public class PhoneManuscriptDialog extends Dialog implements ManuscriptWindow {
             closeWindow();
             return;
         }
-        ConfirmDialog.show(loc.getValue(L.MSG_LEAVE_STOPS_GENERATION), () -> {
+        ConfirmDialog.show(loc.getValue(M_L.MSG_LEAVE_STOPS_GENERATION), () -> {
             if (generation != null) {
                 // the Stop the author knows: what arrived is kept
                 generation.stop();

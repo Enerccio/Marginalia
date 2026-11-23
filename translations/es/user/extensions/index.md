@@ -6,7 +6,7 @@ icon: plug
 
 # Extensiones
 
-Las extensiones añaden funciones a Marginalia sin cambiar la aplicación en sí. Marginalia incluye veintitrés extensiones:
+Las extensiones añaden funciones a Marginalia sin cambiar la aplicación en sí. Marginalia incluye treinta extensiones:
 
 | Extensión | Qué añade |
 |---|---|
@@ -37,6 +37,7 @@ Las extensiones añaden funciones a Marginalia sin cambiar la aplicación en sí
 | [Reviewer](reviewer.md) | Reseñas de partes de la historia escritas por el modelo: reacciones de lectores, crítica. |
 | [Side Query](side-query.md) | Un chat con el modelo sobre tu libro, junto a la historia. |
 | [Converter](sillytavern-converter.md) | Un chat de SillyTavern junto a la historia y los detalles de turnos que el modelo prepara a partir de él, para reescribir el chat como historia; o las partes de un libro anterior (de una copia de seguridad o del propio libro) con sus instrucciones, para rehacerlo. |
+| [State Tracker](state-tracker.md) | El estado actual de los personajes seguidos (ropa, lo que llevan, el arma a mano, heridas, ánimo o tus propias categorías), incluido en el prompt para que el modelo lo respete. |
 | [Story Notes](story-notes.md) | Una pequeña wiki de tus propias páginas (etiquetas, enlaces entre ellas) en la barra lateral, para tramas, ideas y reglas del mundo; el asistente de tramas y los agentes pueden leer y cambiar las páginas que permitas. |
 | [Read Aloud](tts-reader.md) | Lee en voz alta un libro publicado en el visor, con la voz de tu dispositivo. |
 | [Chinese localization](chinese-localization.md) | Chino simplificado como idioma de la interfaz de usuario. |

@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.traits.APIReturn;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.domain.traits.PublicAPI;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.dialogs.statistics.StatisticsView;
@@ -35,7 +36,7 @@ public class PhoneStatisticsDialog extends Dialog implements LLMInteract {
             locals = {@APILocals(name = "view", type = StatisticsView.class),
                     @APILocals(name = "closeButton", type = Button.class)})
     public void create() {
-        setHeaderTitle(loc.getValue(L.LABEL_STATISTICS) + ": " + manuscript.getName());
+        setHeaderTitle(loc.getValue(M_L.LABEL_STATISTICS) + ": " + manuscript.getName());
         setWidth("95vw");
         setHeight("90vh");
 

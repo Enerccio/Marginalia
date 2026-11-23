@@ -7,7 +7,7 @@ import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.traits.*;
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.google.gson.JsonObject;
 import java.util.Set;
 
@@ -25,130 +25,192 @@ public class PartStructureCommands extends ManuscriptWriteSupport {
     static final String DELETE_PART = "delete-part";
     static final String SWITCH_BRANCH = "switch-branch";
 
-    @Command(commandName = CREATE_PART, humanName = L.LABEL_COMMAND_CREATE_PART,
+    @Command(commandName = CREATE_PART,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_CREATE_PART, llmDescription = L.DESC_COMMAND_CREATE_PART_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "text", type = String.class, description = L.DESC_COMMAND_NEW_TEXT_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_CREATE_PART_RETURN))
+                    @CommandParameter(name = "text", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_CREATE_PART,
+            description = M_L.DESC_COMMAND_CREATE_PART,
+            llmDescription = M_L.DESC_COMMAND_CREATE_PART_LLM,
+            parameters = @MarginaliaParameterText(name = "text", description = M_L.DESC_COMMAND_NEW_TEXT_PARAM),
+            returns = M_L.DESC_COMMAND_CREATE_PART_RETURN)
     public void createPart(CommandContext context) throws Exception {
         createPart(context, context.get("text", String.class), null, null, null, null, null);
     }
 
-    @Command(commandName = CREATE_PART, humanName = L.LABEL_COMMAND_CREATE_PART,
+    @Command(commandName = CREATE_PART,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_CREATE_PART, llmDescription = L.DESC_COMMAND_CREATE_PART_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "text", type = String.class, description = L.DESC_COMMAND_NEW_TEXT_PARAM),
-                    @CommandParameter(name = "parent", type = String.class, description = L.DESC_COMMAND_PARENT_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_CREATE_PART_RETURN))
+                    @CommandParameter(name = "text", type = String.class),
+                    @CommandParameter(name = "parent", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_CREATE_PART,
+            description = M_L.DESC_COMMAND_CREATE_PART,
+            llmDescription = M_L.DESC_COMMAND_CREATE_PART_LLM,
+            parameters = {@MarginaliaParameterText(name = "text", description = M_L.DESC_COMMAND_NEW_TEXT_PARAM),
+                    @MarginaliaParameterText(name = "parent", description = M_L.DESC_COMMAND_PARENT_PARAM)},
+            returns = M_L.DESC_COMMAND_CREATE_PART_RETURN)
     public void createPartParent(CommandContext context) throws Exception {
         createPart(context, context.get("text", String.class), ref(context, "parent"), null, null, null, null);
     }
 
-    @Command(commandName = CREATE_PART, humanName = L.LABEL_COMMAND_CREATE_PART,
+    @Command(commandName = CREATE_PART,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_CREATE_PART, llmDescription = L.DESC_COMMAND_CREATE_PART_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "text", type = String.class, description = L.DESC_COMMAND_NEW_TEXT_PARAM),
-                    @CommandParameter(name = "parent", type = String.class, description = L.DESC_COMMAND_PARENT_PARAM),
-                    @CommandParameter(name = "instructions", type = String.class, description = L.DESC_COMMAND_TURN_INSTRUCTIONS_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_CREATE_PART_RETURN))
+                    @CommandParameter(name = "text", type = String.class),
+                    @CommandParameter(name = "parent", type = String.class),
+                    @CommandParameter(name = "instructions", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_CREATE_PART,
+            description = M_L.DESC_COMMAND_CREATE_PART,
+            llmDescription = M_L.DESC_COMMAND_CREATE_PART_LLM,
+            parameters = {@MarginaliaParameterText(name = "text", description = M_L.DESC_COMMAND_NEW_TEXT_PARAM),
+                    @MarginaliaParameterText(name = "parent", description = M_L.DESC_COMMAND_PARENT_PARAM),
+                    @MarginaliaParameterText(name = "instructions", description = M_L.DESC_COMMAND_TURN_INSTRUCTIONS_PARAM)},
+            returns = M_L.DESC_COMMAND_CREATE_PART_RETURN)
     public void createPartInstructions(CommandContext context) throws Exception {
         createPart(context, context.get("text", String.class), ref(context, "parent"), context.get("instructions", String.class), null, null, null);
     }
 
-    @Command(commandName = CREATE_PART, humanName = L.LABEL_COMMAND_CREATE_PART,
+    @Command(commandName = CREATE_PART,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_CREATE_PART, llmDescription = L.DESC_COMMAND_CREATE_PART_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "text", type = String.class, description = L.DESC_COMMAND_NEW_TEXT_PARAM),
-                    @CommandParameter(name = "parent", type = String.class, description = L.DESC_COMMAND_PARENT_PARAM),
-                    @CommandParameter(name = "instructions", type = String.class, description = L.DESC_COMMAND_TURN_INSTRUCTIONS_PARAM),
-                    @CommandParameter(name = "scene", type = String.class, description = L.DESC_COMMAND_TURN_SCENE_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_CREATE_PART_RETURN))
+                    @CommandParameter(name = "text", type = String.class),
+                    @CommandParameter(name = "parent", type = String.class),
+                    @CommandParameter(name = "instructions", type = String.class),
+                    @CommandParameter(name = "scene", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_CREATE_PART,
+            description = M_L.DESC_COMMAND_CREATE_PART,
+            llmDescription = M_L.DESC_COMMAND_CREATE_PART_LLM,
+            parameters = {@MarginaliaParameterText(name = "text", description = M_L.DESC_COMMAND_NEW_TEXT_PARAM),
+                    @MarginaliaParameterText(name = "parent", description = M_L.DESC_COMMAND_PARENT_PARAM),
+                    @MarginaliaParameterText(name = "instructions", description = M_L.DESC_COMMAND_TURN_INSTRUCTIONS_PARAM),
+                    @MarginaliaParameterText(name = "scene", description = M_L.DESC_COMMAND_TURN_SCENE_PARAM)},
+            returns = M_L.DESC_COMMAND_CREATE_PART_RETURN)
     public void createPartScene(CommandContext context) throws Exception {
         createPart(context, context.get("text", String.class), ref(context, "parent"), context.get("instructions", String.class), context.get("scene", String.class), null, null);
     }
 
-    @Command(commandName = CREATE_PART, humanName = L.LABEL_COMMAND_CREATE_PART,
+    @Command(commandName = CREATE_PART,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_CREATE_PART, llmDescription = L.DESC_COMMAND_CREATE_PART_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "text", type = String.class, description = L.DESC_COMMAND_NEW_TEXT_PARAM),
-                    @CommandParameter(name = "parent", type = String.class, description = L.DESC_COMMAND_PARENT_PARAM),
-                    @CommandParameter(name = "instructions", type = String.class, description = L.DESC_COMMAND_TURN_INSTRUCTIONS_PARAM),
-                    @CommandParameter(name = "scene", type = String.class, description = L.DESC_COMMAND_TURN_SCENE_PARAM),
-                    @CommandParameter(name = "pov", type = String.class, description = L.DESC_COMMAND_TURN_POV_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_CREATE_PART_RETURN))
+                    @CommandParameter(name = "text", type = String.class),
+                    @CommandParameter(name = "parent", type = String.class),
+                    @CommandParameter(name = "instructions", type = String.class),
+                    @CommandParameter(name = "scene", type = String.class),
+                    @CommandParameter(name = "pov", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_CREATE_PART,
+            description = M_L.DESC_COMMAND_CREATE_PART,
+            llmDescription = M_L.DESC_COMMAND_CREATE_PART_LLM,
+            parameters = {@MarginaliaParameterText(name = "text", description = M_L.DESC_COMMAND_NEW_TEXT_PARAM),
+                    @MarginaliaParameterText(name = "parent", description = M_L.DESC_COMMAND_PARENT_PARAM),
+                    @MarginaliaParameterText(name = "instructions", description = M_L.DESC_COMMAND_TURN_INSTRUCTIONS_PARAM),
+                    @MarginaliaParameterText(name = "scene", description = M_L.DESC_COMMAND_TURN_SCENE_PARAM),
+                    @MarginaliaParameterText(name = "pov", description = M_L.DESC_COMMAND_TURN_POV_PARAM)},
+            returns = M_L.DESC_COMMAND_CREATE_PART_RETURN)
     public void createPartPov(CommandContext context) throws Exception {
         createPart(context, context.get("text", String.class), ref(context, "parent"), context.get("instructions", String.class), context.get("scene", String.class), context.get("pov", String.class), null);
     }
 
-    @Command(commandName = CREATE_PART, humanName = L.LABEL_COMMAND_CREATE_PART,
+    @Command(commandName = CREATE_PART,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_CREATE_PART, llmDescription = L.DESC_COMMAND_CREATE_PART_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "text", type = String.class, description = L.DESC_COMMAND_NEW_TEXT_PARAM),
-                    @CommandParameter(name = "parent", type = String.class, description = L.DESC_COMMAND_PARENT_PARAM),
-                    @CommandParameter(name = "instructions", type = String.class, description = L.DESC_COMMAND_TURN_INSTRUCTIONS_PARAM),
-                    @CommandParameter(name = "scene", type = String.class, description = L.DESC_COMMAND_TURN_SCENE_PARAM),
-                    @CommandParameter(name = "pov", type = String.class, description = L.DESC_COMMAND_TURN_POV_PARAM),
-                    @CommandParameter(name = "present", type = String.class, description = L.DESC_COMMAND_TURN_PRESENT_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_CREATE_PART_RETURN))
+                    @CommandParameter(name = "text", type = String.class),
+                    @CommandParameter(name = "parent", type = String.class),
+                    @CommandParameter(name = "instructions", type = String.class),
+                    @CommandParameter(name = "scene", type = String.class),
+                    @CommandParameter(name = "pov", type = String.class),
+                    @CommandParameter(name = "present", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_CREATE_PART,
+            description = M_L.DESC_COMMAND_CREATE_PART,
+            llmDescription = M_L.DESC_COMMAND_CREATE_PART_LLM,
+            parameters = {@MarginaliaParameterText(name = "text", description = M_L.DESC_COMMAND_NEW_TEXT_PARAM),
+                    @MarginaliaParameterText(name = "parent", description = M_L.DESC_COMMAND_PARENT_PARAM),
+                    @MarginaliaParameterText(name = "instructions", description = M_L.DESC_COMMAND_TURN_INSTRUCTIONS_PARAM),
+                    @MarginaliaParameterText(name = "scene", description = M_L.DESC_COMMAND_TURN_SCENE_PARAM),
+                    @MarginaliaParameterText(name = "pov", description = M_L.DESC_COMMAND_TURN_POV_PARAM),
+                    @MarginaliaParameterText(name = "present", description = M_L.DESC_COMMAND_TURN_PRESENT_PARAM)},
+            returns = M_L.DESC_COMMAND_CREATE_PART_RETURN)
     public void createPartPresent(CommandContext context) throws Exception {
         createPart(context, context.get("text", String.class), ref(context, "parent"), context.get("instructions", String.class), context.get("scene", String.class), context.get("pov", String.class), context.get("present", String.class));
     }
 
-    @Command(commandName = INSERT_PART, humanName = L.LABEL_COMMAND_INSERT_PART,
+    @Command(commandName = INSERT_PART,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_INSERT_PART, llmDescription = L.DESC_COMMAND_INSERT_PART_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "text", type = String.class, description = L.DESC_COMMAND_NEW_TEXT_PARAM),
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_INSERT_ANCHOR_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_INSERT_PART_RETURN))
+                    @CommandParameter(name = "text", type = String.class),
+                    @CommandParameter(name = "part", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_INSERT_PART,
+            description = M_L.DESC_COMMAND_INSERT_PART,
+            llmDescription = M_L.DESC_COMMAND_INSERT_PART_LLM,
+            parameters = {@MarginaliaParameterText(name = "text", description = M_L.DESC_COMMAND_NEW_TEXT_PARAM),
+                    @MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_INSERT_ANCHOR_PARAM)},
+            returns = M_L.DESC_COMMAND_INSERT_PART_RETURN)
     public void insertPart(CommandContext context) throws Exception {
         insertPart(context, context.get("text", String.class), ref(context, "part"), false);
     }
 
-    @Command(commandName = INSERT_PART, humanName = L.LABEL_COMMAND_INSERT_PART,
+    @Command(commandName = INSERT_PART,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_INSERT_PART, llmDescription = L.DESC_COMMAND_INSERT_PART_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "text", type = String.class, description = L.DESC_COMMAND_NEW_TEXT_PARAM),
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_INSERT_ANCHOR_PARAM),
-                    @CommandParameter(name = "before", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_INSERT_BEFORE_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_INSERT_PART_RETURN))
+                    @CommandParameter(name = "text", type = String.class),
+                    @CommandParameter(name = "part", type = String.class),
+                    @CommandParameter(name = "before", type = Boolean.class, optional = true, defaultValue = "false")}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_INSERT_PART,
+            description = M_L.DESC_COMMAND_INSERT_PART,
+            llmDescription = M_L.DESC_COMMAND_INSERT_PART_LLM,
+            parameters = {@MarginaliaParameterText(name = "text", description = M_L.DESC_COMMAND_NEW_TEXT_PARAM),
+                    @MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_INSERT_ANCHOR_PARAM),
+                    @MarginaliaParameterText(name = "before", description = M_L.DESC_COMMAND_INSERT_BEFORE_PARAM)},
+            returns = M_L.DESC_COMMAND_INSERT_PART_RETURN)
     public void insertPartBefore(CommandContext context) throws Exception {
         insertPart(context, context.get("text", String.class), ref(context, "part"), Boolean.TRUE.equals(context.get("before", Boolean.class)));
     }
 
-    @Command(commandName = BRANCH_PART, humanName = L.LABEL_COMMAND_BRANCH_PART,
+    @Command(commandName = BRANCH_PART,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_BRANCH_PART, llmDescription = L.DESC_COMMAND_BRANCH_PART_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_HANDLE_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_BRANCH_PART_RETURN))
+                    @CommandParameter(name = "part", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_BRANCH_PART,
+            description = M_L.DESC_COMMAND_BRANCH_PART,
+            llmDescription = M_L.DESC_COMMAND_BRANCH_PART_LLM,
+            parameters = @MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_PART_HANDLE_PARAM),
+            returns = M_L.DESC_COMMAND_BRANCH_PART_RETURN)
     public void branchPart(CommandContext context) throws Exception {
         branchPart(context, ref(context, "part"));
     }
 
-    @Command(commandName = DELETE_PART, humanName = L.LABEL_COMMAND_DELETE_PART,
+    @Command(commandName = DELETE_PART,
             dataSeverity = CommandDataSeverity.DESTRUCTIVE,
-            description = L.DESC_COMMAND_DELETE_PART, llmDescription = L.DESC_COMMAND_DELETE_PART_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_HANDLE_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_DELETE_PART_RETURN))
+                    @CommandParameter(name = "part", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_DELETE_PART,
+            description = M_L.DESC_COMMAND_DELETE_PART,
+            llmDescription = M_L.DESC_COMMAND_DELETE_PART_LLM,
+            parameters = @MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_PART_HANDLE_PARAM),
+            returns = M_L.DESC_COMMAND_DELETE_PART_RETURN)
     public void deletePart(CommandContext context) throws Exception {
         deletePart(context, ref(context, "part"));
     }
 
-    @Command(commandName = SWITCH_BRANCH, humanName = L.LABEL_COMMAND_SWITCH_BRANCH,
+    @Command(commandName = SWITCH_BRANCH,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_SWITCH_BRANCH, llmDescription = L.DESC_COMMAND_SWITCH_BRANCH_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_HANDLE_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SWITCH_BRANCH_RETURN))
+                    @CommandParameter(name = "part", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SWITCH_BRANCH,
+            description = M_L.DESC_COMMAND_SWITCH_BRANCH,
+            llmDescription = M_L.DESC_COMMAND_SWITCH_BRANCH_LLM,
+            parameters = @MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_PART_HANDLE_PARAM),
+            returns = M_L.DESC_COMMAND_SWITCH_BRANCH_RETURN)
     public void switchBranch(CommandContext context) throws Exception {
         switchBranch(context, ref(context, "part"));
     }
@@ -157,7 +219,7 @@ public class PartStructureCommands extends ManuscriptWriteSupport {
                             String pov, String present) throws Exception {
         Book book = new Book(context);
         if (text == null || text.isBlank()) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_PART_TEXT_EMPTY));
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_COMMAND_PART_TEXT_EMPTY));
         }
         ChatMessage parent = parentHandle != null ? part(book, parentHandle) : book.manuscript.getActiveLeaf();
         TurnInput input = instructions == null && scene == null && pov == null && present == null ? null
@@ -173,7 +235,7 @@ public class PartStructureCommands extends ManuscriptWriteSupport {
     private void insertPart(CommandContext context, String text, String handle, boolean before) throws Exception {
         Book book = new Book(context);
         if (text == null || text.isBlank()) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_PART_TEXT_EMPTY));
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_COMMAND_PART_TEXT_EMPTY));
         }
         ChatMessage anchor = part(book, handle);
         Book.Located at = book.locate(handle, null);
@@ -204,7 +266,7 @@ public class PartStructureCommands extends ManuscriptWriteSupport {
         ChatMessage message = part(book, handle);
         Book.Located at = book.locate(handle, null);
         int followers = book.childrenOf(message).size();
-        if (!confirmed(context, String.format(loc.getValue(L.MSG_COMMAND_DELETE_PART_CONFIRM), at.position(), followers))) {
+        if (!confirmed(context, String.format(loc.getValue(M_L.MSG_COMMAND_DELETE_PART_CONFIRM), at.position(), followers))) {
             return;
         }
         Set<Long> before = outdatedHeads(at.path());

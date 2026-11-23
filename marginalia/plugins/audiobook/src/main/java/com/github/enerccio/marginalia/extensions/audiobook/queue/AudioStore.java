@@ -47,4 +47,11 @@ public interface AudioStore {
     /** Called when a job of the part is over, whatever became of it: what was put since is made permanent (the pieces of a failed job are kept for a retry). */
     default void flush(String partId) {
     }
+
+    /**
+     * Keeps what the labelling model said about the part in one run (its reasoning and its answers, window by window), after what was kept of
+     * the runs before. A store that does not keep it forgets it.
+     */
+    default void putReasoning(String partId, java.util.List<LabelTrace.Window> windows) {
+    }
 }

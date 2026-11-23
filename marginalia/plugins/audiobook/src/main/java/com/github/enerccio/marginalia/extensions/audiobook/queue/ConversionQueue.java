@@ -3,9 +3,13 @@ package com.github.enerccio.marginalia.extensions.audiobook.queue;
 import com.github.enerccio.marginalia.extensions.audiobook.AudiobookLog;
 import com.github.enerccio.marginalia.extensions.audiobook.audio.AudioKind;
 import com.github.enerccio.marginalia.extensions.audiobook.audio.Ffmpeg;
+import com.github.enerccio.marginalia.extensions.audiobook.audio.Mp3Joiner;
+import com.github.enerccio.marginalia.extensions.audiobook.audio.WavJoiner;
 import com.github.enerccio.marginalia.extensions.audiobook.model.BackendConfig;
 import com.github.enerccio.marginalia.extensions.audiobook.queue.ConversionJob.ScriptSource;
 import com.github.enerccio.marginalia.extensions.audiobook.queue.ConversionJob.State;
+import com.github.enerccio.marginalia.extensions.audiobook.recognize.SpeechRecognizer;
+import com.github.enerccio.marginalia.extensions.audiobook.recognize.WordMatch;
 import com.github.enerccio.marginalia.extensions.audiobook.script.PartScript;
 import com.github.enerccio.marginalia.extensions.audiobook.script.ScriptEntry;
 import com.github.enerccio.marginalia.extensions.audiobook.service.SpeechBackend;
@@ -52,7 +56,13 @@ public class ConversionQueue implements AutoCloseable {
      * @param leveller  what levels the audio
      */
     public record Environment(AudioStore store, Voices voices, Function<String, BackendConfig> backends, BatchRunner runner, BooleanSupplier paused,
-                              long pollMillis, Supplier<Double> loudness, Leveller leveller) {
+                              long pollMillis, Supplier<Double> loudness, Leveller leveller, WordChecker checker) {
+
+        /** An environment without speech recognition. */
+        public Environment(AudioStore store, Voices voices, Function<String, BackendConfig> backends, BatchRunner runner, BooleanSupplier paused,
+                           long pollMillis, Supplier<Double> loudness, Leveller leveller) {
+            this(store, voices, backends, runner, paused, pollMillis, loudness, leveller, WordChecker.NONE);
+        }
 
         /** An environment that does not level the loudness. */
         public Environment(AudioStore store, Voices voices, Function<String, BackendConfig> backends, BatchRunner runner, BooleanSupplier paused,
@@ -65,6 +75,27 @@ public class ConversionQueue implements AutoCloseable {
                            long pollMillis, Supplier<Double> loudness) {
             this(store, voices, backends, runner, paused, pollMillis, loudness, Ffmpeg::normalizeLoudness);
         }
+    }
+
+    /**
+     * The speech recognition of the user, for the check of the words of the pieces after a batch: runs the work with the recogniser while its GPU
+     * lock is held ({@code AudiobookService}).
+     */
+    @FunctionalInterface
+    public interface WordChecker {
+
+        /** The work done with the recogniser. */
+        @FunctionalInterface
+        interface Work {
+            void run(SpeechRecognizer recognizer) throws BackendException;
+        }
+
+        /**
+         * @return false when the user has no speech recognition (nothing ran)
+         */
+        boolean check(BooleanSupplier cancelled, Work work) throws BackendException;
+
+        WordChecker NONE = (cancelled, work) -> false;
     }
 
     /** Levels the joined audio of a part to a loudness in LUFS (it needs ffmpeg). */
@@ -298,6 +329,10 @@ public class ConversionQueue implements AutoCloseable {
     private record Need(Plan plan, ScriptEntry entry) {
     }
 
+    /** A piece made in a batch, with the request it was made from (for the word check and the takes after it). */
+    private record Made(Need need, SpeechRequest request) {
+    }
+
     private void run(List<ConversionJob> batch) {
         // 1. the scripts, and what is stored already
         List<Plan> plans = new ArrayList<>();
@@ -310,8 +345,14 @@ public class ConversionQueue implements AutoCloseable {
             try {
                 // making the script may ask the language model for the labels: Stop ends that request too
                 // the window shows which part is being labelled, and keeps what the model says for the user to read
-                script = com.github.enerccio.marginalia.extensions.audiobook.label.LabelCancel.during(() -> stopRun || job.cancelRequested(),
-                        () -> com.github.enerccio.marginalia.extensions.audiobook.label.LabelWatch.during(watcher(job), () -> job.source().get()));
+                // the whole run is kept with the part too (the trace of the job is capped and goes when the jobs are cleared)
+                LabelTrace run = new LabelTrace(Long.MAX_VALUE);
+                try {
+                    script = com.github.enerccio.marginalia.extensions.audiobook.label.LabelCancel.during(() -> stopRun || job.cancelRequested(),
+                            () -> com.github.enerccio.marginalia.extensions.audiobook.label.LabelWatch.during(watcher(job, run), () -> job.source().get()));
+                } finally {
+                    keepReasoning(job, run);
+                }
                 if (job.state() == State.RUNNING && job.snapshot().message().startsWith(LABELLING)) {
                     job.set(State.RUNNING, "");
                     fire(job);
@@ -374,7 +415,8 @@ public class ConversionQueue implements AutoCloseable {
             speak(group.getKey(), group.getValue());
         }
 
-        // 3. the parts
+        // 3. the parts; a part stopped by the user whose pieces were all made is joined too (that asks nothing of the speech server), else it would have
+        // every line and still no audio
         for (Plan plan : plans) {
             if (plan.job().state() == State.RUNNING) {
                 if (plan.job().mode() == ConversionJob.Mode.SEGMENTS_ONLY) {
@@ -382,19 +424,26 @@ public class ConversionQueue implements AutoCloseable {
                 } else {
                     join(plan);
                 }
+            } else if (plan.job().state() == State.CANCELLED && plan.job().mode() == ConversionJob.Mode.PART && allStored(plan)) {
+                join(plan);
             }
         }
+    }
+
+    private boolean allStored(Plan plan) {
+        return plan.script().entries().stream().allMatch(entry -> env.store().segment(plan.job().partId(), entry.key()) != null);
     }
 
     /** The start of the message of a job while the model labels its part. */
     static final String LABELLING = "Labelling ";
 
-    private com.github.enerccio.marginalia.extensions.audiobook.label.LabelWatch.Listener watcher(ConversionJob job) {
+    private com.github.enerccio.marginalia.extensions.audiobook.label.LabelWatch.Listener watcher(ConversionJob job, LabelTrace run) {
         return new com.github.enerccio.marginalia.extensions.audiobook.label.LabelWatch.Listener() {
             @Override
             public void window(int from, int to, int total) {
                 String title = "pieces " + (from + 1) + "-" + to + " of " + total;
                 job.trace().startWindow(title);
+                run.startWindow(title);
                 job.set(State.RUNNING, LABELLING + title);
                 fire(job);
             }
@@ -402,8 +451,21 @@ public class ConversionQueue implements AutoCloseable {
             @Override
             public void chunk(boolean reasoning, String text) {
                 job.trace().append(reasoning, text);
+                run.append(reasoning, text);
             }
         };
+    }
+
+    /** Stores what the model said in this run with the part (also for a run that failed or was stopped); a failure to store it fails nothing. */
+    private void keepReasoning(ConversionJob job, LabelTrace run) {
+        if (run.isEmpty()) {
+            return;
+        }
+        try {
+            env.store().putReasoning(job.partId(), run.windows());
+        } catch (RuntimeException e) {
+            AudiobookLog.get().warn("The reasoning of part {} could not be stored: {}", job.partId(), e.getMessage(), e);
+        }
     }
 
     /** What the model said while it labelled the part of the job, null when there is no such job. */
@@ -428,8 +490,9 @@ public class ConversionQueue implements AutoCloseable {
         BooleanSupplier stop = () -> stopRun || live.stream().allMatch(n -> n.plan().job().cancelRequested() || n.plan().job().state() != State.RUNNING);
         try {
             waitWhilePaused(stop);
+            List<Made> made = new ArrayList<>();
             SpeechBatch.Outcome<Void> outcome = env.runner().run(backend, stop, speaker -> {
-                makePieces(speaker, backend, live, stop);
+                makePieces(speaker, backend, live, stop, made);
                 return null;
             });
             if (outcome.afterError() != null) {
@@ -439,6 +502,9 @@ public class ConversionQueue implements AutoCloseable {
                         job.set(State.RUNNING, "The request after the batch failed: " + outcome.afterError());
                     }
                 }
+            }
+            if (backend.isCheckWords() && !made.isEmpty()) {
+                checkWords(backend, made, stop);
             }
         } catch (BackendException e) {
             // the requests before the batch, the model check or the wait failed (or the user stopped it): the pieces made so far are kept
@@ -455,8 +521,9 @@ public class ConversionQueue implements AutoCloseable {
         }
     }
 
-    private void makePieces(SpeechBackend speaker, BackendConfig backend, List<Need> needs, BooleanSupplier stop) throws BackendException {
-        java.util.Set<String> made = new java.util.HashSet<>();
+    private void makePieces(SpeechBackend speaker, BackendConfig backend, List<Need> needs, BooleanSupplier stop, List<Made> made)
+            throws BackendException {
+        java.util.Set<String> madeIds = new java.util.HashSet<>();
         for (Need need : needs) {
             ConversionJob job = need.plan().job();
             if (job.state() != State.RUNNING) {
@@ -471,15 +538,22 @@ public class ConversionQueue implements AutoCloseable {
             }
             ScriptEntry entry = need.entry();
             String id = job.partId() + "/" + entry.key();
-            if (!made.add(id)) {
+            if (!madeIds.add(id)) {
                 continue;
             }
             try {
                 Voices.Resolved voice = env.voices().resolve(speaker, entry.voice());
                 SpeechRequest request = new SpeechRequest(entry.text(), voice.mode(), voice.name(), entry.language(), entry.exaggeration(),
                         entry.cfgWeight(), entry.temperature(), entry.speed(), entry.seed(), entry.format(), entry.chunkSize());
+                if (backend.isSendClipText() && BackendConfig.MODEL_HIGGS.equals(backend.getModel()) && voice.text() != null) {
+                    request = request.withReferenceText(voice.text());
+                }
                 byte[] audio = speaker.synthesize(request, stop::getAsBoolean);
+                if (backend.isCheckLength()) {
+                    audio = withinLength(speaker, backend, request, audio, stop);
+                }
                 env.store().putSegment(job.partId(), entry.key(), audio);
+                made.add(new Made(need, request));
                 job.advance();
                 fire(job);
             } catch (BackendException e) {
@@ -489,6 +563,171 @@ public class ConversionQueue implements AutoCloseable {
                 finish(job, State.FAILED, "A piece could not be made: " + e.getMessage());
             }
         }
+    }
+
+    /**
+     * A piece far longer than its text (the model babbled on, or made a sound instead of the words) is made again with the next seeds, while the
+     * speech server is still held; the first take of a right length is kept, else the shortest.
+     */
+    private byte[] withinLength(SpeechBackend speaker, BackendConfig backend, SpeechRequest request, byte[] audio, BooleanSupplier stop)
+            throws BackendException {
+        int words = WordMatch.count(request.text());
+        double limit = BackendConfig.maxSecondsFor(words);
+        double seconds = seconds(audio, request.format());
+        if (seconds <= limit) {
+            return audio;
+        }
+        byte[] best = audio;
+        double bestSeconds = seconds;
+        for (int k = 1; k <= backend.getRetries(); k++) {
+            if (stop.getAsBoolean()) {
+                throw new BackendException("Cancelled");
+            }
+            AudiobookLog.get().info("A piece of {} words took {} s (at most {} s): made again with seed {}", words, Math.round(seconds * 10) / 10.0,
+                    Math.round(limit * 10) / 10.0, request.seed() + k);
+            byte[] take = speaker.synthesize(request.withSeed(request.seed() + k), stop::getAsBoolean);
+            seconds = seconds(take, request.format());
+            if (seconds <= limit) {
+                return take;
+            }
+            if (seconds < bestSeconds) {
+                best = take;
+                bestSeconds = seconds;
+            }
+        }
+        AudiobookLog.get().warn("A piece of {} words is still {} s long after {} takes: the shortest is kept", words, Math.round(bestSeconds * 10) / 10.0,
+                backend.getRetries() + 1);
+        return best;
+    }
+
+    /** The length of a piece; 0 when it can't be read (the piece is then not checked). */
+    private static double seconds(byte[] audio, String format) {
+        try {
+            return "wav".equals(format) ? WavJoiner.seconds(audio) : Mp3Joiner.seconds(audio);
+        } catch (BackendException | RuntimeException e) {
+            return 0;
+        }
+    }
+
+    /**
+     * The check of the words, after the batch (the speech server is given back first, so the recogniser can have the GPU): every piece is transcribed and
+     * compared with its text; the ones that are off are made again with the next seed and checked again, up to {@link BackendConfig#getRetries()} rounds.
+     * The best take of a piece is stored under its own key. A recogniser that is missing or fails leaves the pieces as they are, with a note.
+     */
+    private void checkWords(BackendConfig backend, List<Made> made, BooleanSupplier stop) {
+        double max = backend.getMaxWordErrorPercent() / 100.0;
+        Map<Made, Double> bestError = new java.util.HashMap<>();
+        Map<Made, byte[]> candidates = new LinkedHashMap<>();
+        for (Made piece : made) {
+            byte[] audio = env.store().segment(piece.need().plan().job().partId(), piece.need().entry().key());
+            if (audio != null && piece.need().plan().job().state() == State.RUNNING) {
+                candidates.put(piece, audio);
+            }
+        }
+        java.util.Set<Made> remade = new java.util.HashSet<>();
+        String trouble = null;
+        for (int round = 0; round <= backend.getRetries() && !candidates.isEmpty(); round++) {
+            Map<Made, byte[]> takes = candidates;
+            boolean first = round == 0;
+            try {
+                boolean ran = env.checker().check(stop, recognizer -> {
+                    for (Map.Entry<Made, byte[]> take : takes.entrySet()) {
+                        if (stop.getAsBoolean()) {
+                            throw new BackendException("Cancelled");
+                        }
+                        Made piece = take.getKey();
+                        ScriptEntry entry = piece.need().entry();
+                        String heard = recognizer.transcribe(take.getValue(), piece.request().format(), entry.language(), stop::getAsBoolean);
+                        double error = WordMatch.errorRate(entry.text(), heard);
+                        Double before = bestError.get(piece);
+                        if (before == null || error < before) {
+                            bestError.put(piece, error);
+                            if (!first) {
+                                env.store().putSegment(piece.need().plan().job().partId(), entry.key(), take.getValue());
+                                remade.add(piece);
+                            }
+                        }
+                        if (error > max) {
+                            AudiobookLog.get().info("A piece is off by {}% of its words: \"{}\" was heard as \"{}\"", Math.round(error * 100),
+                                    abbreviate(entry.text()), abbreviate(heard));
+                        }
+                    }
+                });
+                if (!ran) {
+                    trouble = "the words were not checked: there is no speech recognition";
+                    break;
+                }
+            } catch (BackendException e) {
+                if (stop.getAsBoolean()) {
+                    return;
+                }
+                AudiobookLog.get().warn("Checking the words of the pieces failed: {}", e.getMessage());
+                trouble = "the words were not checked: " + e.getMessage();
+                break;
+            }
+            List<Made> failed = takes.keySet().stream().filter(p -> bestError.getOrDefault(p, 0.0) > max).toList();
+            if (failed.isEmpty() || round == backend.getRetries()) {
+                break;
+            }
+            int seedOffset = round + 1;
+            Map<Made, byte[]> next = new LinkedHashMap<>();
+            try {
+                env.runner().run(backend, stop, speaker -> {
+                    for (Made piece : failed) {
+                        if (stop.getAsBoolean()) {
+                            throw new BackendException("Cancelled");
+                        }
+                        SpeechRequest again = piece.request().withSeed(piece.request().seed() + seedOffset);
+                        next.put(piece, speaker.synthesize(again, stop::getAsBoolean));
+                    }
+                    return null;
+                });
+            } catch (BackendException e) {
+                if (stop.getAsBoolean()) {
+                    return;
+                }
+                AudiobookLog.get().warn("Making the pieces that were off again failed: {}", e.getMessage());
+                trouble = "pieces could not be made again: " + e.getMessage();
+                break;
+            }
+            candidates = next;
+        }
+        long off = bestError.values().stream().filter(e -> e > max).count();
+        Map<ConversionJob, String> notes = new LinkedHashMap<>();
+        for (Made piece : made) {
+            ConversionJob job = piece.need().plan().job();
+            if (job.state() != State.RUNNING || notes.containsKey(job)) {
+                continue;
+            }
+            long jobRemade = remade.stream().filter(p -> p.need().plan().job() == job).count();
+            long jobOff = bestError.entrySet().stream().filter(e -> e.getKey().need().plan().job() == job && e.getValue() > max).count();
+            List<String> parts = new ArrayList<>();
+            if (jobRemade > 0) {
+                parts.add(jobRemade + " pieces made again after the check of the words");
+            }
+            if (jobOff > 0) {
+                parts.add(jobOff + " pieces still differ from their text");
+            }
+            if (trouble != null) {
+                parts.add(trouble);
+            }
+            if (!parts.isEmpty()) {
+                String before = job.snapshot().message();
+                notes.put(job, (before.isEmpty() ? "" : before + "; ") + String.join("; ", parts));
+            }
+        }
+        notes.forEach((job, note) -> {
+            job.set(State.RUNNING, note);
+            fire(job);
+        });
+        if (off > 0) {
+            AudiobookLog.get().warn("{} pieces still differ from their text after {} rounds", off, backend.getRetries() + 1);
+        }
+    }
+
+    private static String abbreviate(String text) {
+        String flat = text == null ? "" : text.replaceAll("\\s+", " ").strip();
+        return flat.length() > 80 ? flat.substring(0, 77) + "..." : flat;
     }
 
     private void join(Plan plan) {

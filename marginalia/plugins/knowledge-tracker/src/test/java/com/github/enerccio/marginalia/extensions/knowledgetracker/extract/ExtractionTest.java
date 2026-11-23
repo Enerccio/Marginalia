@@ -3,12 +3,8 @@ package com.github.enerccio.marginalia.extensions.knowledgetracker.extract;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.ExtractionAnswer.Addition;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.ExtractionAnswer.CharacterChanges;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.ExtractionAnswer.Retraction;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.model.ItemKind;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.model.KnowledgeItem;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.model.KnowledgeState;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.model.OldReason;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.model.TrackedCharacter;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.process.Part;
+import com.github.enerccio.marginalia.extensions.knowledgetracker.model.*;
+import com.github.enerccio.marginalia.extensions.storytracker.process.Part;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -271,7 +267,7 @@ class ExtractionTest {
         assertEquals(List.of("Thomas", "Mara"), fiora.getMet().stream().map(m -> m.getName()).toList());
 
         // and a later pass over the same branch keeps them
-        assertEquals(0, com.github.enerccio.marginalia.extensions.knowledgetracker.process.BranchProcessor.align(state, BRANCH));
+        assertEquals(0, com.github.enerccio.marginalia.extensions.storytracker.process.BranchProcessor.align(state, BRANCH));
         assertEquals(2, fiora.activeItems().size());
         assertEquals(2, fiora.oldItems().size());
     }

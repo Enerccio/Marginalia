@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.extensions.audiobook;
 import com.github.enerccio.marginalia.extensions.PluginLocalizationBundle;
 import com.github.enerccio.marginalia.extensions.audiobook.label.*;
 import com.github.enerccio.marginalia.loc.Language;
+import com.github.enerccio.marginalia.loc.L;
 
 import java.util.Map;
 
@@ -33,11 +34,12 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
     public static final String THE_JOINED_AUDIO_OF_EACH_PART_IS_LEVELLED = "The joined audio of each part is levelled to this loudness with ffmpeg (EBU R128), so the parts sit at the same level. A part made before is levelled the next time you convert it; its pieces are kept, so the speech server is not asked.";
     public static final String FFMPEG_WAS_NOT_FOUND_THE_AUDIO_IS_NOT_LEVELLED = "ffmpeg was not found: the audio is not levelled.";
     public static final String THE_INSTRUCTION_THAT_TELLS_THE_MODEL_WHO_SPEAKS_EACH_PIECE = "The instruction that tells the language model who speaks each piece of a part and how it is read (a template). Empty: the built-in one.";
-    public static final String SPEECH_SERVERS_HELP = "The speech servers the audiobook is made by. The requests around a batch make room for the server on the GPU and stop it again.";
     public static final String BACKENDS = "Backends";
     public static final String ADD_A_BACKEND = "Add a backend";
     public static final String DELETE_THE_BACKEND = "Delete the backend";
     public static final String NEW_BACKEND = "New backend";
+    public static final String DUPLICATE_THE_BACKEND = "Duplicate the backend: the same address, keys, voice and requests before and after a batch, to change what differs (another model)";
+    public static final String COPY_OF = "%s (copy)";
     public static final String NAME = "Name";
     public static final String ADDRESS = "Address";
     public static final String BASE_ADDRESS_OF_THE_SPEECH_SERVER = "Base address of the speech server (Chatterbox-TTS-Server), for example http://localhost:8004, or the address your proxy forwards to it";
@@ -48,6 +50,8 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
     public static final String MODEL_TURBO = "Chatterbox Turbo (English, sound tags)";
     public static final String MODEL_ORIGINAL = "Chatterbox (English, exaggeration)";
     public static final String MODEL_MULTILINGUAL = "Chatterbox Multilingual (23 languages)";
+    public static final String MODEL_HIGGS = "Higgs Audio v3 in ComfyUI (emotions, sounds; non-commercial license)";
+    public static final String COMFYUI_ADDRESS_HELP = "The address of ComfyUI with the TTS Audio Suite nodes, for example http://gpu-server:8188";
     public static final String THE_MODEL_THE_SERVER_IS_ASKED_TO_LOAD = "The model the requests before a batch have to leave loaded; a book that needs another one picks another backend";
     public static final String THE_SERVER_IS_LOCAL = "The server is on this machine or on my network";
     public static final String ALLOWS_ADDRESSES_OF_THE_LOCAL_NETWORK = "Allows the addresses of the local network; leave it off for a server in the cloud";
@@ -61,7 +65,6 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
     public static final String CHUNK_SIZE = "Chunk size (characters)";
     public static final String BEFORE_A_BATCH = "Before a batch";
     public static final String AFTER_A_BATCH = "After a batch";
-    public static final String REQUESTS_MADE_AROUND_A_BATCH = "Requests made around a batch of parts, one after the other. Before: free the GPU and start the speech server (unload the language model, start the container, load the model). After: stop it. None does nothing.";
     public static final String ADD_A_REQUEST = "Add a request";
     public static final String REMOVE_THE_REQUEST = "Remove the request";
     public static final String REQUEST = "Request";
@@ -144,6 +147,35 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
     public static final String A_CLIP_OR_THE_FILE_OF_A_VOICE_OF_THE_SERVER = "A clip, or a voice file (Henry.wav)";
     public static final String ADD_A_CLIP = "Add a clip";
     public static final String THE_CLIP_COULD_NOT_BE_ADDED = "The clip could not be added: %s";
+    public static final String VOICES_AND_CLIPS = "Voices and clips";
+    public static final String VOICES_AND_CLIPS_HELP = "Your actors and the reference clips their voices are cloned from, in folders, with the versions made from a clip under it. A voice model copies the recording, not only the voice: a clip with background sound (a film, a room, music) gives every line a whoosh or a room. Use a clean recording with real pauses, or clean a clip here: with ffmpeg, or with AI on ComfyUI when a cleanup is set up in the settings.";
+    public static final String CLIPS = "Clips";
+    public static final String LENGTH = "Length";
+    public static final String QUALITY = "Quality";
+    public static final String USED_BY = "Used by";
+    public static final String OTHER_VOICES = "Other voices";
+    public static final String REPLACE = "Replace...";
+    public static final String CLEAN_WITH_FFMPEG = "Clean with ffmpeg";
+    public static final String CLEAN_WITH_FFMPEG_HELP = "Makes a cleaned copy (less steady hiss and hum) to hear and compare; music, effects and other voices of a film stay";
+    public static final String DELETE_THE_CLIP = "Delete the clip";
+    public static final String THE_CLIP_IS_USED = "The clip is used and can't be deleted: %s";
+    public static final String THE_CLIP_IS_DELETED = "The clip %s is deleted.";
+    public static final String GRADE_CLEAN = "Clean";
+    public static final String GRADE_FAIR = "Fair";
+    public static final String GRADE_POOR = "Poor";
+    public static final String NOT_MEASURED = "Not measured (an mp3 needs ffmpeg)";
+    public static final String PROBLEM_BACKGROUND = "background sound under the voice (its quietest parts are only %.0f dB under the speech): the generated lines will carry it";
+    public static final String PROBLEM_SOME_BACKGROUND = "some background sound (its quietest parts are %.0f dB under the speech)";
+    public static final String PROBLEM_CLIPPED = "distorted: the loudest parts are clipped";
+    public static final String PROBLEM_TOO_SHORT = "short (%.0f s): 12 to 30 seconds clone better";
+    public static final String PROBLEM_TOO_LONG = "long (%.0f s): Chatterbox uses only its first 30 seconds";
+    public static final String REPLACE_THE_CLIP = "Replace the clip";
+    public static final String REPLACE_WITH = "Replace it with";
+    public static final String REPLACE_HELP = "Every voice of your actors and every narrator of your backends that uses the clip gets the new one; the parts are made again with it. The old clip stays until you delete it.";
+    public static final String THE_CLIP_WAS_REPLACED = "%d voices now use %s.";
+    public static final String THE_CLEANED_CLIP_IS_READY = "The cleaned version %s is under its clip (%s). Play it, and use it in place of the clip if it sounds better.";
+    public static final String THE_CLIP_COULD_NOT_BE_CLEANED = "The clip could not be cleaned: %s";
+    public static final String A_CLIP_WITH_PROBLEMS = "%s: %s. For the best result clean the recording by hand, or clean it with ffmpeg in Voices and clips (Audiobook Settings).";
     public static final String ADD_A_CHARACTER = "Add a character";
     public static final String ADD_THE_CHARACTERS_OF_THE_BOOK = "Add the characters of the book";
     public static final String CHARACTERS_ADDED = "Characters added: %s";
@@ -289,8 +321,141 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
 
     public static final String READ_THIS_PART_WITH_THE_BROWSER_VOICE = "Read this part (and the next ones without audio) with the voice of the browser";
 
-    public static final String GPU_NAME = "GPU (name)";
-    public static final String GPU_NAME_HELP = "Optional. Name the GPU when this server shares it with other servers (an image server, another speech server), and give the same name there: they then wait for each other instead of unloading each other's model. Empty: only requests to this address wait for each other.";
+    public static final String OTHER_SAMPLES = "Other samples: with sounds, in a mood";
+    public static final String READ_PLAINLY = "Read plainly";
+    public static final String WITH_SOUNDS = "With sounds (sigh, laugh, gasp)";
+    public static final String SPEECH_SERVERS_HELP = "The speech servers the audiobook is made by. A server on a GPU shared with the language model names the GPU lock that loads it.";
+    public static final String REQUESTS_MADE_AROUND_EACH_BATCH = "Requests made before and after each batch of parts (and each sample), one after the other, inside the GPU lock. Freeing the GPU and loading the speech server is the job of the GPU lock; use these for anything else. None does nothing.";
+    public static final String PRECISION = "Precision";
+    public static final String PRECISION_HELP = "The precision Higgs computes in. fp32 is the safe choice: bf16 gave gibberish and wrong voices on an AMD card. bf16 needs about half the memory.";
+    public static final String CHECK_THE_LENGTH_OF_PIECES = "Check the length of the pieces";
+    public static final String CHECK_THE_LENGTH_HELP = "A piece far longer than its text (the model went on talking, or made a sound instead of the words) is made again with another seed.";
+    public static final String CHECK_THE_WORDS = "Check the words with speech recognition";
+    public static final String CHECK_THE_WORDS_HELP = "After each batch every piece is transcribed and compared with its text; the pieces that differ are made again with another seed. Needs the speech recognition of the settings.";
+    public static final String MAX_WORD_ERRORS = "Max. word errors (%)";
+    public static final String RETRIES = "Retries";
+    public static final String SEND_THE_CLIP_TEXT = "Send the text of the clip to Higgs";
+    public static final String SEND_THE_CLIP_TEXT_HELP = "Experimental, keep it off: Higgs gets the words spoken in the voice clip with it. In tests it changed the voice.";
+    public static final String SPEECH_RECOGNITION = "Speech recognition";
+    public static final String SPEECH_RECOGNITION_HELP = "Writes down what a piece of speech says: it checks the pieces of a batch and recognises the text of a voice clip. ComfyUI with the TTS Audio Suite (Granite ASR), or an OpenAI-compatible transcription server such as a whisper server.";
+    public static final String RECOGNIZER_COMFYUI = "ComfyUI (Granite ASR)";
+    public static final String RECOGNIZER_OPENAI = "OpenAI-compatible (whisper)";
+    public static final String RECOGNITION_MODEL = "Model of the recognition";
+    public static final String TEXT_OF_THE_CLIP = "Text of the clip";
+    public static final String TEXT_OF_THE_CLIP_HELP = "The words spoken in the clip, typed or recognised.";
+    public static final String RECOGNIZE = "Recognize";
+    public static final String RECOGNIZING = "Recognizing ...";
+    public static final String NO_SPEECH_RECOGNITION = "Set up the speech recognition in the Audiobook settings first.";
+    public static final String THE_SPEECH_RECOGNITION_WORKS = "The speech recognition works.";
+    public static final String RECOGNITION_FAILED = "Recognizing failed: %s";
+    public static final String THE_TEXT_OF_THE_CLIP_IS_SAVED = "The text of the clip is saved.";
+    public static final String CLIP = "Clip";
+    public static final String PICK_A_CLIP = "Pick a clip in Clips.";
+    public static final String FOLDER = "Folder";
+    public static final String NO_FOLDER = "No folder";
+    public static final String A_VERSION_IS_IN_THE_FOLDER_OF_ITS_ORIGINAL = "A version is in the folder of the clip it was made from.";
+    public static final String MADE_FROM = "Made from %s with %s";
+    public static final String NOT_USED = "Not used";
+    public static final String USE_THIS_VERSION = "Use this version";
+    public static final String USE_THIS_VERSION_HELP = "Puts this version wherever the clip it was made from is used";
+    public static final String USE_THIS_VERSION_CONFIRM = "Use %s wherever %s is used? The lines made with the old clip are made again.";
+    public static final String CLEAN_WITH_AI = "Clean with AI";
+    public static final String CLEAN_WITH_AI_HELP = "Makes a new version of the clip with the chosen cleanup on ComfyUI (separation models: voice from music, noise, echo)";
+    public static final String CLEANING = "Cleaning…";
+    public static final String NO_CLEANUP = "No cleanup of clips is set up (Audiobook settings).";
+    public static final String CLEANUP_OF_CLIPS = "Cleanup of clips";
+    public static final String CLEANUP_OF_CLIPS_HELP = "A ComfyUI with the TTS Audio Suite cleans reference clips: a preset runs its steps one after the other (a separation model keeps the voice and drops music, noise or echo; the voice fixer restores a degraded voice; ffmpeg lowers a steady hiss). The result is a new version of the clip, the clip itself stays. The models are downloaded by ComfyUI on first use.";
+    public static final String CLEANUP_GPU_LOCK_HELP = "Give the cleanup a lock of its own, not the one of the speech or the speech recognition: its steps should restart ComfyUI, so that its models are not loaded next to theirs.";
+    public static final String CLEANUP_PRESET = "Cleanup";
+    public static final String NEW_PRESET = "New cleanup";
+    public static final String DELETE_THE_PRESET = "Delete the cleanup";
+    public static final String DEFAULT_PRESETS = "Default cleanups";
+    public static final String ADD_A_STEP = "Add a step";
+    public static final String REMOVE_THE_STEP = "Remove the step";
+    public static final String STEP_SEPARATE = "Separation model";
+    public static final String STEP_VOICE_FIXER = "Voice fixer";
+    public static final String STEP_FFMPEG = "ffmpeg (here)";
+    public static final String STEP_NORMALIZE = "Normalize loudness (here)";
+    public static final String SEPARATION_MODEL = "Model";
+    public static final String KEEP_THE_EXTRACTED = "Keep the extracted";
+    public static final String KEEP_THE_REMAINING = "Keep the remaining";
+    public static final String AGGRESSIVENESS = "Aggressiveness (0–20)";
+    public static final String FIXER_MODE_ORIGINAL = "Restore (default)";
+    public static final String FIXER_MODE_HIGH_FREQUENCIES = "Restore, high frequencies removed";
+    public static final String FIXER_MODE_DEGRADED = "Seriously degraded voice";
+    public static final String THE_CLEANUP_WORKS = "The cleanup works: ComfyUI offers %d separation models.";
+    public static final String KEEP_HELP = "Which output holds the voice depends on the model: a vocals model extracts the voice, a denoise model extracts the noise (keep the remaining). Listen to the result once.";
+    public static final String FROM_SECONDS = "From (s)";
+    public static final String TO_SECONDS = "To (s)";
+    public static final String TAKE_THE_PLACE_OF_THE_PLAYER = "Take the place of the player";
+    public static final String KEEP_THIS_PART = "Keep this part";
+    public static final String CUT_THIS_PART_OUT = "Cut this part out";
+    public static final String TRIM = "Trim";
+    public static final String TRIM_HELP = "Makes a version of the clip with only this part, or without it (a sound no cleanup removes: an animal, a cough, a door). Find the place with the player.";
+    public static final String GIVE_A_RANGE = "Give where the part starts and ends (From before To).";
+    public static final String THE_CLIP_COULD_NOT_BE_TRIMMED = "The clip could not be trimmed: %s";
+    public static final String VERSION_PART = "part %s";
+    public static final String VERSION_WITHOUT = "without %s";
+    public static final String PLAY_THE_SELECTION = "Play the selection";
+    public static final String PLAY_AROUND_THE_CUT = "Play around the cut";
+    public static final String PLAY_AROUND_THE_CUT_HELP = "Plays the second and a half before the selection, skips it and plays the second and a half after: how the clip sounds with the selection cut out";
+    public static final String ZOOM_TO_THE_SELECTION = "Zoom into the selection";
+    public static final String SHOW_THE_WHOLE_CLIP = "Show the whole clip";
+    public static final String SELECTED_SECONDS = "%s – %s (%s)";
+    public static final String PAUSE = "Pause";
+    public static final String SPEAK = "Speak";
+    public static final String SPEAKING = "Speaking…";
+    public static final String TEXT_TO_SPEAK = "Text to speak";
+    public static final String TRY_THE_VOICE = "Try the voice";
+    public static final String TRY_THE_VOICE_HELP = "The backend in use speaks the text with this clip exactly as you type it: no labelling and no sound cues, so the tags of the model (Higgs: <|...|>) can be tried. It takes the GPU lock of the backend.";
+    public static final String SEED_HELP = "Empty: 42, the seed of the conversions";
+    public static final String TYPE_A_TEXT = "Type a text to speak.";
+    public static final String THE_VOICE_COULD_NOT_SPEAK = "The text could not be spoken: %s";
+    public static final String TAGS_OF_THE_MODEL = "The tags the model reads";
+    public static final String THE_TAGS_OF = "%s reads these (click one to add it to the text):";
+    public static final String THE_MODEL_READS_NO_TAGS = "The model of %s reads no tags: they would be spoken as words.";
+    public static final String GPU_LOCK_HELP = "The GPU lock the administrator set up for the GPU of this server: every batch and sample waits for its turn on the GPU, and the lock's steps load the server first (freeing the language model or another server when needed). Empty: no lock.";
+    public static final String OTHER_MEN = "Other men";
+    public static final String OTHER_WOMEN = "Other women";
+    public static final String CHILDREN = "Children";
+    public static final String UNNAMED_SPEAKERS = "Unnamed speakers";
+    public static final String THE_BASE_VOICES_HELP = "Base voices for the speakers the cast does not name. The model tells their gender and age, and each of them gets a variation of their own made from the base clip (higher, lower, faster, brighter), the same in every chapter. Children not set: the women's voice, raised. All three empty: every unnamed speaker is read by Other speakers.";
+    public static final String SHIFTS_NEED_FFMPEG = "ffmpeg with rubberband was not found on the server: unnamed speakers share the base voice of their kind (variations made before are still used).";
+    public static final String THE_UNNAMED_SPEAKERS_HELP = "The speakers the model met that the cast does not name, with the gender and age they got first. Change them, hear them, or give one another variation.";
+    public static final String GENDER = "Gender";
+    public static final String AGE = "Age";
+    public static final String MALE = "Male";
+    public static final String FEMALE = "Female";
+    public static final String UNKNOWN = "Unknown";
+    public static final String CHILD = "Child";
+    public static final String TEENAGER = "Teenager";
+    public static final String ADULT = "Adult";
+    public static final String ELDERLY = "Elderly";
+    public static final String ANOTHER_VARIATION = "Another variation";
+    public static final String THE_BASE_VOICE = "the base voice";
+    public static final String VARIATION_OF = "Variation: %s";
+    public static final String FORMANTS = "formants";
+    public static final String TEMPO = "tempo";
+    public static final String DARKER = "darker";
+    public static final String BRIGHTER = "brighter";
+    public static final String TAGLINE = "Tagline";
+    public static final String A_CHARACTER_THEY_PLAY_OR_ANY_TAG = "A character they play, or any tag";
+    public static final String SHOW_THE_CLIP = "Show the clip";
+    public static final String LISTEN_TO_THE_REFERENCE_CLIP = "Listen to the reference clip";
+    public static final String THE_VOICE_IS_NOT_A_CLIP = "This voice is not a clip: there is no recording to play.";
+    public static final String MERGE = "Merge";
+    public static final String MERGE_HELP = "A new clip of the checked clips one after the other, in the order of the list. The checked clips stay.";
+    public static final String DELETE_CHECKED = "Delete checked";
+    public static final String CHECK_TWO_CLIPS_OR_MORE = "Check two clips or more.";
+    public static final String CHECK_A_CLIP_FIRST = "Check a clip first.";
+    public static final String THE_CLIPS_ARE_MERGED = "The clips are merged into %s.";
+    public static final String THE_CLIPS_COULD_NOT_BE_MERGED = "The clips could not be merged: %s";
+    public static final String DELETE_THE_CHECKED_CLIPS = "Delete the checked clips";
+    public static final String THE_CLIPS_ARE_DELETED = "%d clips are deleted.";
+    public static final String THESE_CLIPS_ARE_USED_AND_STAY = "These clips are used and stay: %s";
+    public static final String DELETE_THE_REASONING = "Delete the reasoning";
+    public static final String DELETE_THE_STORED_REASONING_OF_THIS_PART_QUESTION = "Delete everything the model said while it labelled this part? The labels and the audio stay. This cannot be undone.";
+    public static final String THIS_PART_HAS_NO_STORED_REASONING = "This part has no stored reasoning";
 
     @Override
     protected void loadKeys() {
@@ -309,14 +474,6 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
         de(AUDIOBOOK_SETTINGS, "Hörbuch-Einstellungen");
         ko(AUDIOBOOK_SETTINGS, "오디오북 설정");
         it(AUDIOBOOK_SETTINGS, "Impostazioni dell'audiolibro");
-
-        ja(SPEECH_SERVERS_HELP, "オーディオブックを作る音声合成サーバー。バッチの前後のリクエストで GPU にサーバーの場所を空け、終わったら停止します。");
-        zh(SPEECH_SERVERS_HELP, "制作有声书所用的语音合成服务器。批处理前后的请求会为服务器腾出 GPU，并在结束后将其停止。");
-        fr(SPEECH_SERVERS_HELP, "Les serveurs de synthèse vocale qui fabriquent le livre audio. Les requêtes autour d'un lot font de la place pour le serveur sur le GPU puis l'arrêtent.");
-        es(SPEECH_SERVERS_HELP, "Los servidores de voz con los que se crea el audiolibro. Las solicitudes alrededor de un lote hacen sitio al servidor en la GPU y lo detienen de nuevo.");
-        de(SPEECH_SERVERS_HELP, "Die Sprachserver, mit denen das Hörbuch erstellt wird. Die Anfragen rund um einen Stapel schaffen Platz für den Server auf der GPU und stoppen ihn wieder.");
-        ko(SPEECH_SERVERS_HELP, "오디오북을 만드는 음성 서버. 배치 전후의 요청은 GPU에서 서버를 위한 공간을 확보하고 다시 중지합니다.");
-        it(SPEECH_SERVERS_HELP, "I server vocali con cui viene creato l'audiolibro. Le richieste attorno a un batch fanno spazio al server sulla GPU e lo fermano di nuovo.");
 
         ja(BACKENDS, "バックエンド");
         zh(BACKENDS, "后端");
@@ -349,6 +506,22 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
         de(NEW_BACKEND, "Neues Backend");
         ko(NEW_BACKEND, "새 백엔드");
         it(NEW_BACKEND, "Nuovo backend");
+
+        ja(DUPLICATE_THE_BACKEND, "バックエンドを複製: 同じアドレス、キー、声、バッチ前後のリクエストで、違う部分 (別のモデル) だけを変更します");
+        zh(DUPLICATE_THE_BACKEND, "复制后端：相同的地址、密钥、声音以及批处理前后的请求，只需修改不同之处（另一个模型）");
+        fr(DUPLICATE_THE_BACKEND, "Dupliquer le moteur : même adresse, mêmes clés, même voix et mêmes requêtes avant et après un lot, pour ne changer que ce qui diffère (un autre modèle)");
+        es(DUPLICATE_THE_BACKEND, "Duplicar el backend: la misma dirección, claves, voz y solicitudes antes y después de un lote, para cambiar solo lo que difiere (otro modelo)");
+        de(DUPLICATE_THE_BACKEND, "Backend duplizieren: dieselbe Adresse, dieselben Schlüssel, dieselbe Stimme und dieselben Anfragen vor und nach einem Stapel, um nur das Abweichende zu ändern (ein anderes Modell)");
+        ko(DUPLICATE_THE_BACKEND, "백엔드 복제: 같은 주소, 키, 목소리, 배치 전후 요청으로 다른 부분(다른 모델)만 바꿉니다");
+        it(DUPLICATE_THE_BACKEND, "Duplica il backend: stesso indirizzo, chiavi, voce e richieste prima e dopo un batch, per cambiare solo ciò che differisce (un altro modello)");
+
+        ja(COPY_OF, "%s (コピー)");
+        zh(COPY_OF, "%s（副本）");
+        fr(COPY_OF, "%s (copie)");
+        es(COPY_OF, "%s (copia)");
+        de(COPY_OF, "%s (Kopie)");
+        ko(COPY_OF, "%s (사본)");
+        it(COPY_OF, "%s (copia)");
 
         ja(NAME, "名前");
         zh(NAME, "名称");
@@ -429,6 +602,22 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
         de(MODEL_MULTILINGUAL, "Chatterbox Multilingual (23 Sprachen)");
         ko(MODEL_MULTILINGUAL, "Chatterbox Multilingual (23개 언어)");
         it(MODEL_MULTILINGUAL, "Chatterbox Multilingual (23 lingue)");
+
+        ja(MODEL_HIGGS, "ComfyUI の Higgs Audio v3 (感情、音。非商用ライセンス)");
+        zh(MODEL_HIGGS, "ComfyUI 中的 Higgs Audio v3（情感、声音；非商业许可）");
+        fr(MODEL_HIGGS, "Higgs Audio v3 dans ComfyUI (émotions, sons ; licence non commerciale)");
+        es(MODEL_HIGGS, "Higgs Audio v3 en ComfyUI (emociones, sonidos; licencia no comercial)");
+        de(MODEL_HIGGS, "Higgs Audio v3 in ComfyUI (Emotionen, Geräusche; nicht-kommerzielle Lizenz)");
+        ko(MODEL_HIGGS, "ComfyUI의 Higgs Audio v3 (감정, 소리; 비상업용 라이선스)");
+        it(MODEL_HIGGS, "Higgs Audio v3 in ComfyUI (emozioni, suoni; licenza non commerciale)");
+
+        ja(COMFYUI_ADDRESS_HELP, "TTS Audio Suite のノードがある ComfyUI のアドレス。例: http://gpu-server:8188");
+        zh(COMFYUI_ADDRESS_HELP, "装有 TTS Audio Suite 节点的 ComfyUI 地址，例如 http://gpu-server:8188");
+        fr(COMFYUI_ADDRESS_HELP, "L'adresse de ComfyUI avec les nœuds de TTS Audio Suite, par exemple http://gpu-server:8188");
+        es(COMFYUI_ADDRESS_HELP, "La dirección de ComfyUI con los nodos de TTS Audio Suite, por ejemplo http://gpu-server:8188");
+        de(COMFYUI_ADDRESS_HELP, "Die Adresse von ComfyUI mit den Nodes der TTS Audio Suite, zum Beispiel http://gpu-server:8188");
+        ko(COMFYUI_ADDRESS_HELP, "TTS Audio Suite 노드가 있는 ComfyUI 주소, 예: http://gpu-server:8188");
+        it(COMFYUI_ADDRESS_HELP, "L'indirizzo di ComfyUI con i nodi di TTS Audio Suite, per esempio http://gpu-server:8188");
 
         ja(THE_MODEL_THE_SERVER_IS_ASKED_TO_LOAD, "バッチの前のリクエストが読み込んだ状態にしておくモデル。別のモデルが必要な本は別のバックエンドを選びます");
         zh(THE_MODEL_THE_SERVER_IS_ASKED_TO_LOAD, "批处理前的请求应让服务器加载的模型；需要其他模型的书请选用另一个后端");
@@ -531,14 +720,6 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
         de(AFTER_A_BATCH, "Nach einem Stapel");
         ko(AFTER_A_BATCH, "배치 후");
         it(AFTER_A_BATCH, "Dopo un batch");
-
-        ja(REQUESTS_MADE_AROUND_A_BATCH, "パートのバッチの前後に順番に行うリクエスト。前: GPU を空けて音声サーバーを起動 (言語モデルのアンロード、コンテナの起動、モデルの読み込み)。後: 停止。なければ何もしません。");
-        zh(REQUESTS_MADE_AROUND_A_BATCH, "在一批章节前后按顺序发出的请求。之前：释放 GPU 并启动语音服务器（卸载语言模型、启动容器、加载模型）。之后：将其停止。没有则不执行任何操作。");
-        fr(REQUESTS_MADE_AROUND_A_BATCH, "Requêtes faites autour d'un lot de parties, l'une après l'autre. Avant : libérer le GPU et démarrer le serveur de synthèse vocale (décharger le modèle de langage, démarrer le conteneur, charger le modèle). Après : l'arrêter. Aucune : ne fait rien.");
-        es(REQUESTS_MADE_AROUND_A_BATCH, "Solicitudes que se hacen alrededor de un lote de partes, una tras otra. Antes: liberar la GPU e iniciar el servidor de voz (descargar el modelo de lenguaje, iniciar el contenedor, cargar el modelo). Después: detenerlo. Ninguna no hace nada.");
-        de(REQUESTS_MADE_AROUND_A_BATCH, "Anfragen rund um einen Stapel von Abschnitten, nacheinander. Davor: die GPU freigeben und den Sprachserver starten (das Sprachmodell entladen, den Container starten, das Modell laden). Danach: ihn stoppen. „Keine“ tut nichts.");
-        ko(REQUESTS_MADE_AROUND_A_BATCH, "파트 배치의 앞뒤에 차례로 실행하는 요청. 전: GPU를 비우고 음성 서버를 시작 (언어 모델 언로드, 컨테이너 시작, 모델 로드). 후: 중지. 없음은 아무것도 하지 않습니다.");
-        it(REQUESTS_MADE_AROUND_A_BATCH, "Richieste fatte attorno a un batch di parti, una dopo l'altra. Prima: libera la GPU e avvia il server vocale (scarica il modello linguistico, avvia il container, carica il modello). Dopo: fermalo. Nessuna non fa nulla.");
 
         ja(ADD_A_REQUEST, "リクエストを追加");
         zh(ADD_A_REQUEST, "添加请求");
@@ -1100,10 +1281,6 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
         ko(CAST, "배역");
         it(CAST, "Cast");
 
-
-
-
-
         ja(CHARACTERS, "登場人物");
         zh(CHARACTERS, "人物");
         fr(CHARACTERS, "Personnages");
@@ -1192,6 +1369,238 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
         ko(THE_CLIP_COULD_NOT_BE_ADDED, "클립을 추가할 수 없었습니다: %s");
         it(THE_CLIP_COULD_NOT_BE_ADDED, "Non è stato possibile aggiungere la clip: %s");
 
+        ja(VOICES_AND_CLIPS, "声とクリップ");
+        zh(VOICES_AND_CLIPS, "声音与片段");
+        fr(VOICES_AND_CLIPS, "Voix et extraits");
+        es(VOICES_AND_CLIPS, "Voces y clips");
+        de(VOICES_AND_CLIPS, "Stimmen und Clips");
+        ko(VOICES_AND_CLIPS, "목소리와 클립");
+        it(VOICES_AND_CLIPS, "Voci e clip");
+
+        ja(VOICES_AND_CLIPS_HELP, "アクターと、その声の元になる参照クリップです。クリップはフォルダーに分けられ、クリップから作ったバージョンはその下に表示されます。音声モデルは声だけでなく録音そのものを真似ます。背景音 (映画、部屋の響き、音楽) のあるクリップでは、どのセリフにもノイズや響きが乗ります。本当の間 (ま) がある綺麗な録音を使うか、ここでクリップを整えてください: ffmpeg で、または設定でクリーンアップを用意すれば ComfyUI の AI で。");
+        zh(VOICES_AND_CLIPS_HELP, "您的演员及其声音所克隆的参考片段，按文件夹整理，由片段生成的版本显示在其下方。语音模型复制的是录音本身，而不只是声音：带有背景声（电影、房间回响、音乐）的片段会让每一句都带上杂音或回响。请使用带有真正停顿的干净录音，或在此清理片段：用 ffmpeg，或在设置中配置清理后用 ComfyUI 上的 AI。");
+        fr(VOICES_AND_CLIPS_HELP, "Vos acteurs et les extraits de référence dont leurs voix sont clonées, rangés en dossiers, avec sous chaque extrait les versions qui en sont faites. Un modèle de voix copie l'enregistrement, pas seulement la voix : un extrait avec un fond sonore (un film, une pièce, de la musique) donne à chaque réplique un souffle ou une acoustique. Utilisez un enregistrement propre avec de vraies pauses, ou nettoyez un extrait ici : avec ffmpeg, ou par IA sur ComfyUI quand un nettoyage est configuré dans les réglages.");
+        es(VOICES_AND_CLIPS_HELP, "Tus actores y los clips de referencia de los que se clonan sus voces, en carpetas, con las versiones hechas de un clip debajo de él. Un modelo de voz copia la grabación, no solo la voz: un clip con sonido de fondo (una película, una sala, música) da a cada frase un soplido o una acústica. Usa una grabación limpia con pausas reales, o limpia un clip aquí: con ffmpeg, o con IA en ComfyUI cuando hay una limpieza configurada en los ajustes.");
+        de(VOICES_AND_CLIPS_HELP, "Deine Sprecher und die Referenzclips, aus denen ihre Stimmen geklont werden, in Ordnern, mit den aus einem Clip gemachten Versionen darunter. Ein Stimmmodell kopiert die Aufnahme, nicht nur die Stimme: Ein Clip mit Hintergrundgeräuschen (ein Film, ein Raum, Musik) gibt jedem Satz ein Rauschen oder einen Raumklang. Verwende eine saubere Aufnahme mit echten Pausen oder säubere einen Clip hier: mit ffmpeg oder mit KI auf ComfyUI, wenn in den Einstellungen eine Bereinigung eingerichtet ist.");
+        ko(VOICES_AND_CLIPS_HELP, "배우와 그 목소리를 복제하는 참조 클립입니다. 클립은 폴더로 정리되고, 클립에서 만든 버전은 그 아래에 표시됩니다. 음성 모델은 목소리뿐 아니라 녹음 자체를 따라 합니다. 배경음(영화, 방의 울림, 음악)이 있는 클립은 모든 대사에 잡음이나 울림을 남깁니다. 실제 쉼이 있는 깨끗한 녹음을 쓰거나 여기서 클립을 정리하세요: ffmpeg로, 또는 설정에서 정리를 준비했다면 ComfyUI의 AI로.");
+        it(VOICES_AND_CLIPS_HELP, "I tuoi attori e le clip di riferimento da cui sono clonate le loro voci, in cartelle, con sotto ogni clip le versioni ricavate da essa. Un modello vocale copia la registrazione, non solo la voce: una clip con suoni di fondo (un film, una stanza, musica) dà a ogni battuta un fruscio o un ambiente. Usa una registrazione pulita con pause vere, oppure pulisci una clip qui: con ffmpeg, o con l'IA su ComfyUI quando nelle impostazioni è configurata una pulizia.");
+
+        ja(CLIPS, "クリップ");
+        zh(CLIPS, "片段");
+        fr(CLIPS, "Extraits");
+        es(CLIPS, "Clips");
+        de(CLIPS, "Clips");
+        ko(CLIPS, "클립");
+        it(CLIPS, "Clip");
+
+        ja(LENGTH, "長さ");
+        zh(LENGTH, "时长");
+        fr(LENGTH, "Durée");
+        es(LENGTH, "Duración");
+        de(LENGTH, "Länge");
+        ko(LENGTH, "길이");
+        it(LENGTH, "Durata");
+
+        ja(QUALITY, "品質");
+        zh(QUALITY, "质量");
+        fr(QUALITY, "Qualité");
+        es(QUALITY, "Calidad");
+        de(QUALITY, "Qualität");
+        ko(QUALITY, "품질");
+        it(QUALITY, "Qualità");
+
+        ja(USED_BY, "使用箇所");
+        zh(USED_BY, "使用者");
+        fr(USED_BY, "Utilisé par");
+        es(USED_BY, "Usado por");
+        de(USED_BY, "Verwendet von");
+        ko(USED_BY, "사용처");
+        it(USED_BY, "Usata da");
+
+        ja(OTHER_VOICES, "ほかの声");
+        zh(OTHER_VOICES, "其他声音");
+        fr(OTHER_VOICES, "Autres voix");
+        es(OTHER_VOICES, "Otras voces");
+        de(OTHER_VOICES, "Weitere Stimmen");
+        ko(OTHER_VOICES, "다른 목소리");
+        it(OTHER_VOICES, "Altre voci");
+
+        ja(REPLACE, "置き換え...");
+        zh(REPLACE, "替换...");
+        fr(REPLACE, "Remplacer...");
+        es(REPLACE, "Reemplazar...");
+        de(REPLACE, "Ersetzen...");
+        ko(REPLACE, "교체...");
+        it(REPLACE, "Sostituisci...");
+
+        ja(CLEAN_WITH_FFMPEG, "ffmpeg で整える");
+        zh(CLEAN_WITH_FFMPEG, "用 ffmpeg 清理");
+        fr(CLEAN_WITH_FFMPEG, "Nettoyer avec ffmpeg");
+        es(CLEAN_WITH_FFMPEG, "Limpiar con ffmpeg");
+        de(CLEAN_WITH_FFMPEG, "Mit ffmpeg bereinigen");
+        ko(CLEAN_WITH_FFMPEG, "ffmpeg로 정리");
+        it(CLEAN_WITH_FFMPEG, "Pulisci con ffmpeg");
+
+        ja(CLEAN_WITH_FFMPEG_HELP, "整えたコピー (一定のヒスノイズやハムを減らしたもの) を作り、聞き比べられるようにします。映画の音楽、効果音、ほかの声は残ります");
+        zh(CLEAN_WITH_FFMPEG_HELP, "生成一个清理后的副本（减少持续的嘶声和嗡声）以便试听比较；电影中的音乐、音效和其他人声会保留");
+        fr(CLEAN_WITH_FFMPEG_HELP, "Crée une copie nettoyée (moins de souffle et de ronflement constants) à écouter et comparer ; la musique, les effets et les autres voix d'un film restent");
+        es(CLEAN_WITH_FFMPEG_HELP, "Crea una copia limpia (menos siseo y zumbido constantes) para escuchar y comparar; la música, los efectos y otras voces de una película se quedan");
+        de(CLEAN_WITH_FFMPEG_HELP, "Erzeugt eine bereinigte Kopie (weniger gleichmäßiges Rauschen und Brummen) zum Anhören und Vergleichen; Musik, Effekte und andere Stimmen eines Films bleiben");
+        ko(CLEAN_WITH_FFMPEG_HELP, "정리된 사본(일정한 히스와 험을 줄인 것)을 만들어 들어 보고 비교할 수 있게 합니다. 영화의 음악, 효과음, 다른 목소리는 남습니다");
+        it(CLEAN_WITH_FFMPEG_HELP, "Crea una copia pulita (meno fruscio e ronzio costanti) da ascoltare e confrontare; musica, effetti e altre voci di un film restano");
+
+        ja(DELETE_THE_CLIP, "クリップを削除");
+        zh(DELETE_THE_CLIP, "删除片段");
+        fr(DELETE_THE_CLIP, "Supprimer l'extrait");
+        es(DELETE_THE_CLIP, "Eliminar el clip");
+        de(DELETE_THE_CLIP, "Clip löschen");
+        ko(DELETE_THE_CLIP, "클립 삭제");
+        it(DELETE_THE_CLIP, "Elimina la clip");
+
+        ja(THE_CLIP_IS_USED, "このクリップは使われているため削除できません: %s");
+        zh(THE_CLIP_IS_USED, "该片段正在使用，无法删除：%s");
+        fr(THE_CLIP_IS_USED, "L'extrait est utilisé et ne peut pas être supprimé : %s");
+        es(THE_CLIP_IS_USED, "El clip está en uso y no se puede eliminar: %s");
+        de(THE_CLIP_IS_USED, "Der Clip wird verwendet und kann nicht gelöscht werden: %s");
+        ko(THE_CLIP_IS_USED, "클립이 사용 중이라 삭제할 수 없습니다: %s");
+        it(THE_CLIP_IS_USED, "La clip è in uso e non può essere eliminata: %s");
+
+        ja(THE_CLIP_IS_DELETED, "クリップ %s を削除しました。");
+        zh(THE_CLIP_IS_DELETED, "片段 %s 已删除。");
+        fr(THE_CLIP_IS_DELETED, "L'extrait %s est supprimé.");
+        es(THE_CLIP_IS_DELETED, "El clip %s se ha eliminado.");
+        de(THE_CLIP_IS_DELETED, "Der Clip %s ist gelöscht.");
+        ko(THE_CLIP_IS_DELETED, "클립 %s을(를) 삭제했습니다.");
+        it(THE_CLIP_IS_DELETED, "La clip %s è stata eliminata.");
+
+        ja(GRADE_CLEAN, "良好");
+        zh(GRADE_CLEAN, "干净");
+        fr(GRADE_CLEAN, "Propre");
+        es(GRADE_CLEAN, "Limpio");
+        de(GRADE_CLEAN, "Sauber");
+        ko(GRADE_CLEAN, "깨끗함");
+        it(GRADE_CLEAN, "Pulita");
+
+        ja(GRADE_FAIR, "まずまず");
+        zh(GRADE_FAIR, "一般");
+        fr(GRADE_FAIR, "Correct");
+        es(GRADE_FAIR, "Aceptable");
+        de(GRADE_FAIR, "Brauchbar");
+        ko(GRADE_FAIR, "보통");
+        it(GRADE_FAIR, "Discreta");
+
+        ja(GRADE_POOR, "不十分");
+        zh(GRADE_POOR, "较差");
+        fr(GRADE_POOR, "Médiocre");
+        es(GRADE_POOR, "Deficiente");
+        de(GRADE_POOR, "Mangelhaft");
+        ko(GRADE_POOR, "나쁨");
+        it(GRADE_POOR, "Scarsa");
+
+        ja(NOT_MEASURED, "未測定 (mp3 には ffmpeg が必要)");
+        zh(NOT_MEASURED, "未测量（mp3 需要 ffmpeg）");
+        fr(NOT_MEASURED, "Non mesuré (un mp3 nécessite ffmpeg)");
+        es(NOT_MEASURED, "Sin medir (un mp3 necesita ffmpeg)");
+        de(NOT_MEASURED, "Nicht gemessen (eine mp3 braucht ffmpeg)");
+        ko(NOT_MEASURED, "측정 안 됨(mp3는 ffmpeg 필요)");
+        it(NOT_MEASURED, "Non misurata (un mp3 richiede ffmpeg)");
+
+        ja(PROBLEM_BACKGROUND, "声の下に背景音があります (最も静かな部分が話し声より %.0f dB しか小さくありません)。生成されたセリフにも乗ります");
+        zh(PROBLEM_BACKGROUND, "声音下有背景声（最安静的部分只比说话声低 %.0f dB）：生成的语句也会带上它");
+        fr(PROBLEM_BACKGROUND, "fond sonore sous la voix (ses parties les plus calmes ne sont que %.0f dB sous la parole) : les répliques générées le porteront");
+        es(PROBLEM_BACKGROUND, "sonido de fondo bajo la voz (sus partes más silenciosas están solo %.0f dB por debajo del habla): las frases generadas lo llevarán");
+        de(PROBLEM_BACKGROUND, "Hintergrundgeräusch unter der Stimme (die leisesten Stellen liegen nur %.0f dB unter der Sprache): die erzeugten Zeilen tragen es mit");
+        ko(PROBLEM_BACKGROUND, "목소리 아래에 배경음이 있습니다(가장 조용한 부분이 말소리보다 %.0f dB만 낮음). 생성된 대사에도 남습니다");
+        it(PROBLEM_BACKGROUND, "suono di fondo sotto la voce (le parti più silenziose sono solo %.0f dB sotto il parlato): le battute generate lo porteranno");
+
+        ja(PROBLEM_SOME_BACKGROUND, "いくらか背景音があります (最も静かな部分が話し声より %.0f dB 小さい)");
+        zh(PROBLEM_SOME_BACKGROUND, "有一些背景声（最安静的部分比说话声低 %.0f dB）");
+        fr(PROBLEM_SOME_BACKGROUND, "un peu de fond sonore (ses parties les plus calmes sont %.0f dB sous la parole)");
+        es(PROBLEM_SOME_BACKGROUND, "algo de sonido de fondo (sus partes más silenciosas están %.0f dB por debajo del habla)");
+        de(PROBLEM_SOME_BACKGROUND, "etwas Hintergrundgeräusch (die leisesten Stellen liegen %.0f dB unter der Sprache)");
+        ko(PROBLEM_SOME_BACKGROUND, "약간의 배경음(가장 조용한 부분이 말소리보다 %.0f dB 낮음)");
+        it(PROBLEM_SOME_BACKGROUND, "un po' di suono di fondo (le parti più silenziose sono %.0f dB sotto il parlato)");
+
+        ja(PROBLEM_CLIPPED, "歪んでいます: 最も大きな部分がクリップしています");
+        zh(PROBLEM_CLIPPED, "失真：最响的部分被削波");
+        fr(PROBLEM_CLIPPED, "distordu : les parties les plus fortes sont écrêtées");
+        es(PROBLEM_CLIPPED, "distorsionado: las partes más fuertes están saturadas");
+        de(PROBLEM_CLIPPED, "verzerrt: die lautesten Stellen sind übersteuert");
+        ko(PROBLEM_CLIPPED, "왜곡됨: 가장 큰 부분이 클리핑됨");
+        it(PROBLEM_CLIPPED, "distorta: le parti più forti sono saturate");
+
+        ja(PROBLEM_TOO_SHORT, "短すぎます (%.0f 秒)。12〜30 秒の方がうまく複製できます");
+        zh(PROBLEM_TOO_SHORT, "太短（%.0f 秒）：12 到 30 秒克隆效果更好");
+        fr(PROBLEM_TOO_SHORT, "court (%.0f s) : 12 à 30 secondes se clonent mieux");
+        es(PROBLEM_TOO_SHORT, "corto (%.0f s): de 12 a 30 segundos se clonan mejor");
+        de(PROBLEM_TOO_SHORT, "kurz (%.0f s): 12 bis 30 Sekunden lassen sich besser klonen");
+        ko(PROBLEM_TOO_SHORT, "짧음(%.0f초): 12~30초가 더 잘 복제됩니다");
+        it(PROBLEM_TOO_SHORT, "breve (%.0f s): da 12 a 30 secondi si clonano meglio");
+
+        ja(PROBLEM_TOO_LONG, "長すぎます (%.0f 秒)。Chatterbox は最初の 30 秒だけを使います");
+        zh(PROBLEM_TOO_LONG, "太长（%.0f 秒）：Chatterbox 只使用前 30 秒");
+        fr(PROBLEM_TOO_LONG, "long (%.0f s) : Chatterbox n'en utilise que les 30 premières secondes");
+        es(PROBLEM_TOO_LONG, "largo (%.0f s): Chatterbox solo usa sus primeros 30 segundos");
+        de(PROBLEM_TOO_LONG, "lang (%.0f s): Chatterbox verwendet nur die ersten 30 Sekunden");
+        ko(PROBLEM_TOO_LONG, "김(%.0f초): Chatterbox는 처음 30초만 사용합니다");
+        it(PROBLEM_TOO_LONG, "lunga (%.0f s): Chatterbox ne usa solo i primi 30 secondi");
+
+        ja(REPLACE_THE_CLIP, "クリップを置き換え");
+        zh(REPLACE_THE_CLIP, "替换片段");
+        fr(REPLACE_THE_CLIP, "Remplacer l'extrait");
+        es(REPLACE_THE_CLIP, "Reemplazar el clip");
+        de(REPLACE_THE_CLIP, "Clip ersetzen");
+        ko(REPLACE_THE_CLIP, "클립 교체");
+        it(REPLACE_THE_CLIP, "Sostituisci la clip");
+
+        ja(REPLACE_WITH, "置き換え先");
+        zh(REPLACE_WITH, "替换为");
+        fr(REPLACE_WITH, "Le remplacer par");
+        es(REPLACE_WITH, "Reemplazarlo por");
+        de(REPLACE_WITH, "Ersetzen durch");
+        ko(REPLACE_WITH, "교체할 클립");
+        it(REPLACE_WITH, "Sostituiscila con");
+
+        ja(REPLACE_HELP, "このクリップを使うアクターの声とバックエンドのナレーターがすべて新しいクリップになり、パートはそれで作り直されます。古いクリップは削除するまで残ります。");
+        zh(REPLACE_HELP, "所有使用该片段的演员声音和后端旁白都会改用新片段，各部分会用它重新生成。旧片段会保留，直到您删除它。");
+        fr(REPLACE_HELP, "Chaque voix de vos acteurs et chaque narrateur de vos moteurs qui utilise l'extrait reçoit le nouveau ; les parties sont refaites avec lui. L'ancien extrait reste jusqu'à ce que vous le supprimiez.");
+        es(REPLACE_HELP, "Cada voz de tus actores y cada narrador de tus backends que usa el clip recibe el nuevo; las partes se vuelven a hacer con él. El clip antiguo se queda hasta que lo elimines.");
+        de(REPLACE_HELP, "Jede Stimme deiner Schauspieler und jeder Erzähler deiner Backends, die den Clip verwenden, bekommt den neuen; die Teile werden damit neu erstellt. Der alte Clip bleibt, bis du ihn löschst.");
+        ko(REPLACE_HELP, "이 클립을 쓰는 배우의 목소리와 백엔드의 내레이터가 모두 새 클립을 쓰게 되고, 파트는 그것으로 다시 만들어집니다. 이전 클립은 삭제할 때까지 남습니다.");
+        it(REPLACE_HELP, "Ogni voce dei tuoi attori e ogni narratore dei tuoi backend che usa la clip riceve quella nuova; le parti vengono rifatte con essa. La vecchia clip resta finché non la elimini.");
+
+        ja(THE_CLIP_WAS_REPLACED, "%d 個の声が %s を使うようになりました。");
+        zh(THE_CLIP_WAS_REPLACED, "现在有 %d 个声音使用 %s。");
+        fr(THE_CLIP_WAS_REPLACED, "%d voix utilisent maintenant %s.");
+        es(THE_CLIP_WAS_REPLACED, "%d voces usan ahora %s.");
+        de(THE_CLIP_WAS_REPLACED, "%d Stimmen verwenden jetzt %s.");
+        ko(THE_CLIP_WAS_REPLACED, "이제 %d개의 목소리가 %s을(를) 사용합니다.");
+        it(THE_CLIP_WAS_REPLACED, "%d voci ora usano %s.");
+
+        ja(THE_CLEANED_CLIP_IS_READY, "整えたバージョン %s が元のクリップの下にあります (%s)。再生して、良ければ元のクリップの代わりに使ってください。");
+        zh(THE_CLEANED_CLIP_IS_READY, "清理后的版本 %s 已位于其片段下方（%s）。播放试听，如果更好就用它替换原片段。");
+        fr(THE_CLEANED_CLIP_IS_READY, "La version nettoyée %s est sous son extrait (%s). Écoutez-la, et utilisez-la à la place de l'extrait si elle sonne mieux.");
+        es(THE_CLEANED_CLIP_IS_READY, "La versión limpia %s está bajo su clip (%s). Escúchala y úsala en lugar del clip si suena mejor.");
+        de(THE_CLEANED_CLIP_IS_READY, "Die gesäuberte Version %s liegt unter ihrem Clip (%s). Hör sie dir an und verwende sie statt des Clips, wenn sie besser klingt.");
+        ko(THE_CLEANED_CLIP_IS_READY, "정리된 버전 %s이(가) 원래 클립 아래에 있습니다(%s). 들어 보고 더 좋으면 클립 대신 사용하세요.");
+        it(THE_CLEANED_CLIP_IS_READY, "La versione pulita %s è sotto la sua clip (%s). Ascoltala e usala al posto della clip se suona meglio.");
+
+        ja(THE_CLIP_COULD_NOT_BE_CLEANED, "クリップを整えられませんでした: %s");
+        zh(THE_CLIP_COULD_NOT_BE_CLEANED, "无法清理该片段：%s");
+        fr(THE_CLIP_COULD_NOT_BE_CLEANED, "L'extrait n'a pas pu être nettoyé : %s");
+        es(THE_CLIP_COULD_NOT_BE_CLEANED, "No se pudo limpiar el clip: %s");
+        de(THE_CLIP_COULD_NOT_BE_CLEANED, "Der Clip konnte nicht bereinigt werden: %s");
+        ko(THE_CLIP_COULD_NOT_BE_CLEANED, "클립을 정리할 수 없습니다: %s");
+        it(THE_CLIP_COULD_NOT_BE_CLEANED, "Non è stato possibile pulire la clip: %s");
+
+        ja(A_CLIP_WITH_PROBLEMS, "%s: %s。最良の結果のために録音を手で整えるか、「声とクリップ」(オーディオブック設定) で ffmpeg を使って整えてください。");
+        zh(A_CLIP_WITH_PROBLEMS, "%s：%s。为获得最佳效果，请手动清理录音，或在“声音与片段”（有声书设置）中用 ffmpeg 清理。");
+        fr(A_CLIP_WITH_PROBLEMS, "%s : %s. Pour le meilleur résultat, nettoyez l'enregistrement à la main, ou avec ffmpeg dans Voix et extraits (Paramètres du livre audio).");
+        es(A_CLIP_WITH_PROBLEMS, "%s: %s. Para el mejor resultado limpia la grabación a mano, o con ffmpeg en Voces y clips (Ajustes del audiolibro).");
+        de(A_CLIP_WITH_PROBLEMS, "%s: %s. Für das beste Ergebnis bereinige die Aufnahme von Hand oder mit ffmpeg unter Stimmen und Clips (Hörbuch-Einstellungen).");
+        ko(A_CLIP_WITH_PROBLEMS, "%s: %s. 가장 좋은 결과를 위해 녹음을 직접 정리하거나, 목소리와 클립(오디오북 설정)에서 ffmpeg로 정리하세요.");
+        it(A_CLIP_WITH_PROBLEMS, "%s: %s. Per il miglior risultato pulisci la registrazione a mano, o con ffmpeg in Voci e clip (Impostazioni dell'audiolibro).");
+
         ja(ADD_A_CHARACTER, "登場人物を追加");
         zh(ADD_A_CHARACTER, "添加人物");
         fr(ADD_A_CHARACTER, "Ajouter un personnage");
@@ -1240,8 +1649,6 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
         ko(SEPARATED_BY_COMMAS, "쉼표로 구분");
         it(SEPARATED_BY_COMMAS, "Separati da virgole");
 
-
-
         ja(THE_CAST_COULD_NOT_BE_STORED, "キャストを保存できませんでした: %s");
         zh(THE_CAST_COULD_NOT_BE_STORED, "无法保存角色分配：%s");
         fr(THE_CAST_COULD_NOT_BE_STORED, "La distribution n'a pas pu être enregistrée : %s");
@@ -1257,12 +1664,6 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
         de(THE_CAST_IS_STORED, "Die Besetzung ist gespeichert");
         ko(THE_CAST_IS_STORED, "배역을 저장했습니다");
         it(THE_CAST_IS_STORED, "Il cast è memorizzato");
-
-
-
-
-
-
 
         ja(ACTOR, "声優");
         zh(ACTOR, "配役の声");
@@ -2297,20 +2698,1084 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
         ko(THE_INSTRUCTION_THAT_TELLS_THE_MODEL_WHO_SPEAKS_EACH_PIECE, "언어 모델에게 파트의 각 조각을 누가 말하는지와 어떻게 읽는지를 알려 주는 지시문 (템플릿). 비워 두면 내장된 것.");
         it(THE_INSTRUCTION_THAT_TELLS_THE_MODEL_WHO_SPEAKS_EACH_PIECE, "L'istruzione che dice al modello linguistico chi pronuncia ogni pezzo di una parte e come viene letto (un template). Vuoto: quello integrato.");
 
-        ja(GPU_NAME, "GPU（名前）");
-        zh(GPU_NAME, "GPU（名称）");
-        fr(GPU_NAME, "GPU (nom)");
-        es(GPU_NAME, "GPU (nombre)");
-        de(GPU_NAME, "GPU (Name)");
-        ko(GPU_NAME, "GPU (이름)");
-        it(GPU_NAME, "GPU (nome)");
+        ja(OTHER_SAMPLES, "他のサンプル: 効果音付き、感情付き");
+        zh(OTHER_SAMPLES, "其他试听：带声音、带语气");
+        fr(OTHER_SAMPLES, "Autres échantillons : avec des sons, dans une humeur");
+        es(OTHER_SAMPLES, "Otras muestras: con sonidos, con un estado de ánimo");
+        de(OTHER_SAMPLES, "Weitere Hörproben: mit Lauten, in einer Stimmung");
+        ko(OTHER_SAMPLES, "다른 샘플: 소리 포함, 감정 포함");
+        it(OTHER_SAMPLES, "Altri campioni: con suoni, in uno stato d'animo");
 
-        ja(GPU_NAME_HELP, "任意。このサーバーが他のサーバー (画像サーバーなど) とGPUを共有している場合に名前を付け、他にも同じ名前を指定します。互いのモデルを解放せず、順番に待ちます。空の場合は、このアドレスへのリクエスト同士だけが待ち合います。");
-        zh(GPU_NAME_HELP, "可选。如果此服务器与其他服务器（如图像服务器）共用一块 GPU，请给它起个名字，并在其他服务器上填写相同的名字：它们会互相等待，而不是卸载对方的模型。留空：只有发往此地址的请求会互相等待。");
-        fr(GPU_NAME_HELP, "Facultatif. Nommez le GPU quand ce serveur le partage avec d'autres serveurs (un serveur d'images, un autre serveur de synthèse vocale), et donnez-y le même nom : ils s'attendent alors au lieu de décharger le modèle des autres. Vide : seules les requêtes vers cette adresse s'attendent.");
-        es(GPU_NAME_HELP, "Opcional. Indica el nombre de la GPU cuando este servidor la comparte con otros servidores (un servidor de imágenes, otro servidor de voz) y da allí el mismo nombre: entonces esperan unos a otros en lugar de descargarse mutuamente el modelo. Vacío: solo esperan entre sí las solicitudes a esta dirección.");
-        de(GPU_NAME_HELP, "Optional. Gib der GPU einen Namen, wenn dieser Server sie mit anderen Servern teilt (einem Bildserver, einem anderen Sprachserver), und gib dort denselben Namen an: Sie warten dann aufeinander, statt gegenseitig ihr Modell zu entladen. Leer: Nur Anfragen an diese Adresse warten aufeinander.");
-        ko(GPU_NAME_HELP, "선택 사항. 이 서버가 GPU를 다른 서버(이미지 서버, 다른 음성 서버)와 공유할 때 GPU 이름을 지정하고 그쪽에도 같은 이름을 지정하세요: 그러면 서로의 모델을 언로드하는 대신 서로를 기다립니다. 비워 두면 이 주소로의 요청끼리만 서로 기다립니다.");
-        it(GPU_NAME_HELP, "Facoltativo. Indica il nome della GPU quando questo server la condivide con altri server (un server di immagini, un altro server vocale), e indica lì lo stesso nome: si aspettano allora a vicenda invece di scaricare il modello l'uno dell'altro. Vuoto: si aspettano solo le richieste a questo indirizzo.");
+        ja(READ_PLAINLY, "普通に読む");
+        zh(READ_PLAINLY, "平实朗读");
+        fr(READ_PLAINLY, "Lecture neutre");
+        es(READ_PLAINLY, "Leer sin más");
+        de(READ_PLAINLY, "Neutral lesen");
+        ko(READ_PLAINLY, "평이하게 읽기");
+        it(READ_PLAINLY, "Lettura neutra");
+
+        ja(WITH_SOUNDS, "効果音付き (ため息、笑い、息をのむ)");
+        zh(WITH_SOUNDS, "带声音（叹气、笑、倒吸气）");
+        fr(WITH_SOUNDS, "Avec des sons (soupir, rire, souffle coupé)");
+        es(WITH_SOUNDS, "Con sonidos (suspiro, risa, jadeo)");
+        de(WITH_SOUNDS, "Mit Lauten (Seufzen, Lachen, Keuchen)");
+        ko(WITH_SOUNDS, "소리 포함 (한숨, 웃음, 헉)");
+        it(WITH_SOUNDS, "Con suoni (sospiro, risata, sussulto)");
+
+        ja(SPEECH_SERVERS_HELP, "オーディオブックを作る音声サーバーです。言語モデルと共有する GPU 上のサーバーには、それをロードする GPU ロックを指定します。");
+        zh(SPEECH_SERVERS_HELP, "制作有声书的语音服务器。与语言模型共用 GPU 的服务器要指定加载它的 GPU 锁。");
+        fr(SPEECH_SERVERS_HELP, "Les serveurs de synthèse vocale qui font le livre audio. Un serveur sur un GPU partagé avec le modèle de langage indique le verrou GPU qui le charge.");
+        es(SPEECH_SERVERS_HELP, "Los servidores de voz que hacen el audiolibro. Un servidor en una GPU compartida con el modelo de lenguaje indica el bloqueo de GPU que lo carga.");
+        de(SPEECH_SERVERS_HELP, "Die Sprachserver, die das Hörbuch machen. Ein Server auf einer GPU, die er mit dem Sprachmodell teilt, nennt die GPU-Sperre, die ihn lädt.");
+        ko(SPEECH_SERVERS_HELP, "오디오북을 만드는 음성 서버입니다. 언어 모델과 GPU를 공유하는 서버는 그것을 로드하는 GPU 잠금을 지정합니다.");
+        it(SPEECH_SERVERS_HELP, "I server vocali che fanno l'audiolibro. Un server su una GPU condivisa con il modello linguistico indica il blocco GPU che lo carica.");
+
+        ja(REQUESTS_MADE_AROUND_EACH_BATCH, "各パートのバッチ (と各サンプル) の前後に、GPU ロックの中で順番に行うリクエスト。GPU を空けて音声サーバーをロードするのは GPU ロックの役目です。それ以外の用途に使います。なければ何もしません。");
+        zh(REQUESTS_MADE_AROUND_EACH_BATCH, "在每批部分（以及每个试听）前后、在 GPU 锁内按顺序发出的请求。腾出 GPU 并加载语音服务器由 GPU 锁负责；这些请求用于其他用途。没有则不执行任何操作。");
+        fr(REQUESTS_MADE_AROUND_EACH_BATCH, "Requêtes faites avant et après chaque lot de parties (et chaque échantillon), l'une après l'autre, dans le verrou GPU. Libérer le GPU et charger le serveur de voix est le rôle du verrou GPU ; utilisez-les pour le reste. Aucune : ne fait rien.");
+        es(REQUESTS_MADE_AROUND_EACH_BATCH, "Solicitudes que se hacen antes y después de cada lote de partes (y de cada muestra), una tras otra, dentro del bloqueo de GPU. Liberar la GPU y cargar el servidor de voz es tarea del bloqueo de GPU; úsalas para lo demás. Ninguna no hace nada.");
+        de(REQUESTS_MADE_AROUND_EACH_BATCH, "Anfragen vor und nach jedem Stapel von Teilen (und jeder Hörprobe), nacheinander, innerhalb der GPU-Sperre. Die GPU freizugeben und den Sprachserver zu laden ist Aufgabe der GPU-Sperre; diese Anfragen sind für alles andere. „Keine“ tut nichts.");
+        ko(REQUESTS_MADE_AROUND_EACH_BATCH, "각 파트 배치(와 각 샘플) 전후에 GPU 잠금 안에서 차례로 실행하는 요청. GPU를 비우고 음성 서버를 로드하는 것은 GPU 잠금이 맡습니다. 그 밖의 용도에 쓰세요. 없음은 아무것도 하지 않습니다.");
+        it(REQUESTS_MADE_AROUND_EACH_BATCH, "Richieste fatte prima e dopo ogni batch di parti (e ogni campione), una dopo l'altra, dentro il blocco GPU. Liberare la GPU e caricare il server vocale è compito del blocco GPU; usale per il resto. Nessuna non fa nulla.");
+
+        ja(GPU_LOCK_HELP, "このサーバーの GPU 用に管理者が設定した GPU ロックです。各バッチとサンプルは GPU の順番を待ち、ロックのステップが先にサーバーをロードします (必要なら言語モデルや他のサーバーを解放します)。空: ロックなし。");
+        zh(GPU_LOCK_HELP, "管理员为此服务器所在 GPU 设置的 GPU 锁：每批任务和每个试听都会等待轮到自己使用 GPU，锁的步骤会先加载服务器（需要时释放语言模型或其他服务器）。留空：无锁。");
+        fr(GPU_LOCK_HELP, "Le verrou GPU que l'administrateur a configuré pour le GPU de ce serveur : chaque lot et chaque échantillon attend son tour sur le GPU, et les étapes du verrou chargent d'abord le serveur (en libérant le modèle de langage ou un autre serveur si besoin). Vide : aucun verrou.");
+        es(GPU_LOCK_HELP, "El bloqueo de GPU que el administrador configuró para la GPU de este servidor: cada lote y cada muestra esperan su turno en la GPU y los pasos del bloqueo cargan primero el servidor (liberando el modelo de lenguaje u otro servidor si hace falta). Vacío: sin bloqueo.");
+        de(GPU_LOCK_HELP, "Die GPU-Sperre, die der Administrator für die GPU dieses Servers eingerichtet hat: Jeder Stapel und jede Hörprobe wartet, bis sie an der Reihe ist, und die Schritte der Sperre laden zuerst den Server (und geben bei Bedarf das Sprachmodell oder einen anderen Server frei). Leer: keine Sperre.");
+        ko(GPU_LOCK_HELP, "관리자가 이 서버의 GPU에 설정한 GPU 잠금입니다. 각 배치와 샘플은 GPU 차례를 기다리고, 잠금의 단계가 먼저 서버를 로드합니다(필요하면 언어 모델이나 다른 서버를 해제합니다). 비워 두면 잠금 없음.");
+        it(GPU_LOCK_HELP, "Il blocco GPU che l'amministratore ha configurato per la GPU di questo server: ogni batch e ogni campione attende il suo turno sulla GPU e i passi del blocco caricano prima il server (liberando il modello linguistico o un altro server se serve). Vuoto: nessun blocco.");
+
+        ja(PRECISION, "精度");
+        zh(PRECISION, "精度");
+        fr(PRECISION, "Précision");
+        es(PRECISION, "Precisión");
+        de(PRECISION, "Genauigkeit");
+        ko(PRECISION, "정밀도");
+        it(PRECISION, "Precisione");
+
+        ja(PRECISION_HELP, "Higgs が計算に使う精度です。fp32 が安全です。AMD カードでは bf16 で意味不明な音声や別の声になりました。bf16 はメモリが約半分で済みます。");
+        zh(PRECISION_HELP, "Higgs 计算时使用的精度。fp32 最稳妥：在一块 AMD 显卡上，bf16 产生了乱语和错误的声音。bf16 只需约一半的显存。");
+        fr(PRECISION_HELP, "La précision de calcul de Higgs. fp32 est le choix sûr : sur une carte AMD, bf16 a donné du charabia et de mauvaises voix. bf16 demande environ moitié moins de mémoire.");
+        es(PRECISION_HELP, "La precisión con la que calcula Higgs. fp32 es la opción segura: en una tarjeta AMD, bf16 dio galimatías y voces equivocadas. bf16 necesita aproximadamente la mitad de memoria.");
+        de(PRECISION_HELP, "Die Genauigkeit, mit der Higgs rechnet. fp32 ist die sichere Wahl: Auf einer AMD-Karte ergab bf16 Kauderwelsch und falsche Stimmen. bf16 braucht etwa halb so viel Speicher.");
+        ko(PRECISION_HELP, "Higgs가 계산하는 정밀도입니다. fp32가 안전합니다. AMD 카드에서 bf16은 알아들을 수 없는 소리와 다른 목소리를 냈습니다. bf16은 메모리를 약 절반만 씁니다.");
+        it(PRECISION_HELP, "La precisione con cui calcola Higgs. fp32 è la scelta sicura: su una scheda AMD bf16 ha dato parole senza senso e voci sbagliate. bf16 richiede circa metà della memoria.");
+
+        ja(CHECK_THE_LENGTH_OF_PIECES, "ピースの長さを確認する");
+        zh(CHECK_THE_LENGTH_OF_PIECES, "检查片段长度");
+        fr(CHECK_THE_LENGTH_OF_PIECES, "Vérifier la durée des morceaux");
+        es(CHECK_THE_LENGTH_OF_PIECES, "Comprobar la duración de los fragmentos");
+        de(CHECK_THE_LENGTH_OF_PIECES, "Länge der Stücke prüfen");
+        ko(CHECK_THE_LENGTH_OF_PIECES, "조각의 길이 확인");
+        it(CHECK_THE_LENGTH_OF_PIECES, "Controlla la durata dei pezzi");
+
+        ja(CHECK_THE_LENGTH_HELP, "テキストよりずっと長いピース (モデルが話し続けた、または言葉の代わりに音を出した) は、別のシードで作り直します。");
+        zh(CHECK_THE_LENGTH_HELP, "比文本长得多的片段（模型一直说下去，或者发出了声音而不是说出文字）会用另一个种子重新生成。");
+        fr(CHECK_THE_LENGTH_HELP, "Un morceau bien plus long que son texte (le modèle a continué à parler, ou a fait un bruit au lieu des mots) est refait avec une autre graine.");
+        es(CHECK_THE_LENGTH_HELP, "Un fragmento mucho más largo que su texto (el modelo siguió hablando o hizo un sonido en lugar de las palabras) se vuelve a hacer con otra semilla.");
+        de(CHECK_THE_LENGTH_HELP, "Ein Stück, das viel länger ist als sein Text (das Modell hat weitergeredet oder ein Geräusch statt der Wörter gemacht), wird mit einem anderen Seed neu gemacht.");
+        ko(CHECK_THE_LENGTH_HELP, "텍스트보다 훨씬 긴 조각(모델이 계속 말했거나 단어 대신 소리를 냄)은 다른 시드로 다시 만듭니다.");
+        it(CHECK_THE_LENGTH_HELP, "Un pezzo molto più lungo del suo testo (il modello ha continuato a parlare o ha fatto un suono al posto delle parole) viene rifatto con un altro seed.");
+
+        ja(CHECK_THE_WORDS, "音声認識で言葉を確認する");
+        zh(CHECK_THE_WORDS, "用语音识别检查文字");
+        fr(CHECK_THE_WORDS, "Vérifier les mots par reconnaissance vocale");
+        es(CHECK_THE_WORDS, "Comprobar las palabras con reconocimiento de voz");
+        de(CHECK_THE_WORDS, "Wörter per Spracherkennung prüfen");
+        ko(CHECK_THE_WORDS, "음성 인식으로 단어 확인");
+        it(CHECK_THE_WORDS, "Controlla le parole con il riconoscimento vocale");
+
+        ja(CHECK_THE_WORDS_HELP, "各バッチの後、すべてのピースを文字起こししてテキストと比べ、違うものは別のシードで作り直します。設定の音声認識が必要です。");
+        zh(CHECK_THE_WORDS_HELP, "每批完成后，每个片段都会被转写并与其文本比较；不一致的片段会用另一个种子重新生成。需要设置中的语音识别。");
+        fr(CHECK_THE_WORDS_HELP, "Après chaque lot, chaque morceau est transcrit et comparé à son texte ; ceux qui diffèrent sont refaits avec une autre graine. Nécessite la reconnaissance vocale des réglages.");
+        es(CHECK_THE_WORDS_HELP, "Tras cada lote, cada fragmento se transcribe y se compara con su texto; los que difieren se vuelven a hacer con otra semilla. Necesita el reconocimiento de voz de los ajustes.");
+        de(CHECK_THE_WORDS_HELP, "Nach jedem Stapel wird jedes Stück transkribiert und mit seinem Text verglichen; abweichende Stücke werden mit einem anderen Seed neu gemacht. Braucht die Spracherkennung der Einstellungen.");
+        ko(CHECK_THE_WORDS_HELP, "각 배치 후 모든 조각을 받아쓰고 텍스트와 비교하며, 다른 조각은 다른 시드로 다시 만듭니다. 설정의 음성 인식이 필요합니다.");
+        it(CHECK_THE_WORDS_HELP, "Dopo ogni batch ogni pezzo viene trascritto e confrontato con il suo testo; i pezzi diversi vengono rifatti con un altro seed. Richiede il riconoscimento vocale delle impostazioni.");
+
+        ja(MAX_WORD_ERRORS, "最大単語誤り率 (%)");
+        zh(MAX_WORD_ERRORS, "最大词错误率（%）");
+        fr(MAX_WORD_ERRORS, "Erreurs de mots max. (%)");
+        es(MAX_WORD_ERRORS, "Errores de palabras máx. (%)");
+        de(MAX_WORD_ERRORS, "Max. Wortfehler (%)");
+        ko(MAX_WORD_ERRORS, "최대 단어 오류율(%)");
+        it(MAX_WORD_ERRORS, "Errori di parola max. (%)");
+
+        ja(RETRIES, "再試行回数");
+        zh(RETRIES, "重试次数");
+        fr(RETRIES, "Nouvelles tentatives");
+        es(RETRIES, "Reintentos");
+        de(RETRIES, "Wiederholungen");
+        ko(RETRIES, "재시도 횟수");
+        it(RETRIES, "Tentativi");
+
+        ja(SEND_THE_CLIP_TEXT, "クリップのテキストを Higgs に送る");
+        zh(SEND_THE_CLIP_TEXT, "将片段文本发送给 Higgs");
+        fr(SEND_THE_CLIP_TEXT, "Envoyer le texte de l'extrait à Higgs");
+        es(SEND_THE_CLIP_TEXT, "Enviar el texto del clip a Higgs");
+        de(SEND_THE_CLIP_TEXT, "Text des Clips an Higgs senden");
+        ko(SEND_THE_CLIP_TEXT, "클립의 텍스트를 Higgs에 보내기");
+        it(SEND_THE_CLIP_TEXT, "Invia il testo della clip a Higgs");
+
+        ja(SEND_THE_CLIP_TEXT_HELP, "試験的、オフのままにしてください: 声のクリップで話されている言葉を Higgs に一緒に渡します。テストでは声が変わりました。");
+        zh(SEND_THE_CLIP_TEXT_HELP, "实验性，建议保持关闭：Higgs 会同时得到声音片段中所说的文字。在测试中它改变了声音。");
+        fr(SEND_THE_CLIP_TEXT_HELP, "Expérimental, à laisser désactivé : Higgs reçoit avec l'extrait de voix les mots qui y sont dits. Lors des tests, cela a changé la voix.");
+        es(SEND_THE_CLIP_TEXT_HELP, "Experimental, mejor desactivado: Higgs recibe junto con el clip de voz las palabras que se dicen en él. En las pruebas cambió la voz.");
+        de(SEND_THE_CLIP_TEXT_HELP, "Experimentell, besser aus lassen: Higgs bekommt mit dem Stimmclip die darin gesprochenen Wörter. In Tests veränderte das die Stimme.");
+        ko(SEND_THE_CLIP_TEXT_HELP, "실험적, 꺼 두세요: Higgs가 목소리 클립과 함께 그 안에서 말한 단어를 받습니다. 테스트에서는 목소리가 바뀌었습니다.");
+        it(SEND_THE_CLIP_TEXT_HELP, "Sperimentale, meglio lasciarlo spento: Higgs riceve con la clip di voce le parole dette al suo interno. Nei test ha cambiato la voce.");
+
+        ja(SPEECH_RECOGNITION, "音声認識");
+        zh(SPEECH_RECOGNITION, "语音识别");
+        fr(SPEECH_RECOGNITION, "Reconnaissance vocale");
+        es(SPEECH_RECOGNITION, "Reconocimiento de voz");
+        de(SPEECH_RECOGNITION, "Spracherkennung");
+        ko(SPEECH_RECOGNITION, "음성 인식");
+        it(SPEECH_RECOGNITION, "Riconoscimento vocale");
+
+        ja(SPEECH_RECOGNITION_HELP, "音声が何を言っているかを書き起こします。バッチのピースの確認と、声のクリップのテキストの認識に使います。TTS Audio Suite 入りの ComfyUI (Granite ASR)、または whisper サーバーなどの OpenAI 互換の文字起こしサーバー。");
+        zh(SPEECH_RECOGNITION_HELP, "写下一段语音说了什么：用于检查一批中的片段，以及识别声音片段的文本。可以是带 TTS Audio Suite 的 ComfyUI（Granite ASR），或 whisper 服务器等兼容 OpenAI 的转写服务器。");
+        fr(SPEECH_RECOGNITION_HELP, "Écrit ce que dit un morceau de parole : vérifie les morceaux d'un lot et reconnaît le texte d'un extrait de voix. ComfyUI avec TTS Audio Suite (Granite ASR), ou un serveur de transcription compatible OpenAI comme un serveur whisper.");
+        es(SPEECH_RECOGNITION_HELP, "Escribe lo que dice un fragmento de voz: comprueba los fragmentos de un lote y reconoce el texto de un clip de voz. ComfyUI con TTS Audio Suite (Granite ASR) o un servidor de transcripción compatible con OpenAI, como un servidor whisper.");
+        de(SPEECH_RECOGNITION_HELP, "Schreibt auf, was ein Stück Sprache sagt: prüft die Stücke eines Stapels und erkennt den Text eines Stimmclips. ComfyUI mit der TTS Audio Suite (Granite ASR) oder ein OpenAI-kompatibler Transkriptionsserver wie ein whisper-Server.");
+        ko(SPEECH_RECOGNITION_HELP, "음성이 무엇을 말하는지 받아씁니다. 배치의 조각을 확인하고 목소리 클립의 텍스트를 인식합니다. TTS Audio Suite가 있는 ComfyUI(Granite ASR) 또는 whisper 서버 같은 OpenAI 호환 받아쓰기 서버.");
+        it(SPEECH_RECOGNITION_HELP, "Scrive ciò che dice un pezzo di parlato: controlla i pezzi di un batch e riconosce il testo di una clip di voce. ComfyUI con TTS Audio Suite (Granite ASR) o un server di trascrizione compatibile con OpenAI, come un server whisper.");
+
+        ja(RECOGNIZER_COMFYUI, "ComfyUI (Granite ASR)");
+        zh(RECOGNIZER_COMFYUI, "ComfyUI（Granite ASR）");
+        fr(RECOGNIZER_COMFYUI, "ComfyUI (Granite ASR)");
+        es(RECOGNIZER_COMFYUI, "ComfyUI (Granite ASR)");
+        de(RECOGNIZER_COMFYUI, "ComfyUI (Granite ASR)");
+        ko(RECOGNIZER_COMFYUI, "ComfyUI (Granite ASR)");
+        it(RECOGNIZER_COMFYUI, "ComfyUI (Granite ASR)");
+
+        ja(RECOGNIZER_OPENAI, "OpenAI 互換 (whisper)");
+        zh(RECOGNIZER_OPENAI, "兼容 OpenAI（whisper）");
+        fr(RECOGNIZER_OPENAI, "Compatible OpenAI (whisper)");
+        es(RECOGNIZER_OPENAI, "Compatible con OpenAI (whisper)");
+        de(RECOGNIZER_OPENAI, "OpenAI-kompatibel (whisper)");
+        ko(RECOGNIZER_OPENAI, "OpenAI 호환(whisper)");
+        it(RECOGNIZER_OPENAI, "Compatibile OpenAI (whisper)");
+
+        ja(RECOGNITION_MODEL, "認識のモデル");
+        zh(RECOGNITION_MODEL, "识别模型");
+        fr(RECOGNITION_MODEL, "Modèle de reconnaissance");
+        es(RECOGNITION_MODEL, "Modelo de reconocimiento");
+        de(RECOGNITION_MODEL, "Modell der Erkennung");
+        ko(RECOGNITION_MODEL, "인식 모델");
+        it(RECOGNITION_MODEL, "Modello del riconoscimento");
+
+        ja(TEXT_OF_THE_CLIP, "クリップのテキスト");
+        zh(TEXT_OF_THE_CLIP, "片段文本");
+        fr(TEXT_OF_THE_CLIP, "Texte de l'extrait");
+        es(TEXT_OF_THE_CLIP, "Texto del clip");
+        de(TEXT_OF_THE_CLIP, "Text des Clips");
+        ko(TEXT_OF_THE_CLIP, "클립의 텍스트");
+        it(TEXT_OF_THE_CLIP, "Testo della clip");
+
+        ja(TEXT_OF_THE_CLIP_HELP, "クリップで話されている言葉。入力するか認識させます。");
+        zh(TEXT_OF_THE_CLIP_HELP, "片段中所说的话，可手动输入或自动识别。");
+        fr(TEXT_OF_THE_CLIP_HELP, "Les mots dits dans l'extrait, saisis ou reconnus.");
+        es(TEXT_OF_THE_CLIP_HELP, "Las palabras dichas en el clip, escritas o reconocidas.");
+        de(TEXT_OF_THE_CLIP_HELP, "Die im Clip gesprochenen Wörter, getippt oder erkannt.");
+        ko(TEXT_OF_THE_CLIP_HELP, "클립에서 말한 단어로, 입력하거나 인식시킵니다.");
+        it(TEXT_OF_THE_CLIP_HELP, "Le parole dette nella clip, digitate o riconosciute.");
+
+        ja(RECOGNIZE, "認識");
+        zh(RECOGNIZE, "识别");
+        fr(RECOGNIZE, "Reconnaître");
+        es(RECOGNIZE, "Reconocer");
+        de(RECOGNIZE, "Erkennen");
+        ko(RECOGNIZE, "인식");
+        it(RECOGNIZE, "Riconosci");
+
+        ja(RECOGNIZING, "認識中 ...");
+        zh(RECOGNIZING, "识别中 ...");
+        fr(RECOGNIZING, "Reconnaissance ...");
+        es(RECOGNIZING, "Reconociendo ...");
+        de(RECOGNIZING, "Wird erkannt ...");
+        ko(RECOGNIZING, "인식 중 ...");
+        it(RECOGNIZING, "Riconoscimento ...");
+
+        ja(NO_SPEECH_RECOGNITION, "先にオーディオブックの設定で音声認識を設定してください。");
+        zh(NO_SPEECH_RECOGNITION, "请先在有声书设置中设置语音识别。");
+        fr(NO_SPEECH_RECOGNITION, "Configurez d'abord la reconnaissance vocale dans les réglages du livre audio.");
+        es(NO_SPEECH_RECOGNITION, "Configura primero el reconocimiento de voz en los ajustes del audiolibro.");
+        de(NO_SPEECH_RECOGNITION, "Richte zuerst die Spracherkennung in den Hörbuch-Einstellungen ein.");
+        ko(NO_SPEECH_RECOGNITION, "먼저 오디오북 설정에서 음성 인식을 설정하세요.");
+        it(NO_SPEECH_RECOGNITION, "Configura prima il riconoscimento vocale nelle impostazioni dell'audiolibro.");
+
+        ja(THE_SPEECH_RECOGNITION_WORKS, "音声認識は動作しています。");
+        zh(THE_SPEECH_RECOGNITION_WORKS, "语音识别可以使用。");
+        fr(THE_SPEECH_RECOGNITION_WORKS, "La reconnaissance vocale fonctionne.");
+        es(THE_SPEECH_RECOGNITION_WORKS, "El reconocimiento de voz funciona.");
+        de(THE_SPEECH_RECOGNITION_WORKS, "Die Spracherkennung funktioniert.");
+        ko(THE_SPEECH_RECOGNITION_WORKS, "음성 인식이 작동합니다.");
+        it(THE_SPEECH_RECOGNITION_WORKS, "Il riconoscimento vocale funziona.");
+
+        ja(RECOGNITION_FAILED, "認識に失敗しました: %s");
+        zh(RECOGNITION_FAILED, "识别失败：%s");
+        fr(RECOGNITION_FAILED, "La reconnaissance a échoué : %s");
+        es(RECOGNITION_FAILED, "El reconocimiento falló: %s");
+        de(RECOGNITION_FAILED, "Die Erkennung ist fehlgeschlagen: %s");
+        ko(RECOGNITION_FAILED, "인식에 실패했습니다: %s");
+        it(RECOGNITION_FAILED, "Riconoscimento non riuscito: %s");
+
+        ja(THE_TEXT_OF_THE_CLIP_IS_SAVED, "クリップのテキストを保存しました。");
+        zh(THE_TEXT_OF_THE_CLIP_IS_SAVED, "片段文本已保存。");
+        fr(THE_TEXT_OF_THE_CLIP_IS_SAVED, "Le texte de l'extrait est enregistré.");
+        es(THE_TEXT_OF_THE_CLIP_IS_SAVED, "El texto del clip se ha guardado.");
+        de(THE_TEXT_OF_THE_CLIP_IS_SAVED, "Der Text des Clips ist gespeichert.");
+        ko(THE_TEXT_OF_THE_CLIP_IS_SAVED, "클립의 텍스트를 저장했습니다.");
+        it(THE_TEXT_OF_THE_CLIP_IS_SAVED, "Il testo della clip è salvato.");
+
+        ja(CLIP, "クリップ");
+        zh(CLIP, "片段");
+        fr(CLIP, "Extrait");
+        es(CLIP, "Clip");
+        de(CLIP, "Clip");
+        ko(CLIP, "클립");
+        it(CLIP, "Clip");
+
+        ja(PICK_A_CLIP, "「クリップ」でクリップを選んでください。");
+        zh(PICK_A_CLIP, "请在“片段”中选择一个片段。");
+        fr(PICK_A_CLIP, "Choisissez un extrait dans Extraits.");
+        es(PICK_A_CLIP, "Elige un clip en Clips.");
+        de(PICK_A_CLIP, "Wähle einen Clip unter Clips.");
+        ko(PICK_A_CLIP, "클립에서 클립을 선택하세요.");
+        it(PICK_A_CLIP, "Scegli una clip in Clip.");
+
+        ja(FOLDER, "フォルダー");
+        zh(FOLDER, "文件夹");
+        fr(FOLDER, "Dossier");
+        es(FOLDER, "Carpeta");
+        de(FOLDER, "Ordner");
+        ko(FOLDER, "폴더");
+        it(FOLDER, "Cartella");
+
+        ja(NO_FOLDER, "フォルダーなし");
+        zh(NO_FOLDER, "无文件夹");
+        fr(NO_FOLDER, "Sans dossier");
+        es(NO_FOLDER, "Sin carpeta");
+        de(NO_FOLDER, "Kein Ordner");
+        ko(NO_FOLDER, "폴더 없음");
+        it(NO_FOLDER, "Nessuna cartella");
+
+        ja(A_VERSION_IS_IN_THE_FOLDER_OF_ITS_ORIGINAL, "バージョンは元のクリップと同じフォルダーに入ります。");
+        zh(A_VERSION_IS_IN_THE_FOLDER_OF_ITS_ORIGINAL, "版本位于其来源片段的文件夹中。");
+        fr(A_VERSION_IS_IN_THE_FOLDER_OF_ITS_ORIGINAL, "Une version est dans le dossier de l'extrait dont elle est issue.");
+        es(A_VERSION_IS_IN_THE_FOLDER_OF_ITS_ORIGINAL, "Una versión está en la carpeta del clip del que se hizo.");
+        de(A_VERSION_IS_IN_THE_FOLDER_OF_ITS_ORIGINAL, "Eine Version liegt im Ordner des Clips, aus dem sie gemacht wurde.");
+        ko(A_VERSION_IS_IN_THE_FOLDER_OF_ITS_ORIGINAL, "버전은 원본 클립과 같은 폴더에 있습니다.");
+        it(A_VERSION_IS_IN_THE_FOLDER_OF_ITS_ORIGINAL, "Una versione sta nella cartella della clip da cui è stata ricavata.");
+
+        ja(MADE_FROM, "%s から %s で作成");
+        zh(MADE_FROM, "由 %s 经 %s 生成");
+        fr(MADE_FROM, "Faite à partir de %s avec %s");
+        es(MADE_FROM, "Hecha a partir de %s con %s");
+        de(MADE_FROM, "Aus %s gemacht mit %s");
+        ko(MADE_FROM, "%s에서 %s(으)로 만듦");
+        it(MADE_FROM, "Ricavata da %s con %s");
+
+        ja(NOT_USED, "未使用");
+        zh(NOT_USED, "未使用");
+        fr(NOT_USED, "Non utilisé");
+        es(NOT_USED, "Sin usar");
+        de(NOT_USED, "Nicht verwendet");
+        ko(NOT_USED, "사용 안 함");
+        it(NOT_USED, "Non usata");
+
+        ja(USE_THIS_VERSION, "このバージョンを使う");
+        zh(USE_THIS_VERSION, "使用此版本");
+        fr(USE_THIS_VERSION, "Utiliser cette version");
+        es(USE_THIS_VERSION, "Usar esta versión");
+        de(USE_THIS_VERSION, "Diese Version verwenden");
+        ko(USE_THIS_VERSION, "이 버전 사용");
+        it(USE_THIS_VERSION, "Usa questa versione");
+
+        ja(USE_THIS_VERSION_HELP, "元のクリップが使われているすべての場所にこのバージョンを入れます");
+        zh(USE_THIS_VERSION_HELP, "在来源片段被使用的所有地方换成此版本");
+        fr(USE_THIS_VERSION_HELP, "Met cette version partout où l'extrait d'origine est utilisé");
+        es(USE_THIS_VERSION_HELP, "Pone esta versión en todos los sitios donde se usa el clip original");
+        de(USE_THIS_VERSION_HELP, "Setzt diese Version überall ein, wo der ursprüngliche Clip verwendet wird");
+        ko(USE_THIS_VERSION_HELP, "원본 클립이 쓰이는 모든 곳에 이 버전을 넣습니다");
+        it(USE_THIS_VERSION_HELP, "Mette questa versione ovunque sia usata la clip di origine");
+
+        ja(USE_THIS_VERSION_CONFIRM, "%s を、%s が使われているすべての場所で使いますか? 古いクリップで作ったセリフは作り直されます。");
+        zh(USE_THIS_VERSION_CONFIRM, "将 %s 用于所有使用 %s 的地方？用旧片段生成的台词会重新生成。");
+        fr(USE_THIS_VERSION_CONFIRM, "Utiliser %s partout où %s est utilisé ? Les répliques faites avec l'ancien extrait seront refaites.");
+        es(USE_THIS_VERSION_CONFIRM, "¿Usar %s en todos los sitios donde se usa %s? Las frases hechas con el clip anterior se volverán a hacer.");
+        de(USE_THIS_VERSION_CONFIRM, "%s überall verwenden, wo %s verwendet wird? Die mit dem alten Clip gemachten Sätze werden neu gemacht.");
+        ko(USE_THIS_VERSION_CONFIRM, "%s을(를) %s이(가) 쓰이는 모든 곳에 사용할까요? 이전 클립으로 만든 대사는 다시 만들어집니다.");
+        it(USE_THIS_VERSION_CONFIRM, "Usare %s ovunque sia usata %s? Le battute fatte con la vecchia clip verranno rifatte.");
+
+        ja(CLEAN_WITH_AI, "AI で整える");
+        zh(CLEAN_WITH_AI, "用 AI 清理");
+        fr(CLEAN_WITH_AI, "Nettoyer par IA");
+        es(CLEAN_WITH_AI, "Limpiar con IA");
+        de(CLEAN_WITH_AI, "Mit KI säubern");
+        ko(CLEAN_WITH_AI, "AI로 정리");
+        it(CLEAN_WITH_AI, "Pulisci con l'IA");
+
+        ja(CLEAN_WITH_AI_HELP, "選んだクリーンアップを ComfyUI で実行し、クリップの新しいバージョンを作ります (分離モデル: 音楽・ノイズ・残響から声を取り出す)");
+        zh(CLEAN_WITH_AI_HELP, "在 ComfyUI 上用所选清理方案生成片段的新版本（分离模型：从音乐、噪声、回声中提取人声）");
+        fr(CLEAN_WITH_AI_HELP, "Crée une nouvelle version de l'extrait avec le nettoyage choisi sur ComfyUI (modèles de séparation : la voix hors de la musique, du bruit, de l'écho)");
+        es(CLEAN_WITH_AI_HELP, "Crea una nueva versión del clip con la limpieza elegida en ComfyUI (modelos de separación: la voz sin música, ruido ni eco)");
+        de(CLEAN_WITH_AI_HELP, "Macht mit der gewählten Bereinigung auf ComfyUI eine neue Version des Clips (Trennmodelle: Stimme aus Musik, Rauschen, Hall)");
+        ko(CLEAN_WITH_AI_HELP, "선택한 정리 방식으로 ComfyUI에서 클립의 새 버전을 만듭니다(분리 모델: 음악·잡음·울림에서 목소리 추출)");
+        it(CLEAN_WITH_AI_HELP, "Crea una nuova versione della clip con la pulizia scelta su ComfyUI (modelli di separazione: la voce da musica, rumore, eco)");
+
+        ja(CLEANING, "整えています…");
+        zh(CLEANING, "正在清理…");
+        fr(CLEANING, "Nettoyage…");
+        es(CLEANING, "Limpiando…");
+        de(CLEANING, "Wird gesäubert…");
+        ko(CLEANING, "정리 중…");
+        it(CLEANING, "Pulizia in corso…");
+
+        ja(NO_CLEANUP, "クリップのクリーンアップが設定されていません (オーディオブックの設定)。");
+        zh(NO_CLEANUP, "尚未设置片段清理（有声书设置）。");
+        fr(NO_CLEANUP, "Aucun nettoyage d'extraits n'est configuré (réglages du livre audio).");
+        es(NO_CLEANUP, "No hay ninguna limpieza de clips configurada (ajustes del audiolibro).");
+        de(NO_CLEANUP, "Keine Bereinigung von Clips eingerichtet (Hörbuch-Einstellungen).");
+        ko(NO_CLEANUP, "클립 정리가 설정되지 않았습니다(오디오북 설정).");
+        it(NO_CLEANUP, "Nessuna pulizia delle clip è configurata (impostazioni dell'audiolibro).");
+
+        ja(CLEANUP_OF_CLIPS, "クリップのクリーンアップ");
+        zh(CLEANUP_OF_CLIPS, "片段清理");
+        fr(CLEANUP_OF_CLIPS, "Nettoyage des extraits");
+        es(CLEANUP_OF_CLIPS, "Limpieza de clips");
+        de(CLEANUP_OF_CLIPS, "Bereinigung der Clips");
+        ko(CLEANUP_OF_CLIPS, "클립 정리");
+        it(CLEANUP_OF_CLIPS, "Pulizia delle clip");
+
+        ja(CLEANUP_OF_CLIPS_HELP, "TTS Audio Suite を入れた ComfyUI が参照クリップを整えます。プリセットは手順を順に実行します (分離モデルは声を残して音楽・ノイズ・残響を除き、ボイスフィクサーは劣化した声を復元し、ffmpeg は一定のヒスノイズを下げます)。結果はクリップの新しいバージョンになり、元のクリップは残ります。モデルは初回使用時に ComfyUI がダウンロードします。");
+        zh(CLEANUP_OF_CLIPS_HELP, "装有 TTS Audio Suite 的 ComfyUI 可清理参考片段：方案按顺序执行各步骤（分离模型保留人声，去除音乐、噪声或回声；VoiceFixer 修复受损人声；ffmpeg 降低持续的嘶声）。结果是片段的新版本，原片段保留。模型在首次使用时由 ComfyUI 下载。");
+        fr(CLEANUP_OF_CLIPS_HELP, "Un ComfyUI avec la TTS Audio Suite nettoie les extraits de référence : un préréglage exécute ses étapes l'une après l'autre (un modèle de séparation garde la voix et retire la musique, le bruit ou l'écho ; le voice fixer restaure une voix dégradée ; ffmpeg atténue un souffle constant). Le résultat est une nouvelle version de l'extrait, l'extrait lui-même reste. ComfyUI télécharge les modèles à la première utilisation.");
+        es(CLEANUP_OF_CLIPS_HELP, "Un ComfyUI con TTS Audio Suite limpia los clips de referencia: un preajuste ejecuta sus pasos uno tras otro (un modelo de separación conserva la voz y quita música, ruido o eco; el voice fixer restaura una voz degradada; ffmpeg reduce un siseo constante). El resultado es una nueva versión del clip; el clip original se queda. ComfyUI descarga los modelos la primera vez que se usan.");
+        de(CLEANUP_OF_CLIPS_HELP, "Ein ComfyUI mit der TTS Audio Suite säubert Referenzclips: Eine Vorlage führt ihre Schritte nacheinander aus (ein Trennmodell behält die Stimme und entfernt Musik, Rauschen oder Hall; der Voice Fixer stellt eine beschädigte Stimme wieder her; ffmpeg senkt gleichmäßiges Rauschen). Das Ergebnis ist eine neue Version des Clips, der Clip selbst bleibt. ComfyUI lädt die Modelle bei der ersten Verwendung herunter.");
+        ko(CLEANUP_OF_CLIPS_HELP, "TTS Audio Suite가 설치된 ComfyUI가 참조 클립을 정리합니다. 프리셋은 단계를 차례로 실행합니다(분리 모델은 목소리를 남기고 음악·잡음·울림을 없애고, 보이스 픽서는 손상된 목소리를 복원하며, ffmpeg는 일정한 잡음을 줄입니다). 결과는 클립의 새 버전이며 원래 클립은 남습니다. 모델은 처음 사용할 때 ComfyUI가 내려받습니다.");
+        it(CLEANUP_OF_CLIPS_HELP, "Un ComfyUI con la TTS Audio Suite pulisce le clip di riferimento: un preset esegue i suoi passi uno dopo l'altro (un modello di separazione tiene la voce e toglie musica, rumore o eco; il voice fixer ripristina una voce degradata; ffmpeg attenua un fruscio costante). Il risultato è una nuova versione della clip, la clip stessa resta. ComfyUI scarica i modelli al primo uso.");
+
+        ja(CLEANUP_GPU_LOCK_HELP, "クリーンアップには音声や音声認識とは別のロックを割り当ててください。そのステップで ComfyUI を再起動し、モデルが同時に読み込まれないようにします。");
+        zh(CLEANUP_GPU_LOCK_HELP, "请为清理设置单独的锁，不要与语音或语音识别共用：其步骤应重启 ComfyUI，避免模型同时加载。");
+        fr(CLEANUP_GPU_LOCK_HELP, "Donnez au nettoyage un verrou à lui, pas celui de la parole ni de la reconnaissance vocale : ses étapes doivent redémarrer ComfyUI, pour que ses modèles ne soient pas chargés à côté des leurs.");
+        es(CLEANUP_GPU_LOCK_HELP, "Dale a la limpieza un bloqueo propio, no el de la voz ni el del reconocimiento de voz: sus pasos deben reiniciar ComfyUI, para que sus modelos no se carguen junto a los de ellos.");
+        de(CLEANUP_GPU_LOCK_HELP, "Gib der Bereinigung eine eigene Sperre, nicht die der Sprache oder der Spracherkennung: Ihre Schritte sollten ComfyUI neu starten, damit ihre Modelle nicht neben deren geladen sind.");
+        ko(CLEANUP_GPU_LOCK_HELP, "정리에는 음성이나 음성 인식과 다른 별도의 잠금을 지정하세요. 그 단계에서 ComfyUI를 다시 시작해 모델이 함께 올라가지 않게 합니다.");
+        it(CLEANUP_GPU_LOCK_HELP, "Dai alla pulizia un blocco suo, non quello della voce né del riconoscimento vocale: i suoi passi dovrebbero riavviare ComfyUI, così i suoi modelli non vengono caricati accanto ai loro.");
+
+        ja(CLEANUP_PRESET, "クリーンアップ");
+        zh(CLEANUP_PRESET, "清理方案");
+        fr(CLEANUP_PRESET, "Nettoyage");
+        es(CLEANUP_PRESET, "Limpieza");
+        de(CLEANUP_PRESET, "Bereinigung");
+        ko(CLEANUP_PRESET, "정리 방식");
+        it(CLEANUP_PRESET, "Pulizia");
+
+        ja(NEW_PRESET, "新しいクリーンアップ");
+        zh(NEW_PRESET, "新建清理方案");
+        fr(NEW_PRESET, "Nouveau nettoyage");
+        es(NEW_PRESET, "Nueva limpieza");
+        de(NEW_PRESET, "Neue Bereinigung");
+        ko(NEW_PRESET, "새 정리 방식");
+        it(NEW_PRESET, "Nuova pulizia");
+
+        ja(DELETE_THE_PRESET, "クリーンアップを削除");
+        zh(DELETE_THE_PRESET, "删除清理方案");
+        fr(DELETE_THE_PRESET, "Supprimer le nettoyage");
+        es(DELETE_THE_PRESET, "Eliminar la limpieza");
+        de(DELETE_THE_PRESET, "Bereinigung löschen");
+        ko(DELETE_THE_PRESET, "정리 방식 삭제");
+        it(DELETE_THE_PRESET, "Elimina la pulizia");
+
+        ja(DEFAULT_PRESETS, "既定のクリーンアップ");
+        zh(DEFAULT_PRESETS, "默认清理方案");
+        fr(DEFAULT_PRESETS, "Nettoyages par défaut");
+        es(DEFAULT_PRESETS, "Limpiezas predeterminadas");
+        de(DEFAULT_PRESETS, "Standard-Bereinigungen");
+        ko(DEFAULT_PRESETS, "기본 정리 방식");
+        it(DEFAULT_PRESETS, "Pulizie predefinite");
+
+        ja(ADD_A_STEP, "ステップを追加");
+        zh(ADD_A_STEP, "添加步骤");
+        fr(ADD_A_STEP, "Ajouter une étape");
+        es(ADD_A_STEP, "Añadir un paso");
+        de(ADD_A_STEP, "Schritt hinzufügen");
+        ko(ADD_A_STEP, "단계 추가");
+        it(ADD_A_STEP, "Aggiungi un passo");
+
+        ja(REMOVE_THE_STEP, "ステップを削除");
+        zh(REMOVE_THE_STEP, "移除步骤");
+        fr(REMOVE_THE_STEP, "Retirer l'étape");
+        es(REMOVE_THE_STEP, "Quitar el paso");
+        de(REMOVE_THE_STEP, "Schritt entfernen");
+        ko(REMOVE_THE_STEP, "단계 제거");
+        it(REMOVE_THE_STEP, "Rimuovi il passo");
+
+        ja(STEP_SEPARATE, "分離モデル");
+        zh(STEP_SEPARATE, "分离模型");
+        fr(STEP_SEPARATE, "Modèle de séparation");
+        es(STEP_SEPARATE, "Modelo de separación");
+        de(STEP_SEPARATE, "Trennmodell");
+        ko(STEP_SEPARATE, "분리 모델");
+        it(STEP_SEPARATE, "Modello di separazione");
+
+        ja(STEP_VOICE_FIXER, "ボイスフィクサー");
+        zh(STEP_VOICE_FIXER, "VoiceFixer 修复");
+        fr(STEP_VOICE_FIXER, "Voice fixer");
+        es(STEP_VOICE_FIXER, "Voice fixer");
+        de(STEP_VOICE_FIXER, "Voice Fixer");
+        ko(STEP_VOICE_FIXER, "보이스 픽서");
+        it(STEP_VOICE_FIXER, "Voice fixer");
+
+        ja(STEP_FFMPEG, "ffmpeg (このサーバー)");
+        zh(STEP_FFMPEG, "ffmpeg（本机）");
+        fr(STEP_FFMPEG, "ffmpeg (ici)");
+        es(STEP_FFMPEG, "ffmpeg (aquí)");
+        de(STEP_FFMPEG, "ffmpeg (hier)");
+        ko(STEP_FFMPEG, "ffmpeg(여기)");
+        it(STEP_FFMPEG, "ffmpeg (qui)");
+
+        ja(STEP_NORMALIZE, "音量の正規化 (このサーバー)");
+        zh(STEP_NORMALIZE, "响度标准化（本机）");
+        fr(STEP_NORMALIZE, "Normaliser le volume (ici)");
+        es(STEP_NORMALIZE, "Normalizar el volumen (aquí)");
+        de(STEP_NORMALIZE, "Lautheit normalisieren (hier)");
+        ko(STEP_NORMALIZE, "음량 정규화(여기)");
+        it(STEP_NORMALIZE, "Normalizza il volume (qui)");
+
+        ja(SEPARATION_MODEL, "モデル");
+        zh(SEPARATION_MODEL, "模型");
+        fr(SEPARATION_MODEL, "Modèle");
+        es(SEPARATION_MODEL, "Modelo");
+        de(SEPARATION_MODEL, "Modell");
+        ko(SEPARATION_MODEL, "모델");
+        it(SEPARATION_MODEL, "Modello");
+
+        ja(KEEP_THE_EXTRACTED, "抽出側を残す");
+        zh(KEEP_THE_EXTRACTED, "保留提取部分");
+        fr(KEEP_THE_EXTRACTED, "Garder l'extrait");
+        es(KEEP_THE_EXTRACTED, "Conservar lo extraído");
+        de(KEEP_THE_EXTRACTED, "Extrahiertes behalten");
+        ko(KEEP_THE_EXTRACTED, "추출된 쪽 유지");
+        it(KEEP_THE_EXTRACTED, "Tieni l'estratto");
+
+        ja(KEEP_THE_REMAINING, "残り側を残す");
+        zh(KEEP_THE_REMAINING, "保留剩余部分");
+        fr(KEEP_THE_REMAINING, "Garder le reste");
+        es(KEEP_THE_REMAINING, "Conservar el resto");
+        de(KEEP_THE_REMAINING, "Rest behalten");
+        ko(KEEP_THE_REMAINING, "나머지 쪽 유지");
+        it(KEEP_THE_REMAINING, "Tieni il resto");
+
+        ja(AGGRESSIVENESS, "強さ (0–20)");
+        zh(AGGRESSIVENESS, "强度（0–20）");
+        fr(AGGRESSIVENESS, "Agressivité (0–20)");
+        es(AGGRESSIVENESS, "Agresividad (0–20)");
+        de(AGGRESSIVENESS, "Stärke (0–20)");
+        ko(AGGRESSIVENESS, "강도(0–20)");
+        it(AGGRESSIVENESS, "Aggressività (0–20)");
+
+        ja(FIXER_MODE_ORIGINAL, "復元 (既定)");
+        zh(FIXER_MODE_ORIGINAL, "修复（默认）");
+        fr(FIXER_MODE_ORIGINAL, "Restaurer (par défaut)");
+        es(FIXER_MODE_ORIGINAL, "Restaurar (predeterminado)");
+        de(FIXER_MODE_ORIGINAL, "Wiederherstellen (Standard)");
+        ko(FIXER_MODE_ORIGINAL, "복원(기본)");
+        it(FIXER_MODE_ORIGINAL, "Ripristina (predefinito)");
+
+        ja(FIXER_MODE_HIGH_FREQUENCIES, "復元、高域を除去");
+        zh(FIXER_MODE_HIGH_FREQUENCIES, "修复，去除高频");
+        fr(FIXER_MODE_HIGH_FREQUENCIES, "Restaurer, aigus retirés");
+        es(FIXER_MODE_HIGH_FREQUENCIES, "Restaurar, sin agudos");
+        de(FIXER_MODE_HIGH_FREQUENCIES, "Wiederherstellen, Höhen entfernt");
+        ko(FIXER_MODE_HIGH_FREQUENCIES, "복원, 고음역 제거");
+        it(FIXER_MODE_HIGH_FREQUENCIES, "Ripristina, alte frequenze rimosse");
+
+        ja(FIXER_MODE_DEGRADED, "大きく劣化した声");
+        zh(FIXER_MODE_DEGRADED, "严重受损的人声");
+        fr(FIXER_MODE_DEGRADED, "Voix très dégradée");
+        es(FIXER_MODE_DEGRADED, "Voz muy degradada");
+        de(FIXER_MODE_DEGRADED, "Stark beschädigte Stimme");
+        ko(FIXER_MODE_DEGRADED, "심하게 손상된 목소리");
+        it(FIXER_MODE_DEGRADED, "Voce molto degradata");
+
+        ja(THE_CLEANUP_WORKS, "クリーンアップは動作します: ComfyUI には分離モデルが %d 個あります。");
+        zh(THE_CLEANUP_WORKS, "清理可用：ComfyUI 提供 %d 个分离模型。");
+        fr(THE_CLEANUP_WORKS, "Le nettoyage fonctionne : ComfyUI propose %d modèles de séparation.");
+        es(THE_CLEANUP_WORKS, "La limpieza funciona: ComfyUI ofrece %d modelos de separación.");
+        de(THE_CLEANUP_WORKS, "Die Bereinigung funktioniert: ComfyUI bietet %d Trennmodelle.");
+        ko(THE_CLEANUP_WORKS, "정리가 작동합니다. ComfyUI에 분리 모델이 %d개 있습니다.");
+        it(THE_CLEANUP_WORKS, "La pulizia funziona: ComfyUI offre %d modelli di separazione.");
+
+        ja(KEEP_HELP, "どちらの出力に声が入るかはモデルによります: ボーカルモデルは声を抽出し、ノイズ除去モデルはノイズを抽出します (残り側を残す)。一度結果を聞いて確かめてください。");
+        zh(KEEP_HELP, "人声在哪个输出中取决于模型：人声模型提取的是人声，降噪模型提取的是噪声（保留剩余部分）。请试听一次结果。");
+        fr(KEEP_HELP, "La sortie qui contient la voix dépend du modèle : un modèle de voix extrait la voix, un modèle de débruitage extrait le bruit (gardez le reste). Écoutez le résultat une fois.");
+        es(KEEP_HELP, "La salida que contiene la voz depende del modelo: un modelo de voces extrae la voz, un modelo de reducción de ruido extrae el ruido (conserva el resto). Escucha el resultado una vez.");
+        de(KEEP_HELP, "Welcher Ausgang die Stimme enthält, hängt vom Modell ab: Ein Gesangsmodell extrahiert die Stimme, ein Entrauschungsmodell das Rauschen (Rest behalten). Hör dir das Ergebnis einmal an.");
+        ko(KEEP_HELP, "목소리가 어느 출력에 담기는지는 모델에 따라 다릅니다. 보컬 모델은 목소리를, 잡음 제거 모델은 잡음을 추출합니다(나머지 쪽 유지). 결과를 한 번 들어 보세요.");
+        it(KEEP_HELP, "Quale uscita contiene la voce dipende dal modello: un modello di voce estrae la voce, un modello di riduzione del rumore estrae il rumore (tieni il resto). Ascolta il risultato una volta.");
+
+        ja(FROM_SECONDS, "開始 (秒)");
+        zh(FROM_SECONDS, "起点（秒）");
+        fr(FROM_SECONDS, "De (s)");
+        es(FROM_SECONDS, "Desde (s)");
+        de(FROM_SECONDS, "Von (s)");
+        ko(FROM_SECONDS, "시작(초)");
+        it(FROM_SECONDS, "Da (s)");
+
+        ja(TO_SECONDS, "終了 (秒)");
+        zh(TO_SECONDS, "终点（秒）");
+        fr(TO_SECONDS, "À (s)");
+        es(TO_SECONDS, "Hasta (s)");
+        de(TO_SECONDS, "Bis (s)");
+        ko(TO_SECONDS, "끝(초)");
+        it(TO_SECONDS, "A (s)");
+
+        ja(TAKE_THE_PLACE_OF_THE_PLAYER, "プレーヤーの再生位置を使う");
+        zh(TAKE_THE_PLACE_OF_THE_PLAYER, "使用播放器的当前位置");
+        fr(TAKE_THE_PLACE_OF_THE_PLAYER, "Prendre la position du lecteur");
+        es(TAKE_THE_PLACE_OF_THE_PLAYER, "Tomar la posición del reproductor");
+        de(TAKE_THE_PLACE_OF_THE_PLAYER, "Position des Players übernehmen");
+        ko(TAKE_THE_PLACE_OF_THE_PLAYER, "플레이어의 현재 위치 사용");
+        it(TAKE_THE_PLACE_OF_THE_PLAYER, "Prendi la posizione del lettore");
+
+        ja(KEEP_THIS_PART, "この部分を残す");
+        zh(KEEP_THIS_PART, "保留这一段");
+        fr(KEEP_THIS_PART, "Garder ce passage");
+        es(KEEP_THIS_PART, "Conservar esta parte");
+        de(KEEP_THIS_PART, "Diesen Teil behalten");
+        ko(KEEP_THIS_PART, "이 부분 유지");
+        it(KEEP_THIS_PART, "Tieni questa parte");
+
+        ja(CUT_THIS_PART_OUT, "この部分を切り取る");
+        zh(CUT_THIS_PART_OUT, "剪掉这一段");
+        fr(CUT_THIS_PART_OUT, "Couper ce passage");
+        es(CUT_THIS_PART_OUT, "Cortar esta parte");
+        de(CUT_THIS_PART_OUT, "Diesen Teil herausschneiden");
+        ko(CUT_THIS_PART_OUT, "이 부분 잘라내기");
+        it(CUT_THIS_PART_OUT, "Taglia questa parte");
+
+        ja(TRIM, "トリミング");
+        zh(TRIM, "剪辑");
+        fr(TRIM, "Couper");
+        es(TRIM, "Recortar");
+        de(TRIM, "Schneiden");
+        ko(TRIM, "자르기");
+        it(TRIM, "Taglia");
+
+        ja(TRIM_HELP, "この部分だけ、またはこの部分を除いたクリップのバージョンを作ります (クリーンアップで消えない音: 動物、咳、ドア)。場所はプレーヤーで探してください。");
+        zh(TRIM_HELP, "生成只含这一段或去掉这一段的片段版本（清理去不掉的声音：动物、咳嗽、关门声）。用播放器找到位置。");
+        fr(TRIM_HELP, "Crée une version de l'extrait avec seulement ce passage, ou sans lui (un son qu'aucun nettoyage n'enlève : un animal, une toux, une porte). Trouvez l'endroit avec le lecteur.");
+        es(TRIM_HELP, "Crea una versión del clip solo con esta parte, o sin ella (un sonido que ninguna limpieza quita: un animal, una tos, una puerta). Busca el lugar con el reproductor.");
+        de(TRIM_HELP, "Macht eine Version des Clips nur mit diesem Teil oder ohne ihn (ein Geräusch, das keine Bereinigung entfernt: ein Tier, ein Husten, eine Tür). Finde die Stelle mit dem Player.");
+        ko(TRIM_HELP, "이 부분만 남기거나 이 부분을 뺀 클립 버전을 만듭니다(정리로 지워지지 않는 소리: 동물, 기침, 문). 위치는 플레이어로 찾으세요.");
+        it(TRIM_HELP, "Crea una versione della clip con solo questa parte, o senza (un suono che nessuna pulizia toglie: un animale, una tosse, una porta). Trova il punto con il lettore.");
+
+        ja(GIVE_A_RANGE, "部分の開始と終了を指定してください (開始 < 終了)。");
+        zh(GIVE_A_RANGE, "请填写这一段的起点和终点（起点小于终点）。");
+        fr(GIVE_A_RANGE, "Indiquez où le passage commence et finit (De avant À).");
+        es(GIVE_A_RANGE, "Indica dónde empieza y termina la parte (Desde antes de Hasta).");
+        de(GIVE_A_RANGE, "Gib an, wo der Teil beginnt und endet (Von vor Bis).");
+        ko(GIVE_A_RANGE, "부분의 시작과 끝을 입력하세요(시작이 끝보다 앞).");
+        it(GIVE_A_RANGE, "Indica dove la parte inizia e finisce (Da prima di A).");
+
+        ja(THE_CLIP_COULD_NOT_BE_TRIMMED, "クリップをトリミングできませんでした: %s");
+        zh(THE_CLIP_COULD_NOT_BE_TRIMMED, "无法剪辑片段：%s");
+        fr(THE_CLIP_COULD_NOT_BE_TRIMMED, "L'extrait n'a pas pu être coupé : %s");
+        es(THE_CLIP_COULD_NOT_BE_TRIMMED, "No se pudo recortar el clip: %s");
+        de(THE_CLIP_COULD_NOT_BE_TRIMMED, "Der Clip konnte nicht geschnitten werden: %s");
+        ko(THE_CLIP_COULD_NOT_BE_TRIMMED, "클립을 자를 수 없습니다: %s");
+        it(THE_CLIP_COULD_NOT_BE_TRIMMED, "Impossibile tagliare la clip: %s");
+
+        ja(VERSION_PART, "部分 %s");
+        zh(VERSION_PART, "片段 %s");
+        fr(VERSION_PART, "passage %s");
+        es(VERSION_PART, "parte %s");
+        de(VERSION_PART, "Teil %s");
+        ko(VERSION_PART, "부분 %s");
+        it(VERSION_PART, "parte %s");
+
+        ja(VERSION_WITHOUT, "%s を除く");
+        zh(VERSION_WITHOUT, "去掉 %s");
+        fr(VERSION_WITHOUT, "sans %s");
+        es(VERSION_WITHOUT, "sin %s");
+        de(VERSION_WITHOUT, "ohne %s");
+        ko(VERSION_WITHOUT, "%s 제외");
+        it(VERSION_WITHOUT, "senza %s");
+
+        ja(PLAY_THE_SELECTION, "選択範囲を再生");
+        zh(PLAY_THE_SELECTION, "播放选区");
+        fr(PLAY_THE_SELECTION, "Écouter la sélection");
+        es(PLAY_THE_SELECTION, "Reproducir la selección");
+        de(PLAY_THE_SELECTION, "Auswahl abspielen");
+        ko(PLAY_THE_SELECTION, "선택 범위 재생");
+        it(PLAY_THE_SELECTION, "Riproduci la selezione");
+
+        ja(PLAY_AROUND_THE_CUT, "カット前後を再生");
+        zh(PLAY_AROUND_THE_CUT, "试听剪切处");
+        fr(PLAY_AROUND_THE_CUT, "Écouter autour de la coupe");
+        es(PLAY_AROUND_THE_CUT, "Escuchar alrededor del corte");
+        de(PLAY_AROUND_THE_CUT, "Um den Schnitt herum abspielen");
+        ko(PLAY_AROUND_THE_CUT, "잘라낸 곳 앞뒤 재생");
+        it(PLAY_AROUND_THE_CUT, "Ascolta intorno al taglio");
+
+        ja(PLAY_AROUND_THE_CUT_HELP, "選択範囲の前 1.5 秒を再生し、選択範囲を飛ばして後の 1.5 秒を再生します: 選択範囲を切り取ったときの聞こえ方です");
+        zh(PLAY_AROUND_THE_CUT_HELP, "播放选区前 1.5 秒，跳过选区，再播放其后 1.5 秒：剪掉选区后的效果");
+        fr(PLAY_AROUND_THE_CUT_HELP, "Joue la seconde et demie avant la sélection, la saute et joue la seconde et demie après : le son de l'extrait sans la sélection");
+        es(PLAY_AROUND_THE_CUT_HELP, "Reproduce el segundo y medio antes de la selección, la salta y reproduce el segundo y medio después: cómo suena el clip sin la selección");
+        de(PLAY_AROUND_THE_CUT_HELP, "Spielt die anderthalb Sekunden vor der Auswahl, überspringt sie und spielt die anderthalb Sekunden danach: so klingt der Clip ohne die Auswahl");
+        ko(PLAY_AROUND_THE_CUT_HELP, "선택 범위 앞 1.5초를 재생하고 선택 범위를 건너뛴 뒤 뒤의 1.5초를 재생합니다: 선택 범위를 잘라냈을 때의 소리입니다");
+        it(PLAY_AROUND_THE_CUT_HELP, "Riproduce il secondo e mezzo prima della selezione, la salta e riproduce il secondo e mezzo dopo: come suona la clip senza la selezione");
+
+        ja(ZOOM_TO_THE_SELECTION, "選択範囲を拡大");
+        zh(ZOOM_TO_THE_SELECTION, "放大选区");
+        fr(ZOOM_TO_THE_SELECTION, "Zoomer sur la sélection");
+        es(ZOOM_TO_THE_SELECTION, "Ampliar la selección");
+        de(ZOOM_TO_THE_SELECTION, "Auf die Auswahl zoomen");
+        ko(ZOOM_TO_THE_SELECTION, "선택 범위 확대");
+        it(ZOOM_TO_THE_SELECTION, "Ingrandisci la selezione");
+
+        ja(SHOW_THE_WHOLE_CLIP, "クリップ全体を表示");
+        zh(SHOW_THE_WHOLE_CLIP, "显示整个片段");
+        fr(SHOW_THE_WHOLE_CLIP, "Afficher tout l'extrait");
+        es(SHOW_THE_WHOLE_CLIP, "Mostrar todo el clip");
+        de(SHOW_THE_WHOLE_CLIP, "Ganzen Clip zeigen");
+        ko(SHOW_THE_WHOLE_CLIP, "클립 전체 보기");
+        it(SHOW_THE_WHOLE_CLIP, "Mostra tutta la clip");
+
+        ja(SELECTED_SECONDS, "%s – %s (%s)");
+        zh(SELECTED_SECONDS, "%s – %s（%s）");
+        fr(SELECTED_SECONDS, "%s – %s (%s)");
+        es(SELECTED_SECONDS, "%s – %s (%s)");
+        de(SELECTED_SECONDS, "%s – %s (%s)");
+        ko(SELECTED_SECONDS, "%s – %s (%s)");
+        it(SELECTED_SECONDS, "%s – %s (%s)");
+
+        ja(PAUSE, "一時停止");
+        zh(PAUSE, "暂停");
+        fr(PAUSE, "Pause");
+        es(PAUSE, "Pausa");
+        de(PAUSE, "Pause");
+        ko(PAUSE, "일시 정지");
+        it(PAUSE, "Pausa");
+
+        ja(SPEAK, "話させる");
+        zh(SPEAK, "朗读");
+        fr(SPEAK, "Faire parler");
+        es(SPEAK, "Hablar");
+        de(SPEAK, "Sprechen");
+        ko(SPEAK, "말하기");
+        it(SPEAK, "Pronuncia");
+
+        ja(SPEAKING, "生成中…");
+        zh(SPEAKING, "正在生成…");
+        fr(SPEAKING, "Synthèse…");
+        es(SPEAKING, "Generando…");
+        de(SPEAKING, "Wird gesprochen…");
+        ko(SPEAKING, "생성 중…");
+        it(SPEAKING, "Sintesi…");
+
+        ja(TEXT_TO_SPEAK, "読み上げるテキスト");
+        zh(TEXT_TO_SPEAK, "要朗读的文本");
+        fr(TEXT_TO_SPEAK, "Texte à dire");
+        es(TEXT_TO_SPEAK, "Texto que decir");
+        de(TEXT_TO_SPEAK, "Zu sprechender Text");
+        ko(TEXT_TO_SPEAK, "말할 텍스트");
+        it(TEXT_TO_SPEAK, "Testo da pronunciare");
+
+        ja(TRY_THE_VOICE, "声を試す");
+        zh(TRY_THE_VOICE, "试听声音");
+        fr(TRY_THE_VOICE, "Essayer la voix");
+        es(TRY_THE_VOICE, "Probar la voz");
+        de(TRY_THE_VOICE, "Stimme ausprobieren");
+        ko(TRY_THE_VOICE, "목소리 시험");
+        it(TRY_THE_VOICE, "Prova la voce");
+
+        ja(TRY_THE_VOICE_HELP, "使用中のバックエンドが、入力したとおりのテキストをこのクリップの声で話します。ラベル付けも効果音の追加もないため、モデルのタグ (Higgs: <|...|>) を試せます。バックエンドの GPU ロックを使います。");
+        zh(TRY_THE_VOICE_HELP, "当前后端会用此片段的声音按您输入的原样朗读文本：不做标注、不加音效提示，因此可以试用模型的标签（Higgs：<|...|>）。它会占用后端的 GPU 锁。");
+        fr(TRY_THE_VOICE_HELP, "Le backend utilisé dit le texte avec cet extrait exactement comme vous l'écrivez : sans étiquetage ni effets sonores, pour essayer les balises du modèle (Higgs : <|...|>). Il prend le verrou GPU du backend.");
+        es(TRY_THE_VOICE_HELP, "El backend en uso dice el texto con este clip tal como lo escribes: sin etiquetado ni sonidos añadidos, para probar las etiquetas del modelo (Higgs: <|...|>). Usa el bloqueo de GPU del backend.");
+        de(TRY_THE_VOICE_HELP, "Das verwendete Backend spricht den Text mit diesem Clip genau so, wie du ihn eingibst: ohne Auszeichnung und ohne Geräusche, damit sich die Tags des Modells (Higgs: <|...|>) ausprobieren lassen. Es nimmt die GPU-Sperre des Backends.");
+        ko(TRY_THE_VOICE_HELP, "사용 중인 백엔드가 입력한 그대로의 텍스트를 이 클립의 목소리로 말합니다. 라벨링도 효과음 추가도 없으므로 모델의 태그(Higgs: <|...|>)를 시험할 수 있습니다. 백엔드의 GPU 잠금을 사용합니다.");
+        it(TRY_THE_VOICE_HELP, "Il backend in uso pronuncia il testo con questa clip esattamente come lo scrivi: senza etichettatura né suoni aggiunti, per provare i tag del modello (Higgs: <|...|>). Prende il blocco GPU del backend.");
+
+        ja(SEED_HELP, "空欄: 42 (変換と同じシード)");
+        zh(SEED_HELP, "留空：42，即转换所用的种子");
+        fr(SEED_HELP, "Vide : 42, la graine des conversions");
+        es(SEED_HELP, "Vacío: 42, la semilla de las conversiones");
+        de(SEED_HELP, "Leer: 42, der Seed der Umwandlungen");
+        ko(SEED_HELP, "비우면 42(변환에 쓰는 시드)");
+        it(SEED_HELP, "Vuoto: 42, il seme delle conversioni");
+
+        ja(TYPE_A_TEXT, "読み上げるテキストを入力してください。");
+        zh(TYPE_A_TEXT, "请输入要朗读的文本。");
+        fr(TYPE_A_TEXT, "Écrivez un texte à dire.");
+        es(TYPE_A_TEXT, "Escribe un texto que decir.");
+        de(TYPE_A_TEXT, "Gib einen Text zum Sprechen ein.");
+        ko(TYPE_A_TEXT, "말할 텍스트를 입력하세요.");
+        it(TYPE_A_TEXT, "Scrivi un testo da pronunciare.");
+
+        ja(THE_VOICE_COULD_NOT_SPEAK, "テキストを読み上げられませんでした: %s");
+        zh(THE_VOICE_COULD_NOT_SPEAK, "无法朗读文本：%s");
+        fr(THE_VOICE_COULD_NOT_SPEAK, "Le texte n'a pas pu être dit : %s");
+        es(THE_VOICE_COULD_NOT_SPEAK, "No se pudo decir el texto: %s");
+        de(THE_VOICE_COULD_NOT_SPEAK, "Der Text konnte nicht gesprochen werden: %s");
+        ko(THE_VOICE_COULD_NOT_SPEAK, "텍스트를 말할 수 없습니다: %s");
+        it(THE_VOICE_COULD_NOT_SPEAK, "Impossibile pronunciare il testo: %s");
+
+        ja(TAGS_OF_THE_MODEL, "モデルが読むタグ");
+        zh(TAGS_OF_THE_MODEL, "模型可识别的标签");
+        fr(TAGS_OF_THE_MODEL, "Les balises que lit le modèle");
+        es(TAGS_OF_THE_MODEL, "Las etiquetas que lee el modelo");
+        de(TAGS_OF_THE_MODEL, "Die Tags, die das Modell liest");
+        ko(TAGS_OF_THE_MODEL, "모델이 읽는 태그");
+        it(TAGS_OF_THE_MODEL, "I tag che il modello legge");
+
+        ja(THE_TAGS_OF, "%s は次のタグを読みます (クリックでテキストに追加):");
+        zh(THE_TAGS_OF, "%s 可识别以下标签（点击加入文本）：");
+        fr(THE_TAGS_OF, "%s lit celles-ci (cliquez pour l'ajouter au texte) :");
+        es(THE_TAGS_OF, "%s lee estas (haz clic para añadirla al texto):");
+        de(THE_TAGS_OF, "%s liest diese (klicken fügt sie dem Text hinzu):");
+        ko(THE_TAGS_OF, "%s은(는) 다음 태그를 읽습니다(클릭하면 텍스트에 추가):");
+        it(THE_TAGS_OF, "%s legge questi (clicca per aggiungerlo al testo):");
+
+        ja(THE_MODEL_READS_NO_TAGS, "%s のモデルはタグを読みません: 単語として読み上げられます。");
+        zh(THE_MODEL_READS_NO_TAGS, "%s 的模型不识别标签：它们会被当作文字读出。");
+        fr(THE_MODEL_READS_NO_TAGS, "Le modèle de %s ne lit pas de balises : elles seraient dites comme des mots.");
+        es(THE_MODEL_READS_NO_TAGS, "El modelo de %s no lee etiquetas: se dirían como palabras.");
+        de(THE_MODEL_READS_NO_TAGS, "Das Modell von %s liest keine Tags: Sie würden als Wörter gesprochen.");
+        ko(THE_MODEL_READS_NO_TAGS, "%s의 모델은 태그를 읽지 않습니다: 단어로 읽힙니다.");
+        it(THE_MODEL_READS_NO_TAGS, "Il modello di %s non legge tag: verrebbero pronunciati come parole.");
+
+        ja(OTHER_MEN, "その他の男性");
+        zh(OTHER_MEN, "其他男性");
+        fr(OTHER_MEN, "Autres hommes");
+        es(OTHER_MEN, "Otros hombres");
+        de(OTHER_MEN, "Andere Männer");
+        ko(OTHER_MEN, "기타 남성");
+        it(OTHER_MEN, "Altri uomini");
+
+        ja(OTHER_WOMEN, "その他の女性");
+        zh(OTHER_WOMEN, "其他女性");
+        fr(OTHER_WOMEN, "Autres femmes");
+        es(OTHER_WOMEN, "Otras mujeres");
+        de(OTHER_WOMEN, "Andere Frauen");
+        ko(OTHER_WOMEN, "기타 여성");
+        it(OTHER_WOMEN, "Altre donne");
+
+        ja(CHILDREN, "子ども");
+        zh(CHILDREN, "儿童");
+        fr(CHILDREN, "Enfants");
+        es(CHILDREN, "Niños");
+        de(CHILDREN, "Kinder");
+        ko(CHILDREN, "어린이");
+        it(CHILDREN, "Bambini");
+
+        ja(UNNAMED_SPEAKERS, "名前のない話者");
+        zh(UNNAMED_SPEAKERS, "未命名的说话者");
+        fr(UNNAMED_SPEAKERS, "Locuteurs sans nom");
+        es(UNNAMED_SPEAKERS, "Hablantes sin nombre");
+        de(UNNAMED_SPEAKERS, "Unbenannte Sprecher");
+        ko(UNNAMED_SPEAKERS, "이름 없는 화자");
+        it(UNNAMED_SPEAKERS, "Parlanti senza nome");
+
+        ja(THE_BASE_VOICES_HELP, "キャストに名前のない話者のための基本の声です。モデルが性別と年齢を判断し、話者ごとに基本のクリップから作った専用のバリエーション（高め、低め、速め、明るめ）が付きます。どの章でも同じ声です。子どもが未設定の場合は女性の声を高くして使います。三つとも空の場合、名前のない話者はすべて「その他の話者」が読みます。");
+        zh(THE_BASE_VOICES_HELP, "为演员表中没有名字的说话者设置的基础声音。模型会判断他们的性别和年龄，每个人都会得到一个由基础片段生成的专属变体（更高、更低、更快、更明亮），在每一章中都相同。未设置儿童时：使用升高音调的女性声音。三者都为空时：所有未命名的说话者都由“其他说话者”朗读。");
+        fr(THE_BASE_VOICES_HELP, "Voix de base pour les locuteurs que la distribution ne nomme pas. Le modèle indique leur genre et leur âge, et chacun reçoit une variation propre tirée de l'extrait de base (plus aiguë, plus grave, plus rapide, plus claire), la même dans chaque chapitre. Enfants non défini : la voix des femmes, rehaussée. Les trois vides : chaque locuteur sans nom est lu par Autres locuteurs.");
+        es(THE_BASE_VOICES_HELP, "Voces base para los hablantes que el reparto no nombra. El modelo indica su género y edad, y cada uno recibe una variación propia hecha del clip base (más aguda, más grave, más rápida, más brillante), la misma en cada capítulo. Niños sin definir: la voz de las mujeres, más aguda. Los tres vacíos: cada hablante sin nombre lo lee Otros hablantes.");
+        de(THE_BASE_VOICES_HELP, "Grundstimmen für die Sprecher, die die Besetzung nicht nennt. Das Modell gibt ihr Geschlecht und Alter an, und jeder bekommt eine eigene Variante des Grundclips (höher, tiefer, schneller, heller), in jedem Kapitel dieselbe. Kinder nicht gesetzt: die Frauenstimme, angehoben. Alle drei leer: jeden unbenannten Sprecher liest Andere Sprecher.");
+        ko(THE_BASE_VOICES_HELP, "캐스트에 이름이 없는 화자를 위한 기본 목소리입니다. 모델이 성별과 나이를 알려 주고, 화자마다 기본 클립으로 만든 고유한 변형(더 높게, 더 낮게, 더 빠르게, 더 밝게)이 붙으며 모든 장에서 같습니다. 어린이를 지정하지 않으면 여성 목소리를 높여 씁니다. 셋 다 비어 있으면 이름 없는 화자는 모두 '기타 화자'가 읽습니다.");
+        it(THE_BASE_VOICES_HELP, "Voci base per i parlanti che il cast non nomina. Il modello ne indica genere ed età, e ognuno riceve una variazione propria ricavata dalla clip base (più acuta, più grave, più veloce, più brillante), la stessa in ogni capitolo. Bambini non impostato: la voce delle donne, alzata. Tutti e tre vuoti: ogni parlante senza nome è letto da Altri parlanti.");
+
+        ja(SHIFTS_NEED_FFMPEG, "サーバーに rubberband 付きの ffmpeg が見つかりません。名前のない話者は種類ごとの基本の声を共有します（以前に作ったバリエーションは引き続き使われます）。");
+        zh(SHIFTS_NEED_FFMPEG, "服务器上没有找到带 rubberband 的 ffmpeg：未命名的说话者共用同类的基础声音（之前生成的变体仍会使用）。");
+        fr(SHIFTS_NEED_FFMPEG, "ffmpeg avec rubberband est introuvable sur le serveur : les locuteurs sans nom partagent la voix de base de leur catégorie (les variations déjà faites restent utilisées).");
+        es(SHIFTS_NEED_FFMPEG, "No se encontró ffmpeg con rubberband en el servidor: los hablantes sin nombre comparten la voz base de su tipo (las variaciones ya hechas se siguen usando).");
+        de(SHIFTS_NEED_FFMPEG, "ffmpeg mit rubberband wurde auf dem Server nicht gefunden: Unbenannte Sprecher teilen sich die Grundstimme ihrer Art (bereits erstellte Varianten werden weiter verwendet).");
+        ko(SHIFTS_NEED_FFMPEG, "서버에서 rubberband가 포함된 ffmpeg를 찾지 못했습니다. 이름 없는 화자는 종류별 기본 목소리를 함께 씁니다(이전에 만든 변형은 계속 사용됩니다).");
+        it(SHIFTS_NEED_FFMPEG, "ffmpeg con rubberband non è stato trovato sul server: i parlanti senza nome condividono la voce base del loro tipo (le variazioni già fatte restano in uso).");
+
+        ja(THE_UNNAMED_SPEAKERS_HELP, "モデルが出会った、キャストに名前のない話者です。最初に付いた性別と年齢が表示されます。変更したり、試聴したり、別のバリエーションにしたりできます。");
+        zh(THE_UNNAMED_SPEAKERS_HELP, "模型遇到的、演员表中没有名字的说话者，以及他们最初得到的性别和年龄。可以修改、试听，或换一个变体。");
+        fr(THE_UNNAMED_SPEAKERS_HELP, "Les locuteurs rencontrés par le modèle que la distribution ne nomme pas, avec le genre et l'âge qu'ils ont reçus en premier. Modifiez-les, écoutez-les ou donnez-leur une autre variation.");
+        es(THE_UNNAMED_SPEAKERS_HELP, "Los hablantes que el modelo encontró y que el reparto no nombra, con el género y la edad que recibieron primero. Cámbialos, escúchalos o dales otra variación.");
+        de(THE_UNNAMED_SPEAKERS_HELP, "Die Sprecher, auf die das Modell stieß und die die Besetzung nicht nennt, mit dem Geschlecht und Alter, das sie zuerst bekamen. Ändere sie, hör sie an oder gib einem eine andere Variante.");
+        ko(THE_UNNAMED_SPEAKERS_HELP, "모델이 만난, 캐스트에 이름이 없는 화자들과 처음 받은 성별과 나이입니다. 바꾸거나, 들어 보거나, 다른 변형을 줄 수 있습니다.");
+        it(THE_UNNAMED_SPEAKERS_HELP, "I parlanti incontrati dal modello che il cast non nomina, con il genere e l'età ricevuti per primi. Modificali, ascoltali o dai a uno un'altra variazione.");
+
+        ja(GENDER, "性別");
+        zh(GENDER, "性别");
+        fr(GENDER, "Genre");
+        es(GENDER, "Género");
+        de(GENDER, "Geschlecht");
+        ko(GENDER, "성별");
+        it(GENDER, "Genere");
+
+        ja(AGE, "年齢");
+        zh(AGE, "年龄");
+        fr(AGE, "Âge");
+        es(AGE, "Edad");
+        de(AGE, "Alter");
+        ko(AGE, "나이");
+        it(AGE, "Età");
+
+        ja(MALE, "男性");
+        zh(MALE, "男");
+        fr(MALE, "Homme");
+        es(MALE, "Hombre");
+        de(MALE, "Männlich");
+        ko(MALE, "남성");
+        it(MALE, "Uomo");
+
+        ja(FEMALE, "女性");
+        zh(FEMALE, "女");
+        fr(FEMALE, "Femme");
+        es(FEMALE, "Mujer");
+        de(FEMALE, "Weiblich");
+        ko(FEMALE, "여성");
+        it(FEMALE, "Donna");
+
+        ja(UNKNOWN, "不明");
+        zh(UNKNOWN, "未知");
+        fr(UNKNOWN, "Inconnu");
+        es(UNKNOWN, "Desconocido");
+        de(UNKNOWN, "Unbekannt");
+        ko(UNKNOWN, "알 수 없음");
+        it(UNKNOWN, "Sconosciuto");
+
+        ja(CHILD, "子ども");
+        zh(CHILD, "儿童");
+        fr(CHILD, "Enfant");
+        es(CHILD, "Niño");
+        de(CHILD, "Kind");
+        ko(CHILD, "어린이");
+        it(CHILD, "Bambino");
+
+        ja(TEENAGER, "十代");
+        zh(TEENAGER, "青少年");
+        fr(TEENAGER, "Adolescent");
+        es(TEENAGER, "Adolescente");
+        de(TEENAGER, "Jugendlich");
+        ko(TEENAGER, "청소년");
+        it(TEENAGER, "Adolescente");
+
+        ja(ADULT, "大人");
+        zh(ADULT, "成人");
+        fr(ADULT, "Adulte");
+        es(ADULT, "Adulto");
+        de(ADULT, "Erwachsen");
+        ko(ADULT, "성인");
+        it(ADULT, "Adulto");
+
+        ja(ELDERLY, "高齢");
+        zh(ELDERLY, "老年");
+        fr(ELDERLY, "Âgé");
+        es(ELDERLY, "Mayor");
+        de(ELDERLY, "Älter");
+        ko(ELDERLY, "노인");
+        it(ELDERLY, "Anziano");
+
+        ja(ANOTHER_VARIATION, "別のバリエーション");
+        zh(ANOTHER_VARIATION, "换一个变体");
+        fr(ANOTHER_VARIATION, "Une autre variation");
+        es(ANOTHER_VARIATION, "Otra variación");
+        de(ANOTHER_VARIATION, "Eine andere Variante");
+        ko(ANOTHER_VARIATION, "다른 변형");
+        it(ANOTHER_VARIATION, "Un'altra variazione");
+
+        ja(THE_BASE_VOICE, "基本の声");
+        zh(THE_BASE_VOICE, "基础声音");
+        fr(THE_BASE_VOICE, "la voix de base");
+        es(THE_BASE_VOICE, "la voz base");
+        de(THE_BASE_VOICE, "die Grundstimme");
+        ko(THE_BASE_VOICE, "기본 목소리");
+        it(THE_BASE_VOICE, "la voce base");
+
+        ja(VARIATION_OF, "バリエーション: %s");
+        zh(VARIATION_OF, "变体：%s");
+        fr(VARIATION_OF, "Variation : %s");
+        es(VARIATION_OF, "Variación: %s");
+        de(VARIATION_OF, "Variante: %s");
+        ko(VARIATION_OF, "변형: %s");
+        it(VARIATION_OF, "Variazione: %s");
+
+        ja(FORMANTS, "フォルマント");
+        zh(FORMANTS, "共振峰");
+        fr(FORMANTS, "formants");
+        es(FORMANTS, "formantes");
+        de(FORMANTS, "Formanten");
+        ko(FORMANTS, "포먼트");
+        it(FORMANTS, "formanti");
+
+        ja(TEMPO, "テンポ");
+        zh(TEMPO, "语速");
+        fr(TEMPO, "tempo");
+        es(TEMPO, "tempo");
+        de(TEMPO, "Tempo");
+        ko(TEMPO, "템포");
+        it(TEMPO, "tempo");
+
+        ja(DARKER, "暗め");
+        zh(DARKER, "更暗");
+        fr(DARKER, "plus sombre");
+        es(DARKER, "más oscura");
+        de(DARKER, "dunkler");
+        ko(DARKER, "더 어둡게");
+        it(DARKER, "più scura");
+
+        ja(BRIGHTER, "明るめ");
+        zh(BRIGHTER, "更明亮");
+        fr(BRIGHTER, "plus claire");
+        es(BRIGHTER, "más brillante");
+        de(BRIGHTER, "heller");
+        ko(BRIGHTER, "더 밝게");
+        it(BRIGHTER, "più brillante");
+
+        ja(TAGLINE, "タグライン");
+        zh(TAGLINE, "标签说明");
+        fr(TAGLINE, "Accroche");
+        es(TAGLINE, "Etiqueta");
+        de(TAGLINE, "Kurzinfo");
+        ko(TAGLINE, "태그라인");
+        it(TAGLINE, "Didascalia");
+
+        ja(A_CHARACTER_THEY_PLAY_OR_ANY_TAG, "演じるキャラクター、または任意のタグ");
+        zh(A_CHARACTER_THEY_PLAY_OR_ANY_TAG, "所扮演的角色，或任意标签");
+        fr(A_CHARACTER_THEY_PLAY_OR_ANY_TAG, "Un personnage joué, ou toute autre étiquette");
+        es(A_CHARACTER_THEY_PLAY_OR_ANY_TAG, "Un personaje que interpreta, o cualquier etiqueta");
+        de(A_CHARACTER_THEY_PLAY_OR_ANY_TAG, "Eine gesprochene Figur oder ein beliebiger Tag");
+        ko(A_CHARACTER_THEY_PLAY_OR_ANY_TAG, "맡은 캐릭터 또는 아무 태그");
+        it(A_CHARACTER_THEY_PLAY_OR_ANY_TAG, "Un personaggio che interpreta, o qualsiasi etichetta");
+
+        ja(SHOW_THE_CLIP, "クリップを表示");
+        zh(SHOW_THE_CLIP, "显示片段");
+        fr(SHOW_THE_CLIP, "Afficher l'extrait");
+        es(SHOW_THE_CLIP, "Mostrar el clip");
+        de(SHOW_THE_CLIP, "Clip anzeigen");
+        ko(SHOW_THE_CLIP, "클립 보기");
+        it(SHOW_THE_CLIP, "Mostra la clip");
+
+        ja(LISTEN_TO_THE_REFERENCE_CLIP, "参照クリップを聴く");
+        zh(LISTEN_TO_THE_REFERENCE_CLIP, "试听参考片段");
+        fr(LISTEN_TO_THE_REFERENCE_CLIP, "Écouter l'extrait de référence");
+        es(LISTEN_TO_THE_REFERENCE_CLIP, "Escuchar el clip de referencia");
+        de(LISTEN_TO_THE_REFERENCE_CLIP, "Referenzclip anhören");
+        ko(LISTEN_TO_THE_REFERENCE_CLIP, "참조 클립 듣기");
+        it(LISTEN_TO_THE_REFERENCE_CLIP, "Ascolta la clip di riferimento");
+
+        ja(THE_VOICE_IS_NOT_A_CLIP, "この声はクリップではありません。再生する録音がありません。");
+        zh(THE_VOICE_IS_NOT_A_CLIP, "这个声音不是片段：没有可播放的录音。");
+        fr(THE_VOICE_IS_NOT_A_CLIP, "Cette voix n'est pas un extrait : il n'y a pas d'enregistrement à lire.");
+        es(THE_VOICE_IS_NOT_A_CLIP, "Esta voz no es un clip: no hay grabación que reproducir.");
+        de(THE_VOICE_IS_NOT_A_CLIP, "Diese Stimme ist kein Clip: Es gibt keine Aufnahme zum Abspielen.");
+        ko(THE_VOICE_IS_NOT_A_CLIP, "이 목소리는 클립이 아닙니다. 재생할 녹음이 없습니다.");
+        it(THE_VOICE_IS_NOT_A_CLIP, "Questa voce non è una clip: non c'è una registrazione da riprodurre.");
+
+        ja(MERGE, "結合");
+        zh(MERGE, "合并");
+        fr(MERGE, "Fusionner");
+        es(MERGE, "Unir");
+        de(MERGE, "Zusammenfügen");
+        ko(MERGE, "합치기");
+        it(MERGE, "Unisci");
+
+        ja(MERGE_HELP, "チェックしたクリップをリストの順に続けた新しいクリップを作ります。元のクリップは残ります。");
+        zh(MERGE_HELP, "按列表顺序把勾选的片段依次连接成一个新片段。勾选的片段保留。");
+        fr(MERGE_HELP, "Un nouvel extrait fait des extraits cochés à la suite, dans l'ordre de la liste. Les extraits cochés restent.");
+        es(MERGE_HELP, "Un clip nuevo con los clips marcados uno tras otro, en el orden de la lista. Los clips marcados se quedan.");
+        de(MERGE_HELP, "Ein neuer Clip aus den angehakten Clips hintereinander, in der Reihenfolge der Liste. Die angehakten Clips bleiben.");
+        ko(MERGE_HELP, "체크한 클립을 목록 순서대로 이어 붙인 새 클립을 만듭니다. 체크한 클립은 그대로 남습니다.");
+        it(MERGE_HELP, "Una nuova clip con le clip spuntate una dopo l'altra, nell'ordine dell'elenco. Le clip spuntate restano.");
+
+        ja(DELETE_CHECKED, "チェックしたものを削除");
+        zh(DELETE_CHECKED, "删除勾选项");
+        fr(DELETE_CHECKED, "Supprimer la sélection");
+        es(DELETE_CHECKED, "Eliminar los marcados");
+        de(DELETE_CHECKED, "Angehakte löschen");
+        ko(DELETE_CHECKED, "체크한 항목 삭제");
+        it(DELETE_CHECKED, "Elimina le spuntate");
+
+        ja(CHECK_TWO_CLIPS_OR_MORE, "クリップを2つ以上チェックしてください。");
+        zh(CHECK_TWO_CLIPS_OR_MORE, "请勾选两个或更多片段。");
+        fr(CHECK_TWO_CLIPS_OR_MORE, "Cochez au moins deux extraits.");
+        es(CHECK_TWO_CLIPS_OR_MORE, "Marca dos clips o más.");
+        de(CHECK_TWO_CLIPS_OR_MORE, "Hake zwei Clips oder mehr an.");
+        ko(CHECK_TWO_CLIPS_OR_MORE, "클립을 두 개 이상 체크하세요.");
+        it(CHECK_TWO_CLIPS_OR_MORE, "Spunta due clip o più.");
+
+        ja(CHECK_A_CLIP_FIRST, "先にクリップをチェックしてください。");
+        zh(CHECK_A_CLIP_FIRST, "请先勾选一个片段。");
+        fr(CHECK_A_CLIP_FIRST, "Cochez d'abord un extrait.");
+        es(CHECK_A_CLIP_FIRST, "Marca primero un clip.");
+        de(CHECK_A_CLIP_FIRST, "Hake zuerst einen Clip an.");
+        ko(CHECK_A_CLIP_FIRST, "먼저 클립을 체크하세요.");
+        it(CHECK_A_CLIP_FIRST, "Spunta prima una clip.");
+
+        ja(THE_CLIPS_ARE_MERGED, "クリップを %s に結合しました。");
+        zh(THE_CLIPS_ARE_MERGED, "片段已合并为 %s。");
+        fr(THE_CLIPS_ARE_MERGED, "Les extraits sont fusionnés dans %s.");
+        es(THE_CLIPS_ARE_MERGED, "Los clips se han unido en %s.");
+        de(THE_CLIPS_ARE_MERGED, "Die Clips sind zu %s zusammengefügt.");
+        ko(THE_CLIPS_ARE_MERGED, "클립을 %s(으)로 합쳤습니다.");
+        it(THE_CLIPS_ARE_MERGED, "Le clip sono unite in %s.");
+
+        ja(THE_CLIPS_COULD_NOT_BE_MERGED, "クリップを結合できませんでした: %s");
+        zh(THE_CLIPS_COULD_NOT_BE_MERGED, "无法合并片段：%s");
+        fr(THE_CLIPS_COULD_NOT_BE_MERGED, "Les extraits n'ont pas pu être fusionnés : %s");
+        es(THE_CLIPS_COULD_NOT_BE_MERGED, "No se pudieron unir los clips: %s");
+        de(THE_CLIPS_COULD_NOT_BE_MERGED, "Die Clips konnten nicht zusammengefügt werden: %s");
+        ko(THE_CLIPS_COULD_NOT_BE_MERGED, "클립을 합칠 수 없습니다: %s");
+        it(THE_CLIPS_COULD_NOT_BE_MERGED, "Non è stato possibile unire le clip: %s");
+
+        ja(DELETE_THE_CHECKED_CLIPS, "チェックしたクリップを削除");
+        zh(DELETE_THE_CHECKED_CLIPS, "删除勾选的片段");
+        fr(DELETE_THE_CHECKED_CLIPS, "Supprimer les extraits cochés");
+        es(DELETE_THE_CHECKED_CLIPS, "Eliminar los clips marcados");
+        de(DELETE_THE_CHECKED_CLIPS, "Angehakte Clips löschen");
+        ko(DELETE_THE_CHECKED_CLIPS, "체크한 클립 삭제");
+        it(DELETE_THE_CHECKED_CLIPS, "Elimina le clip spuntate");
+
+        ja(THE_CLIPS_ARE_DELETED, "%d 個のクリップを削除しました。");
+        zh(THE_CLIPS_ARE_DELETED, "已删除 %d 个片段。");
+        fr(THE_CLIPS_ARE_DELETED, "%d extraits sont supprimés.");
+        es(THE_CLIPS_ARE_DELETED, "Se han eliminado %d clips.");
+        de(THE_CLIPS_ARE_DELETED, "%d Clips sind gelöscht.");
+        ko(THE_CLIPS_ARE_DELETED, "클립 %d개를 삭제했습니다.");
+        it(THE_CLIPS_ARE_DELETED, "%d clip sono state eliminate.");
+
+        ja(THESE_CLIPS_ARE_USED_AND_STAY, "これらのクリップは使用中のため残ります: %s");
+        zh(THESE_CLIPS_ARE_USED_AND_STAY, "这些片段正在使用，予以保留：%s");
+        fr(THESE_CLIPS_ARE_USED_AND_STAY, "Ces extraits sont utilisés et restent : %s");
+        es(THESE_CLIPS_ARE_USED_AND_STAY, "Estos clips están en uso y se quedan: %s");
+        de(THESE_CLIPS_ARE_USED_AND_STAY, "Diese Clips werden verwendet und bleiben: %s");
+        ko(THESE_CLIPS_ARE_USED_AND_STAY, "사용 중이라 남은 클립: %s");
+        it(THESE_CLIPS_ARE_USED_AND_STAY, "Queste clip sono in uso e restano: %s");
+
+        ja(DELETE_THE_REASONING, "思考を削除");
+        zh(DELETE_THE_REASONING, "删除推理");
+        fr(DELETE_THE_REASONING, "Supprimer le raisonnement");
+        es(DELETE_THE_REASONING, "Eliminar el razonamiento");
+        de(DELETE_THE_REASONING, "Reasoning löschen");
+        ko(DELETE_THE_REASONING, "추론 삭제");
+        it(DELETE_THE_REASONING, "Elimina il ragionamento");
+
+        ja(DELETE_THE_STORED_REASONING_OF_THIS_PART_QUESTION, "このパートのラベル付け中にモデルが出力した内容をすべて削除しますか？ラベルと音声は残ります。元に戻せません。");
+        zh(DELETE_THE_STORED_REASONING_OF_THIS_PART_QUESTION, "删除模型为此部分打标签时输出的全部内容？标签和音频会保留。此操作无法撤销。");
+        fr(DELETE_THE_STORED_REASONING_OF_THIS_PART_QUESTION, "Supprimer tout ce que le modèle a dit en étiquetant cette partie ? Les étiquettes et l’audio restent. Cette action est irréversible.");
+        es(DELETE_THE_STORED_REASONING_OF_THIS_PART_QUESTION, "¿Eliminar todo lo que dijo el modelo al etiquetar esta parte? Las etiquetas y el audio se quedan. No se puede deshacer.");
+        de(DELETE_THE_STORED_REASONING_OF_THIS_PART_QUESTION, "Alles löschen, was das Modell beim Labeln dieses Teils gesagt hat? Labels und Audio bleiben. Das lässt sich nicht rückgängig machen.");
+        ko(DELETE_THE_STORED_REASONING_OF_THIS_PART_QUESTION, "이 파트에 라벨을 붙이는 동안 모델이 말한 내용을 모두 삭제할까요? 라벨과 오디오는 남습니다. 되돌릴 수 없습니다.");
+        it(DELETE_THE_STORED_REASONING_OF_THIS_PART_QUESTION, "Eliminare tutto ciò che il modello ha detto mentre etichettava questa parte? Le etichette e l’audio restano. L’operazione non si può annullare.");
+
+        ja(THIS_PART_HAS_NO_STORED_REASONING, "このパートには保存された思考がありません");
+        zh(THIS_PART_HAS_NO_STORED_REASONING, "此部分没有保存的推理");
+        fr(THIS_PART_HAS_NO_STORED_REASONING, "Cette partie n’a pas de raisonnement enregistré");
+        es(THIS_PART_HAS_NO_STORED_REASONING, "Esta parte no tiene razonamiento guardado");
+        de(THIS_PART_HAS_NO_STORED_REASONING, "Dieser Teil hat kein gespeichertes Reasoning");
+        ko(THIS_PART_HAS_NO_STORED_REASONING, "이 파트에는 저장된 추론이 없습니다");
+        it(THIS_PART_HAS_NO_STORED_REASONING, "Questa parte non ha un ragionamento salvato");
     }
 }

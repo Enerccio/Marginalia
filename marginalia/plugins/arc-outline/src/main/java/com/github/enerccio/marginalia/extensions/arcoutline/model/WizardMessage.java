@@ -45,7 +45,9 @@ public class WizardMessage {
         if (calls != null) {
             copy.calls = new java.util.ArrayList<>();
             for (WizardCall call : calls) {
-                copy.calls.add(new WizardCall(call.getName(), call.getArguments(), call.getResult(), call.isFailed()));
+                WizardCall same = new WizardCall(call.getName(), call.getArguments(), call.getResult(), call.isFailed());
+                same.setSubject(call.getSubject());
+                copy.calls.add(same);
             }
         }
         return copy;

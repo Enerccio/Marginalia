@@ -21,6 +21,18 @@
         <property name="repository" ref="permissionRepository" />
     </bean>
 
+    <bean id="apiKeyRepository" class="com.github.enerccio.marginalia.domain.security.repository.impl.JpaApiKeyRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.security.service.impl.ApiKeyServiceImpl">
+        <property name="repository" ref="apiKeyRepository" />
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.api.ApiDispatcher" />
+
+    <bean class="com.github.enerccio.marginalia.api.BookApiTargets" />
+
     <bean class="com.github.enerccio.marginalia.domain.service.impl.InferenceServicesImpl">
         <property name="inferenceProviders">
             <list>
@@ -37,6 +49,8 @@
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.SettingServiceImpl">
         <property name="repository" ref="settingRepository" />
+        <!-- the user settings of Marginalia (BaseUserSetting is what the platform reads) -->
+        <property name="userSettingClass" value="com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting" />
     </bean>
 
     <bean id="resourceRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaResourceRepository">
@@ -45,6 +59,11 @@
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.ResourceServiceImpl">
         <property name="repository" ref="resourceRepository" />
+    </bean>
+
+    <!-- the files of the parts of a book its readers may see -->
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.BookSharedResources">
+        <property name="entityManager" ref="em" />
     </bean>
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.ResourceGarbageServiceImpl" />
@@ -64,6 +83,9 @@
     <bean class="com.github.enerccio.marginalia.domain.service.impl.UsageServiceImpl">
         <property name="repository" ref="usageRepository" />
     </bean>
+
+    <!-- the tokens of a request also count for the book it was made for -->
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.BookUsageCounter" />
 
     <bean id="jobRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaJobRepository">
         <property name="entityManager" ref="em"/>
@@ -199,6 +221,9 @@
         <property name="repository" ref="annotationRepository" />
     </bean>
 
+    <!-- the phrase watch list: hits of the phrases in a part become annotations -->
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.PhraseWatchServiceImpl" />
+
     <bean id="messagePromptRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaMessagePromptRepository">
         <property name="entityManager" ref="em"/>
     </bean>
@@ -265,6 +290,24 @@
     <bean class="com.github.enerccio.marginalia.domain.service.impl.AgentActivityServiceImpl" />
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.AIGateImpl" />
+
+    <bean id="gpuRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaGpuRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean id="gpuLockRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaGpuLockRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean id="gpuStepRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaGpuStepRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.GpuServiceImpl">
+        <property name="gpuRepository" ref="gpuRepository" />
+        <property name="lockRepository" ref="gpuLockRepository" />
+        <property name="stepRepository" ref="gpuStepRepository" />
+    </bean>
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.AgentRunnerImpl" />
 
@@ -344,9 +387,24 @@
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.CommandServiceImpl" />
 
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.commands.BuiltInCommands" init-method="install" />
+
     <bean class="com.github.enerccio.marginalia.domain.service.impl.CleanupServiceImpl">
         <property name="entityManager" ref="em" />
     </bean>
 
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.BookTrashPolicy">
+        <property name="entityManager" ref="em" />
+    </bean>
+
     <bean class="com.github.enerccio.marginalia.instruct.RuntimeInstrumentationInitializer" />
+
+    <!-- the prompts in other languages that extensions bring -->
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.ExtensionPromptsRegistrar" init-method="install" />
+
+    <!-- the editors of the permission types in the permissions dialog -->
+    <bean class="com.github.enerccio.marginalia.ui.dialogs.permissions.PermissionUIFactoryImpl" />
+
+    <!-- the books and parts of the runs (Runs names no story class) -->
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.BookRunScope" init-method="install" />
 </beans>

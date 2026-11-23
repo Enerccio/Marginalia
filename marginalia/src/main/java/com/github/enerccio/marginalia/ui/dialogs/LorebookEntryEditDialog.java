@@ -4,6 +4,8 @@ import com.github.enerccio.marginalia.domain.collections.FilteringMode;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
+import com.github.enerccio.marginalia.loc.MarginaliaLocalization;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
 import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
@@ -30,7 +32,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 public class LorebookEntryEditDialog extends Dialog {
 
     @Autowired
-    private Localization loc;
+    private MarginaliaLocalization loc;
 
     @Autowired
     private LorebookEntryService lorebookEntryService;
@@ -55,36 +57,36 @@ public class LorebookEntryEditDialog extends Dialog {
     }
 
     public LorebookEntryEditDialog create() {
-        setHeaderTitle(loc.getValue(L.LABEL_EDIT_ENTRY));
+        setHeaderTitle(loc.getValue(M_L.LABEL_EDIT_ENTRY));
         setWidth("700px");
         setMaxWidth("96%");
         setModality(ModalityMode.STRICT);
         setCloseOnOutsideClick(false);
         UIUtils.fitPhone(this, true);
 
-        nameField = new TextField(loc.getValue(L.LABEL_ENTRY_NAME));
+        nameField = new TextField(loc.getValue(M_L.LABEL_ENTRY_NAME));
         nameField.setWidthFull();
         nameField.setValue(StringUtils.defaultString(entry.getName()));
 
-        enabledBox = new Checkbox(loc.getValue(L.LABEL_ENABLED), entry.isEnabled());
+        enabledBox = new Checkbox(loc.getValue(M_L.LABEL_ENABLED), entry.isEnabled());
 
-        filteringModeBox = new ComboBox<>(loc.getValue(L.LABEL_FILTERING_MODE));
+        filteringModeBox = new ComboBox<>(loc.getValue(M_L.LABEL_FILTERING_MODE));
         filteringModeBox.setItems(FilteringMode.values());
         filteringModeBox.setItemLabelGenerator(mode -> loc.getValue(loc.getFilteringMode(mode)));
         filteringModeBox.setAllowCustomValue(false);
         filteringModeBox.setValue(entry.getFilteringMode());
         filteringModeBox.setWidthFull();
 
-        filteringField = new TextField(loc.getValue(L.LABEL_FILTERING));
+        filteringField = new TextField(loc.getValue(M_L.LABEL_FILTERING));
         filteringField.setWidthFull();
         filteringField.setValue(StringUtils.defaultString(entry.getFiltering()));
 
-        payloadField = new TextArea(loc.getValue(L.LABEL_CONTENT));
+        payloadField = new TextArea(loc.getValue(M_L.LABEL_CONTENT));
         payloadField.setWidthFull();
         payloadField.setMinHeight("200px");
         payloadField.setValue(StringUtils.defaultString(entry.getPayload()));
 
-        commentField = new TextArea(loc.getValue(L.LABEL_NOTE));
+        commentField = new TextArea(loc.getValue(M_L.LABEL_NOTE));
         commentField.setWidthFull();
         commentField.setValue(StringUtils.defaultString(entry.getComment()));
 
@@ -108,7 +110,7 @@ public class LorebookEntryEditDialog extends Dialog {
     void save() {
         if (StringUtils.isBlank(nameField.getValue())) {
             nameField.setInvalid(true);
-            nameField.setErrorMessage(loc.getValue(L.ERROR_NAME_CANT_BE_EMPTY));
+            nameField.setErrorMessage(loc.getValue(M_L.ERROR_NAME_CANT_BE_EMPTY));
             return;
         }
         try {

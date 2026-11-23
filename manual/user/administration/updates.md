@@ -34,6 +34,9 @@ The server follows the branch that is checked out there, whatever it is: to move
 | **Refresh** | Reads the status again. The tab does not refresh by itself. |
 | **Log** | The output of the last update: what Git and the build wrote. |
 
+The same can be done from a script, with an [API key](../account.md#api-keys) that has the access *Update the installation*: read the status, ask
+for an update and read the log (see the [developer manual](../../developer/api.md)).
+
 ## What an update does
 
 1. The new version is built: `git pull`, the plugins, the image. This takes several minutes and **Marginalia keeps

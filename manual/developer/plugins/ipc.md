@@ -4,14 +4,14 @@ order: 64
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/IPCService.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/IPCServiceImpl.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/ToolService.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/ToolService.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/tool
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/ToolServiceImpl.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/OsgiService.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/OsgiServiceImpl.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/impl/ToolServiceImpl.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/OsgiService.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/impl/OsgiServiceImpl.java
   - marginalia/src/main/resources/META-INF/spring/services-config.xml
-  - marginalia/src/main/java/com/github/enerccio/marginalia/ui/dialogs/ToolSelectionDialog.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/ui/widgets/ToolSelectionButton.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/ui/dialogs/ToolSelectionDialog.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/ui/widgets/ToolSelectionButton.java
   - marginalia/plugins/arc-outline
   - marginalia/plugins/sidequery
   - marginalia/plugins/lore-generator
@@ -22,7 +22,7 @@ covers:
   - marginalia/plugins/name-provider/src/main/java/com/github/enerccio/marginalia/extensions/nameprovider/NameProviderToolProvider.java
   - marginalia/plugins/place-provider/src/main/java/com/github/enerccio/marginalia/extensions/placeprovider/PlaceProviderToolProvider.java
   - marginalia/plugins/place-provider/src/main/java/com/github/enerccio/marginalia/extensions/placeprovider/PlaceProviderExtension.java
-verified: f7e7de02b
+verified: f337fe83d
 ---
 
 # Sharing data between extensions

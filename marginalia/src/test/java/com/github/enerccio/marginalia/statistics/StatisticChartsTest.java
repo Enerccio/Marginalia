@@ -5,7 +5,7 @@ import com.github.enerccio.marginalia.domain.components.*;
 import com.github.enerccio.marginalia.domain.components.BookStatistic.BookState;
 import com.github.enerccio.marginalia.domain.components.StatisticReport.BookLine;
 import com.github.enerccio.marginalia.domain.components.StatisticReport.DayLine;
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
 import com.github.enerccio.marginalia.ui.dialogs.statistics.StatisticCharts;
 import com.github.enerccio.marginalia.ui.dialogs.statistics.StatisticCharts.BookMetric;
 import com.github.enerccio.marginalia.ui.dialogs.statistics.StatisticCharts.Grain;
@@ -26,7 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class StatisticChartsTest {
 
-    private static final Function<L, String> TEXT = L::name;
+    private static final Function<LocalizationKey, String> TEXT = LocalizationKey::name;
     private static final Gson GSON = new Gson();
     private static final long HOUR = 3_600_000L;
     private static final LocalDate D1 = LocalDate.of(2026, 3, 2);  // a Monday

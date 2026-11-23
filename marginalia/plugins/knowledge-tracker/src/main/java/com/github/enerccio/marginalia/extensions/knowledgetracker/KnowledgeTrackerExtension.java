@@ -14,17 +14,22 @@ import com.github.enerccio.marginalia.extensions.AnnotationFactsRegistry;
 import com.github.enerccio.marginalia.extensions.ExtensionHasCss;
 import com.github.enerccio.marginalia.extensions.InheritedSettingRegistry;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.block.PayloadInsertion;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.commands.KnowledgeTrackerCommands;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.facts.KnowledgeFactsProvider;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.model.BookSettings;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.model.KnowledgeState;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.service.*;
+import com.github.enerccio.marginalia.extensions.knowledgetracker.service.ExtractionService.Proposal;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.service.KnowledgePromptService.Prepared;
+import com.github.enerccio.marginalia.extensions.knowledgetracker.ui.KnowledgeRunScreens;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.ui.KnowledgeSettingsForm;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.ui.KnowledgeTrackerStyles;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.ui.KnowledgeTrackerView;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.ui.ProgressPanel;
+import com.github.enerccio.marginalia.extensions.storytracker.block.PayloadInsertion;
+import com.github.enerccio.marginalia.extensions.storytracker.run.TrackerRun;
+import com.github.enerccio.marginalia.extensions.storytracker.run.TrackerRuns;
+import com.github.enerccio.marginalia.extensions.storytracker.ui.ProgressPanel;
+import com.github.enerccio.marginalia.extensions.storytracker.ui.StoryTrackerStyles;
 import com.github.enerccio.marginalia.ui.dialogs.BookWindows;
 import com.github.enerccio.marginalia.ui.dialogs.story.StoryEditor;
 import com.github.enerccio.marginalia.ui.main.ApplicationEntryPoint;
@@ -94,7 +99,7 @@ public class KnowledgeTrackerExtension implements MarginaliaExtension, Extension
     private final KnowledgePromptService promptService = new KnowledgePromptService(stateService);
     private final KnowledgeProcessService processService = new KnowledgeProcessService(stateService);
     private final ExtractionService extractionService = new ExtractionService(stateService, processService);
-    private final ExtractionRuns runs = new ExtractionRuns(extractionService, processService, stateService);
+    private final TrackerRuns<Proposal> runs = KnowledgeSteps.runs(extractionService, processService, stateService);
 
     /** Kept to unregister it, the service takes the object. */
     private KnowledgeTrackerCommands commands;
@@ -246,7 +251,7 @@ public class KnowledgeTrackerExtension implements MarginaliaExtension, Extension
      * with that run (it reads on from its cursor). Otherwise the next generation reads what is left, see {@link #processBeforePrompt}.
      */
     private void readFinishedPart(AfterPart.Context context) throws Exception {
-        ExtractionRun run;
+        TrackerRun<Proposal> run;
         try {
             run = runs.start(context.getManuscript(), false, null);
         } catch (IllegalStateException e) {
@@ -256,11 +261,11 @@ public class KnowledgeTrackerExtension implements MarginaliaExtension, Extension
         }
         context.onStop(run::cancel);
         context.await(run.whenFinished());
-        ExtractionRun.Status status = run.getStatus();
-        if (status.phase() == ExtractionRun.Phase.FAILED) {
+        TrackerRun.Status<Proposal> status = run.getStatus();
+        if (status.phase() == TrackerRun.Phase.FAILED) {
             throw new IllegalStateException(status.message());
         }
-        if (status.phase() == ExtractionRun.Phase.CANCELLED) {
+        if (status.phase() == TrackerRun.Phase.CANCELLED) {
             throw new AfterPart.Stopped();
         }
     }
@@ -305,7 +310,7 @@ public class KnowledgeTrackerExtension implements MarginaliaExtension, Extension
             if (settings.isExtractWithModel() && !settings.isAskBeforeApplying()) {
                 // the user does not want to review: the model reads the new parts and the changes are applied and logged; the
                 // generation waits for it
-                ExtractionRun run = runs.start(manuscript, false, replaced);
+                TrackerRun<Proposal> run = runs.start(manuscript, false, replaced);
                 run.whenFinished().get();
             } else {
                 // who has met whom costs nothing. What the model finds is proposed for review, and a review is never forced on
@@ -364,7 +369,7 @@ public class KnowledgeTrackerExtension implements MarginaliaExtension, Extension
     @Override
     public String getCss(ApplicationEntryPoint entryPoint) {
         // the Knowledge tab lives in the workspace only
-        return entryPoint instanceof Main ? KnowledgeTrackerStyles.css() : null;
+        return entryPoint instanceof Main ? KnowledgeTrackerStyles.css() + "\n" + StoryTrackerStyles.css() : null;
     }
 
     /**
@@ -372,7 +377,7 @@ public class KnowledgeTrackerExtension implements MarginaliaExtension, Extension
      * progress and the review that waits). A book that is not open in the page is opened first; when another book is open there, the
      * author is told to close it and nothing else happens.
      */
-    private void openRun(ExtractionRun run) {
+    private void openRun(TrackerRun<Proposal> run) {
         UI ui = UI.getCurrent();
         if (ui == null) {
             return;
@@ -383,7 +388,7 @@ public class KnowledgeTrackerExtension implements MarginaliaExtension, Extension
         BookWindows.openHere(run.getManuscript(), _ -> {
             if (!showInTab(ui, run)) {
                 // the window has no Knowledge tab (yet): the progress alone
-                ProgressPanel panel = new ProgressPanel(run);
+                ProgressPanel<Proposal> panel = KnowledgeRunScreens.panel(run);
                 panel.open();
                 panel.openReview();
             }
@@ -391,7 +396,7 @@ public class KnowledgeTrackerExtension implements MarginaliaExtension, Extension
     }
 
     /** Selects the Knowledge tab of the run's book in the page and shows the run there; false when the page has no such tab. */
-    private boolean showInTab(UI ui, ExtractionRun run) {
+    private boolean showInTab(UI ui, TrackerRun<Proposal> run) {
         synchronized (activeTabSheets) {
             for (TabDock leftBar : activeTabSheets) {
                 KnowledgeTrackerView view = (KnowledgeTrackerView) ComponentUtil.getData(leftBar, VIEW_KEY);

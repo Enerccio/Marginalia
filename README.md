@@ -219,10 +219,12 @@ model. Then create a book, choose the provider and a protocol, and start writing
 ## Extensions
 
 Extensions are OSGi bundles (JAR files). Administrators install them in *Admin → Extensions*; they are stored in
-`~/.marginalia/extensions`. Twenty-nine plugins are included in [`marginalia/plugins`](marginalia/plugins/README.md) and
+`~/.marginalia/extensions`. Thirty plugins are included in [`marginalia/plugins`](marginalia/plugins/README.md) and
 built separately with Maven, or in Docker (see the plugins README):
 
 - [Anthropic Claude](marginalia/plugins/anthropic/README.md) - Anthropic's Claude models as an inference provider, over the Anthropic Java SDK,
+- [xAI Grok](marginalia/plugins/grok/README.md) - xAI's Grok models as an inference provider, over the xAI REST API,
+  with the reasoning shown apart from the answer and the usage xAI reports.
 - [Arc Outline](marginalia/plugins/arc-outline/README.md) - the arcs of the book and their chapters in the story sidebar, written by the model if you want,
 - [Audiobook](marginalia/plugins/audiobook/README.md) - (stub) a book as an audiobook with a text-to-speech server and a voice per character,
 - [Author's Note](marginalia/plugins/authorsnote/README.md) - a note to the model inserted into every generation,
@@ -249,6 +251,7 @@ built separately with Maven, or in Docker (see the plugins README):
 - [Reviewer](marginalia/plugins/reviewer/README.md) - AI reviews of story parts,
 - [Side Query](marginalia/plugins/sidequery/README.md) - ask the model about your book without changing it,
 - [SillyTavern Converter](marginalia/plugins/sillytavern-converter/README.md) - rewrite a SillyTavern chat as a story: the chat next to the story, turn details made of it by the model.
+- [State Tracker](marginalia/plugins/state-tracker/README.md) - the current state of the characters you choose (clothes, inventory, the weapon at hand, injuries, mood) put into the prompt,
 - [Story Notes](marginalia/plugins/story-notes/README.md) - a small wiki of your own pages (tags, `[[links]]`) in the story sidebar; agents and the plot wizard can read and change the pages you allow.
 - [Read Aloud](marginalia/plugins/tts-reader/README.md) - read a published book aloud in the viewer with the voice of the device.
 

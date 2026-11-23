@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Resource;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ResourceService;
 import com.github.enerccio.marginalia.extensions.audiobook.queue.AudioStore;
+import com.github.enerccio.marginalia.extensions.audiobook.queue.LabelTrace;
 import com.google.gson.JsonObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -221,5 +222,58 @@ class ResourceAudioStoreTest {
     void aPartThatIsGoneIsAnError() {
         ResourceAudioStore store = store();
         assertThrows(IllegalStateException.class, () -> store.putSegment("gone", KEY_A, new byte[]{1}));
+    }
+
+    @Test
+    void theReasoningOfEveryRunIsKeptInOneFileThatNewAudioLeavesAlone() {
+        PartReasoningStore reasoning = new PartReasoningStore(resourceService, messageService);
+        assertTrue(reasoning.find(part.getUuid()).isEmpty());
+        assertFalse(PartReasoningStore.has(part));
+
+        store().putReasoning(part.getUuid(), List.of(new LabelTrace.Window("pieces 1-16 of 16", "think", "{}")));
+        String first = part.getAttributes().getAsJsonObject(ResourceAudioStore.KEY).get(PartReasoningStore.REASONING).getAsString();
+        store().putReasoning(part.getUuid(), List.of(new LabelTrace.Window("pieces 1-16 of 16", "again", "{\"labels\":[]}")));
+
+        List<PartReasoningStore.Run> runs = reasoning.find(part.getUuid());
+        assertEquals(2, runs.size());
+        assertEquals("think", runs.get(0).windows().getFirst().reasoning());
+        assertEquals("{\"labels\":[]}", runs.get(1).windows().getFirst().output());
+        assertNotNull(runs.get(0).at());
+        assertEquals(List.of(first), softDeleted, "the file of the first run is replaced by one with both");
+        assertTrue(resources.get(part.getAttributes().getAsJsonObject(ResourceAudioStore.KEY).get(PartReasoningStore.REASONING).getAsString())
+                .getOriginalName().startsWith(ResourceAudioStore.FILE_PREFIX));
+
+        ResourceAudioStore audio = store();
+        audio.putSegment(part.getUuid(), KEY_A, new byte[]{1});
+        audio.putPart(part.getUuid(), "join", "source", new byte[]{2}, List.of(KEY_A));
+        audio.flush(part.getUuid());
+        audio.discardAudio(part.getUuid());
+        assertEquals(2, reasoning.find(part.getUuid()).size(), "the audio leaves the reasoning alone");
+        assertTrue(PartReasoningStore.has(part));
+    }
+
+    @Test
+    void clearingTheReasoningDeletesItsFile() {
+        PartReasoningStore reasoning = new PartReasoningStore(resourceService, messageService);
+        assertFalse(reasoning.clear(part.getUuid()));
+        reasoning.append(part.getUuid(), List.of(new LabelTrace.Window("w", "r", "o")));
+        String uuid = part.getAttributes().getAsJsonObject(ResourceAudioStore.KEY).get(PartReasoningStore.REASONING).getAsString();
+
+        assertTrue(reasoning.clear(part.getUuid()));
+
+        assertEquals(List.of(uuid), softDeleted);
+        assertFalse(PartReasoningStore.has(part));
+        assertTrue(reasoning.find(part.getUuid()).isEmpty());
+    }
+
+    @Test
+    void reasoningWhoseFileIsGoneIsNone() {
+        PartReasoningStore reasoning = new PartReasoningStore(resourceService, messageService);
+        reasoning.append(part.getUuid(), List.of(new LabelTrace.Window("w", "r", "o")));
+        softDeleted.add(part.getAttributes().getAsJsonObject(ResourceAudioStore.KEY).get(PartReasoningStore.REASONING).getAsString());
+
+        assertTrue(reasoning.find(part.getUuid()).isEmpty());
+        reasoning.append(part.getUuid(), List.of(new LabelTrace.Window("w2", "r2", "o2")));
+        assertEquals(1, reasoning.find(part.getUuid()).size(), "a new run starts a new file");
     }
 }

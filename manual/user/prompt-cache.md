@@ -682,8 +682,8 @@ Things to know:
 ## Freeing the GPU for another model
 
 A GPU that holds the language model has no room for an image or a speech model next to it. With `llama-server` in router mode a second
-hook can unload the models on request, so a plugin that needs the GPU (the [Image Generator](extensions/image-generator.md#one-gpu-for-the-model-and-the-images),
-the Audiobook) asks for it with a request to the proxy, with the same key it uses for everything else:
+hook can unload the models on request: a step of a [GPU lock](administration/gpus.md) (the lock of the image or speech server, before it
+starts that server) asks for it with a request to the proxy, with the same key it uses for everything else:
 
 ```sh
 curl http://litellm:4000/v1/chat/completions \
@@ -697,7 +697,7 @@ A request with the header `X-Llama-Unload` is answered by the hook itself (HTTP 
 model. The hook lists the models of the router (`GET /models`), unloads the ones that are loaded (`POST /models/unload` with the name) and
 waits until the router reports that none is in memory any more (`loaded`, `loading` and `unloading` hold the memory), at most
 `LLAMA_UNLOAD_WAIT_SECONDS` (120). If the server can't be reached, answers with an error, or the models are still there after the wait, the answer is an
-error (HTTP 502), so a plugin that sends this as its *before* request does not start the other model on a full GPU. The model comes back by
+error (HTTP 502), so a lock whose first acquire step is this request does not start the other model on a full GPU. The model comes back by
 itself: the next ordinary request makes the router load it, so the *after* request of a plugin can be empty for the language model. The model name in
 the body only has to be one that a route accepts (with the route `openai/*` it starts with `openai/`, for example `openai/unload`); the header is what counts.
 A name that no route accepts is answered with a 400 *after* the models were unloaded, because the hook runs before LiteLLM looks at the name. The unload goes to every server whose route has `unload`, not to one model.
@@ -856,15 +856,18 @@ litellm_settings:
   callbacks: [slot_cache.proxy_handler_instance, gpu_unload.proxy_handler_instance]
 ```
 
-In the Image Generator (or any plugin that has the two requests) set the *before* request to `POST` the address above with the headers
-`Authorization: Bearer <key>` and `X-Llama-Unload: all` and the body of the example; the headers are stored encrypted.
+Make it a [GPU step](administration/gpus.md) that `POST`s the address above with the headers `Authorization: Bearer <key>` and
+`X-Llama-Unload: all` and the body of the example (the headers are stored encrypted), and put it first in the acquire steps of the locks of
+the image and speech servers.
 
 The other model's server can be controlled through the same proxy. LiteLLM relays a path to another address
 (`general_settings: pass_through_endpoints`, `path`, `target` and `include_subpath: true`; the key of the proxy is checked, and
 the `Authorization` header of the client is **not** passed on, so the target has its own secret in `headers`). A small
 service next to the speech or image server that stops and starts its container is such a target: [`tools/gpu-control`](https://github.com/Enerccio/Marginalia/tree/master/tools/gpu-control)
 (`POST /<container>/start` answers when the service in it is ready, `stop` when it has exited; its README has the compose example and the LiteLLM
-route for the speech server, `/v1/audio/speech`).
+route for the speech server, `/v1/audio/speech`). It can also unload the models of a router **except** the ones named
+(`POST /llama/unload` with `{"keep": ["my-model"]}`), so that Marginalia and another program on the same router each keep only their own model
+without knowing about each other; that call does not save the slot caches as the hook does.
 
 ```yaml
 general_settings:

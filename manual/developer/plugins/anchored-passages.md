@@ -8,7 +8,7 @@ covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/PassageKinds.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/PassageServiceImpl.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/dialogs/story/StoryAnnotations.java
-verified: f7e7de02b
+verified: f337fe83d
 ---
 
 # Anchored passages

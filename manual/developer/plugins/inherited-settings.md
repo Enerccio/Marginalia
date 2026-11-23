@@ -13,8 +13,8 @@ covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/FolderServiceImpl.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/BackupFolders.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/BackupInheritance.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/OsgiServiceImpl.java
-verified: f7e7de02b
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/impl/OsgiServiceImpl.java
+verified: f337fe83d
 ---
 
 # Inherited settings

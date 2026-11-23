@@ -28,6 +28,7 @@ import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import com.github.enerccio.marginalia.extensions.InheritedSetting;
 import com.github.enerccio.marginalia.extensions.InheritedSettingRegistry;
 import com.github.enerccio.marginalia.extensions.InheritedSettingValues;
+import com.github.enerccio.marginalia.loc.MarginaliaLocalization;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -57,7 +58,7 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
 
 
     @Autowired
-    private Localization loc;
+    private MarginaliaLocalization loc;
 
     @Autowired
     private SettingService settingService;

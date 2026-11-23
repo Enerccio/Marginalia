@@ -6,8 +6,8 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.MessagePromptService;
-import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
@@ -117,7 +117,7 @@ class PromptComparisonDialogTest extends MarginaliaTestBase {
         assertThat(grid(dialog).getSelectedItems()).containsExactly(rows.get(0));
         assertThat(texts(dialog)).containsExactly("lore A", "lore B");
         assertThat(all(dialog).filter(Div.class::isInstance).map(Div.class::cast).map(Div::getText))
-                .contains(loc.getValue(L.MSG_PROMPT_COMPARE_SYSTEM_CHANGED));
+                .contains(loc.getValue(M_L.MSG_PROMPT_COMPARE_SYSTEM_CHANGED));
     }
 
     @Test
@@ -127,7 +127,7 @@ class PromptComparisonDialogTest extends MarginaliaTestBase {
         PromptComparisonDialog dialog = open(a);
 
         assertThat(all(dialog).filter(Div.class::isInstance).map(Div.class::cast).map(Div::getText))
-                .contains(loc.getValue(L.MSG_PROMPT_COMPARE_NO_PROMPT));
+                .contains(loc.getValue(M_L.MSG_PROMPT_COMPARE_NO_PROMPT));
         assertThat(all(dialog).anyMatch(Grid.class::isInstance)).isFalse();
     }
 
@@ -138,6 +138,6 @@ class PromptComparisonDialogTest extends MarginaliaTestBase {
         PromptComparisonDialog dialog = open(a);
 
         assertThat(all(dialog).filter(Div.class::isInstance).map(Div.class::cast).map(Div::getText))
-                .contains(loc.getValue(L.MSG_PROMPT_COMPARE_NO_CANDIDATE));
+                .contains(loc.getValue(M_L.MSG_PROMPT_COMPARE_NO_CANDIDATE));
     }
 }

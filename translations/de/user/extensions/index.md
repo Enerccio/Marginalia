@@ -6,7 +6,7 @@ icon: plug
 
 # Erweiterungen
 
-Erweiterungen ergänzen Marginalia um Funktionen, ohne die Anwendung selbst zu verändern. Marginalia wird mit dreiundzwanzig Erweiterungen ausgeliefert:
+Erweiterungen ergänzen Marginalia um Funktionen, ohne die Anwendung selbst zu verändern. Marginalia wird mit dreißig Erweiterungen ausgeliefert:
 
 | Erweiterung | Was sie ergänzt |
 |---|---|
@@ -37,6 +37,7 @@ Erweiterungen ergänzen Marginalia um Funktionen, ohne die Anwendung selbst zu v
 | [Reviewer](reviewer.md) | Besprechungen von Geschichtsteilen, die vom Modell geschrieben wurden: Reaktionen von Lesern, Kritik. |
 | [Side Query](side-query.md) | Ein Chat mit dem Modell über dein Buch, neben der Geschichte. |
 | [Converter](sillytavern-converter.md) | Ein SillyTavern-Chat neben der Geschichte und Details zu Wendungen, die das Modell daraus vorbereitet, um den Chat als Geschichte neu zu schreiben; oder die Teile eines älteren Buches (aus einer Sicherung oder dem Buch selbst) mit ihren Anweisungen, um es neu zu entwerfen. |
+| [State Tracker](state-tracker.md) | Der aktuelle Zustand verfolgter Figuren (Kleidung, was sie bei sich tragen, die Waffe zur Hand, Verletzungen, Stimmung oder eigene Kategorien), in den Prompt eingefügt, damit sich das Modell daran hält. |
 | [Story Notes](story-notes.md) | Ein kleines Wiki aus eigenen Seiten (Schlagwörter, Verknüpfungen zwischen ihnen) in der Seitenleiste, für Handlungen, Ideen und Regeln der Welt; der Handlungsassistent und Agenten können die Seiten lesen und ändern, die du freigibst. |
 | [Read Aloud](tts-reader.md) | Liest ein veröffentlichtes Buch im Viewer mit der Stimme deines Geräts vor. |
 | [Chinese localization](chinese-localization.md) | Vereinfachtes Chinesisch als Sprache der Benutzeroberfläche. |

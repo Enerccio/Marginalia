@@ -22,6 +22,7 @@ import com.github.enerccio.marginalia.extensions.arcoutline.model.WizardOptions.
 import com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineService;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineService.ModelSelection;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineService.WizardPrompt;
+import com.github.enerccio.marginalia.extensions.arcoutline.service.CharacterNumbers;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.WizardContext;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
@@ -325,7 +326,7 @@ public class PlotWizardDialog extends Dialog {
         tools.setPadding(false);
         tools.getThemeList().add("spacing-xs");
         for (ToolGroup group : ToolGroup.values()) {
-            if (group == ToolGroup.NOTES && notesSelect == null) {
+            if (group == ToolGroup.NOTES && notesSelect == null || group == ToolGroup.CHARACTERS && !service.charactersAvailable()) {
                 // the commands of the notes are not there
                 continue;
             }
@@ -424,6 +425,7 @@ public class PlotWizardDialog extends Dialog {
             case LORE -> T.localized(TOOLS_LOREBOOK);
             case OUTLINE -> T.localized(TOOLS_OUTLINE);
             case NOTES -> T.localized(TOOLS_NOTES);
+            case CHARACTERS -> T.localized(TOOLS_CHARACTERS);
             case GENERATE -> T.localized(TOOLS_GENERATORS);
         };
     }
@@ -434,6 +436,7 @@ public class PlotWizardDialog extends Dialog {
             case LORE -> T.localized(TOOLS_LOREBOOK_TIP);
             case OUTLINE -> T.localized(TOOLS_OUTLINE_TIP);
             case NOTES -> T.localized(TOOLS_NOTES_TIP);
+            case CHARACTERS -> T.localized(TOOLS_CHARACTERS_TIP);
             case GENERATE -> T.localized(TOOLS_GENERATORS_TIP);
         };
     }
@@ -730,31 +733,47 @@ public class PlotWizardDialog extends Dialog {
     }
 
     /** The row of a tool call; a running one is filled with the result when it comes. */
-    private record CallRow(String name, Details details, Span body) {
+    private record CallRow(String name, String subject, Details details, Span body) {
     }
 
     /** A tool the model called: its name and whether it worked, what it passed and what it got back under it. */
     private Component callRow(WizardCall call) {
-        CallRow row = newCallRow(call.getName(), call.getArguments());
+        CallRow row = newCallRow(call.getName(), call.getSubject(), call.getArguments());
         fill(row, call);
         return row.details();
     }
 
     /** The row of a call that is running: the name and what the model passed, the result follows. */
-    private CallRow newCallRow(String name, String arguments) {
+    private CallRow newCallRow(String name, String subject, String arguments) {
         Span body = new Span(StringUtils.abbreviate(StringUtils.defaultString(arguments), 4000) + "\n→ …");
         body.addClassNames(ArcOutlineStyles.GENERATION_JSON);
-        Details details = new Details("… " + name, body);
+        Details details = new Details("… " + callTitle(name, subject), body);
         details.setWidthFull();
         details.addClassName(ArcOutlineStyles.WIZARD_CALL);
-        return new CallRow(name, details, body);
+        return new CallRow(name, subject, details, body);
+    }
+
+    /** The name of the tool, and whom it was about when the model named it by a number the author does not know (a character). */
+    private static String callTitle(String name, String subject) {
+        return StringUtils.isBlank(subject) ? name : name + " — " + subject;
+    }
+
+    /**
+     * Whom a call of a tool of the characters is about, read before it runs (after it a deleted character has no name and the
+     * numbers changed); null for the other tools. Runs on the thread of the model.
+     */
+    private String subjectOf(String name, String arguments) {
+        if (!ArcOutlineService.isCharacterTool(name)) {
+            return null;
+        }
+        return service.characterNumbers(manuscript).subject(name, CharacterNumbers.arguments(arguments));
     }
 
     /** Shows how the call ended, in the row it was shown in while it ran. */
     private void fill(CallRow row, WizardCall call) {
         row.body().setText(StringUtils.abbreviate(StringUtils.defaultString(call.getArguments()), 4000) + "\n→ "
                 + StringUtils.abbreviate(StringUtils.defaultString(call.getResult()), 8000));
-        row.details().setSummaryText((call.isFailed() ? "✗ " : "✓ ") + call.getName());
+        row.details().setSummaryText((call.isFailed() ? "✗ " : "✓ ") + callTitle(call.getName(), call.getSubject()));
         if (call.isFailed()) {
             row.details().addClassName(ArcOutlineStyles.WIZARD_CALL_FAILED);
         }
@@ -910,16 +929,19 @@ public class PlotWizardDialog extends Dialog {
         // the calls that run now, shown before their result is there
         List<CallRow> pending = new ArrayList<>();
         UI ui = UI.getCurrent();
-        FunctionSet observed = functions.isEmpty() ? functions : functions.whenCalled((name, arguments) -> ui.access(() -> {
-            Card card = streaming;
-            if (card != null) {
-                CallRow row = newCallRow(name, arguments);
-                pending.add(row);
-                card.calls().add(row.details());
-                JavascriptLibrary.scrollToBottomIfAtBottom(messagesPanel.getElement());
-            }
-            UIPushGuard.push(ui);
-        }));
+        FunctionSet observed = functions.isEmpty() ? functions : functions.whenCalled((name, arguments) -> {
+            String subject = subjectOf(name, arguments);
+            ui.access(() -> {
+                Card card = streaming;
+                if (card != null) {
+                    CallRow row = newCallRow(name, subject, arguments);
+                    pending.add(row);
+                    card.calls().add(row.details());
+                    JavascriptLibrary.scrollToBottomIfAtBottom(messagesPanel.getElement());
+                }
+                UIPushGuard.push(ui);
+            });
+        });
         running = true;
         updateControls();
         try (InferenceSession _ = InferenceSession.open("arc-outline"); UsageContext _ = UsageContext.open(manuscript);
@@ -967,6 +989,7 @@ public class PlotWizardDialog extends Dialog {
                     calls.add(made);
                     Card card = streaming;
                     CallRow row = pending.stream().filter(p -> p.name().equals(call.getName())).findFirst().orElse(null);
+                    made.setSubject(row != null ? row.subject() : null);
                     if (row != null) {
                         pending.remove(row);
                         fill(row, made);
@@ -1073,9 +1096,12 @@ public class PlotWizardDialog extends Dialog {
     private CommandFunctions.Approval approval(UI ui) {
         return (command, arguments) -> {
             CompletableFuture<Boolean> decision = new CompletableFuture<>();
+            // a character the model gives by its number is shown with its name, read here, on the thread of the model
+            CharacterNumbers numbers = ArcOutlineService.isCharacterTool(command) ? service.characterNumbers(manuscript) : CharacterNumbers.NONE;
             ui.access(() -> {
                 StringBuilder body = new StringBuilder();
-                arguments.forEach((name, value) -> body.append(name).append(": ").append(StringUtils.abbreviate(String.valueOf(value), 1500)).append('\n'));
+                arguments.forEach((name, value) -> body.append(name).append(": ")
+                        .append(StringUtils.abbreviate(String.valueOf(numbers.describe(name, value)), 1500)).append('\n'));
                 Div text = new Div(new Span(body.toString().stripTrailing()));
                 text.addClassNames(CssStyles.PRE_WRAP, CssStyles.WRAP_ANYWHERE);
                 ConfirmDialog confirm = new ConfirmDialog();

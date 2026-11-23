@@ -3,6 +3,8 @@ package com.github.enerccio.marginalia.ui.dialogs.story;
 import com.github.enerccio.marginalia.domain.model.PlannedScene;
 import com.github.enerccio.marginalia.domain.service.PlannerService;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
 import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
@@ -32,15 +34,15 @@ class PlannedSceneDialog extends Dialog {
         setWidth("560px");
         setMaxWidth("95vw");
 
-        TextField title = new TextField(loc.getValue(L.LABEL_TITLE));
+        TextField title = new TextField(loc.getValue(M_L.LABEL_TITLE));
         title.setWidthFull();
         title.setMaxLength(PlannerService.MAX_TITLE_LENGTH);
         title.setValue(StringUtils.defaultString(scene.getTitle()));
 
-        TextArea setting = area(loc, L.LABEL_SCENE_SETTING, scene.getSceneSetting());
-        TextArea pov = smallArea(loc, L.LABEL_POV_CHARACTER, scene.getPovCharacter());
-        TextArea present = smallArea(loc, L.LABEL_PRESENT_CHARACTERS, scene.getPresentCharacters());
-        TextArea instructions = area(loc, L.LABEL_INSTRUCTIONS, scene.getInstructions());
+        TextArea setting = area(loc, M_L.LABEL_SCENE_SETTING, scene.getSceneSetting());
+        TextArea pov = smallArea(loc, M_L.LABEL_POV_CHARACTER, scene.getPovCharacter());
+        TextArea present = smallArea(loc, M_L.LABEL_PRESENT_CHARACTERS, scene.getPresentCharacters());
+        TextArea instructions = area(loc, M_L.LABEL_INSTRUCTIONS, scene.getInstructions());
 
         VerticalLayout layout = new VerticalLayout(title, setting, pov, present, instructions);
         layout.setPadding(false);
@@ -51,7 +53,7 @@ class PlannedSceneDialog extends Dialog {
         Button save = new Button(loc.getValue(L.LABEL_SAVE), _ -> {
             if (StringUtils.isBlank(title.getValue())) {
                 title.setInvalid(true);
-                title.setErrorMessage(loc.getValue(L.MSG_PLANNER_TITLE_REQUIRED));
+                title.setErrorMessage(loc.getValue(M_L.MSG_PLANNER_TITLE_REQUIRED));
                 return;
             }
             PlannedScene changed = scene.copy();
@@ -69,7 +71,7 @@ class PlannedSceneDialog extends Dialog {
     }
 
     /** POV and present characters can be several lines, but are short: a small text area. */
-    private static TextArea smallArea(Localization loc, L label, String value) {
+    private static TextArea smallArea(Localization loc, LocalizationKey label, String value) {
         TextArea area = new TextArea(loc.getValue(label));
         area.setWidthFull();
         area.setValue(StringUtils.defaultString(value));
@@ -77,7 +79,7 @@ class PlannedSceneDialog extends Dialog {
         return area;
     }
 
-    private static TextArea area(Localization loc, L label, String value) {
+    private static TextArea area(Localization loc, LocalizationKey label, String value) {
         TextArea area = new TextArea(loc.getValue(label));
         area.setWidthFull();
         area.setMaxLength(PlannerService.MAX_TEXT_LENGTH);

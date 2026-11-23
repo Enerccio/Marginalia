@@ -4,7 +4,7 @@ import com.github.enerccio.marginalia.domain.traits.APIParameter;
 import com.github.enerccio.marginalia.domain.traits.APIReturn;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.domain.traits.PublicAPI;
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.components.LorebookView;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
@@ -32,7 +32,7 @@ public class LorebookPart implements WorkspaceComponent {
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = String.class))
     public String getName() {
-        return loc.getValue(L.LABEL_LOREBOOKS);
+        return loc.getValue(M_L.LABEL_LOREBOOKS);
     }
 
     @PublicAPI(from = "1.1.0",

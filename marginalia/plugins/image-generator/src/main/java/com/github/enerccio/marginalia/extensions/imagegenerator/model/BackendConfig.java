@@ -15,7 +15,7 @@ public class BackendConfig {
     public static final int DEFAULT_WIDTH = 1024;
     public static final int DEFAULT_HEIGHT = 1024;
     public static final int DEFAULT_TIMEOUT_SECONDS = 300;
-    public static final int DEFAULT_IDLE_SECONDS = 120;
+    public static final double DEFAULT_LORA_STRENGTH = 1.0;
 
 
     private String id = UUID.randomUUID().toString();
@@ -24,6 +24,11 @@ public class BackendConfig {
     private String baseUrl = "";
     /** Protected with the key of the installation. */
     private String protectedApiKey;
+    /**
+     * The key of the requests before and after the images, protected like the api key: sent as {@code Authorization: Bearer} with every
+     * request that has none of its own. Null: the api key.
+     */
+    private String protectedHooksKey;
     /** OpenAI: the {@code model} of the request. */
     private String model;
     /** ComfyUI: the workflow with the placeholders. */
@@ -31,23 +36,35 @@ public class BackendConfig {
     /** True when the server is on this machine or the local network: the private addresses are allowed. */
     private boolean local = true;
     /**
-     * The name of the GPU the server runs on, when other servers (of this or another extension) use the same one: backends with the same name wait
-     * for each other. Empty: the address of the server says it.
+     * The uuid of the GPU lock of the application every image takes (see {@code GpuService}): the server runs on a GPU shared with the language
+     * model or other servers. Null: no lock.
      */
-    private String gpu = "";
+    private String gpuLock;
     private int width = DEFAULT_WIDTH;
     private int height = DEFAULT_HEIGHT;
+    /** Saved before the negative prompt was a setting of the user and the book: read once by the settings panel, not used otherwise. */
     private String negativePrompt = "";
     private int timeoutSeconds = DEFAULT_TIMEOUT_SECONDS;
-    /** Made in order before the first image of a session (unload the language model, start the image server...). */
+    /** Made in order before every image, inside the GPU lock (start a container, wake the server...). */
     private List<HttpHook> beforeHooks;
-    /** Made in order when the session is over (accepted, discarded, closed or idle): all of them, whatever happens to one. */
+    /** Made in order after every image, inside the GPU lock: all of them, whatever happens to one. */
     private List<HttpHook> afterHooks;
     /** The one request of the settings saved before the lists: read when there is no list, dropped when the list is set. */
     private HttpHook before;
     private HttpHook after;
-    /** The session is over this many seconds after the last image; 0 for never (it ends with the window). */
-    private int idleSeconds = DEFAULT_IDLE_SECONDS;
+    /** How the prompt is written for this backend; null in settings saved before: see {@link #instructionFor}. */
+    private PromptForm promptForm;
+    /** The instruction of {@link PromptForm#CUSTOM}. */
+    private String promptInstruction;
+    /** ComfyUI: the LoRA last chosen in the window for {@code {{lora}}}; null for none. */
+    private String lora;
+    /**
+     * ComfyUI: the LoRA files the server listed the last time it could be asked. A server that shares the GPU is often not running
+     * when a window opens (its before hooks start it), so the window offers these until it can ask again.
+     */
+    private List<String> knownLoras;
+    /** ComfyUI: the strength last chosen for {@code {{lora_strength}}}; null for the default. */
+    private Double loraStrength;
 
     public String getId() {
         return id;
@@ -89,6 +106,14 @@ public class BackendConfig {
         this.protectedApiKey = protectedApiKey;
     }
 
+    public String getProtectedHooksKey() {
+        return protectedHooksKey;
+    }
+
+    public void setProtectedHooksKey(String protectedHooksKey) {
+        this.protectedHooksKey = protectedHooksKey;
+    }
+
     public String getModel() {
         return model;
     }
@@ -105,25 +130,13 @@ public class BackendConfig {
         this.workflow = workflow;
     }
 
-    public String getGpu() {
-        return gpu == null ? "" : gpu;
+    /** The uuid of the GPU lock, null for none. */
+    public String getGpuLock() {
+        return gpuLock == null || gpuLock.isBlank() ? null : gpuLock;
     }
 
-    public void setGpu(String gpu) {
-        this.gpu = gpu;
-    }
-
-    /** The gate of the GPU the server uses, see {@link #getGpu()}. */
-    public com.github.enerccio.marginalia.extensions.httphooks.GpuGate gate() {
-        return com.github.enerccio.marginalia.extensions.httphooks.GpuGate.forBackend(getGpu(), getBaseUrl());
-    }
-
-    /**
-     * What the requests before an image leave loaded on the GPU: this server with this model and workflow. Sessions with the same mode share the
-     * load; one with another mode (another model, or another extension's) waits for them to end.
-     */
-    public String gateMode() {
-        return "image:" + com.github.enerccio.marginalia.extensions.httphooks.UrlGuard.origin(getBaseUrl()) + "|" + type + "|" + model + "|" + workflow;
+    public void setGpuLock(String gpuLock) {
+        this.gpuLock = gpuLock;
     }
 
     public boolean isLocal() {
@@ -150,6 +163,7 @@ public class BackendConfig {
         this.height = height;
     }
 
+    /** See {@link #negativePrompt}: only for taking over an old setting. */
     public String getNegativePrompt() {
         return negativePrompt == null ? "" : negativePrompt;
     }
@@ -193,16 +207,86 @@ public class BackendConfig {
         return legacy == null || legacy.isEmpty() ? new ArrayList<>() : new ArrayList<>(List.of(legacy));
     }
 
-    public int getIdleSeconds() {
-        return Math.max(0, idleSeconds);
+    /** The form chosen; a backend saved before the choice existed writes tags, or the instruction the user had then. */
+    public PromptForm getPromptForm() {
+        return promptForm == null ? PromptForm.TAGS : promptForm;
     }
 
-    public void setIdleSeconds(int idleSeconds) {
-        this.idleSeconds = idleSeconds;
+    /** Whether the form was chosen (a backend saved before the choice existed has none). */
+    public boolean hasPromptForm() {
+        return promptForm != null;
+    }
+
+    public void setPromptForm(PromptForm promptForm) {
+        this.promptForm = promptForm;
+    }
+
+    public String getPromptInstruction() {
+        return promptInstruction == null ? "" : promptInstruction;
+    }
+
+    public void setPromptInstruction(String promptInstruction) {
+        this.promptInstruction = promptInstruction;
+    }
+
+    /**
+     * The instruction the prompt writer gets for this backend.
+     *
+     * @param legacy the one instruction of the user from before the backends had their own (null for none): a backend that never chose
+     *               a form keeps using it
+     */
+    public String instructionFor(String legacy) {
+        if (promptForm == null) {
+            return legacy == null || legacy.isBlank() ? PromptForm.TAGS.instruction() : legacy;
+        }
+        if (promptForm == PromptForm.CUSTOM) {
+            return getPromptInstruction().isBlank() ? PromptForm.TAGS.instruction() : promptInstruction;
+        }
+        return promptForm.instruction();
+    }
+
+    public String getLora() {
+        return lora == null || lora.isBlank() ? null : lora;
+    }
+
+    public void setLora(String lora) {
+        this.lora = lora;
+    }
+
+    /** The LoRA files the server listed last (a copy), empty when it never could. */
+    public List<String> getKnownLoras() {
+        return knownLoras == null ? new ArrayList<>() : new ArrayList<>(knownLoras);
+    }
+
+    public void setKnownLoras(List<String> knownLoras) {
+        this.knownLoras = knownLoras == null ? null : new ArrayList<>(knownLoras);
+    }
+
+    public double getLoraStrength() {
+        return loraStrength == null ? DEFAULT_LORA_STRENGTH : loraStrength;
+    }
+
+    public void setLoraStrength(double loraStrength) {
+        this.loraStrength = loraStrength;
+    }
+
+    /** Whether the window offers the LoRA choice: a ComfyUI workflow with {@code {{lora}}}. */
+    public boolean usesLora() {
+        return getType() == BackendType.COMFYUI
+                && com.github.enerccio.marginalia.extensions.imagegenerator.service.WorkflowTemplate.usesLora(workflow);
     }
 
     @Override
     public String toString() {
         return getName();
+    }
+
+    /** The backends by name, as the user reads them (the case and the accents do not count), for a picker. */
+    public static <T extends BackendConfig> java.util.List<T> byName(java.util.Collection<T> backends) {
+        java.text.Collator collator = java.text.Collator.getInstance();
+        collator.setStrength(java.text.Collator.PRIMARY);
+        java.util.List<T> sorted = new java.util.ArrayList<>(backends);
+        sorted.sort((a, b) -> collator.compare(a.getName() == null ? "" : a.getName(), b.getName() == null ? "" : b.getName()));
+        return sorted;
     }
 }

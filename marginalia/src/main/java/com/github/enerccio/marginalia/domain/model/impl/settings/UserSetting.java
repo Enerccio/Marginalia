@@ -1,8 +1,8 @@
 package com.github.enerccio.marginalia.domain.model.impl.settings;
 
-import com.github.enerccio.marginalia.domain.collections.ThemeMode;
 import com.github.enerccio.marginalia.domain.collections.WebhookFormat;
-import com.github.enerccio.marginalia.domain.model.Setting;
+import com.github.enerccio.marginalia.domain.model.AnnotationTemplate;
+import com.github.enerccio.marginalia.domain.model.WatchedPhrase;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
@@ -19,17 +19,11 @@ import java.util.List;
 
 @Entity
 @DiscriminatorValue("UserSetting")
-public class UserSetting extends Setting {
-
-    @ExtendedAttribute
-    @Transient
-    @CleanupReference(value = Policy.WEAK, target = AI.class)
-    private Long defaultModel;
-
-    @ExtendedAttribute
-    @Transient
-    @CleanupReference(value = Policy.WEAK, target = Protocol.class)
-    private Long defaultProtocol;
+/**
+ * The settings of a user of Marginalia, one row per user. The ones of the platform (language, theme, keys, the default
+ * AI) are in {@link BaseUserSetting}; this class adds the writing ones. Every field is an extended attribute.
+ */
+public class UserSetting extends BaseUserSetting {
 
     /**
      * The first day (ISO date) the time of the writing statistics is recorded from; the days before it have counts rebuilt from the
@@ -188,42 +182,12 @@ public class UserSetting extends Setting {
     private String backupStrategyValue;
 
     /**
-     * The color scheme of the UI, {@code null} for the default one ({@link ThemeMode#DARK}).
-     */
-    @ExtendedAttribute
-    @Transient
-    private ThemeMode themeMode;
-
-    /**
-     * Code of the language of the UI, {@code null} for the default one.
-     */
-    @ExtendedAttribute
-    @Transient
-    private String language;
-
-    /**
-     * Code of the language of the built-in prompts ({@code Localization.getDefaults()}), {@code null} for English.
-     * Independent of the language of the UI.
-     */
-    @ExtendedAttribute
-    @Transient
-    private String promptLanguage;
-
-    /**
      * How many parts of a book the story and the reader load at a time (the story the last ones, the reader the first
      * ones, the rest as the user scrolls); {@code null} or less than one loads them all.
      */
     @ExtendedAttribute
     @Transient
     private Integer storyPartsLimit;
-
-    /**
-     * Where the user left the workspace (selected tab, filters, the open book, ...), written by the workspace autosave
-     * as the {@code Restorable} state of the workspace and read back after the login.
-     */
-    @ExtendedAttribute(inject = true, injectPrefix = "workspaceState")
-    @Transient
-    private JsonObject workspaceState = new JsonObject();
 
     /**
      * The uuids of the books the user marked as favorites (the star of the list of books), which the list shows together
@@ -235,12 +199,18 @@ public class UserSetting extends Setting {
     private List<String> favoriteBooks = new ArrayList<>();
 
     /**
-     * The keys of the user for the keyboard shortcuts of the story editor: action id to key combination, only the ones
-     * that differ from the default of the action (an empty text is no key), see {@code KeyBindings}.
+     * The phrase watch list of the user, which every book uses (with the lists of its folders and its own, {@code PhraseWatchService}).
      */
-    @ExtendedAttribute(inject = true, injectPrefix = "keyBindings")
+    @ExtendedAttribute(inject = true, injectPrefix = "watchedPhrases")
     @Transient
-    private JsonObject keyBindings = new JsonObject();
+    private List<WatchedPhrase> watchedPhrases = new ArrayList<>();
+
+    /**
+     * The annotation templates the entries of the phrase watch lists name (by uuid): what the annotation of a hit says.
+     */
+    @ExtendedAttribute(inject = true, injectPrefix = "annotationTemplates")
+    @Transient
+    private List<AnnotationTemplate> annotationTemplates = new ArrayList<>();
 
     /**
      * Whether the help assistant may look at the books of the user (folders, titles, descriptions, the settings they
@@ -345,22 +315,6 @@ public class UserSetting extends Setting {
 
     public void setStatisticsSince(String statisticsSince) {
         this.statisticsSince = statisticsSince;
-    }
-
-    public Long getDefaultModel() {
-        return defaultModel;
-    }
-
-    public void setDefaultModel(Long defaultModel) {
-        this.defaultModel = defaultModel;
-    }
-
-    public Long getDefaultProtocol() {
-        return defaultProtocol;
-    }
-
-    public void setDefaultProtocol(Long defaultProtocol) {
-        this.defaultProtocol = defaultProtocol;
     }
 
     public String getMasterTemplate() {
@@ -571,30 +525,6 @@ public class UserSetting extends Setting {
         this.backupStrategy = backupStrategy;
     }
 
-    public ThemeMode getThemeMode() {
-        return themeMode == null ? ThemeMode.DARK : themeMode;
-    }
-
-    public void setThemeMode(ThemeMode themeMode) {
-        this.themeMode = themeMode;
-    }
-
-    public String getLanguage() {
-        return language;
-    }
-
-    public void setLanguage(String language) {
-        this.language = language;
-    }
-
-    public String getPromptLanguage() {
-        return promptLanguage;
-    }
-
-    public void setPromptLanguage(String promptLanguage) {
-        this.promptLanguage = promptLanguage;
-    }
-
     public String getBackupStrategyValue() {
         return backupStrategyValue;
     }
@@ -611,14 +541,6 @@ public class UserSetting extends Setting {
         this.storyPartsLimit = storyPartsLimit;
     }
 
-    public JsonObject getWorkspaceState() {
-        return workspaceState;
-    }
-
-    public void setWorkspaceState(JsonObject workspaceState) {
-        this.workspaceState = workspaceState == null ? new JsonObject() : workspaceState;
-    }
-
     public List<String> getFavoriteBooks() {
         return favoriteBooks;
     }
@@ -627,11 +549,25 @@ public class UserSetting extends Setting {
         this.favoriteBooks = favoriteBooks == null ? new ArrayList<>() : new ArrayList<>(favoriteBooks);
     }
 
-    public JsonObject getKeyBindings() {
-        return keyBindings;
+    public List<WatchedPhrase> getWatchedPhrases() {
+        if (watchedPhrases == null) {
+            watchedPhrases = new ArrayList<>();
+        }
+        return watchedPhrases;
     }
 
-    public void setKeyBindings(JsonObject keyBindings) {
-        this.keyBindings = keyBindings == null ? new JsonObject() : keyBindings;
+    public void setWatchedPhrases(List<WatchedPhrase> watchedPhrases) {
+        this.watchedPhrases = watchedPhrases == null ? new ArrayList<>() : new ArrayList<>(watchedPhrases);
+    }
+
+    public List<AnnotationTemplate> getAnnotationTemplates() {
+        if (annotationTemplates == null) {
+            annotationTemplates = new ArrayList<>();
+        }
+        return annotationTemplates;
+    }
+
+    public void setAnnotationTemplates(List<AnnotationTemplate> annotationTemplates) {
+        this.annotationTemplates = annotationTemplates == null ? new ArrayList<>() : new ArrayList<>(annotationTemplates);
     }
 }

@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui;
 
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
 import com.github.enerccio.marginalia.ui.workspace.WorkspaceLLMSupport;
@@ -26,8 +27,8 @@ class WorkspaceLLMSupportTest extends MarginaliaTestBase {
     void namesTheSectionsByTheirLabelsAndTheOpenOne() {
         String state = WorkspaceLLMSupport.describe(loc, "desktop", List.of("books", "lorebooks", "models", "trash"), "models", false);
 
-        assertThat(state).contains("desktop layout").contains(loc.getValue(com.github.enerccio.marginalia.loc.L.LABEL_BOOKS))
-                .contains("The open section is **" + loc.getValue(com.github.enerccio.marginalia.loc.L.LABEL_MODELS) + "**.")
+        assertThat(state).contains("desktop layout").contains(loc.getValue(com.github.enerccio.marginalia.loc.M_L.LABEL_BOOKS))
+                .contains("The open section is **" + loc.getValue(com.github.enerccio.marginalia.loc.M_L.LABEL_MODELS) + "**.")
                 .doesNotContain("unsaved");
     }
 
@@ -53,8 +54,8 @@ class WorkspaceLLMSupportTest extends MarginaliaTestBase {
 
         Map<String, LLMInteraction> offered = WorkspaceLLMSupport.openSections(loc, sections, "books", false);
 
-        String lorebooks = loc.getValue(com.github.enerccio.marginalia.loc.L.LABEL_LOREBOOKS);
-        String admin = loc.getValue(com.github.enerccio.marginalia.loc.L.LABEL_ADMIN);
+        String lorebooks = loc.getValue(com.github.enerccio.marginalia.loc.M_L.LABEL_LOREBOOKS);
+        String admin = loc.getValue(com.github.enerccio.marginalia.loc.M_L.LABEL_ADMIN);
         assertThat(offered).containsOnlyKeys("open-section:" + lorebooks, "open-section:" + admin);
         assertThat(offered.get("open-section:" + lorebooks).description()).isEqualTo("Open the section \"" + lorebooks + "\".");
         offered.get("open-section:" + lorebooks).action().run();

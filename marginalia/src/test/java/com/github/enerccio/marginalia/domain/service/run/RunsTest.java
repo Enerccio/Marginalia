@@ -234,4 +234,76 @@ class RunsTest extends MarginaliaTestBase {
         assertThat(Runs.current()).isNull();
         inner.end();
     }
+
+    @Test
+    void theSweeperEndsARunNothingWorksForAndLeavesTheOthers() throws Exception {
+        // a negative idle time: every run is idle for it
+        java.time.Duration always = java.time.Duration.ofSeconds(-1);
+        Runs.Run forgotten = Runs.run("test", () -> "Forgotten").book(book).hold(part, Runs.Mode.WRITE).start();
+        Runs.Run working = Runs.run("test", () -> "Working").start();
+        Runs.Run waitingForAuthor = Runs.run("test", () -> "Waiting").start();
+        waitingForAuthor.setWaitingForUser(true);
+        Runs.Run inQueue = Runs.run("test", () -> "Queued").start();
+        inQueue.waiting(2);
+        Runs.Run window = Runs.run("test", () -> "Window").page(page).window().start();
+        Runs.Run recent = Runs.run("test", () -> "Recent").start();
+
+        try (Runs.Binding _ = working.bind()) {
+            assertThat(Runs.sweep(java.time.Duration.ofMinutes(5))).as("nothing is idle for five minutes").isEmpty();
+            assertThat(Runs.sweep(always)).containsExactlyInAnyOrder(forgotten, recent);
+        }
+
+        assertThat(forgotten.isEnded()).isTrue();
+        assertThat(forgotten.getOutcome()).isEqualTo(Runs.Outcome.FAILED);
+        assertThat(Runs.holder(part, Runs.Operation.DELETE)).as("what it held is given back").isNull();
+        assertThat(working.isEnded()).isFalse();
+        assertThat(waitingForAuthor.isEnded()).isFalse();
+        assertThat(inQueue.isEnded()).isFalse();
+        assertThat(window.isEnded()).as("a window lives while its page does").isFalse();
+
+        page.close();
+        assertThat(Runs.sweep(java.time.Duration.ofMinutes(5))).as("its page is closed").containsExactly(window);
+        Runs.reset();
+    }
+
+    @Test
+    void anAgentDoesNotStartOnABookAnyRunWorksOn() throws Exception {
+        Runs.Run window = Runs.run(Runs.BOOK_WINDOW, () -> "Window").book(book).hold(book, Runs.Mode.OPEN).page(page).window().start();
+
+        assertThatThrownBy(() -> Runs.check(book, Runs.Operation.START_AGENT)).as("not even from the page of the window")
+                .isInstanceOf(Runs.HeldException.class);
+        assertThat(Runs.holder(part, Runs.Operation.START_AGENT)).as("only a book is asked").isNull();
+
+        window.end();
+        Runs.check(book, Runs.Operation.START_AGENT);
+    }
+
+    @Test
+    void thePartAGenerationWritesIsSavedOnlyByTheGenerationsOwnWork() throws Exception {
+        Runs.Run generation = Runs.run(Runs.GENERATION, () -> "Generating").book(book).hold(book, Runs.Mode.READ).quiet().start();
+        generation.hold(part, Runs.Mode.WRITE);
+        Runs.Run step = Runs.run("test", () -> "A step of it").partOf(generation).start();
+
+        ChatMessage stale = chatMessageService.find(part.getId());
+        stale.setInstructions("Changed elsewhere");
+        assertThatThrownBy(() -> chatMessageService.save(stale)).as("a plain save from outside")
+                .isInstanceOf(Runs.HeldException.class);
+        try (Runs.Binding _ = generation.bind()) {
+            ChatMessage own = chatMessageService.find(part.getId());
+            own.setResponse("He drew his sword and");
+            chatMessageService.save(own);
+        }
+        try (Runs.Binding _ = step.bind()) {
+            ChatMessage own = chatMessageService.find(part.getId());
+            own.setResponse("He drew his sword and struck.");
+            chatMessageService.save(own);
+        }
+        assertThat(chatMessageService.find(part.getId()).getResponse()).isEqualTo("He drew his sword and struck.");
+
+        step.end();
+        generation.end();
+        ChatMessage after = chatMessageService.find(part.getId());
+        after.setInstructions("Changed after");
+        chatMessageService.save(after);
+    }
 }

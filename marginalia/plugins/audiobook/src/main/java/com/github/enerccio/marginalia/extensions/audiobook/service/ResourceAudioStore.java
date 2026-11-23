@@ -137,8 +137,13 @@ public class ResourceAudioStore implements AudioStore {
         }
     }
 
+    @Override
+    public synchronized void putReasoning(String partId, List<com.github.enerccio.marginalia.extensions.audiobook.queue.LabelTrace.Window> windows) {
+        new PartReasoningStore(resources, messages).append(partId, windows);
+    }
+
     /**
-     * Forgets all the audio of the part, the pieces and the joined audio, and deletes the files; the labels and the script of the part stay. What was
+     * Forgets all the audio of the part, the pieces and the joined audio, and deletes the files; the labels, the script and the reasoning of the part stay. What was
      * made since the last flush is dropped too.
      *
      * @return how many files were deleted

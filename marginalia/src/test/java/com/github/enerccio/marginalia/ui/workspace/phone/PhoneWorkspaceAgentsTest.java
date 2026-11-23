@@ -1,6 +1,6 @@
 package com.github.enerccio.marginalia.ui.workspace.phone;
 
-import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.collections.AgentRunStatus;
 import com.github.enerccio.marginalia.domain.model.impl.Agent;
 import com.github.enerccio.marginalia.test.AgentTestBase;
@@ -47,7 +47,7 @@ class PhoneWorkspaceAgentsTest extends AgentTestBase {
     }
 
     private Button cue() {
-        return ComponentTree.all(layout, Button.class).filter(button -> button.hasClassName(CssStyles.AGENT_ATTENTION_CUE)).findFirst()
+        return ComponentTree.all(layout, Button.class).filter(button -> button.hasClassName(MarginaliaCssStyles.AGENT_ATTENTION_CUE)).findFirst()
                 .orElseThrow();
     }
 

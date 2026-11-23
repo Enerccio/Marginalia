@@ -1,14 +1,14 @@
 ---
 label: Database & migrations
 order: 950
-verified: f7e7de02b
+verified: f337fe83d
 covers:
   - marginalia/src/main/resources/migration
   - marginalia/src/main/java/com/github/enerccio/marginalia/bound/migration
-  - marginalia/src/main/java/com/github/enerccio/marginalia/Configuration.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/DatabaseCheck.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/SaneSQLiteDialect.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/DatabaseBackupServiceImpl.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/Configuration.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/DatabaseCheck.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/SaneSQLiteDialect.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/impl/DatabaseBackupServiceImpl.java
   - marginalia/src/main/resources/META-INF/spring/datasources-config.xml
   - marginalia/src/main/webapp/config/persistence.xml
   - marginalia/src/main/java/com/github/enerccio/tools
@@ -87,7 +87,7 @@ It holds the [extended attributes](domain-model.md#extendableentity---extended-a
 
 1. Before the data source is created, `Configuration.resolveDb` swaps in a staged database restore, if there is one
    (see [Database backups and restores](#database-backups-and-restores)). Then `Configuration.backupBeforeMigration`
-   asks `DatabaseCheck.pendingMigrationFrom` whether the existing file is behind the newest bundled `V<n>` migration
+   asks `DatabaseCheck.pendingMigrationFrom` (with the schema of the `configuration` bean) whether the existing file is behind the newest bundled `V<n>` migration
    (or has no history table, which Flyway baselines at V1). If so it saves a `VACUUM INTO` copy as
    `db-backups/pre-migration-<time>-V<from>-marginalia.sqlite` and keeps the newest three. A new installation (no file
    or an empty one) and a current database are left alone, and a copy that fails is logged, not fatal. The check
@@ -160,6 +160,10 @@ To add one: implement `Migration`, register the bean in the `migrations` list of
 | V26 | `V26__anchored_passages.sql` | `annotations` is rebuilt (SQLite cannot drop `NOT NULL`): `kind` (discriminator, existing rows `EDITORIAL`) and `passageKind` are added, `status` and `source` allow `NULL`, the two indexes are made again and `ix_annotations_kind (passageKind, part_id, is_deleted)` is new. `Annotation` extends the new `AnchoredPassage`, see [`AnchoredPassage`](domain-model.md#anchoredpassage). Data stays as it is. |
 | V27 | `V27__drop_message_edited.sql` | `messages.edited` is dropped: whether the author touched a part is no longer a flag, it is worked out from the versions of the part's history (`MessageRevisionService.authorship`), see [Who wrote the words](version-history.md#who-wrote-the-words). |
 | V28 | `V28__jobs.sql` | New tables `jobs` (owner `userId`, nullable: a job of a thread without a user; `ownerLogin`, `kind`, `label`, `status`, `startedAt`, `endedAt`, `callCount`, `failedCalls`, the standard columns without extended content) and `job_calls` (`job_id`, `callType`, `backend`, `model`, `status`, `startedAt`, `endedAt`, `error`) with their `_SEQ` tables and the indexes `ix_jobs_started`, `ix_jobs_user` and `ix_job_calls_job`: the entities `Job` and `JobCall`, the administrator's log of the work that talked to an external AI, see [The job log](domain-model.md#the-job-log-job-jobcall). |
+| V29 | `V29__gpus.sql` | New tables `gpus` (`name`), `gpu_steps` (`name`, `url`, `method`, `headers` encrypted, `body`, `timeoutSeconds`, `waitSeconds`) and `gpu_locks` (`name`, `gpu_id`, `maxConcurrent`) with their `_SEQ` tables, the index `ix_gpu_locks_gpu`, and the ordered join tables `gpu_lock_acquire_steps` / `gpu_lock_release_steps` (`lock_id`, `step_id`, `ordinal`): the entities `Gpu`, `GpuStep` and `GpuLock` of the installation, not owned (no `userId`, no extended content), see [GPU locks](plugins/gpu-locks.md#the-model). |
+| V30 | `V30__gpu_used_outside.sql` | `gpus.used_outside boolean not null default 0`: a GPU that is also used outside Marginalia runs the acquire steps of a lock before every job. |
+| V31 | `V31__api_keys.sql` | New table `api_keys` (`name`, `keyPrefix` unique, `secretHash`, the owner `userId`, extended content) with the index `ix_api_keys_owner` (`userId`, `is_deleted`) and `api_keys_SEQ`: the keys of the [HTTP API](api.md) (`ApiKey`), only a SHA-256 hash of the secret is stored. |
+| V32 | `V32__gpu_lock_always_steps.sql` | New ordered join table `gpu_lock_always_steps` (`lock_id`, `step_id`, `ordinal`): the steps a [GPU lock](plugins/gpu-locks.md#the-model) runs before every job, whether the GPU holds it or not (`GpuLock.alwaysSteps`). Copied into the platform's test schema as `V2__gpu_lock_always_steps.sql`. |
 
 ### Rules
 
@@ -285,7 +289,7 @@ field name (`maxTokens`, `lastOpened`); relations end in `_id` (`lorebook_id`, `
 which is `userId`, and the soft delete flag, `is_deleted`. Indexes exist only in the migrations, see
 [Indexes](#indexes).
 
-**No foreign key constraints.** The tables have no `REFERENCES` clauses (V2's `summary_id` and V28's `job_calls.job_id` declare one, but SQLite
+**No foreign key constraints.** The tables have no `REFERENCES` clauses (V2's `summary_id`, V28's `job_calls.job_id` and the GPU tables of V29 declare some, but SQLite
 doesn't enforce them because `PRAGMA foreign_keys` is off). Integrity is kept by the application: rows are soft
 deleted, so references stay valid, and the admin *Cleanup* follows the
 [cleanup references](domain-model.md#cleanup-references) to decide what may be purged. Code that hard deletes must
@@ -323,6 +327,7 @@ Index what the queries filter on, in the order of the `WHERE` clause, with the e
 | `activity_intervals (userId, day)`, `activity_intervals (bookUuid, day)` | The stretches of a range of days of a user or a book. |
 | `manuscript_sizes (bookUuid, day)` (unique), `manuscript_sizes (userId, day)` | The size of a book on a day, the latest size at or before a day. |
 | `jobs (startedAt)`, `jobs (userId, startedAt)`, `job_calls (job_id, startedAt)` | The job log of the administrator, newest first, of everybody or of one user; the calls of a job in order. |
+| `gpu_locks (gpu_id)` | The locks of a GPU. |
 | `entries (lorebook_id, ordinal)` | Entries of a lorebook in order. |
 | `messages (parentScript_id, creation)`, `messages (parent_id)` | Parts of a book in order, children of a part. |
 | `messages (summary_id)` | Parts using a summary (cleanup references). |
@@ -369,7 +374,7 @@ means the index is used. `FlywayMigrationTest.tagRelationLookupsUseIndexes` does
 
 `DatabaseBackupServiceImpl` backs up the live database with SQLite's `VACUUM INTO '<file>'`, which writes a
 consistent, compacted copy without stopping the application. Backups go to `<data folder>/db-backups/` as
-`marginalia-<time>.sqlite` (manual) or `marginalia-scheduled-<time>.sqlite`; scheduled ones are rotated (keep last N). `Configuration` writes two more kinds into the same folder, `pre-restore-*` (the database a restore replaced) and `pre-migration-*` (see [Startup](#startup-migrate-then-validate)); the service lists every `.sqlite` file there, and only `marginalia-scheduled-*` counts as scheduled. The methods the UI calls (create, list, download, upload, delete, restore, schedule) call `AdminGuard.requireAdmin()`; the scheduled run (`createScheduledBackup`) and the rotation need no logged-in user.
+`marginalia-<time>.sqlite` (manual) or `marginalia-scheduled-<time>.sqlite`; scheduled ones are rotated (keep last N). `Configuration` writes two more kinds into the same folder, `pre-restore-*` (the database a restore replaced) and `pre-migration-*` (see [Startup](#startup-migrate-then-validate)); the service lists every `.sqlite` file there, and only `marginalia-scheduled-*` counts as scheduled. The methods the UI calls (create, list, download, upload, delete, restore, schedule) call `AdminGuard.requireAdmin()`; the scheduled run (`createScheduledBackup`) and the rotation need no logged-in user. The cron job and the one-off catch-up of a missed run (`restartSchedule(true)` at start, after `setCatchUpDelay`, 30 s) run on one scheduler thread; `restartSchedule` (also through `updateSchedule`) cancels both, but a backup already running ends and saves `AppSettings.lastScheduledBackup`. Tests wait for that with `awaitIdle(timeout)` (a no-op queued behind it) before the next test reads the settings.
 
 A database can't be replaced while it's open, so restoring is done in two steps:
 
@@ -389,20 +394,24 @@ sequenceDiagram
     Note over C: datasource, Flyway bean (nothing left to migrate), Hibernate validates
 ```
 
-`DatabaseCheck.check(File)` is run on *Upload Backup* (`importBackup`), on `scheduleRestore` and on start. It opens the
-file read-only and refuses it (`InvalidDatabaseException`, an `IllegalArgumentException` with the reason) when:
+`DatabaseCheck.check(File, Schema)` is run on *Upload Backup* (`importBackup`), on `scheduleRestore` and on start. The
+`Schema` is the application's database: where its migrations are and which tables every database of it has. It is set
+on the `configuration` bean (`databaseSchema`, Marginalia's is `MarginaliaDatabase.SCHEMA`; the platform's default,
+`DatabaseCheck.Schema.PLATFORM`, names only the platform's tables and is what another application starts from), and
+`Configuration.getDatabaseSchema()` gives it to the backup service. The check opens the file read-only and refuses it (`InvalidDatabaseException`, an `IllegalArgumentException` with the reason) when:
 
 - it doesn't start with the SQLite header,
 - `PRAGMA integrity_check` reports problems,
-- core tables (`users`, `settings`, `manuscripts`, `messages`, `lorebooks`, `entries`, `ais`, `protocols`, `tags`,
-  `t2e`) are missing - another application's database,
-- `flyway_schema_history` has a failed migration or a version newer than the newest bundled `migration/V*__*.sql` -
-  a database of a newer Marginalia version. A database without the history table predates Flyway and is baselined at
+- core tables of the schema (Marginalia's: `users`, `settings`, `manuscripts`, `messages`, `lorebooks`, `entries`,
+  `ais`, `protocols`, `tags`, `t2e`) are missing - another application's database,
+- `flyway_schema_history` has a failed migration or a version newer than the newest bundled migration of the schema's
+  location (`migration/V*__*.sql`) - a database of a newer Marginalia version. A database without the history table predates Flyway and is baselined at
   V1 as usual.
 
 `Configuration.applyPendingRestore()` migrates the restored database itself, before the datasource is created, with
-the same Flyway configuration as the `flyway` bean (`DatabaseCheck.flywayConfiguration(DataSource)`, used by
-`datasources-config.xml` too). If the check fails, the staged file is moved to
+the same Flyway configuration as the `flyway` bean (`Configuration.flywayConfiguration(DataSource)`, the factory
+method of the `flywayConfiguration` bean in `datasources-config.xml`, which calls `DatabaseCheck.flywayConfiguration`
+with the schema). If the check fails, the staged file is moved to
 `db-backups/rejected-restore-<time>-marginalia.sqlite` and the current database stays. If the migration fails, the
 restored file is moved there as well and the `pre-restore-*` database is moved back. Either way the reason is logged
 as an error and Marginalia starts with the previous database. A backup from an older version is upgraded on start.
