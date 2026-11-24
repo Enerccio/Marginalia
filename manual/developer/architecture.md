@@ -442,7 +442,7 @@ sequenceDiagram
   threads without a request can write to it. Logout invalidates the session, which ends both. An extension that wants something to live as long as the session
   (the Prompt History keeps the last requests of the user there) uses `getPluginData(key, create)`: a map of the session, never saved, one key named like the extension.
 - **Open UIs.** After login `Main` and `Viewer` register their UI in `ApplicationPoint` (bean `applicationPoint`)
-  with the workspace (`Main` only) and a copy of the user. `SessionInformation.getUI(workspaceClass, applicationPoint)`
+  with the workspace (`Main` only) and a copy of the user. `SessionInformation.getUI(workspaceClazz, applicationPoint)`
   / `getWorkspace(...)` find the session's UI showing a given workspace type.
 - **Dead UI detection.** `SessionManager` is also a daemon thread (*Inactive session watcher*), started by
   `afterPropertiesSet` and stopped on context shutdown. Every `DEAD_SESSION_CHECK_TIMEOUT / 10` seconds (see

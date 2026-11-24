@@ -87,4 +87,4 @@ begins with what follows it.
 `ChatMessageService.replaceText(manuscript, part, text, modelText, generatedText, origin)` is the edit for a text that says the same in other
 words: the tokens are those of `modelText`, `generatedText` becomes `originalResponse` (the authorship of a version with the detail `TRANSLATION` is worked out against it: what differs from it is what
 the author changed, see [Who wrote the words](../version-history.md#who-wrote-the-words)), the summaries that were valid are revalidated (the outdated stay outdated), the history gets a version, and
-the annotations move (`AnnotationService.shift`). Use `RevisionOrigin.automatic(RevisionDetail.TRANSLATION, false)` or your own origin.
+the annotations move (`AnnotationService.shift`). Use `RevisionOrigin.automatic(RevisionDetail.TRANSLATION, false)` or your own origin. Like every change of the text of a part through `ChatMessageService`, it throws `IllegalStateException` in a parallel [after-part](after-part.md) step (`Runs.checkMayWriteText()`), and a part a run works on can't be changed by it.
