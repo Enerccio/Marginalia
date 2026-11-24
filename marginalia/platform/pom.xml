@@ -103,6 +103,13 @@
       <version>1.6.8</version>
     </dependency>
 
+    <!-- the Vaadin BOM pins logback-core to its own (older) version; classic and core must match -->
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-core</artifactId>
+      <version>1.6.8</version>
+    </dependency>
+
     <!-- POI brings log4j-api, which Spring and Hibernate prefer over SLF4J and which drops everything without a
          provider; this routes it into SLF4J (so into logback), keep the version of log4j-api -->
     <dependency>

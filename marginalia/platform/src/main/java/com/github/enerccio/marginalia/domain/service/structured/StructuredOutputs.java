@@ -9,10 +9,11 @@ import com.github.enerccio.marginalia.domain.traits.LLMSchema;
 import com.github.victools.jsonschema.generator.*;
 import com.github.victools.jsonschema.module.jackson.JacksonModule;
 import com.github.victools.jsonschema.module.jackson.JacksonOption;
-import com.networknt.schema.JsonSchema;
-import com.networknt.schema.JsonSchemaFactory;
-import com.networknt.schema.SpecVersion;
-import com.networknt.schema.ValidationMessage;
+import com.networknt.schema.Error;
+import com.networknt.schema.InputFormat;
+import com.networknt.schema.Schema;
+import com.networknt.schema.SchemaRegistry;
+import com.networknt.schema.SpecificationVersion;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -31,7 +32,7 @@ public final class StructuredOutputs {
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
             .configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
 
-    private static final JsonSchemaFactory VALIDATORS = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V202012);
+    private static final SchemaRegistry VALIDATORS = SchemaRegistry.withDefaultDialect(SpecificationVersion.DRAFT_2020_12);
 
     /** The model wraps the JSON in a markdown block, often even when told not to. */
     private static final Pattern FENCE = Pattern.compile("^\\s*```[a-zA-Z]*\\s*\\n(.*?)\\n?\\s*```\\s*$", Pattern.DOTALL);
@@ -107,8 +108,9 @@ public final class StructuredOutputs {
         if (answer == null || answer.isMissingNode()) {
             return SchemaCheck.invalid(List.of("Not valid JSON: the answer is empty"));
         }
-        JsonSchema compiled = VALIDATORS.getSchema(schema);
-        List<String> errors = compiled.validate(answer).stream().map(ValidationMessage::getMessage).sorted().toList();
+        // the validator reads Jackson 3 trees, the application uses Jackson 2: hand it the JSON text
+        Schema compiled = VALIDATORS.getSchema(schema.toString(), InputFormat.JSON);
+        List<String> errors = compiled.validate(answer.toString(), InputFormat.JSON).stream().map(Error::getMessage).sorted().toList();
         return errors.isEmpty() ? SchemaCheck.ok() : SchemaCheck.invalid(errors);
     }
 
