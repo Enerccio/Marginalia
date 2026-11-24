@@ -255,7 +255,7 @@
     <dependency>
       <groupId>org.commonmark</groupId>
       <artifactId>commonmark</artifactId>
-      <version>0.28.0</version>
+      <version>0.33.0</version>
     </dependency>
     <!-- footnotes ([^1] and [^1]: text) in the exported text: the notes of the Conlang Translator, and the ones an author writes -->
     <dependency>
