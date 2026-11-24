@@ -662,7 +662,7 @@
 
           <plugin>
             <artifactId>maven-dependency-plugin</artifactId>
-            <version>3.7.0</version>
+            <version>3.11.0</version>
             <executions>
               <execution>
                 <id>desktop-jetty-home</id>
