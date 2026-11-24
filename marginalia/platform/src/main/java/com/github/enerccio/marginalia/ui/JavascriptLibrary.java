@@ -347,8 +347,10 @@ public final class JavascriptLibrary {
                 const el = $0;
                 const content = $1;
                 installSticky(el);
-                // a story drawn again before it was seen (several steps after a generation) keeps the place of the first time
-                const pending = el._restorePos;
+                // a story drawn again before it was seen, or while the last drawing is still being put back (several steps
+                // after a generation: notes, a redraft, a translation), keeps the place of the first time: the scroll of a
+                // story being put back is not where the user reads, its content may still be too short to reach it
+                const pending = el._restorePos || el._restoreTarget;
                 if (el._restoreStop) el._restoreStop();
                 // read now: the new content is shorter, the browser moves the scroll up and tells it later
                 const stick = pending ? pending.stick : el._stick;
@@ -363,18 +365,25 @@ public final class JavascriptLibrary {
                 let observer = null;
                 let timer = null;
                 let waiting = null;
+                let stopped = false;
+                // stops this restore only: one replaced by a later drawing leaves the state of the new one alone
                 const stop = () => {
+                  if (stopped) return;
+                  stopped = true;
                   if (observer) observer.disconnect();
                   if (waiting) waiting();
                   clearTimeout(timer);
                   events.forEach(name => el.removeEventListener(name, stop));
                   el._restoreStop = null;
+                  el._restoreTarget = null;
                   if (el._restoring) settled();
                 };
                 el._restoreStop = stop;
                 const restore = () => {
+                  el._restoreTarget = {stick: stick, top: top};
                   if (stick) {
                     requestAnimationFrame(() => requestAnimationFrame(() => {
+                      if (stopped) return;
                       el.scrollTop = el.scrollHeight;
                       el._lastTop = el.scrollTop;
                       stop();
