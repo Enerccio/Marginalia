@@ -244,6 +244,8 @@ jobs:
               name="${entry%%:*}"
               deb="${entry#*:}"
               dpkg-deb --info "$deb"
+              # the package index of the runner image can be older than the mirror (a 404 for a dependency): refresh it first
+              sudo apt-get update
               sudo apt-get install -y "$PWD/$deb"
               smoke "$name" "$port" /opt/marginalia/bin/Marginalia
               # ls fails when there is no JAR (the plain package), which pipefail would turn into the end of the step
