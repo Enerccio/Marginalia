@@ -3,7 +3,7 @@
 # and runtime (the image, the default target, so it must stay the last stage). The application image and the plugin
 # image share the builder stage, so a server that builds both (rebuild.sh) compiles the application once: the second
 # build finds it in Docker's build cache.
-FROM maven:3.9-eclipse-temurin-25 AS builder
+FROM maven:3.9-eclipse-temurin-26 AS builder
 
 WORKDIR /build/marginalia
 
