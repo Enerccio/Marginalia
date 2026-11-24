@@ -5,8 +5,8 @@ order: 90
 
 # Serveur (Docker)
 
-Lancez Marginalia en mode serveur lorsque plusieurs personnes l'utilisent, ou lorsque vous voulez y accéder depuis d'autres appareils. Chaque utilisateur
-dispose de ses propres livres, de ses propres livres de référence, de ses propres fournisseurs d'inférence et de ses propres protocoles.
+Lancez Marginalia en tant que serveur lorsque plusieurs personnes l'utilisent, ou lorsque vous voulez y accéder depuis d'autres appareils. Chaque utilisateur
+dispose de ses propres livres, de ses propres lorebooks, de ses propres fournisseurs d'inférence et de ses propres protocoles.
 
 <a id="requirements"></a>
 
@@ -14,7 +14,7 @@ dispose de ses propres livres, de ses propres livres de référence, de ses prop
 
 - [Docker](https://docs.docker.com/get-docker/) avec Docker Compose
 - Environ 1 Go de mémoire pour Marginalia
-- Pour un accès via Internet : un nom de domaine et un proxy inverse avec HTTPS (voir [ci-dessous](#https-and-reverse-proxy))
+- Pour un accès par Internet : un nom de domaine et un reverse proxy avec HTTPS (voir [ci-dessous](#https-and-reverse-proxy))
 
 <a id="install"></a>
 
@@ -42,7 +42,7 @@ services:
     image: ghcr.io/enerccio/marginalia:latest
 ```
 
-`latest` correspond à la dernière version, `edge` à la version de développement, et `1.1.0` (ou `1.1`) fixe une version précise. Le reste du
+`latest` est la version la plus récente, `edge` la version de développement, et `1.1.0` (ou `1.1`) fixe une version précise. Le reste du
 fichier reste identique.
 
 ## Configuration
@@ -67,7 +67,7 @@ services:
 
 | Réglage | Rôle |
 |---|---|
-| `ports` | `"8080:8080"` publie Marginalia sur le port 8080 de l'hôte. Utilisez `"127.0.0.1:8080:8080"` lorsque seul un proxy inverse situé sur le même hôte doit y accéder. |
+| `ports` | `"8080:8080"` publie Marginalia sur le port 8080 de l'hôte. Utilisez `"127.0.0.1:8080:8080"` lorsque seul un reverse proxy situé sur le même hôte doit y accéder. |
 | `volumes` | `./data` contient la base de données, les sauvegardes et les extensions. Conservez-le et incluez-le dans vos sauvegardes du serveur. Il est créé au premier démarrage s'il n'existe pas ; au démarrage, le conteneur en attribue la propriété à l'utilisateur sous lequel Marginalia s'exécute dans le conteneur (`jetty`), de sorte que les fichiers qu'il contient appartiennent à l'identifiant de cet utilisateur sur l'hôte. |
 | `-Xmx1g` | Mémoire maximale. Augmentez-la (par exemple `-Xmx2g`) pour de nombreux utilisateurs ou de très gros livres. |
 
@@ -89,33 +89,35 @@ Les réglages propres à Marginalia sont des variables d'environnement du servic
 
 | Variable | Valeur par défaut | Rôle |
 |---|---|---|
-| `MARGINALIA_DATA` | `~/.marginalia` (`/var/marginalia/.marginalia` dans l'image) | Dossier de la base de données, des sauvegardes, des extensions et de la clé qui chiffre les clés d'API. Ne le modifiez qu'avec un volume correspondant (`./data:/your/folder`) ; le conteneur fixe le propriétaire de ce dossier au démarrage. |
+| `MARGINALIA_DATA` | `~/.marginalia` (`/var/marginalia/.marginalia` dans l'image) | Dossier de la base de données, des sauvegardes, des extensions et de la clé qui chiffre les clés API. Ne le modifiez qu'avec un volume correspondant (`./data:/your/folder`) ; le conteneur fixe le propriétaire de ce dossier au démarrage. |
 | `MARGINALIA_DEFAULT_LANGUAGE` | `en` | Langue de la page de connexion et des utilisateurs qui n'en ont pas choisi une (`en` ou `ja` ; la langue d'une extension ne peut pas être utilisée ici). |
-| `MARGINALIA_ALLOW_PERSISTENT_LOGIN` | `true` | `false` masque *Rester connecté*. |
+| `MARGINALIA_ALLOW_PERSISTENT_LOGIN` | `true` | `false` masque l'option *Save login*. |
 | `MARGINALIA_PERSISTENT_LOGIN_TTL` | `2592000` | Durée de validité d'une connexion mémorisée, en secondes (30 jours). |
-| `MARGINALIA_TRUSTED_PROXIES` | vide | Proxys inverses dont l'en-tête `X-Forwarded-For` est pris en compte, voir [ci-dessous](#https-and-reverse-proxy). Remplace `-DtrustedProxies`. |
+| `MARGINALIA_TRUSTED_PROXIES` | vide | Reverse proxies dont l'en-tête `X-Forwarded-For` est pris en compte, voir [ci-dessous](#https-and-reverse-proxy). Remplace `-DtrustedProxies`. |
+| `MARGINALIA_COOKIE_NAMESPACE` | vide | Un nom placé devant le nom des cookies de *Save login*, voir [Plusieurs applications sur un même hôte](#several-applications-on-one-host). Le définir déconnecte tous ceux qui ont mémorisé leur connexion. |
+| `MARGINALIA_SESSION_COOKIE` | `JSESSIONID_MARGINALIA` dans l'image (`JSESSIONID` en dehors) | Nom du cookie de session, voir [Plusieurs applications sur un même hôte](#several-applications-on-one-host). |
 
-Les mêmes réglages peuvent être donnés sous forme d'options Java, `-Dmarginalia.default-language=ja`, qui prennent le pas sur les
-variables. Une valeur incorrecte (un texte à la place du nombre de secondes, une langue inconnue) empêche Marginalia de
+Les mêmes réglages peuvent être donnés sous forme d'options Java, `-Dmarginalia.default-language=ja`, qui sont prioritaires sur les
+variables. Une valeur incorrecte (un texte à la place d'un nombre de secondes, une langue inconnue) empêche Marginalia de
 démarrer ; la raison figure dans le journal.
 
 <a id="https-and-reverse-proxy"></a>
 
-## HTTPS et proxy inverse
+## HTTPS et reverse proxy
 
 !!!danger N'utilisez pas HTTP simple sur Internet
-Les mots de passe et les cookies de connexion sont envoyés à chaque requête. Sur HTTP simple, quiconque se trouve sur le trajet peut les lire.
-Placez Marginalia derrière un proxy inverse avec HTTPS.
+Les mots de passe et les cookies de connexion sont envoyés à chaque requête. En HTTP simple, toute personne située sur le trajet peut les lire.
+Placez Marginalia derrière un reverse proxy avec HTTPS.
 !!!
 
-L'option *Rester connecté* de l'écran de connexion nécessite également HTTPS : ses cookies sont marqués comme sécurisés, de sorte que les navigateurs ne les conservent
-que sur les connexions HTTPS.
+L'option *Save login* de l'écran de connexion exige elle aussi HTTPS : ses cookies sont marqués comme sécurisés, si bien que les navigateurs
+ne les conservent que sur des connexions HTTPS.
 
-Marginalia met la page à jour via une connexion WebSocket ; le proxy doit donc transmettre les demandes de mise à niveau WebSocket. Exemples
+Marginalia met à jour la page via une connexion WebSocket, le proxy doit donc transmettre les demandes de passage en WebSocket. Exemples
 pour `marginalia.example.com` :
 
 +++ Caddy
-Caddy obtient le certificat et transmet automatiquement les WebSockets.
+Caddy obtient le certificat et transmet les WebSockets automatiquement.
 
 ```
 marginalia.example.com {
@@ -147,15 +149,27 @@ server {
 ```
 +++
 
-Les connexions échouées sont limitées par utilisateur et par adresse du client (après 30 échecs depuis une même adresse, les connexions depuis cette adresse sont refusées pendant une durée croissante, pouvant aller jusqu'à 15 minutes). Marginalia ne fait confiance qu'à l'en-tête `X-Forwarded-For` d'un proxy que vous désignez : sans cela, tous les utilisateurs semblent provenir de l'adresse du proxy, et 30 échecs de la part de n'importe qui bloquent tout le monde pendant un moment. Conservez l'en-tête dans la configuration du proxy (comme ci-dessus) et définissez `MARGINALIA_TRUSTED_PROXIES=<address or range of the proxy>`
-dans le `environment` de `docker-compose.yml`. Un proxy situé sur l'hôte Docker atteint le conteneur depuis le réseau Docker, généralement `172.16.0.0/12` ; plusieurs entrées sont séparées par des virgules. La limitation est conservée en mémoire :
-redémarrer Marginalia la réinitialise.
+Les connexions échouées sont limitées par utilisateur et par adresse du client (après 30 échecs depuis une même adresse, les connexions depuis cette adresse sont refusées pendant une durée croissante, jusqu'à 15 minutes). Marginalia ne fait confiance qu'à l'en-tête `X-Forwarded-For` d'un proxy que vous désignez : sans lui, tous les utilisateurs semblent venir de l'adresse du proxy, et 30 échecs venant de n'importe qui bloquent tout le monde pendant un certain temps. Conservez l'en-tête dans la configuration du proxy (comme ci-dessus) et définissez `MARGINALIA_TRUSTED_PROXIES=<address or range of the proxy>`
+dans le `environment` de `docker-compose.yml`. Un proxy situé sur l'hôte Docker atteint le conteneur depuis le réseau Docker, en général `172.16.0.0/12` ; plusieurs entrées sont séparées par des virgules. La limitation est conservée en mémoire : redémarrer Marginalia la réinitialise.
+
+<a id="several-applications-on-one-host"></a>
+
+### Plusieurs applications sur un même hôte
+
+Les navigateurs conservent les cookies par nom d'hôte, **et non par port** : Marginalia sur `localhost:8080` et un autre programme sur
+`localhost:8090` (ou deux programmes sur un même domaine derrière un même proxy) partagent les cookies de `localhost`. Lorsque l'autre programme
+est aussi une application web Java (une autre application construite sur la plateforme de Marginalia, un second Marginalia), les deux utilisent le
+cookie de session `JSESSIONID` et chaque visite de l'une vous déconnecte de l'autre. L'image donne donc à son cookie de session le
+nom `JSESSIONID_MARGINALIA`. Lorsque vous lancez deux conteneurs Marginalia sur un même hôte, donnez au second d'autres noms :
+`MARGINALIA_SESSION_COOKIE=JSESSIONID_MARGINALIA2` et `MARGINALIA_COOKIE_NAMESPACE=second` (les cookies de *Save login*). Un nom d'hôte distinct pour chacun
+(`marginalia.example.com`, `other.example.com`) l'évite sans aucun réglage.
 
 <a id="models-on-the-same-machine"></a>
 
 ## Modèles sur la même machine
 
-À l'intérieur du conteneur, `localhost` désigne le conteneur lui-même, et non le serveur. Pour utiliser un serveur de modèles qui tourne sur l'hôte Docker (llama.cpp, Ollama, LM Studio...), utilisez l'adresse `http://host.docker.internal:<port>/v1` dans le
+À l'intérieur du conteneur, `localhost` désigne le conteneur lui-même, et non le serveur. Pour utiliser un serveur de modèles qui fonctionne sur
+l'hôte Docker (llama.cpp, Ollama, LM Studio...), utilisez l'adresse `http://host.docker.internal:<port>/v1` dans le
 [fournisseur d'inférence](../inference-providers.md). Sous Linux, ajoutez ceci au service dans `docker-compose.yml` :
 
 ```yaml
@@ -163,7 +177,7 @@ redémarrer Marginalia la réinitialise.
       - "host.docker.internal:host-gateway"
 ```
 
-Le serveur de modèles doit aussi écouter sur une adresse que le conteneur peut atteindre, et pas seulement sur `127.0.0.1`.
+Le serveur de modèles doit aussi écouter sur une adresse que le conteneur peut atteindre, et non uniquement sur `127.0.0.1`.
 
 <a id="updating"></a>
 
@@ -184,26 +198,25 @@ mais effectuez d'abord votre propre [sauvegarde de la base de données](../admin
 
 ### Mises à jour automatiques
 
-`rebuild.sh` (Linux, macOS) et `rebuild.bat` (Windows), à la racine du dépôt, effectuent la mise à jour à votre place ; lancez-les à la main
-ou depuis une tâche cron ou une tâche planifiée. Ils récupèrent le dépôt distant de la branche sur laquelle se trouve la copie de travail (quelle qu'elle soit)
+`rebuild.sh` (Linux, macOS) et `rebuild.bat` (Windows) à la racine du dépôt effectuent la mise à jour à votre place ; lancez-les
+à la main ou depuis une tâche cron ou une tâche planifiée. Ils récupèrent le dépôt distant de la branche sur laquelle se trouve la copie de travail (quelle qu'elle soit)
 et ne font rien lorsqu'il n'y a rien de nouveau (`--force` reconstruit et redémarre malgré tout, par exemple après une modification de
 `docker-compose.yml`). Sinon, ils `git pull`, construisent les [extensions fournies](#plugins) et l'image **pendant que
-Marginalia continue de tourner**, puis arrêtent le conteneur, copient les JAR des extensions dans `data/extensions` (en remplaçant ceux déjà installés) et démarrent la nouvelle version. Si une étape échoue, le script s'arrête en affichant un message ; s'il s'agit du téléchargement
-ou d'une construction, l'ancienne version tourne toujours, et la prochaine exécution recommence la construction.
+Marginalia continue de fonctionner**, puis arrêtent le conteneur, copient les JAR des extensions dans `data/extensions` (en remplaçant ceux déjà installés) et démarrent la nouvelle version. Si une étape échoue, le script s'arrête en affichant un message ; s'il s'agit du téléchargement ou d'une construction, l'ancienne version tourne toujours, et la prochaine exécution recommence la construction.
 
 `--stop-first` arrête le conteneur avant la construction, pour un serveur qui n'a pas assez de mémoire pour l'application
-et la construction en même temps ; Marginalia est alors indisponible pendant toute la durée de la construction.
+et la construction en même temps ; Marginalia est alors indisponible pendant toute la construction.
 
-Sous Linux, il n'est même pas nécessaire de lancer les scripts à la main : avec le surveillant de mises à jour installé, un administrateur met à jour
-le serveur à l'aide d'un bouton, voir [Mises à jour](../administration/updates.md).
+Sous Linux, il n'est même pas nécessaire de lancer les scripts à la main : avec le surveillant de mises à jour installé, un administrateur met à jour le
+serveur avec un bouton, voir [Mises à jour](../administration/updates.md).
 
 <a id="plugins"></a>
 
 ## Extensions
 
-L'image Docker ne contient pas les [extensions](../extensions/index.md), qui doivent être construites à partir des mêmes
-sources que l'application. Vous n'avez besoin ni de Java ni de Maven pour cela : `marginalia/plugins/docker-compose.yml` les construit toutes
-dans un conteneur, en construisant d'abord l'application puis chaque extension, et copie les JAR dans
+L'image Docker ne contient pas les [extensions](../extensions/index.md), et elles doivent être construites à partir des mêmes
+sources que l'application. Vous n'avez pas besoin de Java ni de Maven pour cela : `marginalia/plugins/docker-compose.yml` construit
+toutes les extensions dans un conteneur, en construisant d'abord l'application puis chaque extension, et copie les JAR dans
 `marginalia/plugins/build` :
 
 ```sh
@@ -212,22 +225,16 @@ docker compose -f marginalia/plugins/docker-compose.yml run --rm plugins
 ```
 
 La première construction prend plusieurs minutes (elle télécharge les dépendances de l'application). Ensuite, copiez les JAR dans
-`data/extensions` et redémarrez Marginalia, ou chargez-les depuis *Admin → Extensions* (voir
+`data/extensions` et redémarrez Marginalia, ou chargez-les dans *Admin → Extensions* (voir
 [Extensions](../administration/extensions.md)). `rebuild.sh` / `rebuild.bat` effectuent la copie à votre place : sur un serveur
 qui les utilise, les extensions sont donc toujours mises à jour en même temps que l'application.
-
 <a id="health"></a>
 
-## État de santé
+## Santé
 
-L'image dispose d'une vérification de santé Docker : `docker ps` affiche `(health: starting)` pendant le démarrage de Marginalia (jusqu'à
-deux minutes), puis `(healthy)`. Il passe à `unhealthy` lorsque `http://localhost:8080/health` cesse de répondre avec `200`. Docker
-ne redémarre pas de lui-même un conteneur en mauvaise santé ; utilisez cet état pour votre supervision ou un outil de redémarrage automatique.
+L'image possède une vérification de l'état de santé (*health check*) Docker : `docker ps` affiche `(health: starting)` pendant le démarrage de Marginalia (jusqu'à deux minutes), puis `(healthy)`. Il passe à `unhealthy` lorsque `http://localhost:8080/health` ne répond plus avec `200`. Docker ne redémarre pas de lui-même un conteneur en mauvaise santé ; utilisez cet état pour votre supervision ou un outil de redémarrage automatique.
 
-`/health` ne demande aucune connexion, de sorte qu'un outil de supervision ou un répartiteur de charge peut l'utiliser aussi (via le proxy :
-`https://marginalia.example.com/health`). Il répond `200` et `{"status":"UP"}` lorsque Marginalia fonctionne et que sa base de données
-répond, et `503` avec `{"status":"DOWN",...}` pendant le démarrage ou en cas de problème. Il n'affiche rien d'autre
-(ni version, ni détails) ; le journal indique la raison.
+`/health` ne demande pas de connexion : un outil de supervision ou un répartiteur de charge peut donc l'utiliser lui aussi (via le proxy : `https://marginalia.example.com/health`). Il répond `200` et `{"status":"UP"}` lorsque Marginalia fonctionne et que sa base de données répond, et `503` avec `{"status":"DOWN",...}` pendant le démarrage ou en cas de problème. Il n'affiche rien d'autre (ni version, ni détails) ; le journal indique la raison.
 
 <a id="logs"></a>
 

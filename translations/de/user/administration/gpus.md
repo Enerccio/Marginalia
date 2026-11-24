@@ -5,9 +5,9 @@ order: 84
 
 # GPUs
 
-Eine Grafikkarte hält oft nur ein Modell gleichzeitig: das Sprachmodell, das Bildmodell oder das Sprachausgabemodell. Auf der Registerkarte **GPUs** der Admin-Seite lassen sich die Modelle und Server auf einer Karte der Reihe nach nutzen. So startet ein Bild oder ein Hörbuch nicht, während das Sprachmodell die Karte füllt, und das Sprachmodell wird wieder geladen, wenn es gebraucht wird.
+Eine Grafikkarte hält oft nur ein Modell gleichzeitig: das Sprachmodell, das Bildmodell oder das Sprachausgabemodell. Der Reiter **GPUs** der Admin-Seite lässt die Modelle und Server auf einer Karte abwechselnd laufen. So startet ein Bild oder ein Hörbuch nicht, während das Sprachmodell die Karte füllt, und das Sprachmodell kommt zurück, wenn es gebraucht wird.
 
-Als Administrator richtest du das einmal ein. Danach wählt jeder Benutzer für seine KI oder seine Backends eine Sperre aus.
+Du richtest es einmal als Administrator ein. Danach wählt jeder Benutzer ein Lock für seine KI oder seine Backends.
 
 <a id="what-it-is-made-of"></a>
 
@@ -15,59 +15,99 @@ Als Administrator richtest du das einmal ein. Danach wählt jeder Benutzer für 
 
 | | |
 |---|---|
-| **GPU** | Eine Karte (oder jede Maschine, die nur ein Modell gleichzeitig hält). Nur ihr Name. |
-| **GPU-Sperre** | Eine Art, die GPU zu nutzen: was auf ihr geladen ist. Zum Beispiel *Sprachmodell*, *ComfyUI* und *Sprachausgabe* auf derselben GPU. Eine Sperre hat zwei geordnete Listen von Schritten: Die **Belegungsschritte** laden sie (einen Container starten, ein Modell laden, zuvor alles entladen, was weg muss). Die **Freigabeschritte** geben die Karte wieder frei (Container stoppen, Modell entladen). **Gleichzeitige Aufträge** begrenzt, wie viele Aufträge der Sperre gleichzeitig laufen (ein Bildserver, der nur ein Bild gleichzeitig erzeugt: 1; 0 für keine Begrenzung). |
-| **GPU step** | Eine HTTP-Anfrage: eine Adresse, eine Methode, Header (`Name: value`, einer pro Zeile, verschlüsselt gespeichert, sodass dort ein Bearer-Schlüssel eingetragen werden kann), ein Body, ein Timeout (leer: 60 Sekunden) und eine Wartezeit nach der Antwort. Ein Schritt kann von mehreren Sperren genutzt werden, zum Beispiel ein Schritt *Sprachmodell entladen*, den sowohl die Bild- als auch die Sprachausgabe-Sperre zuerst ausführt. **Testen** sendet die Anfrage sofort. |
+| **GPU** | Eine Karte (oder jede Maschine, die nur ein Modell gleichzeitig hält): ihr Name und **Also used outside Marginalia** (siehe [unten](#a-gpu-that-others-use-too)). |
+| **GPU lock** | Eine Art, eine GPU zu nutzen: was auf ihr geladen ist. Zum Beispiel *Language model*, *ComfyUI* und *Speech* auf derselben GPU. Ein Lock hat zwei geordnete Listen von Schritten: Die **acquire steps** laden es (einen Container starten, ein Modell laden, alles entladen, was vorher weichen muss). Die **release steps** geben die Karte davon frei (den Container stoppen, das Modell entladen). Eine dritte Liste, die **steps before every job**, läuft vor jedem Job des Locks, egal ob die GPU es gerade hält. Hält sie es nicht, läuft sie vor den acquire steps. Sie enthält, was jedes Mal sichergestellt sein muss, weil etwas anderes die Karte benutzt haben könnte. **Jobs at once** begrenzt, wie viele Jobs des Locks gleichzeitig laufen (ein Bildserver, der ein Bild nach dem anderen erzeugt: 1; 0 für kein Limit). |
+| **GPU step** | Eine HTTP-Anfrage: eine Adresse, eine Methode, Header (`Name: value`, einer pro Zeile, verschlüsselt gespeichert, sodass dort ein Bearer-Schlüssel stehen kann), ein Body, ein Timeout (leer: 60 Sekunden) und eine Wartezeit nach der Antwort. Ein Schritt kann von mehreren Locks genutzt werden. Zum Beispiel kann ein Schritt *unload the language model* von dem Bild-Lock und dem Sprachausgabe-Lock gemeinsam vorab ausgeführt werden. **Test** sendet die Anfrage sofort. |
 
-Die Sperre wählst du in:
+![Das Fenster eines Locks](../../images/gpu-lock-dialog.png)
 
-- den [Einstellungen einer KI](../inference-providers.md) (**GPU-Sperre** in den allgemeinen Einstellungen), für das Sprachmodell;
-- einem Backend des [Bildgenerators](../extensions/image-generator.md#one-gpu-for-the-model-and-the-images);
-- einem Backend des [Hörbuchs](../extensions/audiobook-server.md#one-gpu-for-the-model-and-the-speech).
+Wähle das Lock aus in:
 
-Das Feld **GPU-Sperre** erscheint nur, wenn mindestens eine Sperre existiert.
+- den [Einstellungen einer KI](../inference-providers.md) (**GPU lock** in den allgemeinen Einstellungen) für das Sprachmodell;
+- einem Backend des [Image Generator](../extensions/image-generator.md#one-gpu-for-the-model-and-the-images);
+- einem Backend des [Audiobook](../extensions/audiobook-server.md#one-gpu-for-the-model-and-the-speech).
+
+Das Feld **GPU lock** wird nur angezeigt, wenn mindestens ein Lock existiert.
+
+<a id="variables-in-the-steps"></a>
+
+## Variablen in den Schritten
+
+Ein Schritt kann benennen, wofür der Job ist. So bedient ein Schritt mehrere Modelle, und die Locks müssen nicht geändert werden, wenn du ein anderes Modell ausprobierst. In der Adresse, den Headern und dem Body:
+
+| Variable | Ist |
+|---|---|
+| `{{model}}` | das Modell, das der Job verwendet: die Modell-ID der KI (so wie die KI-Einstellungen sie führen, zum Beispiel `openai/big-32b` über LiteLLM), das Modell eines Audiobook-Backends (`higgs-audio-v3`, `chatterbox-turbo`), der Spracherkennung oder des Bild-Backends; leer bei einem Job ohne Modell (das Aufräumen von Clips) |
+| `{{lock}}` | den Namen des Locks |
+| `{{text_model}}` | nur bei einem Job zur Textgenerierung: die Modell-ID seiner KI (dieselbe wie `{{model}}`); leer bei Sprach- und Bildjobs |
+| `{{last_text_model}}` | jeder Job: das Modell der letzten Textgenerierung auf diesem Lock, gemerkt ab dem Start dieses Jobs (sodass ein Textjob seine eigene sieht); leer vor der ersten Textgenerierung und nach einem Neustart von Marginalia |
+
+Filter ändern den Wert: `{{model | strip:openai/}}` entfernt das Präfix, wenn der Wert damit beginnt (der Routenname von LiteLLM, den der dahinterliegende Server nicht kennt). `{{model | last}}` behält, was auf das letzte `/` folgt. `{{model | json}}` maskiert den Wert für einen JSON-String, und `{{model | url}}` kodiert ihn für eine Adresse. Filter lassen sich verketten (`{{model | last | json}}`). Die acquire steps und die steps before every job erhalten die Werte des Jobs. Die release steps erhalten die Werte des letzten Jobs des geladenen Locks (das Modell, das entladen werden soll). **Test** führt einen Schritt mit leeren Variablen aus.
 
 <a id="how-the-turns-work"></a>
 
-## So wechseln sich die Aufträge ab
+## Wie das Abwechseln funktioniert
 
-- Jede Anfrage an ein Modell sowie jeder Bild-, Hörbuch-Batch- oder Stimmprobenauftrag belegt die Sperre seiner KI oder seines Backends **für die eigene Dauer**.
-- Ist die GPU bereits mit dieser Sperre geladen, startet der Auftrag sofort und kein Schritt läuft.
-- Ist sie mit einer anderen Sperre geladen, wartet der Auftrag, bis die Aufträge dieser Sperre fertig sind. Danach laufen die **Freigabeschritte** dieser Sperre (alle, auch wenn einer fehlschlägt), dann die **Belegungsschritte** der neuen Sperre (der Reihe nach; der erste Fehler bricht ab, und der Auftrag schlägt mit der Meldung des Schritts fehl).
-- Schlägt ein Freigabeschritt fehl, wird die neue Sperre gar nicht geladen (die Karte könnte noch voll sein): Der Auftrag schlägt mit dem Fehler fehl, und die GPU bleibt bei der Sperre, die sie hatte. Der nächste Auftrag einer anderen Sperre versucht, sie erneut freizugeben.
-- Nach einem Auftrag bleibt die GPU **geladen** mit ihrer Sperre. Nichts wird per Timer entladen: Ein Bildfenster, das offen bleibt, eingeklappt oder geschlossen wird, belegt keine GPU, und das Bildmodell bleibt geladen, bis das Sprachmodell (oder eine andere Sperre) die Karte braucht.
-- Aufträge warten in der Reihenfolge, in der sie eingegangen sind. Sobald ein Auftrag auf eine andere Sperre wartet, warten neue Aufträge der geladenen Sperre hinter ihm. So kann ein stark genutztes Sprachmodell ein Bild nicht unbegrenzt aufhalten.
-- Eine KI oder ein Backend ohne Sperre oder mit einer gelöschten Sperre wartet auf nichts.
+- Jede Anfrage an ein Modell, jedes Bild und jeder Audiobook-Batch oder jede Probe belegt das Lock seiner KI oder seines Backends **für seine eigene Dauer**.
+- Ist die GPU bereits mit diesem Lock geladen, startet der Job sofort, und kein Schritt läuft, außer den **steps before every job** des Locks.
+- Ist sie mit einem anderen Lock geladen, wartet der Job, bis die Jobs dieses Locks fertig sind. Dann laufen die **release steps** dieses Locks (alle, auch wenn einer fehlschlägt), danach die steps before every job und die **acquire steps** des neuen Locks. Diese laufen der Reihe nach. Der erste Fehler stoppt sie, und der Job scheitert mit der Meldung des Schritts.
+- Schlägt ein release step fehl, wird das neue Lock gar nicht geladen, denn die Karte könnte noch voll sein. Der Job scheitert mit dem Fehler, und die GPU bleibt bei dem Lock, das sie hatte. Der nächste Job eines anderen Locks versucht erneut, sie freizugeben.
+- Nach einem Job bleibt die GPU **mit ihrem Lock geladen**. Nichts wird per Timer entladen: Ein Bildfenster, das offen gelassen, eingeklappt oder geschlossen wird, behält keine GPU. Das Bildmodell bleibt geladen, bis das Sprachmodell (oder ein anderes Lock) die Karte braucht.
+- Jobs warten in der Reihenfolge ihres Eintreffens. Sobald ein Job auf ein anderes Lock wartet, stellen sich neue Jobs des geladenen Locks hinter ihn. So kann ein ausgelastetes Sprachmodell ein Bild nicht für immer warten lassen.
+- Eine KI oder ein Backend ohne Lock oder mit einem gelöschten Lock wartet auf nichts.
 
-Was eine GPU geladen hat, ist nur bekannt, solange die Anwendung läuft. Nach einem Neustart ist nichts als geladen bekannt, und der erste Auftrag führt nur seine Belegungsschritte aus.
+Was eine GPU hält, ist nur bekannt, solange die Anwendung läuft. Nach einem Neustart gilt nichts als geladen, und der erste Job führt nur seine acquire steps aus.
+
+<a id="a-gpu-that-others-use-too"></a>
+
+## Eine GPU, die auch andere nutzen
+
+Die Locks ordnen nur die Jobs von Marginalia. Was es über die Karte weiß, stammt aus den eigenen Jobs. Nach einem Neustart von Marginalia oder wenn ein anderes Programm, ein Skript oder eine Person ein Modell auf der Karte lädt (eine Anfrage an den Router, der das Sprachmodell aufweckt, ein Workflow, der auf der eigenen Seite von ComfyUI eingereiht wird), ist das, was Marginalia für geladen hält, falsch. Dann kann ein Job auf einer vollen Karte starten.
+
+- **Also used outside Marginalia** an der GPU bewirkt, dass Marginalia aufhört, dem zu vertrauen, was es weiß. Dann laufen die **acquire steps vor jedem Job**, nicht nur, wenn die GPU das Lock wechselt. Die release steps laufen weiterhin nur bei einem Wechsel. Die acquire steps jedes Locks müssen dann selbst Platz schaffen (die anderen Modelle entladen, den anderen Server stoppen) und gefahrlos wiederholbar sein. Ein Start eines bereits laufenden Servers, ein Entladen eines nicht geladenen Modells und ein Stopp eines bereits gestoppten Containers müssen mit Erfolg antworten, sonst scheitert jeder Job. Das kostet diese Anfragen bei jedem Job.
+- **Steps before every job** tun dasselbe für ein einzelnes Lock, ohne die anderen. Nur die Schritte, die jedes Mal geprüft werden müssen (die Modelle des anderen Programms entladen, sicherstellen, dass ein Server antwortet), laufen vor jedem Job. Der Rest läuft nur bei einem Wechsel.
+- Der sichere Ort dafür ist die GPU-Maschine selbst, durch die jeder Benutzer geht: ein Proxy, dessen *start ComfyUI* zuerst das Sprachmodell entlädt, oder ein Router-Hook, der ComfyUI stoppt, bevor er das Sprachmodell lädt. Dann kann niemand die Karte doppelt füllen, egal welches Programm fragt.
 
 <a id="the-tab"></a>
 
-## Der Tab
+## Der Reiter
 
-Der Tab listet die GPUs mit der Sperre, mit der jede jetzt geladen ist (*Unbekannt*, wenn noch nichts lief oder sie entladen wurde), und wie viele Aufträge darauf laufen und warten. Darunter stehen die Sperren und die Schritte, jeweils mit Schaltflächen zum Hinzufügen, Bearbeiten und Löschen. **Aktualisieren** liest erneut, was die GPUs belegen.
+Der Reiter listet die GPUs mit dem Lock, mit dem jede gerade geladen ist (*Unknown*, wenn noch nichts lief oder sie entladen wurde), und wie viele Jobs darauf laufen und warten. Danach folgen die Locks und die Schritte, jeweils mit Schaltflächen zum Hinzufügen, Bearbeiten und Löschen. **Refresh** liest erneut, was die GPUs halten.
 
-**Jetzt entladen** gibt eine GPU von Hand frei, zum Beispiel um die Karte für etwas außerhalb von Marginalia zu nutzen: Es wartet auf die laufenden Aufträge, führt die Freigabeschritte der geladenen Sperre aus und lässt die GPU als unbekannt zurück (auch wenn ein Schritt fehlschlug; die Meldung sagt, welcher). Der nächste Auftrag lädt seine Sperre wieder.
+![Der Reiter GPUs mit einer GPU, einem Lock und den Schritten](../../images/admin-gpus.png)
 
-Das Löschen einer GPU löscht ihre Sperren. Das Löschen eines Schritts entfernt ihn aus den Sperren, die ihn ausführen. KIs und Backends, die eine gelöschte Sperre angegeben haben, laufen ohne Sperre weiter.
+**Unload now** gibt eine GPU von Hand frei, zum Beispiel um die Karte für etwas außerhalb von Marginalia zu nutzen. Es wartet auf die laufenden Jobs, führt die release steps des geladenen Locks aus und lässt die GPU als unbekannt zurück. Das gilt auch, wenn ein Schritt fehlschlug; die Meldung sagt, welcher. Der nächste Job lädt sein Lock wieder.
 
-<a id="an-example-one-card-three-models"></a>
+Das Löschen einer GPU löscht ihre Locks. Das Löschen eines Schritts entfernt ihn aus den Locks, die ihn ausführen. KIs und Backends, die ein gelöschtes Lock benannt hatten, laufen ohne eines weiter.
+<a id="an-example-one-card-several-models"></a>
 
-## Ein Beispiel: eine Karte, drei Modelle
+## Ein Beispiel: eine Karte, mehrere Modelle
 
 Mit `llama-server` hinter LiteLLM und einem Proxy im Stil von [`tools/gpu-control`](../extensions/audiobook-server.md#what-answers-those-addresses), der Container startet und stoppt:
 
 | Schritt | Anfrage |
 |---|---|
-| Sprachmodell entladen | `POST http://litellm:4000/v1/chat/completions` mit dem Header `X-Llama-Unload: all` (siehe [Die GPU für ein anderes Modell freigeben](../prompt-cache.md#freeing-the-gpu-for-another-model)) |
-| ComfyUI starten / ComfyUI stoppen | `POST http://litellm:4000/gpu/comfy/start` / `.../stop` |
-| Sprachausgabe starten / Sprachausgabe stoppen | `POST http://litellm:4000/gpu/tts/start` / `.../stop` |
+| Unload the language model | `POST http://litellm:4000/v1/chat/completions` mit dem Header `X-Llama-Unload: all` (siehe [GPU für ein anderes Modell freigeben](../prompt-cache.md#freeing-the-gpu-for-another-model)) |
+| Start ComfyUI / Stop ComfyUI | `POST http://litellm:4000/gpu/comfy/start` / `.../stop` |
 
-| Sperre | Belegungsschritte | Freigabeschritte | Gleichzeitige Aufträge |
+Wird nur von Marginalia genutzt, gibt jede Sperre die Karte nur für sich selbst frei und nichts weiter:
+
+| Sperre | Schritte zum Belegen | Schritte zum Freigeben | Gleichzeitige Jobs |
 |---|---|---|---|
-| Sprachmodell | (keine: der Router lädt es mit der nächsten Anfrage) | (keine) | 0 |
-| ComfyUI | Sprachmodell entladen, ComfyUI starten | ComfyUI stoppen | 1 |
-| Sprachausgabe | Sprachmodell entladen, Sprachausgabe starten | Sprachausgabe stoppen | 1 |
-| Clip-Bereinigung | Sprachmodell entladen, ComfyUI starten | ComfyUI stoppen | 1 |
+| Language model | (keine: der Router lädt es mit der nächsten Anfrage) | Unload the language model | 1 |
+| ComfyUI images | Start ComfyUI | Stop ComfyUI | 1 |
+| ComfyUI speech | Start ComfyUI | Stop ComfyUI | 1 |
+| ComfyUI speech recognition | Start ComfyUI | Stop ComfyUI | 1 |
+| Clip cleanup | Start ComfyUI | Stop ComfyUI | 1 |
 
-Die KI des Sprachmodells wählt *Sprachmodell*, das Bild-Backend *ComfyUI*, das Sprachausgabe-Backend *Sprachausgabe*. Die [Bereinigung der Clips](../extensions/audiobook.md#cleanup-of-clips) des Hörbuchs wählt *Clip-Bereinigung*: Sie läuft auf demselben ComfyUI wie die Bilder, aber eine eigene Sperre startet ComfyUI zwischen den Aufgaben neu, sodass das Bildmodell und die Bereinigungsmodelle nie gleichzeitig im Speicher sind. Ein Sprachausgabe-Batch nach einem Chat führt *Sprachmodell entladen* und *Sprachausgabe starten* aus; die nächste Chatnachricht führt zuerst *Sprachausgabe stoppen* aus.
+Ein Stapel mit Sprachausgaben nach einem Chat führt *Unload the language model* (die Freigabe des Sprachmodells) und *Start ComfyUI* aus; die nächste Chatnachricht führt zuerst *Stop ComfyUI* aus. Die ComfyUI-Sperren sind absichtlich getrennt: Der Wechsel von einer zur anderen stoppt und startet ComfyUI, und genau das gibt den Speicher frei, den ein Modell nach dem Entladen behält (fp32-Higgs belegt etwa 16 GB des Serverspeichers). So sind das Bildmodell, Higgs, die Erkennung und die Bereinigungsmodelle nie gleichzeitig geladen.
+
+Mit **Also used outside Marginalia** muss stattdessen jedes Belegen selbst Platz schaffen: *Language model* belegt mit *Stop ComfyUI*, und jede ComfyUI-Sperre mit *Unload the language model, Start ComfyUI*.
+
+Wenn ein anderes Programm **denselben `llama-server`-Router** mit einem eigenen Modell nutzt (zum Beispiel ein kleines Modell neben seinem Sprachmodell), würde *Unload the language model* auch dessen Modell entladen, und dessen eigenes Entladen würde das von Marginalia entladen. `tools/gpu-control` hat einen Aufruf, der alle Modelle des Routers entlädt, **außer** den genannten: ein Schritt `POST http://litellm:4000/gpu/llama/unload` mit dem Body `{"keep": ["{{model | strip:openai/}}"]}` (im README steht die Weiterleitung). Machen Sie daraus einen **Schritt vor jedem Job** von *Language model*: Jede KI auf dieser Sperre behält ihr eigenes Modell, welches Sie auch wählen; das andere Programm tut dasselbe mit seinem eigenen Modell vor jedem seiner Jobs. Ist das behaltene Modell das einzige geladene, tut der Aufruf nichts und antwortet sofort, sodass keines der beiden Programme vom anderen wissen muss.
+
+Wenn **eine Sperre das Sprachmodell und das Sprachausgabemodell bedient** (beide laufen nebeneinander auf der Karte), ist `{{model}}` in diesem Schritt während eines Sprachjobs das Sprachausgabemodell, auf das kein Router-Modell passt, und das Sprachmodell würde direkt nach jeder Antwort entladen. Behalten Sie stattdessen `{{last_text_model}}`, `{"keep": ["{{last_text_model | strip:openai/}}"]}`: Jeder Job der Sperre behält das Modell der letzten Textgenerierung, egal welche Art von Job es ist. Vor der ersten Textgenerierung wird nichts behalten, und die erste lädt ihr Modell.
+
+Für ComfyUI ist derselbe Schritt-Typ `POST http://litellm:4000/gpu/comfy/ensure`: Er tut nichts, wenn ComfyUI antwortet, startet den Container, wenn er gestoppt ist, und startet ihn neu, wenn er läuft, ComfyUI aber nicht antwortet (innen abgestürzt, hängend), und wartet dann, bis er bereit ist. Als Schritt vor jedem Job der ComfyUI-Sperren sorgt er dafür, dass ComfyUI läuft, egal wer es gestoppt hat.
+
+Die KI des Sprachmodells wählt *Language model*, das Bild-Backend wählt *ComfyUI images*, das Sprach-Backend *ComfyUI speech*, und die [Spracherkennung](../extensions/audiobook.md#speech-recognition) sowie die [Bereinigung der Clips](../extensions/audiobook.md#cleanup-of-clips) des Hörbuchs wählen jeweils ihre eigenen Sperren.
