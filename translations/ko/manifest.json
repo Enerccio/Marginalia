@@ -9,9 +9,9 @@
     },
     "user/account.md": {
       "chunks": 4,
-      "model": "haiku",
-      "source_sha": "514db16ec0f5b22b325dbb586ac06d8e6262b57342eefb19d94df27754962483",
-      "translated_at": "2026-11-13T23:05:23Z"
+      "model": "sonnet",
+      "source_sha": "c30714a12e921281b79521cfc14e3bf44cd0b277edef6cf37ecf461d4d195396",
+      "translated_at": "2026-11-24T07:11:24Z"
     },
     "user/administration/cleanup.md": {
       "chunks": 1,
