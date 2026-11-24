@@ -1,7 +1,7 @@
 ---
 label: Packaging & releases
 order: 880
-verified: f337fe83d
+verified: ecc4a625a
 covers:
   - pom.xml
   - Dockerfile

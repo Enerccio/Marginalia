@@ -20,6 +20,7 @@ covers:
   - marginalia/platform/src/main/java/com/github/enerccio/marginalia/bound/ApiRequestAttributes.java
   - marginalia/platform/src/main/java/com/github/enerccio/marginalia/ui/components/ApiKeysView.java
   - tools/marginalia_api.py
+verified: ecc4a625a
 ---
 
 # HTTP API

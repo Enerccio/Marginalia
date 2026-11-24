@@ -7,9 +7,9 @@ covers:
   - marginalia/platform/src/main/java/com/github/enerccio/marginalia/Configuration.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/extensions
   - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/ToolService.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/tool
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/tool
   - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/impl/ToolServiceImpl.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/instruct
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/instruct
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/main
   - marginalia/src/main/resources/META-INF/spring
   - marginalia/src/main/webapp/config

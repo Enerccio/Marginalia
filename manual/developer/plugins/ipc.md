@@ -5,7 +5,7 @@ covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/IPCService.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/IPCServiceImpl.java
   - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/ToolService.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/tool
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/tool
   - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/impl/ToolServiceImpl.java
   - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/OsgiService.java
   - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/impl/OsgiServiceImpl.java

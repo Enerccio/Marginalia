@@ -4,7 +4,7 @@ order: 70
 verified: 9860afee8
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui
-  - marginalia/src/main/java/com/github/enerccio/marginalia/instruct
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/instruct
   - marginalia/plugins
 ---
 
