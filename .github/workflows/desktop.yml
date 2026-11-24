@@ -46,12 +46,12 @@ jobs:
     name: Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # git-commit-id-plugin reads commit and closest tag
           fetch-depth: 0
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}
@@ -70,7 +70,7 @@ jobs:
 
       - name: Upload test reports
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-reports
           path: marginalia/target/surefire-reports/
@@ -80,11 +80,11 @@ jobs:
     name: Plugins
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}
@@ -140,14 +140,14 @@ jobs:
 
       - name: Upload the smoke test report
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: plugin-smoke-test-report
           path: marginalia/target/surefire-reports/
           retention-days: 7
 
       - name: Upload plugins
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: marginalia-plugins
           path: plugin-jars/*.jar
@@ -174,11 +174,11 @@ jobs:
           - name: macos-x64
             os: macos-15-intel
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}
@@ -192,7 +192,7 @@ jobs:
 
       - name: Download the plugins
         # the plugin JARs for the full installer, built against this commit by the plugins job
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: marginalia-plugins
           path: marginalia/target/desktop-plugins
@@ -266,7 +266,7 @@ jobs:
           fi
 
       - name: Upload distribution
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: marginalia-desktop-${{ matrix.name }}
           path: |
@@ -288,12 +288,12 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           pattern: marginalia-desktop-*
           merge-multiple: true
           path: dist
 
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v3
         with:
           files: dist/*
