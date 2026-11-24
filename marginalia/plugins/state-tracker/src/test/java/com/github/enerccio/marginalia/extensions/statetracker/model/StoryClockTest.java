@@ -67,6 +67,18 @@ class StoryClockTest {
     }
 
     @Test
+    void zeroDaysToAnEarlierTimeOfDayIsTheNextDay() {
+        part("p1", advance("p1", 0, TimeOfDay.DAWN));                           // evening, "she woke at first light": the next day
+        assertEquals(new StoryTime(4, TimeOfDay.DAWN, null, false), clock.now(book));
+        part("p2", advance("p2", 0, TimeOfDay.AFTERNOON));                      // dawn → afternoon: the same day
+        assertEquals(new StoryTime(4, TimeOfDay.AFTERNOON, null, false), clock.now(book));
+        part("p3", advance("p3", 0, null));                                     // an hour later: nothing to roll over on
+        assertEquals(new StoryTime(4, TimeOfDay.AFTERNOON, null, false), clock.now(book));
+        part("p4", advance("p4", 1, TimeOfDay.MORNING));                        // "the next morning": one day, not two
+        assertEquals(new StoryTime(5, TimeOfDay.MORNING, null, false), clock.now(book));
+    }
+
+    @Test
     void datesAndDaysMoveTogether() {
         clock.setStartDay(1);
         clock.setStartTimeOfDay(TimeOfDay.NIGHT);

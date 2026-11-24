@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- **State Tracker: the story clock moves to the next day overnight.** When the model reported a part as the same day (0 days) but with an earlier time of day (from the evening to *she woke at first light*), the clock stayed on the same day and had to be set by hand; it now moves to the next day, as it already did when the model gave no number of days.
 - **Prompt cache hook: a failed slot call says which cache and what failed.** The warning of the example LiteLLM hook (*Prompt cache*) names the session file and the type of the error; a dropped connection logged an empty `restore:` before. Copy the line into your `slot_cache.py`.
 
 ## [1.9.0] - 2026-11-23

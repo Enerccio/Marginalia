@@ -128,7 +128,8 @@ not count: the plugin adds the days up.
   awakening, evening*. **Day at the start point**, **Time of day** and **Date at the start point** give the time before the first
   part that is read; with a date the clock also counts dates (*20 April 1453*).
 - The Processing panel shows the **story time** now, and every processed part shows the time after it. A stated day or date
-  replaces an estimate before it.
+  replaces an estimate before it. A part that moves only the time of day to an earlier one (from the evening to *she woke at
+  first light*) moves the clock to the next day.
 - The clock button of a part (or of the story time line, for the last part) **sets the time by hand**: a fixed point (day, time
   of day, date) that reading the part again does not replace and that the clock counts on from. **Remove the fixed point** in the
   same dialog lets the model's reading count again.

@@ -76,11 +76,11 @@ public class StoryClock {
             case ADVANCE -> {
                 Integer days = mark.getDays();
                 TimeOfDay to = mark.getTimeOfDay();
-                if (days == null) {
-                    // only the time of day is known: later in the same day, or the next day when that time has passed already
+                if (days == null || days <= 0) {
+                    // no days or "the same day": later in that day, or the next day when that time of day has passed already (an
+                    // advance cannot go back; the model reports 0 days for "she woke at dawn" after an evening)
                     days = to == null || time.timeOfDay() == null || to.ordinal() >= time.timeOfDay().ordinal() ? 0 : 1;
                 }
-                days = Math.max(0, days);
                 yield new StoryTime(time.day() + days, to != null ? to : days > 0 ? null : time.timeOfDay(),
                         time.date() == null ? null : time.date().plusDays(days), time.approximate() || mark.isApproximate());
             }
