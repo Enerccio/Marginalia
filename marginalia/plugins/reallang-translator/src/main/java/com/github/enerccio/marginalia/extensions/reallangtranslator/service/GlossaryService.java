@@ -13,6 +13,7 @@ import com.github.enerccio.marginalia.extensions.reallangtranslator.model.Glossa
 import com.github.enerccio.marginalia.extensions.reallangtranslator.model.RealLanguage;
 import com.github.enerccio.marginalia.extensions.reallangtranslator.store.RealStore;
 import com.github.enerccio.marginalia.extensions.reallangtranslator.translate.TranslationAnswer;
+import com.github.enerccio.marginalia.extensions.translatorcommon.ui.WordsChanged;
 import com.google.gson.JsonObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
@@ -236,11 +237,11 @@ public class GlossaryService {
         if (candidates == null || candidates.isEmpty()) {
             return List.of();
         }
+        List<GlossaryEntry> added = new ArrayList<>();
         synchronized (WRITE) {
             Set<String> known = new HashSet<>();
             effective(book, language).forEach(item -> known.add(item.entry().key()));
             List<GlossaryEntry> own = entries(book, language, Target.book());
-            List<GlossaryEntry> added = new ArrayList<>();
             for (GlossaryEntry candidate : candidates) {
                 if (!candidate.isUsable() || known.contains(candidate.key()) || !Glossary.contains(partText, candidate.getSource())) {
                     continue;
@@ -251,11 +252,14 @@ public class GlossaryService {
                 own.add(entry);
                 added.add(entry);
             }
-            if (!added.isEmpty()) {
-                write(book, language, Target.book(), own);
+            if (added.isEmpty()) {
+                return added;
             }
-            return added;
+            write(book, language, Target.book(), own);
         }
+        // the glossary tab of the book shows the proposals without a Refresh
+        WordsChanged.changed(book.getUuid());
+        return added;
     }
 
     private void write(Manuscript book, RealLanguage language, Target target, List<GlossaryEntry> entries) throws Exception {

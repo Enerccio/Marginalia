@@ -16,6 +16,7 @@ import com.github.enerccio.marginalia.extensions.translatorcommon.model.Understa
 import com.github.enerccio.marginalia.extensions.translatorcommon.ui.BookLanguagesPanel;
 import com.github.enerccio.marginalia.extensions.translatorcommon.ui.SourceSearchReplaceDialog;
 import com.github.enerccio.marginalia.extensions.translatorcommon.ui.SpeakersEditor;
+import com.github.enerccio.marginalia.extensions.translatorcommon.ui.WordsChanged;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.vaadin.flow.component.Component;
@@ -84,6 +85,8 @@ public class ConlangBookView extends VerticalLayout {
         add(header, body);
         setFlexGrow(1, body);
         refresh();
+        // a translation added new words to the lexicon of the language shown
+        WordsChanged.listen(this, id -> id.equals(selectedId), this::reloadWords);
     }
 
     /**

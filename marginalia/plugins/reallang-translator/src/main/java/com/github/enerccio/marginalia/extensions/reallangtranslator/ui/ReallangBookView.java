@@ -12,6 +12,7 @@ import com.github.enerccio.marginalia.extensions.translatorcommon.ui.BookLanguag
 import com.github.enerccio.marginalia.extensions.translatorcommon.ui.CommonStyles;
 import com.github.enerccio.marginalia.extensions.translatorcommon.ui.SourceSearchReplaceDialog;
 import com.github.enerccio.marginalia.extensions.translatorcommon.ui.SpeakersEditor;
+import com.github.enerccio.marginalia.extensions.translatorcommon.ui.WordsChanged;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -36,6 +37,7 @@ public class ReallangBookView extends VerticalLayout {
     private final ExtractionTools extraction;
     private final Span title = new Span();
     private final VerticalLayout body = new VerticalLayout();
+    private final List<GlossaryPanel> glossaries = new ArrayList<>();
 
     public ReallangBookView(Manuscript book, BookReal service, ExtractionTools extraction) {
         this.book = book;
@@ -60,6 +62,8 @@ public class ReallangBookView extends VerticalLayout {
         add(header, body);
         setFlexGrow(1, body);
         refresh();
+        // a translation proposed names for the glossary of the book
+        WordsChanged.listen(this, book.getUuid()::equals, () -> glossaries.forEach(GlossaryPanel::refresh));
     }
 
     /**
@@ -68,6 +72,7 @@ public class ReallangBookView extends VerticalLayout {
      */
     public final void refresh() {
         body.removeAll();
+        glossaries.clear();
         try {
             List<LanguageRef> languages = service.languages(book);
             if (languages.isEmpty()) {
@@ -84,7 +89,6 @@ public class ReallangBookView extends VerticalLayout {
             for (LanguageRef language : languages) {
                 tabs.add(languages.size() == 1 ? T.localized(SPEAKERS) : T.localized(SPEAKERS_S).formatted(language.name()), speakers(language.id()));
             }
-            List<GlossaryPanel> glossaries = new ArrayList<>();
             for (LanguageRef language : languages) {
                 GlossaryPanel glossary = new GlossaryPanel(book, service, language.id());
                 glossaries.add(glossary);

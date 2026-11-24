@@ -84,7 +84,7 @@ The grid has a **search** (by word or meaning), filters by **category** and **st
   (kept, not offered to the model: for a word that was replaced).
 
 A word the model needs but the lexicon lacks is **never dropped for being new**: it is added at once, so the next part says the same thing the same
-way, and it waits as *New*. A translation that uses words that are not in the lexicon and that the model did **not** report is flagged, because
+way, and it waits as *New* (an open *Words* tab of the book shows it at once). A translation that uses words that are not in the lexicon and that the model did **not** report is flagged, because
 nobody can tell whether the word is a mistake.
 
 ### Names for the Name generator

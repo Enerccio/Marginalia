@@ -21,6 +21,7 @@ import com.github.enerccio.marginalia.extensions.translatorcommon.translate.Reve
 import com.github.enerccio.marginalia.extensions.translatorcommon.translate.RunScope;
 import com.github.enerccio.marginalia.extensions.translatorcommon.translate.SelectionRange;
 import com.github.enerccio.marginalia.extensions.translatorcommon.translate.TranslationPlan;
+import com.github.enerccio.marginalia.extensions.translatorcommon.ui.WordsChanged;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
@@ -394,7 +395,10 @@ public class TranslationService {
             languages.update(book, language.getId(), stored -> NewWords.addTo(stored, words, Origin.model(partUuid, modelName, now)));
         } catch (IllegalArgumentException e) {
             // the language was deleted while the model worked: there is no lexicon to add to
+            return;
         }
+        // the words tab of every book open on the language shows them without a Refresh
+        WordsChanged.changed(language.getId());
     }
 
     /**
