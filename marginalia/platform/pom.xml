@@ -261,7 +261,7 @@
     <dependency>
       <groupId>org.commonmark</groupId>
       <artifactId>commonmark-ext-footnotes</artifactId>
-      <version>0.28.0</version>
+      <version>0.33.0</version>
     </dependency>
 
     <!-- image attachments: the JDK can't read WebP, uploads of it are converted to PNG (pure Java, read only) -->
