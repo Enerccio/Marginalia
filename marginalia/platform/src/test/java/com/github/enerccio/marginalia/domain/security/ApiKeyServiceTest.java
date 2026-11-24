@@ -161,4 +161,61 @@ class ApiKeyServiceTest extends PlatformTestBase {
         assertThatThrownBy(() -> apiKeyService.create(" ", Set.of(ApiScope.READ), null)).isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> apiKeyService.create("x".repeat(101), Set.of(ApiScope.READ), null)).isInstanceOf(IllegalArgumentException.class);
     }
+
+    @Test
+    void aKeyCanBeChangedAndKeepsItsText() throws Exception {
+        apiUser();
+        CreatedKey created = apiKeyService.create("script", Set.of(ApiScope.READ), null);
+        Date later = new Date(System.currentTimeMillis() + 3_600_000);
+
+        ApiKey changed = apiKeyService.update(created.key().getUuid(), " renamed ", Set.of(ApiScope.WRITE), later);
+        assertThat(changed.getName()).isEqualTo("renamed");
+        ApiKey stored = apiKeyService.findForUser(created.key().getUuid());
+        assertThat(stored.getScopes()).containsExactlyInAnyOrder(ApiScope.READ, ApiScope.WRITE);
+        assertThat(stored.getExpires()).isEqualTo(later);
+        assertThat(apiKeyService.authenticate(created.token()).scopes()).containsExactlyInAnyOrder(ApiScope.READ, ApiScope.WRITE);
+
+        assertThatThrownBy(() -> apiKeyService.update(created.key().getUuid(), "x", Set.of(), null))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> apiKeyService.update(created.key().getUuid(), " ", Set.of(ApiScope.READ), null))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> apiKeyService.update(created.key().getUuid(), "x", Set.of(ApiScope.READ),
+                new Date(System.currentTimeMillis() - 1000))).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> apiKeyService.update(created.key().getUuid(), "x", Set.of(ApiScope.UPDATE), null))
+                .isInstanceOf(SecurityException.class);
+
+        assertThat(apiKeyService.update(created.key().getUuid(), "forever", Set.of(ApiScope.READ), null).getExpires()).isNull();
+    }
+
+    @Test
+    void anExpiredKeyKeepsItsExpiryAndOthersCannotChangeIt() throws Exception {
+        apiUser();
+        CreatedKey created = apiKeyService.create("short", Set.of(ApiScope.READ), new Date(System.currentTimeMillis() + 60_000));
+        ApiKey stored = apiKeyService.findForUser(created.key().getUuid());
+        Date past = new Date(System.currentTimeMillis() - 1000);
+        stored.setExpires(past);
+        apiKeyService.save(stored);
+
+        apiKeyService.update(created.key().getUuid(), "renamed", Set.of(ApiScope.READ), past);
+        assertThat(apiKeyService.authenticate(created.token())).as("still expired").isNull();
+
+        apiUser();
+        assertThatThrownBy(() -> apiKeyService.update(created.key().getUuid(), "mine", Set.of(ApiScope.READ), null))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void anAdministrationScopeTheKeyHasStaysWhenItsOwnerIsNoLongerAnAdministrator() throws Exception {
+        User admin = loginAdmin();
+        CreatedKey created = apiKeyService.create("deploy", Set.of(ApiScope.READ, ApiScope.EXTENSIONS), null);
+        User stored = userService.find(admin.getId());
+        stored.setAdmin(false);
+        userService.save(stored);
+        setPermission(stored, PermissionType.API, true);
+        loginAs(stored);
+
+        apiKeyService.update(created.key().getUuid(), "deploy", Set.of(ApiScope.READ, ApiScope.EXTENSIONS), null);
+        assertThatThrownBy(() -> apiKeyService.update(created.key().getUuid(), "deploy", Set.of(ApiScope.UPDATE), null))
+                .isInstanceOf(SecurityException.class);
+    }
 }

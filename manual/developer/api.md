@@ -33,7 +33,7 @@ run, and a few administration calls: the version, the [update of the installatio
 ## Keys
 
 A key belongs to a user and acts as that user: `ApiKey` (table `api_keys`, migration `V31`), an `ExtendableEntity` owned by the
-user. Users create and revoke their keys in **Settings → API keys** (`ApiKeysView`); a user may have keys when they are an
+user. Users create, edit and revoke their keys in **Settings → API keys** (`ApiKeysView`); a user may have keys when they are an
 administrator or have the permission `API` (`PermissionType.API`). The key is `mrg_<prefix>_<secret>` (12 characters `a-z0-9`, then
 32 random bytes in base64url). `ApiKeyService.create` gives it once (`CreatedKey.token`); the database keeps only the prefix (to
 find the key) and a SHA-256 of the whole key (the key has 256 random bits, a slow hash would add nothing). A revoked key is soft

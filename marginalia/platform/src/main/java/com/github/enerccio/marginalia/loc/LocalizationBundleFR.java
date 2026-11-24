@@ -399,6 +399,7 @@ public class LocalizationBundleFR extends LocalizationBundleBase {
         setValue(L.ERROR_GPU_UNLOAD_FAILED, "Une étape de libération a échoué : %s");
         setValue(L.ERROR_API_KEY_CREATE_FAILED, "La clé n'a pas pu être créée : %s");
         setValue(L.ERROR_AGENT_ACTION_FAILED, "L'action de l'agent a échoué : %s");
+        setValue(L.ERROR_API_KEY_SAVE_FAILED, "La clé n'a pas pu être enregistrée : %s");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "Impossible d'enregistrer le formulaire.");

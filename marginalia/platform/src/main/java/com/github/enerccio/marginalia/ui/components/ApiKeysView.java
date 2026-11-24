@@ -37,11 +37,13 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * The keys of the HTTP API of the current user, in the user settings: the list, a new key (shown once, to copy) and revoking a key.
+ * The keys of the HTTP API of the current user, in the user settings: the list, a new key (shown once, to copy), changing the
+ * name, scopes and expiry of a key, and revoking a key.
  * The changes are stored at once, not by the Save of the settings. A user who may not use the API sees why.
  */
 @Configurable
@@ -59,6 +61,8 @@ public class ApiKeysView extends VerticalLayout {
 
     @Autowired
     private User currentUser;
+
+    private static final long DAY_MS = 24L * 60 * 60 * 1000;
 
     private final Grid<ApiKey> grid = new Grid<>(ApiKey.class, false);
     private boolean built;
@@ -107,6 +111,14 @@ public class ApiKeysView extends VerticalLayout {
                 .setHeader(loc.getValue(L.LABEL_LAST_USED))
                 .setFlexGrow(0).setWidth(UIConstants.DATE_COLUMN_SIZE);
         grid.addComponentColumn(key -> {
+                    Button edit = new Button(Solid.PEN.create(), e -> openKeyDialog(key));
+                    edit.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+                    edit.setTooltipText(loc.getValue(L.LABEL_EDIT));
+                    edit.setAriaLabel(loc.getValue(L.LABEL_EDIT));
+                    return edit;
+                })
+                .setFlexGrow(0).setWidth(UIConstants.TOOL_COLUMN_SIZE);
+        grid.addComponentColumn(key -> {
                     Button revoke = new Button(Solid.TRASH.create(), e -> confirmRevoke(key));
                     revoke.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_TERTIARY);
                     revoke.setTooltipText(loc.getValue(L.LABEL_REVOKE));
@@ -133,8 +145,17 @@ public class ApiKeysView extends VerticalLayout {
     }
 
     private void openCreateDialog() {
+        openKeyDialog(null);
+    }
+
+    /**
+     * The dialog of a new key ({@code existing} null) or of a key to change: the name, the scopes and the expiry in days from now.
+     * For a key to change the days are those left (rounded up); an expiry that is not touched stays exactly as it is, so a key that
+     * expired already keeps its expiry when only its name or scopes change.
+     */
+    private void openKeyDialog(ApiKey existing) {
         Dialog dialog = new Dialog();
-        dialog.setHeaderTitle(loc.getValue(L.LABEL_NEW_API_KEY));
+        dialog.setHeaderTitle(existing == null ? loc.getValue(L.LABEL_NEW_API_KEY) : existing.getName());
 
         TextField name = new TextField(loc.getValue(L.LABEL_NAME));
         name.setWidthFull();
@@ -146,37 +167,69 @@ public class ApiKeysView extends VerticalLayout {
         access.addThemeVariants(CheckboxGroupVariant.LUMO_VERTICAL);
         access.setWidthFull();
         boolean admin = isAdmin();
-        access.setItems(Arrays.stream(ApiScope.values()).filter(scope -> admin || !scope.isAdministration()).toList());
+        Set<ApiScope> had = existing == null ? Set.of() : existing.getScopes();
+        // a scope the key has stays visible, so saving does not drop it silently
+        access.setItems(Arrays.stream(ApiScope.values()).filter(scope -> admin || !scope.isAdministration() || had.contains(scope)).toList());
         access.setItemLabelGenerator(this::scopeText);
-        access.setValue(Set.of(ApiScope.READ));
 
         IntegerField days = new IntegerField(loc.getValue(L.LABEL_EXPIRES_AFTER_DAYS));
         days.setHelperText(loc.getValue(L.HELP_EXPIRES_AFTER_DAYS));
         days.setMin(1);
         days.setWidthFull();
 
-        Button createButton = new Button(loc.getValue(L.LABEL_CREATE_KEY), e -> {
+        Integer initialDays = null;
+        if (existing == null) {
+            access.setValue(Set.of(ApiScope.READ));
+        } else {
+            name.setValue(existing.getName());
+            access.setValue(had);
+            initialDays = daysLeft(existing.getExpires());
+            days.setValue(initialDays);
+        }
+        Integer untouchedDays = initialDays;
+
+        Button saveButton = new Button(loc.getValue(existing == null ? L.LABEL_CREATE_KEY : L.LABEL_SAVE), e -> {
             try {
-                Date expires = days.getValue() == null || days.getValue() < 1 ? null
-                        : new Date(System.currentTimeMillis() + days.getValue() * 24L * 60 * 60 * 1000);
-                CreatedKey created = apiKeyService.create(name.getValue(), access.getValue(), expires);
-                dialog.close();
-                refresh();
-                showCreated(created);
+                if (existing == null) {
+                    CreatedKey created = apiKeyService.create(name.getValue(), access.getValue(), expiresIn(days.getValue()));
+                    dialog.close();
+                    refresh();
+                    showCreated(created);
+                } else {
+                    Date expires = Objects.equals(days.getValue(), untouchedDays) ? existing.getExpires()
+                            : expiresIn(days.getValue());
+                    apiKeyService.update(existing.getUuid(), name.getValue(), access.getValue(), expires);
+                    dialog.close();
+                    refresh();
+                }
             } catch (Exception ex) {
-                Notification.warning(String.format(loc.getValue(L.ERROR_API_KEY_CREATE_FAILED), ex.getMessage()));
+                Notification.warning(String.format(loc.getValue(existing == null ? L.ERROR_API_KEY_CREATE_FAILED
+                        : L.ERROR_API_KEY_SAVE_FAILED), ex.getMessage()));
             }
         });
-        createButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         Button cancel = new Button(loc.getValue(L.LABEL_CANCEL), e -> dialog.close());
 
         VerticalLayout content = new VerticalLayout(name, access, days);
         content.setPadding(false);
         dialog.add(content);
-        dialog.getFooter().add(cancel, createButton);
+        dialog.getFooter().add(cancel, saveButton);
         DialogFocus.onOpen(dialog, name);
-        DialogShortcuts.submitWith(createButton, name, days);
+        DialogShortcuts.submitWith(saveButton, name, days);
         dialog.open();
+    }
+
+    private static Date expiresIn(Integer days) {
+        return days == null || days < 1 ? null : new Date(System.currentTimeMillis() + days * DAY_MS);
+    }
+
+    /** The whole days left until the expiry, rounded up; null for no expiry or one that has passed. */
+    private static Integer daysLeft(Date expires) {
+        if (expires == null) {
+            return null;
+        }
+        long left = expires.getTime() - System.currentTimeMillis();
+        return left <= 0 ? null : (int) Math.min(Integer.MAX_VALUE, (left + DAY_MS - 1) / DAY_MS);
     }
 
     private void showCreated(CreatedKey created) {

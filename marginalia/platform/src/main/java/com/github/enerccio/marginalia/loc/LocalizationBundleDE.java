@@ -397,6 +397,7 @@ public class LocalizationBundleDE extends LocalizationBundleBase {
         setValue(L.ERROR_GPU_UNLOAD_FAILED, "Ein Freigabeschritt ist fehlgeschlagen: %s");
         setValue(L.ERROR_API_KEY_CREATE_FAILED, "Der Schlüssel konnte nicht erstellt werden: %s");
         setValue(L.ERROR_AGENT_ACTION_FAILED, "Die Aktion des Agenten ist fehlgeschlagen: %s");
+        setValue(L.ERROR_API_KEY_SAVE_FAILED, "Der Schlüssel konnte nicht gespeichert werden: %s");
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "Das Formular kann nicht gespeichert werden.");
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE_EXT, "Das Formular kann nicht gespeichert werden. Ungültige Felder: ");

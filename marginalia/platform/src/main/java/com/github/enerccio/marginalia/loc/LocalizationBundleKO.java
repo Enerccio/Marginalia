@@ -399,6 +399,7 @@ public class LocalizationBundleKO extends LocalizationBundleBase {
         setValue(L.ERROR_GPU_UNLOAD_FAILED, "해제 단계가 실패했습니다: %s");
         setValue(L.ERROR_API_KEY_CREATE_FAILED, "키를 만들 수 없습니다: %s");
         setValue(L.ERROR_AGENT_ACTION_FAILED, "에이전트 작업이 실패했습니다: %s");
+        setValue(L.ERROR_API_KEY_SAVE_FAILED, "키를 저장할 수 없습니다: %s");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "양식을 저장할 수 없습니다.");

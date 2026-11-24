@@ -408,6 +408,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ERROR_GPU_UNLOAD_FAILED, "释放步骤失败：%s");
         setValue(L.ERROR_API_KEY_CREATE_FAILED, "无法创建密钥：%s");
         setValue(L.ERROR_AGENT_ACTION_FAILED, "智能体操作失败：%s");
+        setValue(L.ERROR_API_KEY_SAVE_FAILED, "无法保存密钥：%s");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "无法保存表单。");

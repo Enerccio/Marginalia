@@ -399,6 +399,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ERROR_GPU_UNLOAD_FAILED, "A release step failed: %s");
         setValue(L.ERROR_API_KEY_CREATE_FAILED, "The key could not be created: %s");
         setValue(L.ERROR_AGENT_ACTION_FAILED, "The agent action failed: %s");
+        setValue(L.ERROR_API_KEY_SAVE_FAILED, "The key could not be saved: %s");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "Cannot save form.");

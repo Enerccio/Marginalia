@@ -95,6 +95,38 @@ public class ApiKeyServiceImpl extends ExtendableServiceImpl<ApiKey, ApiKeyRepos
 
     @Override
     @CommonTx
+    public ApiKey update(String uuid, String name, Collection<ApiScope> scopes, Date expires) throws Exception {
+        if (!mayUseApi(currentUser)) {
+            throw new SecurityException("The user may not use the API");
+        }
+        ApiKey key = StringUtils.isBlank(uuid) ? null : findForUser(uuid);
+        if (key == null || key.isDeleted()) {
+            throw new IllegalArgumentException("No such key");
+        }
+        Set<ApiScope> given = ApiScope.normalized(scopes);
+        if (given.isEmpty()) {
+            throw new IllegalArgumentException("The key needs at least one scope");
+        }
+        Set<ApiScope> had = key.getScopes();
+        if (given.stream().anyMatch(scope -> scope.isAdministration() && !had.contains(scope))) {
+            adminGuard.requireAdmin();
+        }
+        String trimmed = StringUtils.trimToEmpty(name);
+        if (trimmed.isEmpty() || trimmed.length() > MAX_NAME_LENGTH) {
+            throw new IllegalArgumentException("The name of the key must have 1 to " + MAX_NAME_LENGTH + " characters");
+        }
+        if (expires != null && expires.getTime() <= System.currentTimeMillis()
+                && (key.getExpires() == null || key.getExpires().getTime() != expires.getTime())) {
+            throw new IllegalArgumentException("The key would be expired already");
+        }
+        key.setName(trimmed);
+        key.setScopes(given);
+        key.setExpires(expires);
+        return save(key);
+    }
+
+    @Override
+    @CommonTx
     public boolean revoke(String uuid) throws Exception {
         ApiKey key = findForUser(uuid);
         if (key == null && adminGuard.isAdmin()) {

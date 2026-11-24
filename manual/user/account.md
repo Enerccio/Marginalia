@@ -330,8 +330,11 @@ access stays.
 
 The key is shown once, right after it is made: copy it then, Marginalia keeps only a fingerprint of it and can't show it again. The
 list shows your keys with the start of each, when it was made, when it expires and when it was last used; the trash button
-**revokes** a key, and the programs that use it lose access at once. A key also stops working when it expires and when an
-administrator takes the permission away. The keys are saved when you make or revoke them, not by the **Save** of the settings.
+**revokes** a key, and the programs that use it lose access at once. The pen button **edits** a key: its name, its access and
+the days until it expires (empty: never; the days left are filled in, and a key that has expired keeps its expiry unless you enter
+new days). The key itself stays the same, so the programs that use it go on with the new access. A key also stops working when it
+expires and when an administrator takes the permission away. The keys are saved when you make, edit or revoke them, not by the
+**Save** of the settings.
 
 **The API page**: open `/api/v1/` of your Marginalia in a browser (for example `https://marginalia.example.org/api/v1/`) to see every
 call, its arguments and its answers. Paste a key into **API key** at the top: the page then also lists every command that key may

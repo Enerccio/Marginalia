@@ -397,6 +397,7 @@ public class LocalizationBundleES extends LocalizationBundleBase {
         setValue(L.ERROR_GPU_UNLOAD_FAILED, "Un paso de liberación falló: %s");
         setValue(L.ERROR_API_KEY_CREATE_FAILED, "No se pudo crear la clave: %s");
         setValue(L.ERROR_AGENT_ACTION_FAILED, "La acción del agente ha fallado: %s");
+        setValue(L.ERROR_API_KEY_SAVE_FAILED, "No se pudo guardar la clave: %s");
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "No se puede guardar el formulario.");
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE_EXT, "No se puede guardar el formulario. Campos no válidos: ");

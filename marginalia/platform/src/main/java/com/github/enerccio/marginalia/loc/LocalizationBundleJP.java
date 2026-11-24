@@ -399,6 +399,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ERROR_GPU_UNLOAD_FAILED, "解放ステップが失敗しました: %s");
         setValue(L.ERROR_API_KEY_CREATE_FAILED, "キーを作成できませんでした: %s");
         setValue(L.ERROR_AGENT_ACTION_FAILED, "エージェントの操作に失敗しました: %s");
+        setValue(L.ERROR_API_KEY_SAVE_FAILED, "キーを保存できませんでした: %s");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "フォームを保存できません。");

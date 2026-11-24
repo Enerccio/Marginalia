@@ -399,6 +399,7 @@ public class LocalizationBundleIT extends LocalizationBundleBase {
         setValue(L.ERROR_GPU_UNLOAD_FAILED, "Un passo di rilascio non è riuscito: %s");
         setValue(L.ERROR_API_KEY_CREATE_FAILED, "Impossibile creare la chiave: %s");
         setValue(L.ERROR_AGENT_ACTION_FAILED, "L'azione dell'agente non è riuscita: %s");
+        setValue(L.ERROR_API_KEY_SAVE_FAILED, "Impossibile salvare la chiave: %s");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "Impossibile salvare il modulo.");

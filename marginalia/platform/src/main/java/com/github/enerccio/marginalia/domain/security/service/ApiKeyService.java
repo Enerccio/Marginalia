@@ -64,6 +64,19 @@ public interface ApiKeyService extends ExtendableService<ApiKey, ApiKeyRepositor
     CreatedKey create(String name, Collection<ApiScope> scopes, Date expires) throws Exception;
 
     /**
+     * Changes the name, the scopes and the expiry of a key of the current user; the text of the key stays the same.
+     *
+     * @param scopes  as for {@link #create}; an administration scope the key does not have yet needs an administrator
+     * @param expires when the key stops working, null for never; a time in the past only when it is the key's own expiry (an
+     *                expired key keeps it while its name or scopes change)
+     * @return the saved key
+     * @throws SecurityException        when the user may not use the API, or adds an administration scope and is not an administrator
+     * @throws IllegalArgumentException when the key is not the user's, no scope is given, the name is blank or too long, or the expiry
+     *                                  is a new one in the past
+     */
+    ApiKey update(String uuid, String name, Collection<ApiScope> scopes, Date expires) throws Exception;
+
+    /**
      * Revokes (deletes) a key of the current user; an administrator may revoke the key of anyone.
      *
      * @return whether a key was revoked
