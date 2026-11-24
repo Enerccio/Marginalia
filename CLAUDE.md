@@ -14,7 +14,7 @@ Marginalia: a self-hosted tool for co-writing long fiction with OpenAI-compatibl
 All from `marginalia/` (the Maven project; needs JDK 25 + Maven 3.9, build from a git clone — the build reads git info). The app depends on the platform module `marginalia/platform` (artifact `marginalia-platform`, the classes without a story concept, same packages; `layers.txt` says which class goes where): a build in `marginalia/` takes it from `~/.m2`, so after a change of the platform build from the root with `mvn ... -pl marginalia -am` (it builds the platform first) or `mvn install -DskipTests -f platform/pom.xml` first. The platform's own tests are in `platform/src/test` and run on the platform alone (its test-only Spring XML, unit and migrations); its test base (`PlatformTestBase`, `MockLLMServer`, the CRUD contracts) is the platform's test-jar, which the app's tests depend on. Run them with `mvn clean test -pl marginalia/platform` from the root (both: `-pl marginalia/platform,marginalia`).
 
 ```sh
-mvn package                  # build + tests; production WAR in target/marginalia-1.9.0.war
+mvn package                  # build + tests; production WAR in target/marginalia-1.9.1.war
 mvn package -DskipTests
 mvn install -DskipTests      # also installs the classes JAR into ~/.m2 (required before building plugins; the platform JAR too: from the root, -pl marginalia -am)
 mvn clean test                                # ALWAYS run tests with clean (see Testing notes)

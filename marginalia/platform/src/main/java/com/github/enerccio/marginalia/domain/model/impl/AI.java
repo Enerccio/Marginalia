@@ -128,6 +128,24 @@ public class AI extends ExtendableEntity {
     @ExtendedAttribute
     private PromptPlacement functionRulePlacement;
 
+    /**
+     * Whether consecutive messages of the same role (user, user, user) are sent as one message ({@code PromptPlacements#mergeConsecutive}).
+     * A block inserted as a user message just before the latest one then becomes the start of it: llama.cpp keeps a checkpoint of the
+     * prompt at the start of the last user message, so the story before the block stays cached on models with sliding window
+     * attention. Off when never set.
+     */
+    @Transient
+    @ExtendedAttribute
+    private Boolean mergeConsecutiveRoles;
+
+    public boolean isMergeConsecutiveRoles() {
+        return Boolean.TRUE.equals(mergeConsecutiveRoles);
+    }
+
+    public void setMergeConsecutiveRoles(boolean mergeConsecutiveRoles) {
+        this.mergeConsecutiveRoles = mergeConsecutiveRoles ? Boolean.TRUE : null;
+    }
+
     /** Never null: the setting, or the old checkbox ({@link PromptPlacement#SYSTEM} / {@link PromptPlacement#AFTER}). */
     public PromptPlacement getImagePlacement() {
         if (imagePlacement != null) {

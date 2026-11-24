@@ -317,6 +317,7 @@ public class LocalizationBundleIT extends LocalizationBundleBase {
         setValue(L.LABEL_UP, "Su");
         setValue(L.LABEL_UPLOAD_FILE, "Carica file");
         setValue(L.LABEL_FOLDER_NAME, "Nome della cartella");
+        setValue(L.LABEL_MERGE_CONSECUTIVE_ROLES, "Unisci ruoli consecutivi");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "Compatibile con OpenAI");
@@ -565,6 +566,7 @@ public class LocalizationBundleIT extends LocalizationBundleBase {
         setValue(L.HELP_FUNCTIONS_PLACEMENT, "Dove il modello legge le funzioni che può chiamare. Nel messaggio di sistema: solo nei tools della richiesta, che il template di chat mette lì. Prima o dopo il testo: scritte anche nell'ultimo messaggio dell'utente. I tools della richiesta vengono sempre inviati, il server ne ha bisogno per riconoscere le chiamate.");
         setValue(L.HELP_FUNCTION_RULE, "Aggiunta a ogni richiesta che offre funzioni, per esempio: Agisci solo tramite chiamate di funzione. Non scrivere mai una chiamata come testo nella risposta; per usare una funzione, chiamala. Aiuta i modelli che scrivono la chiamata come testo invece di farla (Gemma 4). Vuoto: nessuna.");
         setValue(L.HELP_FUNCTION_RULE_PLACEMENT, "Dove va la regola. Gemma 4 la segue meglio nell'ultimo messaggio dell'utente che nel messaggio di sistema.");
+        setValue(L.HELP_MERGE_CONSECUTIVE_ROLES, "Prima dell'invio, i messaggi consecutivi dello stesso ruolo (utente, utente, utente) diventano uno solo. Aiuta la cache dei prompt di llama.cpp quando dei blocchi sono inseriti come messaggi utente prima dell'ultimo; le chiamate di funzione e i loro risultati restano separati.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_NARRATIVE_POV, "Punto di vista (POV) della narrazione.");

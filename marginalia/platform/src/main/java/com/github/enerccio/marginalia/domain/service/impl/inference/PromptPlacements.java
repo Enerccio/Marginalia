@@ -65,7 +65,8 @@ public final class PromptPlacements {
     }
 
     /**
-     * The payload as the AI wants it sent: the images before their text ({@link AI#getImagePlacement()} {@link PromptPlacement#BEFORE}
+     * The payload as the AI wants it sent: consecutive messages of the same role joined ({@link #mergeConsecutive}, when
+     * {@link AI#isMergeConsecutiveRoles()}), the images before their text ({@link AI#getImagePlacement()} {@link PromptPlacement#BEFORE}
      * of a multimodal AI), and when functions are offered and may be called, the {@linkplain #describeFunctions definitions} in the
      * latest user message ({@link AI#getFunctionsPlacement()} other than {@link PromptPlacement#SYSTEM}), then the
      * {@link AI#getFunctionRule() rule} where it is set to go.
@@ -76,9 +77,9 @@ public final class PromptPlacements {
         if (ai == null || payload == null) {
             return payload;
         }
-        List<LLMChatMessage> placed = payload;
+        List<LLMChatMessage> placed = ai.isMergeConsecutiveRoles() ? mergeConsecutive(payload) : payload;
         if (ai.isMultimodal() && ai.getImagePlacement() == PromptPlacement.BEFORE) {
-            placed = new ArrayList<>(payload);
+            placed = new ArrayList<>(placed);
             for (int i = 0; i < placed.size(); i++) {
                 LLMChatMessage message = placed.get(i);
                 if (!message.isImagesFirst() && hasImage(message)) {
@@ -97,9 +98,56 @@ public final class PromptPlacements {
         return placed;
     }
 
+    /**
+     * The payload with consecutive messages of the same role joined into one ({@link AI#isMergeConsecutiveRoles()}): user, user, user
+     * becomes one user message, the texts separated by an empty line. Kept apart: function results ({@link LLMRole#TOOL}, each answers
+     * its own call), assistant messages that call functions, two messages that both have attachments (the place of the images
+     * against the texts would be lost) and two that both carry the model's reasoning. The merged message is a new one, the
+     * attachments, image placement and reasoning are those of the part that has them.
+     */
+    public static List<LLMChatMessage> mergeConsecutive(List<LLMChatMessage> payload) {
+        if (payload == null || payload.size() < 2) {
+            return payload;
+        }
+        List<LLMChatMessage> merged = new ArrayList<>(payload.size());
+        for (LLMChatMessage message : payload) {
+            int last = merged.size() - 1;
+            if (last >= 0 && canMerge(merged.get(last), message)) {
+                merged.set(last, merge(merged.get(last), message));
+            } else {
+                merged.add(message);
+            }
+        }
+        return merged.size() == payload.size() ? payload : merged;
+    }
+
+    private static boolean canMerge(LLMChatMessage first, LLMChatMessage second) {
+        return first.getRole() != null && first.getRole() == second.getRole() && first.getRole() != LLMRole.TOOL
+                && !first.hasToolCalls() && !second.hasToolCalls()
+                && !(first.hasAttachments() && second.hasAttachments())
+                && !(first.getReasoning() != null && second.getReasoning() != null);
+    }
+
+    private static LLMChatMessage merge(LLMChatMessage first, LLMChatMessage second) {
+        LLMChatMessage merged = first.copy();
+        if (StringUtils.isBlank(first.getContent())) {
+            merged.setContent(second.getContent());
+        } else if (StringUtils.isNotBlank(second.getContent())) {
+            merged.setContent(first.getContent() + "\n\n" + second.getContent());
+        }
+        if (second.hasAttachments()) {
+            merged.setAttachments(new ArrayList<>(second.getAttachments()));
+            merged.setImagesFirst(second.isImagesFirst());
+        }
+        if (second.getReasoning() != null) {
+            merged.withReasoning(second.getReasoning(), second.isReasoningInTurn());
+        }
+        return merged;
+    }
+
     /** Whether {@link #forRequest} can change anything for the AI. */
     public static boolean needed(AI ai) {
-        return ai != null && ((ai.isMultimodal() && ai.getImagePlacement() == PromptPlacement.BEFORE)
+        return ai != null && (ai.isMergeConsecutiveRoles() || (ai.isMultimodal() && ai.getImagePlacement() == PromptPlacement.BEFORE)
                 || ai.getFunctionsPlacement() != PromptPlacement.SYSTEM || StringUtils.isNotBlank(ai.getFunctionRule()));
     }
 

@@ -317,6 +317,7 @@ public class LocalizationBundleES extends LocalizationBundleBase {
         setValue(L.LABEL_UP, "Subir");
         setValue(L.LABEL_UPLOAD_FILE, "Subir archivo");
         setValue(L.LABEL_FOLDER_NAME, "Nombre de la carpeta");
+        setValue(L.LABEL_MERGE_CONSECUTIVE_ROLES, "Combinar roles consecutivos");
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "Compatible con OpenAI");
         setValue(L.ENUM_PROTOCOL_TYPE_OPEN_CHAT_COMPLETION, "Chat Completion");
@@ -561,6 +562,7 @@ public class LocalizationBundleES extends LocalizationBundleBase {
         setValue(L.HELP_FUNCTIONS_PLACEMENT, "Dónde lee el modelo las funciones que puede llamar. En el mensaje del sistema: solo en los tools de la petición, que la plantilla de chat pone ahí. Antes o después del texto: también escritas en el último mensaje del usuario. Los tools de la petición se envían siempre, el servidor los necesita para reconocer las llamadas.");
         setValue(L.HELP_FUNCTION_RULE, "Se añade a cada petición que ofrece funciones, por ejemplo: Actúas solo mediante llamadas a funciones. Nunca escribas una llamada como texto en tu respuesta; para usar una función, llámala. Ayuda a los modelos que escriben la llamada como texto en lugar de hacerla (Gemma 4). Vacío: ninguna.");
         setValue(L.HELP_FUNCTION_RULE_PLACEMENT, "Dónde va la regla. Gemma 4 la sigue mejor en el último mensaje del usuario que en el mensaje del sistema.");
+        setValue(L.HELP_MERGE_CONSECUTIVE_ROLES, "Antes del envío, los mensajes consecutivos del mismo rol (usuario, usuario, usuario) se unen en uno. Ayuda a la caché de prompts de llama.cpp cuando se insertan bloques como mensajes de usuario antes del último; las llamadas a funciones y sus resultados quedan separados.");
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_NARRATIVE_POV, "Punto de vista (POV) de la narración.");
         setValue(L.DESC_TEMPLATE_NARRATIVE_TENSE, "Tiempo verbal usado en la narración.");

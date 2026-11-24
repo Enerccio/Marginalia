@@ -317,6 +317,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_UP, "上へ");
         setValue(L.LABEL_UPLOAD_FILE, "ファイルをアップロード");
         setValue(L.LABEL_FOLDER_NAME, "フォルダ名");
+        setValue(L.LABEL_MERGE_CONSECUTIVE_ROLES, "連続するロールを結合");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -565,6 +566,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_FUNCTIONS_PLACEMENT, "モデルが呼び出せる関数を読む場所。システムメッセージ内：リクエストの tools のみで、チャットテンプレートがそこに入れます。本文の前／後：最新のユーザーメッセージにも書き出します。サーバーが呼び出しを認識するため、リクエストの tools は常に送られます。");
         setValue(L.HELP_FUNCTION_RULE, "関数を提供するすべてのリクエストに追加されます。例：あなたは関数呼び出しによってのみ行動します。返答に呼び出しをテキストとして書かず、関数を使うときは呼び出してください。呼び出す代わりにテキストとして書いてしまうモデル（Gemma 4）に役立ちます。空欄：なし。");
         setValue(L.HELP_FUNCTION_RULE_PLACEMENT, "ルールの入れ場所。Gemma 4 はシステムメッセージより最新のユーザーメッセージにある方がよく従います。");
+        setValue(L.HELP_MERGE_CONSECUTIVE_ROLES, "送信前に、同じロールの連続したメッセージ（ユーザー、ユーザー、ユーザー）を1つにまとめます。最新のメッセージの前にユーザーメッセージとしてブロックが挿入される場合、llama.cpp のプロンプトキャッシュに役立ちます。関数の呼び出しとその結果は別のままです。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_NARRATIVE_POV, "語りの視点（POV）。");

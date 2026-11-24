@@ -317,6 +317,7 @@ public class LocalizationBundleKO extends LocalizationBundleBase {
         setValue(L.LABEL_UP, "위로");
         setValue(L.LABEL_UPLOAD_FILE, "파일 업로드");
         setValue(L.LABEL_FOLDER_NAME, "폴더 이름");
+        setValue(L.LABEL_MERGE_CONSECUTIVE_ROLES, "연속된 역할 병합");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 호환");
@@ -565,6 +566,7 @@ public class LocalizationBundleKO extends LocalizationBundleBase {
         setValue(L.HELP_FUNCTIONS_PLACEMENT, "모델이 호출할 수 있는 함수를 읽는 위치입니다. 시스템 메시지 안: 요청의 tools에만 있으며 채팅 템플릿이 그곳에 넣습니다. 본문 앞/뒤: 최신 사용자 메시지에도 적어 넣습니다. 서버가 호출을 인식하려면 필요하므로 요청의 tools는 항상 보냅니다.");
         setValue(L.HELP_FUNCTION_RULE, "함수를 제공하는 모든 요청에 추가됩니다. 예: 너는 함수 호출로만 행동한다. 답변에 호출을 텍스트로 쓰지 말고, 함수를 쓰려면 호출하라. 호출하는 대신 텍스트로 쓰는 모델(Gemma 4)에 도움이 됩니다. 비워 두면 없음.");
         setValue(L.HELP_FUNCTION_RULE_PLACEMENT, "규칙이 들어갈 위치입니다. Gemma 4는 시스템 메시지보다 최신 사용자 메시지에 있을 때 더 잘 따릅니다.");
+        setValue(L.HELP_MERGE_CONSECUTIVE_ROLES, "보내기 전에 같은 역할의 연속된 메시지(사용자, 사용자, 사용자)를 하나로 합칩니다. 최신 메시지 앞에 사용자 메시지로 블록이 삽입될 때 llama.cpp의 프롬프트 캐시에 도움이 됩니다. 함수 호출과 그 결과는 따로 유지됩니다.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_NARRATIVE_POV, "서술의 시점(POV).");

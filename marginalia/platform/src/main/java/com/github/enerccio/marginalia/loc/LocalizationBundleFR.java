@@ -317,6 +317,7 @@ public class LocalizationBundleFR extends LocalizationBundleBase {
         setValue(L.LABEL_UP, "Haut");
         setValue(L.LABEL_UPLOAD_FILE, "Téléverser un fichier");
         setValue(L.LABEL_FOLDER_NAME, "Nom du dossier");
+        setValue(L.LABEL_MERGE_CONSECUTIVE_ROLES, "Fusionner les rôles consécutifs");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "Compatible OpenAI");
@@ -565,6 +566,7 @@ public class LocalizationBundleFR extends LocalizationBundleBase {
         setValue(L.HELP_FUNCTIONS_PLACEMENT, "Où le modèle lit les fonctions qu'il peut appeler. Dans le message système : seulement dans les tools de la requête, que le modèle de chat y place. Avant ou après le texte : écrites aussi dans le dernier message de l'utilisateur. Les tools de la requête sont toujours envoyés, le serveur en a besoin pour reconnaître les appels.");
         setValue(L.HELP_FUNCTION_RULE, "Ajoutée à chaque requête qui offre des fonctions, par exemple : Tu agis uniquement par des appels de fonction. N'écris jamais un appel comme texte dans ta réponse ; pour utiliser une fonction, appelle-la. Aide les modèles qui écrivent l'appel comme texte au lieu de le faire (Gemma 4). Vide : aucune.");
         setValue(L.HELP_FUNCTION_RULE_PLACEMENT, "Où va la règle. Gemma 4 la suit mieux dans le dernier message de l'utilisateur que dans le message système.");
+        setValue(L.HELP_MERGE_CONSECUTIVE_ROLES, "Avant l'envoi, les messages consécutifs du même rôle (utilisateur, utilisateur, utilisateur) sont réunis en un seul. Aide le cache de prompt de llama.cpp quand des blocs sont insérés comme messages utilisateur avant le dernier ; les appels de fonctions et leurs résultats restent séparés.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_NARRATIVE_POV, "Point de vue (POV) du récit.");

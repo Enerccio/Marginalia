@@ -317,6 +317,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_UP, "Up");
         setValue(L.LABEL_UPLOAD_FILE, "Upload file");
         setValue(L.LABEL_FOLDER_NAME, "Folder name");
+        setValue(L.LABEL_MERGE_CONSECUTIVE_ROLES, "Merge subsequent roles");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -565,6 +566,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_FUNCTIONS_PLACEMENT, "Where the model reads the functions it can call. In the system message: only in the tools of the request, which the chat template puts there. Before or after the text: also written out in the latest user message. The tools of the request are always sent, the server needs them to recognise the calls.");
         setValue(L.HELP_FUNCTION_RULE, "Added to every request that offers functions, for example: You act only through function calls. Never write a call as text in your reply; to use a function, call it. Helps models that write the call as text instead of making it (Gemma 4). Empty: none.");
         setValue(L.HELP_FUNCTION_RULE_PLACEMENT, "Where the rule goes. Gemma 4 follows it better in the latest user message than in the system message.");
+        setValue(L.HELP_MERGE_CONSECUTIVE_ROLES, "Before sending, consecutive messages of the same role (user, user, user) are joined into one. Helps the prompt cache of llama.cpp when blocks are inserted as user messages before the latest one; function calls and their results stay apart.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_NARRATIVE_POV, "Point of view (POV) for the narrative.");

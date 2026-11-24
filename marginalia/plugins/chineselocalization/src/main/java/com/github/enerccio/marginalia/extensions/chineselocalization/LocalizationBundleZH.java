@@ -326,6 +326,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_UP, "上一级");
         setValue(L.LABEL_UPLOAD_FILE, "上传文件");
         setValue(L.LABEL_FOLDER_NAME, "文件夹名称");
+        setValue(L.LABEL_MERGE_CONSECUTIVE_ROLES, "合并连续角色");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -574,6 +575,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_FUNCTIONS_PLACEMENT, "模型在哪里读取它可以调用的函数。在系统消息中：只在请求的 tools 中，由聊天模板放到那里。在正文之前或之后：同时写入最新的用户消息。请求的 tools 始终会发送，服务器需要它们来识别调用。");
         setValue(L.HELP_FUNCTION_RULE, "添加到每个提供函数的请求中，例如：你只能通过函数调用来行动。不要在回复中把调用写成文本；要使用函数，就调用它。适用于把调用写成文本而不是真正调用的模型（Gemma 4）。留空：不添加。");
         setValue(L.HELP_FUNCTION_RULE_PLACEMENT, "规则放在哪里。Gemma 4 在最新用户消息中比在系统消息中更能遵守它。");
+        setValue(L.HELP_MERGE_CONSECUTIVE_ROLES, "发送前，将同一角色的连续消息（用户、用户、用户）合并为一条。当区块作为用户消息插入在最新消息之前时，有助于 llama.cpp 的提示缓存；函数调用及其结果保持分开。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_NARRATIVE_POV, "叙事视角（POV）。");

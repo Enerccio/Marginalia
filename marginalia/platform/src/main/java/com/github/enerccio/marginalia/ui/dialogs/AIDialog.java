@@ -88,6 +88,7 @@ public class AIDialog extends Dialog implements LLMInteract {
     private ComboBox<PromptPlacement> functionsPlacementCombo;
     private TextArea functionRuleField;
     private ComboBox<PromptPlacement> functionRulePlacementCombo;
+    private Checkbox mergeConsecutiveRolesCheckbox;
     private TextArea jailbreakField;
     private Checkbox enabledReasoningCheckbox;
     private ComboBox<ReasoningEffort> reasoningEffortCombo;
@@ -179,6 +180,7 @@ public class AIDialog extends Dialog implements LLMInteract {
         generalFormLayout.add(functionsPlacementCombo, 2);
         generalFormLayout.add(functionRuleField, 2);
         generalFormLayout.add(functionRulePlacementCombo, 2);
+        generalFormLayout.add(mergeConsecutiveRolesCheckbox, 2);
 
         tabSheet.add(loc.getValue(L.LABEL_GENERAL_SETTINGS), generalFormLayout);
 
@@ -339,6 +341,9 @@ public class AIDialog extends Dialog implements LLMInteract {
         functionRuleField.setWidthFull();
         ResizableTextArea.install(loc, functionRuleField, "80px");
         functionRulePlacementCombo = placementCombo(loc, L.LABEL_FUNCTION_RULE_PLACEMENT, L.HELP_FUNCTION_RULE_PLACEMENT, PromptPlacement.AFTER);
+
+        mergeConsecutiveRolesCheckbox = new Checkbox(loc.getValue(L.LABEL_MERGE_CONSECUTIVE_ROLES));
+        mergeConsecutiveRolesCheckbox.setHelperText(loc.getValue(L.HELP_MERGE_CONSECUTIVE_ROLES));
 
         needsJailbreakCheckbox = new Checkbox(loc.getValue(L.LABEL_NEEDS_JAILBREAK));
         jailbreakField = new TextArea(loc.getValue(L.LABEL_JAILBREAK));
@@ -582,6 +587,7 @@ public class AIDialog extends Dialog implements LLMInteract {
         functionsPlacementCombo.setValue(ai.getFunctionsPlacement());
         functionRuleField.setValue(StringUtils.defaultString(ai.getFunctionRule()));
         functionRulePlacementCombo.setValue(ai.getFunctionRulePlacement());
+        mergeConsecutiveRolesCheckbox.setValue(ai.isMergeConsecutiveRoles());
         jailbreakField.setValue(StringUtils.defaultString(ai.getJailbreak()));
         needsJailbreakCheckbox.setValue(Boolean.TRUE.equals(ai.getNeedsJailbreak()));
         jailbreakField.setEnabled(Boolean.TRUE.equals(ai.getNeedsJailbreak()));
@@ -1009,6 +1015,7 @@ public class AIDialog extends Dialog implements LLMInteract {
             ai.setFunctionsPlacement(Objects.requireNonNullElse(functionsPlacementCombo.getValue(), PromptPlacement.SYSTEM));
             ai.setFunctionRule(functionRuleField.getValue());
             ai.setFunctionRulePlacement(Objects.requireNonNullElse(functionRulePlacementCombo.getValue(), PromptPlacement.AFTER));
+            ai.setMergeConsecutiveRoles(mergeConsecutiveRolesCheckbox.getValue());
             ai.setJailbreak(jailbreakField.getValue());
             ai.setNeedsJailbreak(needsJailbreakCheckbox.getValue());
             ai.setEnabledReasoning(enabledReasoningCheckbox.getValue());

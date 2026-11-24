@@ -113,6 +113,7 @@ public class AIServiceImpl extends ExtendableServiceImpl<AI, AIRepository> imple
         copy.setFunctionsPlacement(original.getFunctionsPlacement());
         copy.setFunctionRule(original.getFunctionRule());
         copy.setFunctionRulePlacement(original.getFunctionRulePlacement());
+        copy.setMergeConsecutiveRoles(original.isMergeConsecutiveRoles());
         if (original.getAttributes() != null) {
             copy.setAttributes(original.getAttributes().deepCopy());
         }

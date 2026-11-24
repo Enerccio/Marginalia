@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- **Merge subsequent roles (AI setting).** An AI can send consecutive messages of the same role (user, user, user) as one message. With a plugin block inserted as a user message just before the latest one, llama.cpp then keeps the story before it in the prompt cache on models with sliding window attention (Gemma), because it checkpoints the prompt at the start of the last user message. Function calls, their results and two messages that both have images stay apart. API: `AI.isMergeConsecutiveRoles` / `setMergeConsecutiveRoles`, `PromptPlacements.mergeConsecutive`.
+
 ## [1.9.0] - 2026-11-23
 
 Everything below is new since 1.8.0. Migrations `V29` to `V32`; plugins have to be rebuilt with the application.

@@ -317,6 +317,7 @@ public class LocalizationBundleDE extends LocalizationBundleBase {
         setValue(L.LABEL_UP, "Nach oben");
         setValue(L.LABEL_UPLOAD_FILE, "Datei hochladen");
         setValue(L.LABEL_FOLDER_NAME, "Ordnername");
+        setValue(L.LABEL_MERGE_CONSECUTIVE_ROLES, "Aufeinanderfolgende Rollen zusammenführen");
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI-kompatibel");
         setValue(L.ENUM_PROTOCOL_TYPE_OPEN_CHAT_COMPLETION, "Chat Completion");
@@ -561,6 +562,7 @@ public class LocalizationBundleDE extends LocalizationBundleBase {
         setValue(L.HELP_FUNCTIONS_PLACEMENT, "Wo das Modell die Funktionen liest, die es aufrufen kann. In der Systemnachricht: nur in den tools der Anfrage, die das Chat-Template dorthin setzt. Vor oder nach dem Text: zusätzlich ausgeschrieben in der letzten Benutzernachricht. Die tools der Anfrage werden immer gesendet, der Server braucht sie, um die Aufrufe zu erkennen.");
         setValue(L.HELP_FUNCTION_RULE, "Wird jeder Anfrage hinzugefügt, die Funktionen anbietet, zum Beispiel: Du handelst nur durch Funktionsaufrufe. Schreib nie einen Aufruf als Text in deine Antwort; um eine Funktion zu nutzen, ruf sie auf. Hilft Modellen, die den Aufruf als Text schreiben, statt ihn auszuführen (Gemma 4). Leer: keine.");
         setValue(L.HELP_FUNCTION_RULE_PLACEMENT, "Wohin die Regel kommt. Gemma 4 befolgt sie in der letzten Benutzernachricht besser als in der Systemnachricht.");
+        setValue(L.HELP_MERGE_CONSECUTIVE_ROLES, "Vor dem Senden werden aufeinanderfolgende Nachrichten derselben Rolle (Benutzer, Benutzer, Benutzer) zu einer zusammengefasst. Hilft dem Prompt-Cache von llama.cpp, wenn Blöcke als Benutzernachrichten vor der letzten eingefügt werden; Funktionsaufrufe und ihre Ergebnisse bleiben getrennt.");
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_NARRATIVE_POV, "Erzählperspektive (POV) der Erzählung.");
         setValue(L.DESC_TEMPLATE_NARRATIVE_TENSE, "In der Erzählung verwendete Zeitform.");

@@ -301,6 +301,7 @@ public enum L implements LocalizationKey {
     LABEL_UP,
     LABEL_UPLOAD_FILE,
     LABEL_FOLDER_NAME,
+    LABEL_MERGE_CONSECUTIVE_ROLES,
 
     // --- ENUM ---
     ENUM_AI_TYPE_OPEN_AI_COMPATIBLE,
@@ -549,6 +550,7 @@ public enum L implements LocalizationKey {
     HELP_FUNCTIONS_PLACEMENT,
     HELP_FUNCTION_RULE,
     HELP_FUNCTION_RULE_PLACEMENT,
+    HELP_MERGE_CONSECUTIVE_ROLES,
 
     // --- DESC ---
     DESC_TEMPLATE_NARRATIVE_POV,
