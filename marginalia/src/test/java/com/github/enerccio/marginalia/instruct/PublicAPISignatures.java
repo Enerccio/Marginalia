@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.instruct;
 
+import com.github.enerccio.marginalia.architecture.ModuleClasses;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.domain.traits.PublicAPI;
 import net.bytebuddy.description.annotation.AnnotationDescription;
@@ -17,7 +18,6 @@ import org.objectweb.asm.tree.MethodNode;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -74,34 +74,26 @@ final class PublicAPISignatures {
         }
     }
 
-    static Path classesRoot() {
-        try {
-            return Path.of(Extendable.class.getProtectionDomain().getCodeSource().getLocation().toURI());
-        } catch (URISyntaxException e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
     static TypePool pool() {
         return TypePool.Default.of(ClassFileLocator.ForClassLoader.of(Extendable.class.getClassLoader()));
     }
 
     /**
-     * All classes of the application, nested ones included.
+     * All classes of the platform and of the application, nested ones included.
      */
     static List<TypeDescription> allTypes(TypePool pool) {
-        Path root = classesRoot();
-        try (Stream<Path> files = Files.walk(root.resolve("com/github/enerccio"))) {
-            return files
-                    .filter(file -> file.toString().endsWith(".class"))
-                    .map(file -> root.relativize(file).toString())
-                    .map(name -> name.substring(0, name.length() - ".class".length()).replace('/', '.'))
-                    .sorted()
-                    .map(name -> pool.describe(name).resolve())
-                    .collect(Collectors.toList());
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+        List<String> names = new ArrayList<>();
+        for (Path root : ModuleClasses.roots().values()) {
+            try (Stream<Path> files = Files.walk(root.resolve("com/github/enerccio"))) {
+                files.map(file -> root.relativize(file).toString())
+                        .filter(name -> name.endsWith(".class"))
+                        .map(name -> name.substring(0, name.length() - ".class".length()).replace('/', '.').replace('\\', '.'))
+                        .forEach(names::add);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
         }
+        return names.stream().sorted().map(name -> pool.describe(name).resolve()).collect(Collectors.toList());
     }
 
     static boolean isExtendable(TypeDescription type) {

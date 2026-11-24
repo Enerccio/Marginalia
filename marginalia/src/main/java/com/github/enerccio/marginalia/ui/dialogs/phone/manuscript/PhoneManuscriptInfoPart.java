@@ -11,6 +11,7 @@ import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.ProtocolService;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneManuscriptDialog;
 import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneManuscriptDialogPart;
@@ -116,7 +117,7 @@ public class PhoneManuscriptInfoPart implements PhoneManuscriptDialogPart {
             if (e.isFromClient()) {
                 if (StringUtils.isBlank(e.getValue())) {
                     nameField.setInvalid(true);
-                    nameField.setErrorMessage(loc.getValue(L.ERROR_NAME_CANT_BE_EMPTY));
+                    nameField.setErrorMessage(loc.getValue(M_L.ERROR_NAME_CANT_BE_EMPTY));
                 } else {
                     nameField.setInvalid(false);
                     nameField.setErrorMessage("");
@@ -125,7 +126,7 @@ public class PhoneManuscriptInfoPart implements PhoneManuscriptDialogPart {
             }
         });
 
-        tags = new TagMultiComboBox(loc.getValue(L.LABEL_TAGS));
+        tags = new TagMultiComboBox(loc.getValue(M_L.LABEL_TAGS));
 
         descriptionField = new TextArea(loc.getValue(L.LABEL_DESCRIPTION));
         descriptionField.setWidthFull();
@@ -143,7 +144,7 @@ public class PhoneManuscriptInfoPart implements PhoneManuscriptDialogPart {
             }
         });
 
-        historyLimitField = new HistoryLimitField(loc.getValue(L.LABEL_HISTORY_MAX_VERSIONS));
+        historyLimitField = new HistoryLimitField(loc.getValue(M_L.LABEL_HISTORY_MAX_VERSIONS));
         historyLimitField.addValueChangeListener(e -> {
             if (e.isFromClient()) {
                 autosave();
@@ -170,15 +171,15 @@ public class PhoneManuscriptInfoPart implements PhoneManuscriptDialogPart {
             }
         });
 
-        showImagesCheckbox = new Checkbox(loc.getValue(L.LABEL_SHOW_IMAGES_TO_READERS));
-        showImagesCheckbox.setHelperComponent(new Span(loc.getValue(L.MSG_SHOW_IMAGES_TO_READERS_HELP)));
+        showImagesCheckbox = new Checkbox(loc.getValue(M_L.LABEL_SHOW_IMAGES_TO_READERS));
+        showImagesCheckbox.setHelperComponent(new Span(loc.getValue(M_L.MSG_SHOW_IMAGES_TO_READERS_HELP)));
         showImagesCheckbox.addValueChangeListener(e -> {
             if (e.isFromClient()) {
                 autosave();
             }
         });
-        publishedCheckbox = new Checkbox(loc.getValue(L.LABEL_PUBLISHED));
-        publishedCheckbox.setHelperComponent(new Span(loc.getValue(L.MSG_PUBLISHED_HELP)));
+        publishedCheckbox = new Checkbox(loc.getValue(M_L.LABEL_PUBLISHED));
+        publishedCheckbox.setHelperComponent(new Span(loc.getValue(M_L.MSG_PUBLISHED_HELP)));
         publishedCheckbox.addValueChangeListener(e -> {
             if (e.isFromClient()) {
                 autosave();
@@ -186,7 +187,7 @@ public class PhoneManuscriptInfoPart implements PhoneManuscriptDialogPart {
             if (e.getValue()) {
                 String relativeUrl = RouteConfiguration.forSessionScope().getUrl(Viewer.class) + "/" + parent.getManuscript().getUuid();
                 RouterLink routerLink = new RouterLink(relativeUrl, Viewer.class, parent.getManuscript().getUuid());
-                VerticalLayout verticalLayout = new VerticalLayout(new Span(loc.getValue(L.MSG_PUBLISHED_HELP)),
+                VerticalLayout verticalLayout = new VerticalLayout(new Span(loc.getValue(M_L.MSG_PUBLISHED_HELP)),
                         routerLink);
                 verticalLayout.setWidthFull();
                 verticalLayout.setSpacing(false);
@@ -199,7 +200,7 @@ public class PhoneManuscriptInfoPart implements PhoneManuscriptDialogPart {
                     routerLink.setText(fullPath);
                 });
             } else {
-                publishedCheckbox.setHelperComponent(new Span(loc.getValue(L.MSG_PUBLISHED_HELP)));
+                publishedCheckbox.setHelperComponent(new Span(loc.getValue(M_L.MSG_PUBLISHED_HELP)));
             }
         });
 
@@ -271,10 +272,10 @@ public class PhoneManuscriptInfoPart implements PhoneManuscriptDialogPart {
             branchTokens = chatMessageService.getBranchTokenCount(manuscript.getActiveLeaf());
         }
 
-        totalWordCountSpan.setText(loc.getValue(L.LABEL_TOTAL_WORD_COUNT) + ": " + totalWords);
-        totalTokenCountSpan.setText(loc.getValue(L.LABEL_TOTAL_TOKEN_COUNT) + ": " + totalTokens);
-        branchWordCountSpan.setText(loc.getValue(L.LABEL_BRANCH_WORD_COUNT) + ": " + branchWords);
-        branchTokenCountSpan.setText(loc.getValue(L.LABEL_BRANCH_TOKEN_COUNT) + ": " + branchTokens);
+        totalWordCountSpan.setText(loc.getValue(M_L.LABEL_TOTAL_WORD_COUNT) + ": " + totalWords);
+        totalTokenCountSpan.setText(loc.getValue(M_L.LABEL_TOTAL_TOKEN_COUNT) + ": " + totalTokens);
+        branchWordCountSpan.setText(loc.getValue(M_L.LABEL_BRANCH_WORD_COUNT) + ": " + branchWords);
+        branchTokenCountSpan.setText(loc.getValue(M_L.LABEL_BRANCH_TOKEN_COUNT) + ": " + branchTokens);
     }
 
     /**

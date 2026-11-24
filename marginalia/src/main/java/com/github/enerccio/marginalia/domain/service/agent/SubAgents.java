@@ -113,7 +113,7 @@ public final class SubAgents {
          * The folder of the workspace that is its own, where it writes and the agent finds what it made.
          */
         public String folder() {
-            return "/" + VirtualFileSystem.SUBAGENTS + "/" + handle;
+            return "/" + AgentFileSystem.SUBAGENTS + "/" + handle;
         }
 
         public int rounds() {

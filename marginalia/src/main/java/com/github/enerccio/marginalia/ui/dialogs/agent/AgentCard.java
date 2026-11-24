@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.dialogs.agent;
 
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -41,7 +42,7 @@ final class AgentCard {
         VerticalLayout card = new VerticalLayout(head);
         card.setPadding(false);
         card.setSpacing(false);
-        card.addClassNames(CssStyles.AGENT_CARD, CssStyles.GAP_S);
+        card.addClassNames(MarginaliaCssStyles.AGENT_CARD, CssStyles.GAP_S);
         for (String detail : details) {
             if (StringUtils.isNotBlank(detail)) {
                 Span line = new Span(detail);

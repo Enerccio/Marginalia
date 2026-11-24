@@ -825,8 +825,9 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
                                       String generated) throws Exception {
         Manuscript book = ownBook(manuscript);
         ChatMessage stored = ownPart(book, message);
-        // the part a generation writes now is not changed by hand
+        // the part a generation writes now is not changed by hand, nor by a step after a part that runs beside others
         Runs.check(stored, Runs.Operation.EDIT);
+        Runs.checkMayWriteText();
         String newText = text == null ? "" : text;
         String oldText = stored.getResponse();
         // the text that is replaced is in the history, whoever wrote it
@@ -871,7 +872,9 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
         ChatMessage later = ownPart(book, part);
         ChatMessage previous = mergeTarget(book, later);
         Runs.check(later, Runs.Operation.MOVE);
-        Runs.check(previous, Runs.Operation.EDIT);
+        // the text of the part before changes as a whole: refused as well while a run works on it (a redraft or an annotation window
+        // would apply a result made of its old text, a translation writes it)
+        Runs.check(previous, Runs.Operation.MOVE);
         PartMerge.Join joined = join == null ? PartMerge.Join.suggest(previous.getResponse(), later.getResponse()) : join;
         messageRevisionService.ensureCurrent(previous);
 

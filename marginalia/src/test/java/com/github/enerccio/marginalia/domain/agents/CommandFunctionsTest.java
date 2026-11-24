@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.agents;
 
+import com.github.enerccio.marginalia.loc.M_L;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.enerccio.marginalia.domain.collections.DestructiveCommandMode;
 import com.github.enerccio.marginalia.domain.service.agent.CommandFunctions;
@@ -11,7 +12,6 @@ import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
 import com.github.enerccio.marginalia.domain.service.impl.CommandServiceImpl;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMAttachment;
 import com.github.enerccio.marginalia.domain.traits.*;
-import com.github.enerccio.marginalia.loc.L;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -731,7 +731,7 @@ class CommandFunctionsTest {
         JsonNode images = definition(set, "describe").getParametersSchema().get("properties").get("images");
         assertThat(images.get("type").asText()).isEqualTo("array");
         assertThat(images.get("items").get("type").asText()).isEqualTo("string");
-        assertThat(images.get("description").asText()).startsWith("Pictures to look at").contains(L.DESC_AGENT_IMAGES_ARGUMENT.name());
+        assertThat(images.get("description").asText()).startsWith("Pictures to look at").contains(M_L.DESC_AGENT_IMAGES_ARGUMENT.name());
 
         assertThat(call(set, "describe", "{\"prompt\":\"x\",\"images\":[\"/refs/a.png\",\"/refs/b.png\"]}"))
                 .isEqualTo("[/refs/a.png:image/png:3, /refs/b.png:image/png:3]");

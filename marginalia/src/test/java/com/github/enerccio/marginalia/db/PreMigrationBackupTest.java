@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.db;
 
 import com.github.enerccio.marginalia.Configuration;
 import com.github.enerccio.marginalia.DatabaseCheck;
+import com.github.enerccio.marginalia.MarginaliaDatabase;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.MigrationVersion;
 import org.flywaydb.core.api.configuration.ClassicConfiguration;
@@ -46,7 +47,7 @@ class PreMigrationBackupTest {
      */
     private void databaseAt(String version) {
         withDatabase(database, jdbc -> {
-            ClassicConfiguration flyway = DatabaseCheck.flywayConfiguration(jdbc.getDataSource());
+            ClassicConfiguration flyway = DatabaseCheck.flywayConfiguration(jdbc.getDataSource(), MarginaliaDatabase.SCHEMA);
             flyway.setTarget(MigrationVersion.fromVersion(version));
             new Flyway(flyway).migrate();
             jdbc.execute("CREATE TABLE marker (id INTEGER)");
@@ -93,7 +94,7 @@ class PreMigrationBackupTest {
     }
 
     private static void assertThatCopyPassesRestoreCheck(File copy) throws Exception {
-        DatabaseCheck.check(copy);
+        DatabaseCheck.check(copy, MarginaliaDatabase.SCHEMA);
     }
 
     @Test
@@ -108,7 +109,7 @@ class PreMigrationBackupTest {
 
     @Test
     void savesNothingForCurrentDatabase() throws Exception {
-        withDatabase(database, jdbc -> new Flyway(DatabaseCheck.flywayConfiguration(jdbc.getDataSource())).migrate());
+        withDatabase(database, jdbc -> new Flyway(DatabaseCheck.flywayConfiguration(jdbc.getDataSource(), MarginaliaDatabase.SCHEMA)).migrate());
 
         configuration.resolveDb(DB);
 

@@ -7,7 +7,7 @@
     <parent>
         <groupId>io.github.enerccio</groupId>
         <artifactId>marginalia-parent</artifactId>
-        <version>1.8.0</version>
+        <version>1.9.0</version>
         <relativePath>../../../pom.xml</relativePath>
     </parent>
 
@@ -41,7 +41,7 @@
             <version>6.0.1</version>
             <scope>provided</scope>
         </dependency>
-        <!-- SharedGate: the gates live in the application, so that two extensions on one GPU find the same one -->
+        <!-- the job log (Jobs) and the widgets of the application the editor of the requests uses -->
         <dependency>
             <groupId>io.github.enerccio</groupId>
             <artifactId>marginalia</artifactId>

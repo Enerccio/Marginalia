@@ -1,6 +1,8 @@
 package com.github.enerccio.marginalia.ui;
 
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
 import com.github.enerccio.marginalia.ui.workspace.WorkspaceComponent;
@@ -51,7 +53,7 @@ class WorkspacePartsLLMTest extends MarginaliaTestBase {
         return part;
     }
 
-    private String add(L label) {
+    private String add(LocalizationKey label) {
         return "open-dialog:" + loc.getValue(label);
     }
 
@@ -67,8 +69,8 @@ class WorkspacePartsLLMTest extends MarginaliaTestBase {
         AIPart part = (AIPart) created(new AIPart(null));
 
         assertThat(part.getLLMState()).startsWith("A table of the user's models")
-                .contains("\"" + loc.getValue(L.LABEL_ADD_MODEL) + "\" opens a dialog");
-        assertThat(part.getInteraction()).containsOnlyKeys(add(L.LABEL_ADD_MODEL));
+                .contains("\"" + loc.getValue(M_L.LABEL_ADD_MODEL) + "\" opens a dialog");
+        assertThat(part.getInteraction()).containsOnlyKeys(add(M_L.LABEL_ADD_MODEL));
 
         // the models other users share with everybody are in the table too, so count from what is there
         int before = rows(part);
@@ -90,14 +92,14 @@ class WorkspacePartsLLMTest extends MarginaliaTestBase {
     @Test
     void everyListSectionOffersItsAddDialog() throws Exception {
         login();
-        Map<WorkspaceComponent, L> sections = new java.util.LinkedHashMap<>();
-        sections.put(new PhoneAIPart(null), L.LABEL_ADD_MODEL);
-        sections.put(new ProtocolPart(null), L.LABEL_ADD_PROTOCOL);
-        sections.put(new PhoneProtocolPart(null), L.LABEL_ADD_PROTOCOL);
-        sections.put(new ManuscriptPart(null), L.LABEL_ADD_BOOK);
-        sections.put(new PhoneManuscriptPart(null), L.LABEL_ADD_BOOK);
+        Map<WorkspaceComponent, LocalizationKey> sections = new java.util.LinkedHashMap<>();
+        sections.put(new PhoneAIPart(null), M_L.LABEL_ADD_MODEL);
+        sections.put(new ProtocolPart(null), M_L.LABEL_ADD_PROTOCOL);
+        sections.put(new PhoneProtocolPart(null), M_L.LABEL_ADD_PROTOCOL);
+        sections.put(new ManuscriptPart(null), M_L.LABEL_ADD_BOOK);
+        sections.put(new PhoneManuscriptPart(null), M_L.LABEL_ADD_BOOK);
 
-        for (Map.Entry<WorkspaceComponent, L> section : sections.entrySet()) {
+        for (Map.Entry<WorkspaceComponent, LocalizationKey> section : sections.entrySet()) {
             WorkspaceComponent part = created(section.getKey());
 
             assertThat(part.getInteraction()).as(part.getLLMName()).containsOnlyKeys(add(section.getValue()));

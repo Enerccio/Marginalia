@@ -309,6 +309,108 @@ class CleanupServiceTest extends MarginaliaTestBase {
         assertThat(new java.io.File(configuration.getResourcesFolder(currentUser), deleted.getPath())).exists();
     }
 
+    private Resource upload(String name) throws Exception {
+        return resourceService.upload(name, uniqueName(name).getBytes(java.nio.charset.StandardCharsets.UTF_8), "audio/mpeg");
+    }
+
+    @Test
+    void resourceOfAnObjectThatIsGoneIsPurged() throws Exception {
+        Resource orphan = resourceService.link(upload("orphan.mp3"), ChatMessage.class, 223456789L);
+
+        CleanupPlan analyzed = cleanupService.analyze();
+        assertThat(analyzed.getPurge()).contains(key(orphan));
+        assertThat(analyzed.getStats().get(Resource.class).getPurgeable()).isPositive();
+        assertThat(analyzed.getBlocked()).doesNotContainKey(key(orphan));
+
+        CleanupPlan plan = cleanupService.purge();
+
+        assertThat(plan.getPurge()).contains(key(orphan));
+        assertThat(resourceService.find(orphan.getId())).isNull();
+        assertThat(new java.io.File(configuration.getResourcesFolder(currentUser), orphan.getPath())).exists();
+    }
+
+    @Test
+    void resourceOfALiveObjectOrOfNothingStays() throws Exception {
+        Manuscript manuscript = manuscript(ai("ai"), protocol("protocol"), lorebook("lore"));
+        ChatMessage root = message(manuscript, null, "root");
+        Resource used = resourceService.link(upload("used.mp3"), ChatMessage.class, root.getId());
+        Resource unlinked = upload("unlinked.mp3");
+        Resource ofManuscript = resourceService.link(upload("cover.mp3"), Manuscript.class, manuscript.getId());
+
+        CleanupPlan plan = cleanupService.purge();
+
+        assertThat(plan.getPurge()).doesNotContain(key(used), key(unlinked), key(ofManuscript));
+        assertThat(resourceService.find(used.getId())).isNotNull();
+        assertThat(resourceService.find(unlinked.getId())).isNotNull();
+        assertThat(resourceService.find(ofManuscript.getId())).isNotNull();
+    }
+
+    @Test
+    void resourceOfAnObjectThatIsGoneStaysWhileAnotherRowNamesIt() throws Exception {
+        Lorebook trashed = lorebook("in the trash");
+        Manuscript manuscript = manuscript(ai("ai"), protocol("protocol"), trashed);
+        ChatMessage root = message(manuscript, null, "root");
+        Resource named = resourceService.link(upload("branch.mp3"), ChatMessage.class, 323456789L);
+        Resource inTrash = resourceService.link(upload("trash.mp3"), ChatMessage.class, 323456790L);
+        // a branch copy of the part keeps the clip in its data
+        ChatMessage copy = chatMessageService.find(root.getId());
+        copy.getAttributes().addProperty("audiobook-test", named.getUuid());
+        chatMessageService.save(copy);
+        // a deleted object that stays in the trash (the live book uses it) keeps it too, whatever the case of the uuid
+        Lorebook loaded = lorebookService.find(trashed.getId());
+        loaded.getAttributes().addProperty("audiobook-test", inTrash.getUuid().toUpperCase(java.util.Locale.ROOT));
+        lorebookService.save(loaded);
+        softDelete(trashed);
+
+        CleanupPlan plan = cleanupService.purge();
+
+        assertThat(plan.getBlocked()).containsKey(key(trashed));
+        assertThat(plan.getPurge()).doesNotContain(key(named), key(inTrash));
+        assertThat(resourceService.find(named.getId())).isNotNull();
+        assertThat(resourceService.find(inTrash.getId())).isNotNull();
+    }
+
+    @Test
+    void resourceOfADeletedObjectGoesWithIt() throws Exception {
+        Manuscript manuscript = manuscript(ai("ai"), protocol("protocol"), lorebook("lore"));
+        ChatMessage root = message(manuscript, null, "root");
+        ChatMessage child = message(manuscript, root, "child");
+        Resource clip = resourceService.link(upload("clip.mp3"), ChatMessage.class, child.getId());
+        ChatMessage loaded = chatMessageService.find(child.getId());
+        loaded.getAttributes().addProperty("audiobook-test", clip.getUuid());
+        chatMessageService.save(loaded);
+
+        assertThat(cleanupService.analyze().getPurge()).doesNotContain(key(clip));
+
+        softDelete(child);
+        CleanupPlan plan = cleanupService.purge();
+
+        assertThat(plan.getPurge()).contains(key(child), key(clip));
+        assertThat(resourceService.find(clip.getId())).isNull();
+    }
+
+    @Test
+    void contributorKeepsAResourceOfAnObjectThatIsGone() throws Exception {
+        Resource orphan = resourceService.link(upload("kept.mp3"), ChatMessage.class, 423456789L);
+        EntityKey orphanKey = key(orphan);
+        CleanupContributor contributor = new CleanupContributor() {
+            @Override
+            public void collectReferences(Set<EntityKey> candidates, CleanupService.BlockSink sink) {
+                if (candidates.contains(orphanKey)) {
+                    sink.block(orphanKey, "used by a plugin");
+                }
+            }
+        };
+        cleanupService.registerContributor(contributor);
+        contributors.add(contributor);
+
+        CleanupPlan plan = cleanupService.purge();
+
+        assertThat(plan.getPurge()).doesNotContain(orphanKey);
+        assertThat(plan.getBlocked()).doesNotContainKey(orphanKey);
+        assertThat(resourceService.find(orphan.getId())).isNotNull();
+    }
+
     @Test
     void liveEntitiesAreNeverPurged() throws Exception {
         Lorebook lorebook = lorebook("lore");

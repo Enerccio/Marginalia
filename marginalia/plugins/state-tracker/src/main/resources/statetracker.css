@@ -1,0 +1,190 @@
+/* Styles of the State Tracker plugin only. Put into the page by the application while the extension is loaded
+   (StateTrackerExtension.getCss). */
+
+/* The list of the tracked characters in the State tab */
+.state-tracker-list {
+    gap: var(--lumo-space-s);
+    padding: 0 var(--lumo-space-m) var(--lumo-space-m) var(--lumo-space-m);
+    box-sizing: border-box;
+}
+
+/* One tracked character (and one category in the dialogs): a header with the name and the buttons, the categories below */
+.state-tracker-card {
+    box-sizing: border-box;
+    width: 100%;
+    border-radius: var(--lumo-border-radius-m);
+    background-color: var(--lumo-contrast-5pct);
+    padding: var(--lumo-space-xs) var(--lumo-space-s);
+}
+
+.state-tracker-card-header {
+    display: flex;
+    align-items: center;
+    gap: var(--lumo-space-xs);
+}
+
+.state-tracker-card-header vaadin-button {
+    margin: 0;
+}
+
+.state-tracker-card-title {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.state-tracker-name {
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.state-tracker-muted {
+    color: var(--lumo-secondary-text-color);
+    font-size: var(--lumo-font-size-s);
+}
+
+/* A category of a character: its name and its add button, then the values */
+.state-tracker-category {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: var(--lumo-space-xs) 0;
+    border-top: 1px solid var(--lumo-contrast-10pct);
+}
+
+.state-tracker-category-header {
+    display: flex;
+    align-items: center;
+    gap: var(--lumo-space-xs);
+    font-size: var(--lumo-font-size-s);
+    font-weight: 600;
+    color: var(--lumo-secondary-text-color);
+}
+
+.state-tracker-category-header > span {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.state-tracker-category-header vaadin-button {
+    margin: 0;
+}
+
+/* One value: the text and its buttons */
+.state-tracker-value {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--lumo-space-xs);
+}
+
+.state-tracker-value vaadin-button {
+    margin: 0;
+}
+
+.state-tracker-value-text {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}
+
+/* The history of a category: kept and shown, never sent to the model */
+.state-tracker-history {
+    opacity: 0.65;
+}
+
+.state-tracker-history .state-tracker-value-text {
+    text-decoration: line-through;
+}
+
+/* why a past value ended, after its text and not struck through (an inline block does not get the line of its parent) */
+.state-tracker-history .state-tracker-value-text .state-tracker-muted {
+    display: inline-block;
+    margin-left: var(--lumo-space-s);
+    font-size: var(--lumo-font-size-xs);
+}
+
+/* the buttons of the categories dialog, above the list */
+.state-tracker-dialog-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--lumo-space-s);
+    margin-bottom: var(--lumo-space-s);
+}
+
+.state-tracker-dialog-actions vaadin-button,
+.state-tracker-dialog-actions vaadin-menu-bar {
+    margin: 0;
+}
+
+/* The small label on a category of the book (only in this book, differs from your category) */
+.state-tracker-badge {
+    flex: none;
+    border-radius: var(--lumo-border-radius-s);
+    padding: 0 var(--lumo-space-xs);
+    font-size: var(--lumo-font-size-xs);
+    color: var(--lumo-secondary-text-color);
+    background-color: var(--lumo-contrast-10pct);
+    white-space: nowrap;
+}
+
+.state-tracker-badge-warning {
+    color: var(--lumo-warning-text-color, var(--lumo-error-text-color));
+    background-color: var(--lumo-warning-color-10pct, var(--lumo-error-color-10pct));
+}
+
+.state-tracker-settings {
+    display: flex;
+    flex-direction: column;
+    gap: var(--lumo-space-s);
+    /* the popover sizes itself to the content, a width alone is not kept */
+    min-width: min(22em, 80vw);
+    max-width: 80vw;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.state-tracker-settings > * {
+    flex-shrink: 0;
+}
+
+/* The dialog of the categories (of the book, of the user): the cards one under the other */
+.state-tracker-categories {
+    display: flex;
+    flex-direction: column;
+    gap: var(--lumo-space-xs);
+    width: 100%;
+}
+
+/* The processing panel at the top of the tab */
+.state-tracker-panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--lumo-space-xs);
+}
+
+.state-tracker-panel vaadin-button {
+    margin: 0 var(--lumo-space-xs) 0 0;
+}
+
+/* The part a value was read in: tiny, after the text */
+.state-tracker-source {
+    margin-left: var(--lumo-space-xs);
+    color: var(--lumo-secondary-text-color);
+    font-size: var(--lumo-font-size-xxs);
+    white-space: nowrap;
+    text-decoration: none;
+}
+
+/* The icon-only Process now / Process next part / Tidy the state in the top bar: shown only while the buttons of the Processing
+   panel are scrolled out of sight (the view's observer sets the attribute "docked" on the bar) */
+.state-tracker-dock {
+    display: none;
+    margin-inline-start: auto;
+    align-items: center;
+}
+
+.state-tracker-toolbar[docked] .state-tracker-dock {
+    display: flex;
+}

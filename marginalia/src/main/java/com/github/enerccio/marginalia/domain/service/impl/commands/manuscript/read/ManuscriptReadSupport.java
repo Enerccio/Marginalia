@@ -1,12 +1,13 @@
 package com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.read;
 
+import com.github.enerccio.marginalia.domain.service.command.CommandScope;
 import com.github.enerccio.marginalia.domain.model.impl.Annotation;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.SummaryService.SummaryBlock;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -81,9 +82,9 @@ public abstract class ManuscriptReadSupport {
 
         public Book(CommandContext context) throws Exception {
             this.context = context;
-            Manuscript fresh = context.getScope().getManuscript();
+            Manuscript fresh = CommandScope.of(context).getManuscript();
             if (fresh == null) {
-                throw new IllegalStateException(loc.getValue(L.ERROR_COMMAND_NO_BOOK_OPEN));
+                throw new IllegalStateException(loc.getValue(M_L.ERROR_COMMAND_NO_BOOK_OPEN));
             }
             manuscript = fresh;
         }
@@ -122,7 +123,7 @@ public abstract class ManuscriptReadSupport {
             }
             StoryTree t = tree();
             if (branch < 1 || branch > t.leaves.size()) {
-                throw new IllegalArgumentException(String.format(loc.getValue(L.ERROR_COMMAND_NO_SUCH_BRANCH), branch,
+                throw new IllegalArgumentException(String.format(loc.getValue(M_L.ERROR_COMMAND_NO_SUCH_BRANCH), branch,
                         t.leaves.size()));
             }
             return t.pathTo(t.leaves.get(branch - 1));
@@ -147,10 +148,10 @@ public abstract class ManuscriptReadSupport {
          * The part with the handle (the uuid), checked to be a part of the book.
          */
         public ChatMessage known(String handle) throws Exception {
-            ChatMessage found = context.getScope().resolveMessage(handle.strip());
+            ChatMessage found = CommandScope.of(context).resolveMessage(handle.strip());
             ChatMessage message = tree().byId.get(found.getId());
             if (message == null) {
-                throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_NO_SUCH_HANDLE));
+                throw new IllegalArgumentException(loc.getValue(M_L.ERROR_COMMAND_NO_SUCH_HANDLE));
             }
             return message;
         }
@@ -162,7 +163,7 @@ public abstract class ManuscriptReadSupport {
             Annotation annotation = isHandle(handle) ? annotationService.findForUser(handle.strip()) : null;
             // the tree has the parts of the book that are not deleted
             if (annotation == null || annotation.getPartId() == null || !tree().byId.containsKey(annotation.getPartId())) {
-                throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_NO_SUCH_ANNOTATION));
+                throw new IllegalArgumentException(loc.getValue(M_L.ERROR_COMMAND_NO_SUCH_ANNOTATION));
             }
             return annotation;
         }
@@ -201,7 +202,7 @@ public abstract class ManuscriptReadSupport {
             try {
                 return Integer.parseInt(text == null ? "" : text.strip());
             } catch (NumberFormatException e) {
-                throw new IllegalArgumentException(String.format(loc.getValue(L.ERROR_COMMAND_NOT_A_REFERENCE), text), e);
+                throw new IllegalArgumentException(String.format(loc.getValue(M_L.ERROR_COMMAND_NOT_A_REFERENCE), text), e);
             }
         }
 
@@ -210,10 +211,10 @@ public abstract class ManuscriptReadSupport {
          */
         public ChatMessage part(List<ChatMessage> path, Integer position) {
             if (path.isEmpty()) {
-                throw new IllegalStateException(loc.getValue(L.ERROR_COMMAND_NO_STORY));
+                throw new IllegalStateException(loc.getValue(M_L.ERROR_COMMAND_NO_STORY));
             }
             if (position == null || position < 1 || position > path.size()) {
-                throw new IllegalArgumentException(String.format(loc.getValue(L.ERROR_COMMAND_NO_SUCH_PART), position,
+                throw new IllegalArgumentException(String.format(loc.getValue(M_L.ERROR_COMMAND_NO_SUCH_PART), position,
                         path.size()));
             }
             return path.get(position - 1);

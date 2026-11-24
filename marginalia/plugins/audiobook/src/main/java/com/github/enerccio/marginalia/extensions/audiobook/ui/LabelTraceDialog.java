@@ -1,10 +1,12 @@
 package com.github.enerccio.marginalia.extensions.audiobook.ui;
 
 import com.github.enerccio.marginalia.extensions.audiobook.queue.LabelTrace;
+import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
@@ -17,7 +19,8 @@ import static com.github.enerccio.marginalia.extensions.audiobook.AudiobookLocal
 
 /**
  * What the language model said while it labelled a part: for each request (a window of the pieces) its reasoning and its answer, as they arrive
- * while the labelling runs. The text is the one the job holds in memory ({@link LabelTrace}); it is gone when the finished jobs are cleared.
+ * while the labelling runs. The text is the one the job holds in memory ({@link LabelTrace}), gone when the finished jobs are cleared, or the one
+ * stored with the part (every run, opened from the studio, which can delete it).
  */
 public class LabelTraceDialog extends Dialog {
 
@@ -31,6 +34,14 @@ public class LabelTraceDialog extends Dialog {
     private int known;
 
     public LabelTraceDialog(String part, LabelTrace trace) {
+        this(part, trace, null);
+    }
+
+    /**
+     * @param clear when not null, the dialog offers to delete what is shown (the reasoning stored with the part); it is called after the user
+     *              confirmed, and the dialog closes
+     */
+    public LabelTraceDialog(String part, LabelTrace trace, Runnable clear) {
         this.trace = trace;
         setHeaderTitle(T.localized(WHAT_THE_MODEL_SAID).formatted(part));
         setWidth("min(900px, 95vw)");
@@ -52,6 +63,14 @@ public class LabelTraceDialog extends Dialog {
         VerticalLayout content = new VerticalLayout(windows, reasoning, output);
         content.setPadding(false);
         add(content);
+        if (clear != null) {
+            Button delete = new Button(T.localized(DELETE_THE_REASONING), e -> ConfirmDialog.show(T.localized(DELETE_THE_STORED_REASONING_OF_THIS_PART_QUESTION), () -> {
+                clear.run();
+                close();
+            }));
+            delete.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_TERTIARY);
+            getFooter().add(delete);
+        }
         getFooter().add(new Button(T.localized(CLOSE), e -> close()));
         refresh();
     }

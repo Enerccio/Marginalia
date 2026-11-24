@@ -2,13 +2,13 @@
 label: The command bar
 order: 80
 covers:
-  - marginalia/src/main/java/com/github/enerccio/marginalia/ui/components/CommandBar.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/ui/components/CommandResult.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/ui/components/CommandResultTarget.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/ui/components/CommandResultView.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/ui/dialogs/CommandProgressDialog.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/command/CommandHelp.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/command/CommandLine.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/ui/components/CommandBar.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/ui/components/CommandResult.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/ui/components/CommandResultTarget.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/ui/components/CommandResultView.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/ui/dialogs/CommandProgressDialog.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/command/CommandHelp.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/command/CommandLine.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/dialogs/manuscript/ManuscriptStoryPart.java
 verified: 8095daeae
 ---
@@ -69,7 +69,7 @@ click outside.
 
 The help and the result are **popovers** over the target, so the bar is one row high and never changes the layout (an
 earlier version put the help under the field and misaligned its neighbours). Popovers are opened and closed from the
-server (`setOpenOnClick/Focus/Hover(false)`, `setModal(false)`). The CSS classes are in `shared-styles.css` and `CssStyles`
+server (`setOpenOnClick/Focus/Hover(false)`, `setModal(false)`). The CSS classes are in `shared-styles.css` and `MarginaliaCssStyles`
 (`command-box`, `command-bar`, `command-help*`, `command-item-*`, `command-severity*`, `command-result*`).
 
 ## How the field works
@@ -86,7 +86,7 @@ server (`setOpenOnClick/Focus/Hover(false)`, `setModal(false)`). The CSS classes
 
 ### The help
 
-`CommandHelp.of(allCommands, text, localizer)` is pure (no UI; the `localizer` turns an `L` key into the text of the user, the bar passes `loc::getValue`) and returns the typed name, the command, its forms that fit what is
+`CommandHelp.of(allCommands, text, localizer)` is pure (no UI; the `localizer` turns a `LocalizationKey` into the text of the user, the bar passes `loc::getValue`) and returns the typed name, the command, its forms that fit what is
 typed, the index of the argument being typed and whether there are too many arguments. The bar renders: the description,
 the description with the data severity label, the forms with the current parameter highlighted and its description, the return value, and an error line for too many
 arguments, an unknown command or text without a slash. The texts are localization keys (`LABEL_COMMAND_*`,
@@ -115,8 +115,9 @@ command **must** react to `isTerminated()`: Stop only cancels the future.
 ![The CommandProgressDialog of an asynchronous command](../../images/command-running.png)
 
 **Generations of the story.** A command declared with `progressInStory = true` (`/next`, `/swipe`, `/regenerate`) gets no progress
-window in a bar that has a `GenerationView` (`setGenerationView`; the story tab gives it one in `createCommandBox()`). The bar runs
-the line in `commandScopes.session(view)`, so the command finds the view in `CommandScope.getGenerationView()`, calls
+window in a bar that has a host (`setHost(CommandBarHost)`; the story tab gives it a `StoryCommandBarHost` around its `GenerationView` in
+`createCommandBox()`). The bar runs the line in the host's `scope()`, there `commandScopes.session(view)`, and takes the host's
+`holdForGeneration` of the book until the generation starts, so the command finds the view in `CommandScope.getGenerationView()`, calls
 `show(book, request)` before it starts the generation and hands the listener it returns to the generation besides its own: the part
 streams into the story as for the round button (`ManuscriptStoryPart.showCommandGeneration`, the same `StoryGenerationListener` as
 `startGeneration`, built by `generationListener(ui, request, own)`), the window holds what the generation holds, the round button stops

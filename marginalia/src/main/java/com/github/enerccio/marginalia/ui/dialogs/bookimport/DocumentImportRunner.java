@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.service.ArchiveImportService;
 import com.github.enerccio.marginalia.domain.service.ArchiveImportService.ImportResult;
 import com.github.enerccio.marginalia.domain.service.ArchiveImportService.Insertion;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ArchiveImportRunner;
 import com.github.enerccio.marginalia.ui.dialogs.ProgressBarDialog;
@@ -35,7 +36,7 @@ final class DocumentImportRunner {
         AtomicReference<Exception> failure = new AtomicReference<>();
 
         ProgressBarDialog progress = new ProgressBarDialog(true, true);
-        progress.setTitle(loc.getValue(L.MSG_IMPORTING_DOCUMENT));
+        progress.setTitle(loc.getValue(M_L.MSG_IMPORTING_DOCUMENT));
         progress.setTotal((long) parts.size());
         progress.setCancelLabel(L.LABEL_STOP);
         progress.create();
@@ -51,9 +52,9 @@ final class DocumentImportRunner {
             if (failure.get() != null) {
                 UIUtils.internalServerError(loc, failure.get());
             } else if (done.isComplete()) {
-                Notification.success(String.format(loc.getValue(L.MSG_ARCHIVE_PARTS_ADDED), done.imported()));
+                Notification.success(String.format(loc.getValue(M_L.MSG_ARCHIVE_PARTS_ADDED), done.imported()));
             } else {
-                Notification.warning(String.format(loc.getValue(L.MSG_ST_IMPORT_STOPPED), done.imported(), done.total()));
+                Notification.warning(String.format(loc.getValue(M_L.MSG_ST_IMPORT_STOPPED), done.imported(), done.total()));
             }
             try {
                 afterwards.accept(done == null ? null : done.target());

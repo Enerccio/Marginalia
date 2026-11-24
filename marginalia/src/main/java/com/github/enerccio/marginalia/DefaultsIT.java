@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia;
 
 import com.github.enerccio.marginalia.loc.Language;
+import com.github.enerccio.marginalia.loc.L;
 
 /**
  * The built-in prompts in Italian. The Handlebars tags and the {@code String.format} placeholders are the same as in

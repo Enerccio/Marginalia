@@ -206,7 +206,7 @@ class AgentHandlesTest extends AgentTestBase {
         @Command(commandName = "peek-part", humanNameText = "Peek part", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
                 signature = @CommandParameterSignature, returns = @CommandReturn(name = "part", type = String.class, descriptionText = "x"))
         public void peek(CommandContext context) throws Exception {
-            Manuscript copy = context.getScope().getManuscript();
+            Manuscript copy = CommandScope.of(context).getManuscript();
             context.setReturn("{\"part\":\"" + copy.getActiveLeaf().getUuid() + "\",\"book\":\"" + copy.getUuid() + "\"}");
         }
 
@@ -214,7 +214,7 @@ class AgentHandlesTest extends AgentTestBase {
                 signature = @CommandParameterSignature(@CommandParameter(name = "part", type = String.class, descriptionText = "x")),
                 returns = @CommandReturn(name = "text", type = String.class, descriptionText = "x"))
         public void read(CommandContext context) throws Exception {
-            context.setReturn(context.getScope().resolveMessage(context.get("part", String.class)).getResponse());
+            context.setReturn(CommandScope.of(context).resolveMessage(context.get("part", String.class)).getResponse());
         }
     }
 

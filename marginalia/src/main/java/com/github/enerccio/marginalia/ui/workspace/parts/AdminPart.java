@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.ui.workspace.parts;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.UIConstants;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.service.UserService;
@@ -11,6 +12,7 @@ import com.github.enerccio.marginalia.domain.service.OsgiService;
 import com.github.enerccio.marginalia.domain.service.OsgiService.ExtensionReport;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.LLMInteract;
@@ -87,6 +89,7 @@ public class AdminPart implements WorkspaceComponent {
     private final StatisticsPanel statisticsPanel = new StatisticsPanel();
     private final JobsPanel jobsPanel = new JobsPanel();
     private final UpdatePanel updatePanel = new UpdatePanel();
+    private final GpuPanel gpuPanel = new GpuPanel();
 
     public AdminPart(Workspace workspace) {
         this(workspace, false);
@@ -100,7 +103,7 @@ public class AdminPart implements WorkspaceComponent {
         this.resourceGarbagePanel = new ResourceGarbagePanel(phone);
     }
 
-    @PublicAPI(from = "1.8.0",
+    @PublicAPI(from = "1.9.0",
             returns = @APIReturn(type = Component.class),
             locals = {@APILocals(name = "tabSheet", type = TabSheet.class),
                     @APILocals(name = "usersTab", type = Tab.class),
@@ -112,6 +115,7 @@ public class AdminPart implements WorkspaceComponent {
                     @APILocals(name = "agentsTab", type = Tab.class),
                     @APILocals(name = "statisticsTab", type = Tab.class),
                     @APILocals(name = "jobsTab", type = Tab.class),
+                    @APILocals(name = "gpusTab", type = Tab.class),
                     @APILocals(name = "updateTab", type = Tab.class),
                     @APILocals(name = "extensionsTab", type = Tab.class),
                     @APILocals(name = "extensionsContent", type = Component.class),
@@ -121,32 +125,35 @@ public class AdminPart implements WorkspaceComponent {
         TabSheet tabSheet = new TabSheet();
         tabSheet.setSizeFull();
 
-        Tab usersTab = new Tab(loc.getValue(L.LABEL_USERS));
+        Tab usersTab = new Tab(loc.getValue(M_L.LABEL_USERS));
         Component usersContent = createUsersTab();
         tabSheet.add(usersTab, usersContent);
 
-        Tab databaseTab = new Tab(loc.getValue(L.LABEL_DATABASE_BACKUPS));
+        Tab databaseTab = new Tab(loc.getValue(M_L.LABEL_DATABASE_BACKUPS));
         tabSheet.add(databaseTab, databaseBackupPanel.create());
 
-        Tab cleanupTab = new Tab(loc.getValue(L.LABEL_CLEANUP));
+        Tab cleanupTab = new Tab(loc.getValue(M_L.LABEL_CLEANUP));
         tabSheet.add(cleanupTab, cleanupPanel.create());
 
-        Tab resourceFilesTab = new Tab(loc.getValue(L.LABEL_RESOURCE_FILES));
+        Tab resourceFilesTab = new Tab(loc.getValue(M_L.LABEL_RESOURCE_FILES));
         tabSheet.add(resourceFilesTab, resourceGarbagePanel.create());
 
         Tab helpTab = new Tab(loc.getValue(L.LABEL_HELP_ASSISTANT));
         tabSheet.add(helpTab, helpAssistantPanel.create());
 
-        Tab agentsTab = new Tab(loc.getValue(L.LABEL_AGENTS));
+        Tab agentsTab = new Tab(loc.getValue(M_L.LABEL_AGENTS));
         tabSheet.add(agentsTab, agentSettingsPanel.create());
 
-        Tab statisticsTab = new Tab(loc.getValue(L.LABEL_STATISTICS));
+        Tab statisticsTab = new Tab(loc.getValue(M_L.LABEL_STATISTICS));
         tabSheet.add(statisticsTab, statisticsPanel.create());
 
-        Tab jobsTab = new Tab(loc.getValue(L.LABEL_JOBS));
+        Tab jobsTab = new Tab(loc.getValue(M_L.LABEL_JOBS));
         tabSheet.add(jobsTab, jobsPanel.create());
 
-        Tab updateTab = new Tab(loc.getValue(L.LABEL_UPDATE));
+        Tab gpusTab = new Tab(loc.getValue(L.LABEL_GPUS));
+        tabSheet.add(gpusTab, gpuPanel.create());
+
+        Tab updateTab = new Tab(loc.getValue(M_L.LABEL_UPDATE));
         tabSheet.add(updateTab, updatePanel.create());
 
         adminTabs = tabSheet;
@@ -157,9 +164,10 @@ public class AdminPart implements WorkspaceComponent {
         adminPanels.put(agentsTab, agentSettingsPanel);
         adminPanels.put(statisticsTab, statisticsPanel);
         adminPanels.put(jobsTab, jobsPanel);
+        adminPanels.put(gpusTab, gpuPanel);
         adminPanels.put(updateTab, updatePanel);
 
-        Tab extensionsTab = new Tab(loc.getValue(L.LABEL_EXTENSIONS));
+        Tab extensionsTab = new Tab(loc.getValue(M_L.LABEL_EXTENSIONS));
         shownExtensionsTab = extensionsTab;
         Component extensionsContent = createExtensionsTab();
         tabSheet.add(extensionsTab, extensionsContent);
@@ -167,7 +175,7 @@ public class AdminPart implements WorkspaceComponent {
         Div container = new Div(tabSheet);
         container.setSizeFull();
         if (phone) {
-            container.addClassName(CssStyles.PHONE_PAGE);
+            container.addClassName(MarginaliaCssStyles.PHONE_PAGE);
         }
         return container;
     }
@@ -181,7 +189,7 @@ public class AdminPart implements WorkspaceComponent {
             return "";
         }
         Tab selected = adminTabs.getSelectedTab();
-        return "The Admin page, for administrators. Its tabs: Users, Database Backups, Cleanup, Resource Files, Help assistant, Agents, Statistics, Jobs, Extensions. "
+        return "The Admin page, for administrators. Its tabs: Users, Database Backups, Cleanup, Resource Files, Help assistant, Agents, Statistics, Jobs, GPUs, Update, Extensions. "
                 + "The open tab is **" + (selected == null ? "" : selected.getLabel()) + "**."
                 + (selected != null && !adminPanels.containsKey(selected)
                 ? " (The user and extension lists are tables with buttons to add, edit and delete.)" : "");
@@ -230,7 +238,7 @@ public class AdminPart implements WorkspaceComponent {
         toolbar.setWidthFull();
         toolbar.setAlignItems(HorizontalLayout.Alignment.CENTER);
 
-        Button addUserButton = new Button(loc.getValue(L.LABEL_ADD_USER), Solid.PLUS_CIRCLE.create(), e -> openUserDialog(new User()));
+        Button addUserButton = new Button(loc.getValue(M_L.LABEL_ADD_USER), Solid.PLUS_CIRCLE.create(), e -> openUserDialog(new User()));
         addUserButton.setThemeName("primary");
         toolbar.add(addUserButton);
 
@@ -354,7 +362,7 @@ public class AdminPart implements WorkspaceComponent {
     private void deleteUser(User user) {
         try {
             if (user.getId().equals(currentUser.getId())) {
-                com.github.enerccio.marginalia.ui.widgets.Notification.warning(loc.getValue(L.MSG_CANNOT_DELETE_SELF));
+                com.github.enerccio.marginalia.ui.widgets.Notification.warning(loc.getValue(M_L.MSG_CANNOT_DELETE_SELF));
                 return;
             }
             if (userService.isLastAdmin(user)) {
@@ -411,19 +419,19 @@ public class AdminPart implements WorkspaceComponent {
             try {
                 osgiService.installPackage(metadata.fileName(), data);
 
-                Notification.show(loc.getValue(L.MSG_EXTENSION_INSTALLED_SUCCESS));
+                Notification.show(loc.getValue(M_L.MSG_EXTENSION_INSTALLED_SUCCESS));
                 refreshGrid();
             } catch (ExtensionVerificationException e) {
                 log.error("Extension {} was rejected:\n{}", e.getExtension(), e.getReport());
                 refreshGrid();
-                Notification.show(String.format(loc.getValue(L.ERROR_EXTENSION_INCOMPATIBLE), e.getExtension()),
+                Notification.show(String.format(loc.getValue(M_L.ERROR_EXTENSION_INCOMPATIBLE), e.getExtension()),
                         5000, Notification.Position.MIDDLE);
                 showReport(e.getReport());
             } catch (Exception e) {
                 log.error("Failed to load extension bundle", e);
                 refreshGrid();
                 Notification.show(
-                        String.format(loc.getValue(L.ERROR_EXTENSION_INSTALL_FAILED), e.getMessage()),
+                        String.format(loc.getValue(M_L.ERROR_EXTENSION_INSTALL_FAILED), e.getMessage()),
                         5000,
                         Notification.Position.MIDDLE
                 );
@@ -433,8 +441,8 @@ public class AdminPart implements WorkspaceComponent {
         Upload upload = new Upload(handler);
         upload.setAcceptedFileExtensions(".jar");
         upload.setAcceptedMimeTypes("application/zip", "application/jar", "application/java-archive", "application/x-java-archive");
-        upload.setUploadButton(new Button(loc.getValue(L.LABEL_UPLOAD_EXTENSION), VaadinIcon.UPLOAD.create()));
-        upload.setDropLabel(new Div(new Button(loc.getValue(L.LABEL_UPLOAD_EXTENSION))));
+        upload.setUploadButton(new Button(loc.getValue(M_L.LABEL_UPLOAD_EXTENSION), VaadinIcon.UPLOAD.create()));
+        upload.setDropLabel(new Div(new Button(loc.getValue(M_L.LABEL_UPLOAD_EXTENSION))));
 
         Button refreshButton = new Button(loc.getValue(L.LABEL_REFRESH), VaadinIcon.REFRESH.create());
         refreshButton.addClickListener(e -> refreshGrid());
@@ -453,7 +461,7 @@ public class AdminPart implements WorkspaceComponent {
         }
 
         extensionsGrid.addColumn(Bundle::getBundleId)
-                .setHeader(loc.getValue(L.LABEL_BUNDLE_ID))
+                .setHeader(loc.getValue(M_L.LABEL_BUNDLE_ID))
                 .setFlexGrow(0)
                 .setWidth("80px");
 
@@ -461,7 +469,7 @@ public class AdminPart implements WorkspaceComponent {
                     String name = bundle.getHeaders().get("Bundle-Name");
                     return (name != null && !name.isBlank()) ? name : bundle.getSymbolicName();
                 })
-                .setHeader(loc.getValue(L.LABEL_BUNDLE_NAME))
+                .setHeader(loc.getValue(M_L.LABEL_BUNDLE_NAME))
                 .setFlexGrow(1);
 
         extensionsGrid.addComponentColumn(bundle -> {
@@ -473,10 +481,10 @@ public class AdminPart implements WorkspaceComponent {
                         String sha256 = osgiService.getSha256(bundle);
                         Button hashButton = new Button("#");
                         hashButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE, ButtonVariant.LUMO_SMALL);
-                        UIUtils.addTooltip(hashButton, loc.getValue(L.LABEL_SHA256) + ": " + sha256);
+                        UIUtils.addTooltip(hashButton, loc.getValue(M_L.LABEL_SHA256) + ": " + sha256);
                         hashButton.addClickListener(e -> {
                             JavascriptLibrary.copyToClipboard(e.getSource().getUI().orElseThrow().getPage(), sha256);
-                            Notification.show(loc.getValue(L.MSG_COPIED_TO_CLIPBOARD));
+                            Notification.show(loc.getValue(M_L.MSG_COPIED_TO_CLIPBOARD));
                         });
                         version.add(hashButton);
                     } catch (IOException e) {
@@ -484,14 +492,14 @@ public class AdminPart implements WorkspaceComponent {
                     }
                     return version;
                 })
-                .setHeader(loc.getValue(L.LABEL_BUNDLE_VERSION))
+                .setHeader(loc.getValue(M_L.LABEL_BUNDLE_VERSION))
                 .setFlexGrow(0)
                 .setWidth("150px");
 
         extensionsGrid.addColumn(bundle -> osgiService.isStopped(bundle)
-                        ? loc.getValue(L.ENUM_BUNDLE_STATE_STOPPED)
+                        ? loc.getValue(M_L.ENUM_BUNDLE_STATE_STOPPED)
                         : formatBundleState(bundle.getState()))
-                .setHeader(loc.getValue(L.LABEL_BUNDLE_STATE))
+                .setHeader(loc.getValue(M_L.LABEL_BUNDLE_STATE))
                 .setFlexGrow(0)
                 .setWidth("140px");
 
@@ -500,7 +508,7 @@ public class AdminPart implements WorkspaceComponent {
                     if (report == null) {
                         return new Div();
                     }
-                    Button reportButton = new Button(loc.getValue(report.valid() ? L.LABEL_VALID : L.LABEL_INVALID));
+                    Button reportButton = new Button(loc.getValue(report.valid() ? M_L.LABEL_VALID : M_L.LABEL_INVALID));
                     reportButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
                     if (!report.valid()) {
                         reportButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
@@ -508,12 +516,12 @@ public class AdminPart implements WorkspaceComponent {
                     reportButton.addClickListener(e -> showReport(report.text()));
                     return reportButton;
                 })
-                .setHeader(loc.getValue(L.LABEL_BUNDLE_VERIFICATION))
+                .setHeader(loc.getValue(M_L.LABEL_BUNDLE_VERIFICATION))
                 .setFlexGrow(0)
                 .setWidth("140px");
 
         extensionsGrid.addComponentColumn(this::createExtensionActions)
-                .setHeader(loc.getValue(L.LABEL_ACTIONS))
+                .setHeader(loc.getValue(M_L.LABEL_ACTIONS))
                 .setFlexGrow(0)
                 .setWidth("400px");
 
@@ -545,7 +553,7 @@ public class AdminPart implements WorkspaceComponent {
         name.addClassNames(CssStyles.TEXT_SEMIBOLD, CssStyles.WRAP_ANYWHERE);
         Span version = new Span(bundle.getVersion().toString());
         Span state = new Span(osgiService.isStopped(bundle)
-                ? loc.getValue(L.ENUM_BUNDLE_STATE_STOPPED)
+                ? loc.getValue(M_L.ENUM_BUNDLE_STATE_STOPPED)
                 : formatBundleState(bundle.getState()));
         state.addClassName(CssStyles.TEXT_SECONDARY);
         HorizontalLayout details = new HorizontalLayout(version, state);
@@ -554,7 +562,7 @@ public class AdminPart implements WorkspaceComponent {
 
         ExtensionReport report = osgiService.getVerificationReport(bundle);
         if (report != null) {
-            Button reportButton = new Button(loc.getValue(report.valid() ? L.LABEL_VALID : L.LABEL_INVALID));
+            Button reportButton = new Button(loc.getValue(report.valid() ? M_L.LABEL_VALID : M_L.LABEL_INVALID));
             reportButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
             if (!report.valid()) {
                 reportButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
@@ -566,10 +574,10 @@ public class AdminPart implements WorkspaceComponent {
             String sha256 = osgiService.getSha256(bundle);
             Button hashButton = new Button("#");
             hashButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE, ButtonVariant.LUMO_SMALL);
-            hashButton.setAriaLabel(loc.getValue(L.LABEL_SHA256));
+            hashButton.setAriaLabel(loc.getValue(M_L.LABEL_SHA256));
             hashButton.addClickListener(e -> {
                 JavascriptLibrary.copyToClipboard(e.getSource().getUI().orElseThrow().getPage(), sha256);
-                Notification.show(loc.getValue(L.MSG_COPIED_TO_CLIPBOARD));
+                Notification.show(loc.getValue(M_L.MSG_COPIED_TO_CLIPBOARD));
             });
             details.add(hashButton);
         } catch (IOException e) {
@@ -593,7 +601,7 @@ public class AdminPart implements WorkspaceComponent {
     private HorizontalLayout createExtensionActions(Bundle bundle) {
         boolean stopped = osgiService.isStopped(bundle);
         Button toggleButton = stopped
-                ? new Button(loc.getValue(L.LABEL_START), VaadinIcon.PLAY.create())
+                ? new Button(loc.getValue(M_L.LABEL_START), VaadinIcon.PLAY.create())
                 : new Button(loc.getValue(L.LABEL_STOP), VaadinIcon.STOP.create());
         toggleButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
         toggleButton.addClickListener(e -> toggleExtension(bundle, stopped));
@@ -602,7 +610,7 @@ public class AdminPart implements WorkspaceComponent {
         logButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
         logButton.addClickListener(e -> ExtensionLogDialog.show(bundle, extensionName(bundle)));
 
-        Button unloadButton = new Button(loc.getValue(L.LABEL_UNLOAD_EXTENSION), VaadinIcon.TRASH.create());
+        Button unloadButton = new Button(loc.getValue(M_L.LABEL_UNLOAD_EXTENSION), VaadinIcon.TRASH.create());
         unloadButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_SMALL);
         unloadButton.addClickListener(e -> unloadExtension(bundle));
         HorizontalLayout actions = new HorizontalLayout(toggleButton, logButton, unloadButton);
@@ -618,7 +626,7 @@ public class AdminPart implements WorkspaceComponent {
                     @APILocals(name = "close", type = Button.class)})
     private void showReport(String report) {
         Dialog dialog = new Dialog();
-        dialog.setHeaderTitle(loc.getValue(L.LABEL_VERIFICATION_REPORT));
+        dialog.setHeaderTitle(loc.getValue(M_L.LABEL_VERIFICATION_REPORT));
         dialog.setWidth("900px");
         UIUtils.fitPhone(dialog, true);
 
@@ -650,20 +658,20 @@ public class AdminPart implements WorkspaceComponent {
         try {
             if (stopped) {
                 osgiService.startExtension(bundle);
-                Notification.show(loc.getValue(L.MSG_EXTENSION_STARTED));
+                Notification.show(loc.getValue(M_L.MSG_EXTENSION_STARTED));
             } else {
                 osgiService.stopExtension(bundle);
-                Notification.show(loc.getValue(L.MSG_EXTENSION_STOPPED));
+                Notification.show(loc.getValue(M_L.MSG_EXTENSION_STOPPED));
             }
         } catch (ExtensionVerificationException e) {
             log.error("Extension {} was rejected:\n{}", e.getExtension(), e.getReport());
-            Notification.show(String.format(loc.getValue(L.ERROR_EXTENSION_INCOMPATIBLE), e.getExtension()),
+            Notification.show(String.format(loc.getValue(M_L.ERROR_EXTENSION_INCOMPATIBLE), e.getExtension()),
                     5000, Notification.Position.MIDDLE);
             showReport(e.getReport());
         } catch (Exception e) {
             log.error("Failed to {} extension", stopped ? "start" : "stop", e);
             Notification.show(
-                    String.format(loc.getValue(stopped ? L.ERROR_EXTENSION_START_FAILED : L.ERROR_EXTENSION_STOP_FAILED), e.getMessage()),
+                    String.format(loc.getValue(stopped ? M_L.ERROR_EXTENSION_START_FAILED : M_L.ERROR_EXTENSION_STOP_FAILED), e.getMessage()),
                     5000,
                     Notification.Position.MIDDLE
             );
@@ -675,14 +683,14 @@ public class AdminPart implements WorkspaceComponent {
             returns = @APIReturn(type = void.class),
             parameters = {@APIParameter(name = "bundle", type = Bundle.class)})
     private void unloadExtension(Bundle bundle) {
-        ConfirmDialog.show(String.format(loc.getValue(L.MSG_CONFIRM_UNLOAD_EXTENSION), extensionName(bundle)), () -> {
+        ConfirmDialog.show(String.format(loc.getValue(M_L.MSG_CONFIRM_UNLOAD_EXTENSION), extensionName(bundle)), () -> {
             try {
                 osgiService.uninstallPackage(bundle);
-                Notification.show(loc.getValue(L.MSG_EXTENSION_UNINSTALLED_SUCCESS));
+                Notification.show(loc.getValue(M_L.MSG_EXTENSION_UNINSTALLED_SUCCESS));
             } catch (Exception e) {
                 log.error("Failed to unload extension", e);
                 Notification.show(
-                        String.format(loc.getValue(L.ERROR_EXTENSION_UNINSTALL_FAILED), e.getMessage()),
+                        String.format(loc.getValue(M_L.ERROR_EXTENSION_UNINSTALL_FAILED), e.getMessage()),
                         5000,
                         Notification.Position.MIDDLE
                 );
@@ -706,13 +714,13 @@ public class AdminPart implements WorkspaceComponent {
             parameters = {@APIParameter(name = "state", type = int.class)})
     private String formatBundleState(int state) {
         return switch (state) {
-            case Bundle.UNINSTALLED -> loc.getValue(L.ENUM_BUNDLE_STATE_UNINSTALLED);
-            case Bundle.INSTALLED -> loc.getValue(L.ENUM_BUNDLE_STATE_INSTALLED);
-            case Bundle.RESOLVED -> loc.getValue(L.ENUM_BUNDLE_STATE_RESOLVED);
-            case Bundle.STARTING -> loc.getValue(L.ENUM_BUNDLE_STATE_STARTING);
-            case Bundle.STOPPING -> loc.getValue(L.ENUM_BUNDLE_STATE_STOPPING);
-            case Bundle.ACTIVE -> loc.getValue(L.ENUM_BUNDLE_STATE_ACTIVE);
-            default -> loc.getValue(L.ENUM_BUNDLE_STATE_UNKNOWN).formatted(state);
+            case Bundle.UNINSTALLED -> loc.getValue(M_L.ENUM_BUNDLE_STATE_UNINSTALLED);
+            case Bundle.INSTALLED -> loc.getValue(M_L.ENUM_BUNDLE_STATE_INSTALLED);
+            case Bundle.RESOLVED -> loc.getValue(M_L.ENUM_BUNDLE_STATE_RESOLVED);
+            case Bundle.STARTING -> loc.getValue(M_L.ENUM_BUNDLE_STATE_STARTING);
+            case Bundle.STOPPING -> loc.getValue(M_L.ENUM_BUNDLE_STATE_STOPPING);
+            case Bundle.ACTIVE -> loc.getValue(M_L.ENUM_BUNDLE_STATE_ACTIVE);
+            default -> loc.getValue(M_L.ENUM_BUNDLE_STATE_UNKNOWN).formatted(state);
         };
     }
 

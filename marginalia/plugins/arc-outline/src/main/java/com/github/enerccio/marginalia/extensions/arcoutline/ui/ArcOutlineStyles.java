@@ -39,6 +39,10 @@ public final class ArcOutlineStyles {
     public static final String WIZARD_OLD = "arc-outline-wizard-old";
     public static final String WIZARD_CALL = "arc-outline-wizard-call";
     public static final String WIZARD_CALL_FAILED = "arc-outline-wizard-call-failed";
+    public static final String HEADINGS_HELP = "arc-outline-headings-help";
+    public static final String HEADINGS_PREVIEW = "arc-outline-headings-preview";
+    public static final String HEADINGS_LINE = "arc-outline-headings-line";
+    public static final String HEADINGS_PART = "arc-outline-headings-part";
 
     private static final String RESOURCE = "/arcoutline.css";
 

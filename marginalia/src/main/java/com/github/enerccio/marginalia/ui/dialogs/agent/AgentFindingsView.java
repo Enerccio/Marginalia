@@ -1,11 +1,13 @@
 package com.github.enerccio.marginalia.ui.dialogs.agent;
 
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.service.agent.AgentFindings;
 import com.github.enerccio.marginalia.domain.service.agent.RunTools;
 import com.github.enerccio.marginalia.domain.service.agent.RunTools.Finding;
 import com.github.enerccio.marginalia.domain.traits.*;
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
@@ -26,7 +28,7 @@ final class AgentFindingsView extends VerticalLayout {
         this.loc = loc;
         setPadding(false);
         setSpacing(false);
-        addClassName(CssStyles.AGENT_FINDINGS);
+        addClassName(MarginaliaCssStyles.AGENT_FINDINGS);
     }
 
     /**
@@ -43,23 +45,23 @@ final class AgentFindingsView extends VerticalLayout {
         for (Finding finding : findings) {
             Span severity = new Span(loc.getValue(severityLabel(finding.severity())));
             if (AgentFindings.WARNING.equals(finding.severity())) {
-                severity.addClassName(CssStyles.AGENT_FINDING_WARNING);
+                severity.addClassName(MarginaliaCssStyles.AGENT_FINDING_WARNING);
             } else if (AgentFindings.PROBLEM.equals(finding.severity())) {
-                severity.addClassName(CssStyles.AGENT_FINDING_PROBLEM);
+                severity.addClassName(MarginaliaCssStyles.AGENT_FINDING_PROBLEM);
             } else {
                 severity.addClassName(CssStyles.HINT_TEXT);
             }
             Div row = new Div(new Span(finding.number() + "."), severity, new Span(finding.text()));
-            row.addClassName(CssStyles.AGENT_FINDING);
+            row.addClassName(MarginaliaCssStyles.AGENT_FINDING);
             add(row);
         }
     }
 
-    private static L severityLabel(String severity) {
+    private static LocalizationKey severityLabel(String severity) {
         return switch (severity) {
-            case AgentFindings.WARNING -> L.ENUM_AGENT_FINDING_WARNING;
-            case AgentFindings.PROBLEM -> L.ENUM_AGENT_FINDING_PROBLEM;
-            default -> L.LABEL_NOTE;
+            case AgentFindings.WARNING -> M_L.ENUM_AGENT_FINDING_WARNING;
+            case AgentFindings.PROBLEM -> M_L.ENUM_AGENT_FINDING_PROBLEM;
+            default -> M_L.LABEL_NOTE;
         };
     }
 }

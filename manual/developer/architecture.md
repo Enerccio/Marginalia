@@ -1,14 +1,14 @@
 ---
 label: Architecture
 order: 980
-verified: d3fd95f7f
+verified: f337fe83d
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/bound
-  - marginalia/src/main/java/com/github/enerccio/marginalia/Configuration.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/Configuration.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/extensions
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/ToolService.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/ToolService.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/tool
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/ToolServiceImpl.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/impl/ToolServiceImpl.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/instruct
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/main
   - marginalia/src/main/resources/META-INF/spring
@@ -134,7 +134,7 @@ sequenceDiagram
    `MarginaliaExtension`. A JAR that fails is logged and skipped. When the root context closes, the extensions are
    unloaded and the framework is stopped.
 7. `MarginaliaServlet` (`@WebServlet("/*")`, a `VaadinServlet`) serves the UI. `AppShellConfig` configures the page:
-   push enabled, dark Lumo theme, `shared-styles.css`, the icons (`icons/icon.svg` as the vector favicon, `icons/icon.png` and the PWA icons).
+   push enabled, dark Lumo theme, `shared-styles.css` (which imports the platform's `platform-styles.css` first), the icons (`icons/icon.svg` as the vector favicon, `icons/icon.png` and the PWA icons).
 
 ## Layers and packages
 
@@ -160,7 +160,7 @@ All application code is in `com.github.enerccio.marginalia` (`marginalia/src/mai
 | `domain.traits`, `domain.collections`, `domain.listener` | Shared | Annotations (`@CommonTx`, `@Extendable`, `@PublicAPI`, `@CleanupReference`...), enums, the entity listener for extended attributes. |
 | `extensions`, `instruct` | Extensions | The `MarginaliaExtension` interface, the bytecode instrumentation. |
 | `bound` | Startup, sessions | Application initializer and migrations hook, the `SessionManager` and its session bookkeeping. |
-| `loc` | Shared | Localization: the `L` keys and the English texts. |
+| `loc` | Shared | Localization: the `L` (platform) and `M_L` (application) keys and their texts. |
 | `concurrent`, `utils` | Shared | Helpers. |
 
 The UI depends on services, services on repositories, repositories on the entities - not the other way round. UI
@@ -218,6 +218,8 @@ the older keys of `src/main/webapp/config/configuration.properties`, which stay 
 | `marginalia.allow-persistent-login` (`MARGINALIA_ALLOW_PERSISTENT_LOGIN`) | `allowPersistentLogin` | `true` | Whether *Save login* is offered. |
 | `marginalia.persistent-login-ttl` (`MARGINALIA_PERSISTENT_LOGIN_TTL`) | `persistentLoginTTL` | `2592000` | Lifetime of saved logins in seconds (30 days). |
 | `marginalia.trusted-proxies` (`MARGINALIA_TRUSTED_PROXIES`) | `trustedProxies` | empty | Reverse proxies (addresses or CIDR ranges, comma separated) whose `X-Forwarded-For` header is believed when finding the client address for [login throttling](services.md#login-throttling). Empty: the header is ignored. `-DtrustedProxies=...` still works. |
+| `marginalia.cookie-namespace` (`MARGINALIA_COOKIE_NAMESPACE`) | | empty | The application's name at the start of the *Save login* cookie names (`Configuration.cookieNamespace`, `LoginCheckRoute.getCookieNamespace`): `<namespace>_root_Main_marginalia_rememberMe_login`. Empty: the names without it. Cookies are scoped to the host, not the port, so two applications on one host need different names. |
+| `marginalia.session-cookie` (`MARGINALIA_SESSION_COOKIE`) | | `JSESSIONID` (`JSESSIONID_MARGINALIA` in the Docker image, an `ENV` of the `Dockerfile`) | Name of the servlet session cookie, set by `SessionCookie.configure` in `WebappApplicationInitializer` (before the context starts, so it is read from the system property / environment, not by the placeholder). An application on the platform passes its own default name to `SessionCookie.configure`. |
 
 `Configuration.hmac(purpose, data)` is the keyed hash for identifiers that leave the application (`InferenceSession`, the `X-Session-ID`): HMAC-SHA256 with a subkey derived from `secret.key` and the purpose, the first 128 bits as 32 hex characters, so the value is stable in an installation and reveals nothing about the data. The application version in `container-config.xml` is 6 (`ExtendedContentMigration`, see [Database](database.md)).
 
@@ -389,6 +391,11 @@ An [agent](agents.md) run is not started by a request at all: `AgentRunner` work
 the screen of the owner goes through `ui.access` like any other background work, see
 [the request context of a run](agents.md#the-request-context-of-a-run).
 
+A call of the [HTTP API](api.md) (`ApiServlet` on `/api/v1`, `ApiDispatcher`) has no browser either: `ApiRequestAttributes` give it
+the user of the key and an `AgenticSessionPoint` with the book the call is aimed at, and no session of the container is made.
+Both contexts are `DetachedRequestAttributes` (`bound`): a session scope kept in memory and shared by the threads of the work, which
+`ThreadCopyRequestAttributes.create()` hands on as it is, so an asynchronous command keeps it until it ends.
+
 ## Sessions
 
 `bound/SessionManager` (bean `sessionManager`, defined in `container-config.xml`) knows every HTTP session of the
@@ -501,7 +508,7 @@ sequenceDiagram
   use one particular extension (the name generator) the others find it among `OsgiService.getLoadedExtensions()` and
   call it by reflection ([Sharing data between extensions](plugins/ipc.md)).
 - **Inherited settings.** An extension registers a line, a text area or a choice with `InheritedSettingRegistry` (`InheritedSetting`); the *Prompts* tab of a book and the folder window show them with the other prompts and the values live in the `attributes` of the book or folder (`InheritedSettingValues`), resolved through the folders ([Inherited settings](plugins/inherited-settings.md)). They are shown as one collapsible panel per extension, and the core registers the templates of every exporter in the same registry (`ExportInheritedSettings`), so the title page and the front matter of an export can be set per book and per folder.
-- **One GPU for several extensions.** A server that can hold one thing at a time (a speech server and an image server on one card) is shared through `SharedGate`, kept by the application; the plugins reach it through `GpuGate` of the `http-hooks` library ([the gate](plugins/libraries/http-hooks.md#the-gate-gpugate)), which is why the registry is in the core and not in a class every bundle embeds.
+- **One GPU for several extensions and models.** A card that holds one model at a time (the language model, an image server, a speech server) is shared through `GpuService` of the core: the administrator sets up GPUs, GPU locks (what is loaded, with acquire and release steps) and GPU steps (HTTP requests); an AI (`AI.gpuLock`, taken by `GatedInferenceService` after the connection) and the backends of the extensions name a lock and take it for each job. The GPU stays loaded after a job (sticky), the release steps run only when a job of another lock comes ([GPU locks](plugins/gpu-locks.md)).
 - **The text of the story.** An extension that stores the story in one form and wants the model, the export or the annotation reviewer to read another registers with
   `PartTextRegistry` (what a model reads, [Text a model reads](plugins/part-text.md)), `ExportTextRegistry` (what an export holds, [The text of an export](plugins/export-text.md))
   or `AnnotationFactsRegistry` (facts for the model that annotates a part, [Facts for the annotation](plugins/annotation-facts.md)); the registries are beans of the core, the
@@ -532,24 +539,33 @@ Everything is in `<user.home>/.marginalia/` (see also [The data folder](../user/
 
 ## Localization
 
-All UI texts are looked up through the `Localization` bean by an `L` key (`loc.getValue(L.LABEL_SAVE)`). The bean
-(`LocalizationImpl`) holds one `LocalizationBundle` per `Language`: the texts of every key, the `Locale` and the date
-formats of that language, and the name shown in the language selector. The application ships `LocalizationBundleEN`
-(the default language, which has to be complete - the application doesn't start otherwise), `LocalizationBundleJP`,
-`LocalizationBundleFR`, `LocalizationBundleES`, `LocalizationBundleDE`, `LocalizationBundleKO` and `LocalizationBundleIT`;
-they are listed in the `localization` bean in `container-config.xml`. Texts of template variables and macros (the
-hints shown next to prompt fields) are localized the same way.
+All UI texts are looked up through the `Localization` bean by a key (`loc.getValue(L.LABEL_SAVE)`,
+`loc.getValue(M_L.LABEL_BOOKS)`). Each layer has its own enum of keys, both `LocalizationKey`s: the platform's `L`
+(login, users, models, settings, the shared words such as Save and Cancel) and the application's `M_L` (books, lorebooks, agents, generation...); a visual novel built on
+the platform would add a third. `getValue(LocalizationKey)` finds the texts of the key's enum, so code that shows
+texts of both keeps them as `LocalizationKey`.
+
+The bean (`MarginaliaLocalizationImpl`, the platform's `LocalizationImpl` plus the labels of the story enums and the
+built-in prompts; code that needs those injects it as `MarginaliaLocalization`) holds one `LocalizationBundle` per
+`Language`: the `L` texts, the `Locale` and the date formats of that language, and the name shown in the language
+selector. The texts of the other enums are `TextBundle`s of the same language (`MarginaliaLocalizationBundleEN`...),
+registered with `registerTexts`. The application ships `LocalizationBundleEN` and `MarginaliaLocalizationBundleEN`
+(the default language, which has to be complete for both enums - the application doesn't start otherwise),
+and the `JP`, `FR`, `ES`, `DE`, `KO` and `IT` pairs; they are the `bundles` and `texts` of the `localization` bean in
+`container-config.xml`. Texts of template variables and macros (the hints shown next to prompt fields) are localized
+the same way.
+
+An annotation element holds one enum type, so the keys of the texts of a command and of a template variable are in
+an annotation of the layer, typed with its enum: `@MarginaliaCommandTexts` and `@MarginaliaTemplateDescription` with
+`M_L` keys, the platform's `@CommandTexts` and `@LocalizedTemplateDescription` with `L` keys. The platform finds them by
+their meta-annotation (`@CommandTextSource`, `@TemplateDescriptionSource`) and reads the elements by name
+(`LocalizedAnnotations`), see [Writing commands](commands/writing-commands.md#texts).
 
 ```mermaid
 flowchart LR
-    SP["SessionPoint<br/>(session scoped)<br/>language"] -->|current language| Loc["LocalizationImpl<br/>getValue(L)"]
-    Loc --> B1["LocalizationBundleEN"]
-    Loc --> B2["LocalizationBundleJP"]
-    Loc --> B4["LocalizationBundleFR"]
-    Loc --> B5["LocalizationBundleES"]
-    Loc --> B6["LocalizationBundleDE"]
-    Loc --> B7["LocalizationBundleKO"]
-    Loc --> B8["LocalizationBundleIT"]
+    SP["SessionPoint<br/>(session scoped)<br/>language"] -->|current language| Loc["LocalizationImpl<br/>getValue(LocalizationKey)"]
+    Loc -->|"L keys, formats"| B1["LocalizationBundleEN, JP, FR,<br/>ES, DE, KO, IT"]
+    Loc -->|"M_L keys"| B2["MarginaliaLocalizationBundleEN, JP, FR,<br/>ES, DE, KO, IT"]
     Loc --> B3["bundles of extensions"]
     US["UserSetting.language"] -->|"Main, when the workspace opens"| SP
     LS["LanguageSelector"] -->|saves, then reloads the user's pages| US
@@ -565,16 +581,33 @@ flowchart LR
   phone drawer) offers `Localization.getAvailableLanguages()`; a change saves the setting, sets the session and
   reloads every UI of every session of the user (`SessionManager.runForUsers`), where the workspace opens again with
   the new language. `Viewer` doesn't choose anything, it uses what is in its `SessionPoint`.
-- **Extensions.** An extension that implements `ExtensionHasLocalization` returns bundles of its own;
+- **Extensions.** An extension that implements `ExtensionHasLocalization` returns bundles of its own
+  (`getLocalizationBundles`, the `L` texts and formats, and `getTextBundles`, the `M_L` texts);
   `OsgiServiceImpl` registers them after `onExtensionLoad` and removes them when the extension is unloaded (see
   [Example plugin](plugins/example.md#walkthrough-chinese-localization)). A language that already has a bundle is
   refused, so an extension can't replace English.
-- **Adding a language to the application.** Copy `LocalizationBundleEN`, translate, add the class as a bean to the
-  `bundles` list of `localization`. `BundleCompletenessTest` checks that a bundle has every key and the same
-  `%s`/`%d` placeholders as the English text.
+- **Overriding texts (an application on the platform).** A `LocalizationOverride` bean (`loc`) in the Spring XML of the
+  application changes texts without a subclass of each language's bundle; `LocalizationImpl` takes every such bean of
+  the context (`setOverrides`, autowired, optional). `texts` maps a language code, or `*` for every language, to keys
+  (`L.LABEL_CLOSE`, `M_L.LABEL_BOOK`, or the constant alone for `L`) and their texts; `replacements` maps a language
+  code or `*` to pairs of a text and its replacement applied to every text of the language (`Marginalia` → `Joi`;
+  the language's own pairs first); `transformers` (`LocalizationOverride.TextTransformer`, set in code) change a text
+  last. A text is looked up as: the override of the language, the override for `*`, the language's bundle, the override
+  of the default language, the default language's bundle; the replacements and transformers then apply to it, also in
+  `parseValue`. A language added later (by the platform or an extension) is covered by the `*` entries.
+
+  ```xml
+  <bean class="com.github.enerccio.marginalia.loc.LocalizationOverride">
+      <property name="replacements"><map><entry key="*"><map><entry key="Marginalia" value="Joi"/></map></entry></map></property>
+      <property name="texts"><map><entry key="en"><map><entry key="L.LABEL_LOGIN" value="Sign in"/></map></entry></map></property>
+  </bean>
+  ```
+- **Adding a language to the application.** Copy `LocalizationBundleEN` and `MarginaliaLocalizationBundleEN`,
+  translate, add the classes as beans to the `bundles` and `texts` lists of `localization`. `BundleCompletenessTest`
+  checks that the bundles have every key and the same `%s`/`%d` placeholders as the English texts.
 - **The language of the prompts** is a second, independent choice: `UserSetting.promptLanguage`, copied into
   `SessionPoint.promptLanguage` at the login and when the user saves the settings (in an agent run the language of the agent).
-  `Localization.getDefaults()` returns the built-in prompts (`Defaults`, `DefaultsJA`, `DefaultsFR`, `DefaultsES`, `DefaultsDE`, `DefaultsIT`, `DefaultsKO`, and those extensions register, such as
+  `MarginaliaLocalization.getDefaults()` returns the built-in prompts (`Defaults`, `DefaultsJA`, `DefaultsFR`, `DefaultsES`, `DefaultsDE`, `DefaultsIT`, `DefaultsKO`, and those extensions register, such as
   `DefaultsZH` of the Chinese localization) of that language,
   English without a session; the plugins pick theirs with `PluginLocalizationBundle.forPromptLanguage`. See
   [Templating](templating.md#the-built-in-prompts-and-their-languages).

@@ -8,6 +8,7 @@ import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
@@ -190,7 +191,7 @@ public class StoryMassDelete {
         if (bar == null) {
             return;
         }
-        count.setText(String.format(loc.getValue(L.LABEL_N_SELECTED), selected.size()));
+        count.setText(String.format(loc.getValue(M_L.LABEL_N_SELECTED), selected.size()));
         deleteButton.setEnabled(!selected.isEmpty());
     }
 
@@ -198,7 +199,7 @@ public class StoryMassDelete {
         if (selected.isEmpty()) {
             return;
         }
-        ConfirmDialog.show(String.format(loc.getValue(L.MSG_CONFIRM_MASS_DELETE), selected.size()), this::delete);
+        ConfirmDialog.show(String.format(loc.getValue(M_L.MSG_CONFIRM_MASS_DELETE), selected.size()), this::delete);
     }
 
     private void delete() {
@@ -215,7 +216,7 @@ public class StoryMassDelete {
         }
 
         ProgressBarDialog progress = new ProgressBarDialog(true);
-        progress.setTitle(loc.getValue(L.MSG_DELETING_PARTS));
+        progress.setTitle(loc.getValue(M_L.MSG_DELETING_PARTS));
         progress.setTotal((long) ids.size());
         progress.create();
         progress.setAction(dialog -> {

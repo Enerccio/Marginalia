@@ -1,0 +1,455 @@
+package com.github.enerccio.marginalia.domain.service.impl;
+
+import com.github.enerccio.marginalia.domain.model.impl.Resource;
+import com.github.enerccio.marginalia.domain.repository.ResourceRepository;
+import com.github.enerccio.marginalia.domain.security.model.User;
+import com.github.enerccio.marginalia.domain.service.ResourceService;
+import com.github.enerccio.marginalia.domain.service.SharedResources;
+import com.github.enerccio.marginalia.domain.traits.CommonTx;
+import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
+import com.github.enerccio.marginalia.domain.traits.NoTx;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.util.*;
+
+public class ResourceServiceImpl extends OwnedServiceImpl<Resource, ResourceRepository> implements ResourceService {
+
+    private static final long MAX_IMAGE_PIXELS = 50_000_000L;
+
+    /** What others share with the user (the files of a published book); may be missing. */
+    @Autowired(required = false)
+    private SharedResources sharedResources;
+
+    @Override
+    @CommonTx
+    public Resource upload(String filename, byte[] content, String contentType) throws Exception {
+        Resource resource = new Resource();
+        resource.setMimeType(contentType);
+        resource.setOriginalName(filename);
+        store(resource, filename, content);
+        return save(resource);
+    }
+
+    /**
+     * Writes the content as a file of the current user, or reuses the file with the same content, and sets what
+     * describes it on the resource (hash, size, path). Files are never changed after they are written, so they can be
+     * shared by more resources.
+     */
+    private void store(Resource resource, String filename, byte[] content) throws Exception {
+        resource.setSize(content.length);
+        resource.setHash(DigestUtils.sha256Hex(content));
+        resource.setPath(null);
+
+        File existing = sameContent(resource, other -> Arrays.equals(FileUtils.readFileToByteArray(other), content));
+        if (existing != null) {
+            resource.setPath(existing.getName());
+            return;
+        }
+        String name = newFileName(filename);
+        FileUtils.writeByteArrayToFile(new File(folderFor(resource.getMimeType()), name), content);
+        resource.setPath(name);
+    }
+
+    private interface SameContent {
+        boolean test(File other) throws Exception;
+    }
+
+    /**
+     * @return the file of another resource of the current user with the hash and size of the resource, in the folder its type
+     * is looked up in, whose content passes the check; null when there is none (or its file is gone)
+     */
+    private File sameContent(Resource resource, SameContent check) throws Exception {
+        Resource existing = findByHash(resource.getHash(), currentUser);
+        if (existing == null || existing.getPath() == null || existing.getMimeType() == null
+                || existing.getSize() != resource.getSize() || isImage(existing.getMimeType()) != isImage(resource.getMimeType())) {
+            return null;
+        }
+        File other = fileOf(existing, currentUser);
+        try {
+            return other.isFile() && check.test(other) ? other : null;
+        } catch (java.io.IOException e) {
+            // the file of the other resource is gone, this one gets its own
+            return null;
+        }
+    }
+
+    private static boolean isImage(String mimeType) {
+        return mimeType != null && mimeType.startsWith("image/");
+    }
+
+    private File folderFor(String mimeType) {
+        return isImage(mimeType) ? configuration.getImagesFolder(currentUser) : configuration.getResourcesFolder(currentUser);
+    }
+
+    private static String newFileName(String filename) {
+        return UUID.randomUUID() + "." + FilenameUtils.getExtension(filename);
+    }
+
+    @Override
+    @NoTx
+    public File newUploadFile() throws Exception {
+        return new File(configuration.getResourcesFolder(currentUser), UUID.randomUUID() + ".part");
+    }
+
+    @Override
+    @CommonTx
+    public Resource saveFile(File file, String originalName, String mimeType) throws Exception {
+        return saveFile(file, originalName, mimeType, null, null);
+    }
+
+    @Override
+    @CommonTx
+    public Resource saveFile(File file, String originalName, String mimeType, Class<?> clazz, Long objectId) throws Exception {
+        if (file == null || !file.isFile() || !isUserFolder(file.getCanonicalFile().getParentFile())) {
+            throw new IllegalArgumentException("Not a file of the user's resources");
+        }
+        Resource resource = new Resource();
+        resource.setMimeType(StringUtils.defaultIfBlank(mimeType, "application/octet-stream"));
+        resource.setOriginalName(originalName);
+        resource.setSize(file.length());
+        try (InputStream input = new BufferedInputStream(Files.newInputStream(file.toPath()))) {
+            resource.setHash(DigestUtils.sha256Hex(input));
+        }
+
+        File existing = sameContent(resource, other -> FileUtils.contentEquals(other, file));
+        if (existing != null && !existing.getCanonicalFile().equals(file.getCanonicalFile())) {
+            Files.delete(file.toPath());
+            resource.setPath(existing.getName());
+        } else if (existing != null) {
+            // the file of the other resource itself was given: it is shared, not moved
+            resource.setPath(existing.getName());
+        } else {
+            String name = newFileName(StringUtils.defaultIfBlank(originalName, file.getName()));
+            Files.move(file.toPath(), new File(folderFor(resource.getMimeType()), name).toPath());
+            resource.setPath(name);
+        }
+        resource = save(resource);
+        return clazz == null ? resource : link(resource, clazz, objectId);
+    }
+
+    private boolean isUserFolder(File folder) throws Exception {
+        return folder != null && (folder.equals(configuration.getResourcesFolder(currentUser).getCanonicalFile())
+                || folder.equals(configuration.getImagesFolder(currentUser).getCanonicalFile()));
+    }
+
+    @Override
+    @CommonTx
+    public int deleteUnlinked(String originalName, Date before) throws Exception {
+        if (originalName == null || before == null) {
+            return 0;
+        }
+        int deleted = 0;
+        for (Resource resource : getRepository().findUnlinked(currentUser, originalName, before)) {
+            delete(resource, false);
+            deleted++;
+        }
+        return deleted;
+    }
+
+    @Override
+    @CommonTx
+    public Resource uploadImage(String filename, byte[] content) throws Exception {
+        return uploadImage(filename, content, null, null);
+    }
+
+    @Override
+    @CommonTx
+    public Resource uploadImage(String filename, byte[] content, Class<?> clazz, Long objectId) throws Exception {
+        Image image = checkImage(filename, content);
+        Resource resource = upload(image.filename(), image.content(), image.mimeType());
+        return clazz == null ? resource : link(resource, clazz, objectId);
+    }
+
+    /**
+     * @param filename name with the extension of the detected type, not the one sent by the client
+     */
+    private record Image(String filename, byte[] content, String mimeType) {
+    }
+
+    private static Image checkImage(String filename, byte[] content) throws Exception {
+        if (content == null || content.length > MAX_IMAGE_BYTES) {
+            throw new IllegalArgumentException("Image is missing or larger than " + MAX_IMAGE_BYTES + " bytes");
+        }
+        String mimeType = detectImageType(content);
+        if (mimeType == null) {
+            throw new IllegalArgumentException("Not a supported image (PNG, JPEG, GIF or WebP)");
+        }
+        BufferedImage decoded = decode(content);
+        if ("image/webp".equals(mimeType)) {
+            // browsers show WebP, but the exports (Word, PDF) can't embed it, so it is stored as PNG
+            ByteArrayOutputStream png = new ByteArrayOutputStream();
+            if (!ImageIO.write(decoded, "png", png)) {
+                throw new IllegalArgumentException("Can't convert the image to PNG");
+            }
+            content = png.toByteArray();
+            mimeType = "image/png";
+        }
+        return new Image(FilenameUtils.getBaseName(filename) + "." + mimeType.substring("image/".length()), content, mimeType);
+    }
+
+    @Override
+    @CommonTx
+    public Resource link(Resource resource, Class<?> clazz, Long objectId) throws Exception {
+        resource.setClazz(clazz.getName());
+        resource.setObjectId(objectId);
+        return save(resource);
+    }
+
+    @Override
+    @CommonTx
+    public Resource unlink(Resource resource) throws Exception {
+        resource.setClazz(null);
+        resource.setObjectId(null);
+        return save(resource);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public ResourceLink describeLink(Resource resource) throws Exception {
+        return describe(resource.getClazz(), resource.getObjectId());
+    }
+
+    private ResourceLink describe(String clazz, Long objectId) {
+        if (clazz == null || objectId == null) {
+            return null;
+        }
+        String name = clazz.substring(clazz.lastIndexOf('.') + 1);
+        return new ResourceLink(name + " #" + objectId, getRepository().entityExists(clazz, objectId));
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public ResourceLink describeGroup(ResourceRepository.ResourceGroup group) throws Exception {
+        return describe(group.clazz(), group.objectId());
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public List<ResourceRepository.ResourceGroup> findGroupPageForUser(int offset, int limit, String sortProperty, boolean ascending) throws Exception {
+        return getRepository().findGroupPage(currentUser, offset, limit, sortProperty, ascending);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public long countGroupsForUser() throws Exception {
+        return getRepository().countGroups(currentUser);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public List<Resource> findPageOfGroupForUser(ResourceRepository.ResourceGroup group, int offset, int limit, String sortProperty, boolean ascending) throws Exception {
+        return getRepository().findPageOfGroup(currentUser, group.clazz(), group.objectId(), offset, limit, sortProperty, ascending);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public long countOfGroupForUser(ResourceRepository.ResourceGroup group) throws Exception {
+        return getRepository().countOfGroup(currentUser, group.clazz(), group.objectId());
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public List<Resource> findPageForUser(int offset, int limit, String sortProperty, boolean ascending) throws Exception {
+        return getRepository().findPage(currentUser, offset, limit, sortProperty, ascending);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public long countForUser() throws Exception {
+        return getRepository().count(currentUser);
+    }
+
+    @Override
+    @CommonTx
+    public Resource replace(Resource resource, String filename, byte[] content, String contentType) throws Exception {
+        Resource current = resource == null ? null : findForUser(resource.getUuid());
+        if (current == null) {
+            throw new IllegalArgumentException("Resource doesn't exist");
+        }
+        if (current.getMimeType() != null && current.getMimeType().startsWith("image/")) {
+            Image image = checkImage(filename, content);
+            current.setMimeType(image.mimeType());
+            current.setOriginalName(image.filename());
+            store(current, image.filename(), image.content());
+        } else {
+            current.setMimeType(StringUtils.defaultIfBlank(contentType, "application/octet-stream"));
+            if (current.getMimeType().startsWith("image/")) {
+                // the file would be looked up in the images folder, uploadImage is the way to store an image
+                throw new IllegalArgumentException("An image can't replace another kind of file");
+            }
+            current.setOriginalName(filename);
+            store(current, filename, content);
+        }
+        return save(current);
+    }
+
+    @Override
+    @CommonTx
+    public int softDelete(Collection<String> uuids) throws Exception {
+        int deleted = 0;
+        for (String uuid : uuids) {
+            Resource resource = findForUser(uuid);
+            if (resource != null) {
+                delete(resource, false);
+                deleted++;
+            }
+        }
+        return deleted;
+    }
+
+    /**
+     * Reads the whole image, so a file that only starts like an image is refused, and refuses huge dimensions that a
+     * small file can decompress to.
+     */
+    private static BufferedImage decode(byte[] content) throws Exception {
+        try (ImageInputStream input = ImageIO.createImageInputStream(new ByteArrayInputStream(content))) {
+            Iterator<ImageReader> readers = ImageIO.getImageReaders(input);
+            if (!readers.hasNext()) {
+                throw new IllegalArgumentException("No reader for the image");
+            }
+            ImageReader reader = readers.next();
+            try {
+                reader.setInput(input, true, true);
+                if ((long) reader.getWidth(0) * reader.getHeight(0) > MAX_IMAGE_PIXELS) {
+                    throw new IllegalArgumentException("Image has too many pixels");
+                }
+                return reader.read(0);
+            } catch (IllegalArgumentException e) {
+                throw e;
+            } catch (Exception e) {
+                throw new IllegalArgumentException("The image can't be read", e);
+            } finally {
+                reader.dispose();
+            }
+        }
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public Resource findImage(String uuid) throws Exception {
+        Resource resource = findForUser(uuid);
+        return resource != null && resource.getMimeType() != null && resource.getMimeType().startsWith("image/")
+                ? resource : null;
+    }
+
+    private static String detectImageType(byte[] c) {
+        if (c.length >= 8 && (c[0] & 0xFF) == 0x89 && c[1] == 'P' && c[2] == 'N' && c[3] == 'G') {
+            return "image/png";
+        }
+        if (c.length >= 3 && (c[0] & 0xFF) == 0xFF && (c[1] & 0xFF) == 0xD8 && (c[2] & 0xFF) == 0xFF) {
+            return "image/jpeg";
+        }
+        if (c.length >= 6 && c[0] == 'G' && c[1] == 'I' && c[2] == 'F' && c[3] == '8') {
+            return "image/gif";
+        }
+        if (c.length >= 12 && c[0] == 'R' && c[1] == 'I' && c[2] == 'F' && c[3] == 'F'
+                && c[8] == 'W' && c[9] == 'E' && c[10] == 'B' && c[11] == 'P') {
+            return "image/webp";
+        }
+        return null;
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public Resource findByHash(String hash, User owner) throws Exception {
+        return getRepository().findByHash(hash, owner);
+    }
+
+    @Override
+    @NoTx
+    public byte[] getResourceData(Resource resource) throws Exception {
+        return FileUtils.readFileToByteArray(getResourceFile(resource));
+    }
+
+    @Override
+    @NoTx
+    public File getResourceFile(Resource resource) throws Exception {
+        return fileOf(resource, resource.getServedFrom() != null ? resource.getServedFrom() : currentUser);
+    }
+
+    private File fileOf(Resource resource, User owner) {
+        if (isImage(resource.getMimeType())) {
+            return new File(configuration.getImagesFolder(owner), resource.getPath());
+        }
+        return new File(configuration.getResourcesFolder(owner), resource.getPath());
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public Resource findImageForReader(String uuid, String manuscriptUuid) throws Exception {
+        Resource own = findImage(uuid);
+        if (own != null || StringUtils.isAnyBlank(uuid, manuscriptUuid)) {
+            return own;
+        }
+        Resource resource = sharedResources == null ? null : sharedResources.findForReader(uuid, manuscriptUuid, currentUser, true);
+        if (resource == null) {
+            return null;
+        }
+        // the reader's request, not the owner's, asks for the file later: tell where it is
+        resource.setServedFrom(resource.getOwner());
+        resource.getServedFrom().getLogin();
+        return resource;
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public byte[] readForReader(String resourceUuid, String manuscriptUuid) throws Exception {
+        if (StringUtils.isAnyBlank(resourceUuid, manuscriptUuid)) {
+            return null;
+        }
+        // the images have their own way, which looks at the setting of the book
+        Resource resource = sharedResources == null ? null : sharedResources.findForReader(resourceUuid, manuscriptUuid, currentUser, false);
+        if (resource == null || resource.getPath() == null) {
+            return null;
+        }
+        return FileUtils.readFileToByteArray(fileOf(resource, resource.getOwner()));
+    }
+
+    @Override
+    @CommonTx
+    public Resource copyImageOf(String uuid, User owner) throws Exception {
+        if (StringUtils.isBlank(uuid) || owner == null) {
+            return null;
+        }
+        Resource original = getRepository().findByUuid(uuid, owner);
+        if (original == null || original.isDeleted() || original.getMimeType() == null || !original.getMimeType().startsWith("image/")) {
+            return null;
+        }
+        File file = fileOf(original, owner);
+        if (!file.isFile()) {
+            return null;
+        }
+        return uploadImage(StringUtils.defaultIfBlank(original.getOriginalName(), uuid), FileUtils.readFileToByteArray(file));
+    }
+
+    @Override
+    @CommonTx
+    public Resource copy(Resource resource) throws Exception {
+        Resource current = resource == null ? null : findForUser(resource.getUuid());
+        if (current == null) {
+            throw new IllegalArgumentException("Resource doesn't exist");
+        }
+        Resource copy = new Resource();
+        copy.setMimeType(current.getMimeType());
+        copy.setOriginalName(current.getOriginalName());
+        copy.setHash(current.getHash());
+        copy.setSize(current.getSize());
+        copy.setPath(current.getPath());
+        return save(copy);
+    }
+
+}

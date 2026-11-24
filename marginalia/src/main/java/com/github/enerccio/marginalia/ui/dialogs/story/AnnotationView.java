@@ -2,9 +2,12 @@ package com.github.enerccio.marginalia.ui.dialogs.story;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.collections.AnnotationStatus;
 import com.github.enerccio.marginalia.domain.model.impl.Annotation;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.vaadin.flow.component.Component;
@@ -81,7 +84,7 @@ public class AnnotationView extends VerticalLayout {
         this.host = host == null ? Host.NONE : host;
         setPadding(false);
         setSpacing(false);
-        addClassNames(CssStyles.ANNOTATION_VIEW, CssStyles.GAP_S);
+        addClassNames(MarginaliaCssStyles.ANNOTATION_VIEW, CssStyles.GAP_S);
         // the margin finds the note of a mark by this, see JavascriptLibrary.linkMarginNotes
         getElement().setAttribute(StoryAnnotations.NOTE_ATTRIBUTE, annotation.getUuid());
         build();
@@ -106,11 +109,11 @@ public class AnnotationView extends VerticalLayout {
 
     private Component buildHeader() {
         Span status = new Span(loc.getValue(statusLabel(annotation.getStatus())));
-        status.addClassNames(CssStyles.ANNOTATION_STATUS, switch (annotation.getStatus()) {
-            case RESOLVED -> CssStyles.ANNOTATION_STATUS_RESOLVED;
-            case DISMISSED -> CssStyles.ANNOTATION_STATUS_DISMISSED;
-            case ORPHANED -> CssStyles.ANNOTATION_STATUS_ORPHANED;
-            default -> CssStyles.ANNOTATION_STATUS_OPEN;
+        status.addClassNames(MarginaliaCssStyles.ANNOTATION_STATUS, switch (annotation.getStatus()) {
+            case RESOLVED -> MarginaliaCssStyles.ANNOTATION_STATUS_RESOLVED;
+            case DISMISSED -> MarginaliaCssStyles.ANNOTATION_STATUS_DISMISSED;
+            case ORPHANED -> MarginaliaCssStyles.ANNOTATION_STATUS_ORPHANED;
+            default -> MarginaliaCssStyles.ANNOTATION_STATUS_OPEN;
         });
 
         Span source = new Span(sourceText());
@@ -119,7 +122,7 @@ public class AnnotationView extends VerticalLayout {
         HorizontalLayout header = new HorizontalLayout(status, source);
         if (StringUtils.isNotBlank(annotation.getType())) {
             Span type = new Span(annotation.getType());
-            type.addClassName(CssStyles.ANNOTATION_TYPE);
+            type.addClassName(MarginaliaCssStyles.ANNOTATION_TYPE);
             header.add(type);
         }
         header.setAlignItems(FlexComponent.Alignment.CENTER);
@@ -134,19 +137,19 @@ public class AnnotationView extends VerticalLayout {
         buttons.setPadding(false);
         buttons.addClassName(CssStyles.MARGIN_LEFT_AUTO);
         if (annotation.getStatus() == AnnotationStatus.OPEN || annotation.getStatus() == AnnotationStatus.ORPHANED) {
-            buttons.add(iconButton(Solid.CHECK, L.LABEL_ANNOTATION_RESOLVE, () -> annotations.setStatus(annotation, AnnotationStatus.RESOLVED)));
-            buttons.add(iconButton(Solid.TIMES, L.LABEL_ANNOTATION_DISMISS, () -> annotations.setStatus(annotation, AnnotationStatus.DISMISSED)));
+            buttons.add(iconButton(Solid.CHECK, M_L.LABEL_ANNOTATION_RESOLVE, () -> annotations.setStatus(annotation, AnnotationStatus.RESOLVED)));
+            buttons.add(iconButton(Solid.TIMES, M_L.LABEL_ANNOTATION_DISMISS, () -> annotations.setStatus(annotation, AnnotationStatus.DISMISSED)));
         } else {
-            buttons.add(iconButton(Solid.UNDO, L.LABEL_ANNOTATION_REOPEN, () -> annotations.setStatus(annotation, AnnotationStatus.OPEN)));
+            buttons.add(iconButton(Solid.UNDO, M_L.LABEL_ANNOTATION_REOPEN, () -> annotations.setStatus(annotation, AnnotationStatus.OPEN)));
         }
         buttons.add(iconButton(Solid.PENCIL, L.LABEL_EDIT, this::edit));
         buttons.add(iconButton(Solid.TRASH, L.LABEL_DELETE, () ->
-                ConfirmDialog.show(loc.getValue(L.MSG_COMMAND_DELETE_ANNOTATION_CONFIRM), () -> annotations.remove(annotation))));
+                ConfirmDialog.show(loc.getValue(M_L.MSG_COMMAND_DELETE_ANNOTATION_CONFIRM), () -> annotations.remove(annotation))));
         header.add(buttons);
         return header;
     }
 
-    private Button iconButton(Solid icon, L tooltip, Runnable action) {
+    private Button iconButton(Solid icon, LocalizationKey tooltip, Runnable action) {
         Button button = new Button(icon.create());
         button.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_SMALL);
         button.setTooltipText(loc.getValue(tooltip));
@@ -159,10 +162,11 @@ public class AnnotationView extends VerticalLayout {
 
     private String sourceText() {
         String source = loc.getValue(switch (annotation.getSource()) {
-            case AI -> L.ENUM_ANNOTATION_SOURCE_AI;
-            case AGENT -> L.ENUM_ANNOTATION_SOURCE_AGENT;
-            case PLUGIN -> L.ENUM_ANNOTATION_SOURCE_PLUGIN;
-            default -> L.ENUM_ANNOTATION_SOURCE_AUTHOR;
+            case AI -> M_L.ENUM_ANNOTATION_SOURCE_AI;
+            case AGENT -> M_L.ENUM_ANNOTATION_SOURCE_AGENT;
+            case PLUGIN -> M_L.ENUM_ANNOTATION_SOURCE_PLUGIN;
+            case PHRASE -> M_L.ENUM_ANNOTATION_SOURCE_PHRASE;
+            default -> M_L.ENUM_ANNOTATION_SOURCE_AUTHOR;
         });
         return StringUtils.isBlank(annotation.getLabel()) ? source : source + " · " + annotation.getLabel();
     }
@@ -172,25 +176,25 @@ public class AnnotationView extends VerticalLayout {
      */
     private Component buildQuote() {
         if (annotation.getStatus() == AnnotationStatus.ORPHANED) {
-            return hint(L.MSG_ANNOTATION_ORPHANED_HINT, annotation.getQuote());
+            return hint(M_L.MSG_ANNOTATION_ORPHANED_HINT, annotation.getQuote());
         }
         if (annotation.isNotLocated()) {
-            return hint(L.MSG_ANNOTATION_NOT_LOCATED_HINT, annotation.getQuote());
+            return hint(M_L.MSG_ANNOTATION_NOT_LOCATED_HINT, annotation.getQuote());
         }
         if (annotation.hasRange() && StringUtils.isNotBlank(annotation.getQuote())) {
             Div quote = new Div(new Span(StringUtils.abbreviate(annotation.getQuote(), 240)));
-            quote.addClassName(CssStyles.ANNOTATION_QUOTE);
+            quote.addClassName(MarginaliaCssStyles.ANNOTATION_QUOTE);
             return quote;
         }
         return null;
     }
 
-    private Component hint(L message, String quote) {
+    private Component hint(LocalizationKey message, String quote) {
         Div hint = new Div(new Span(loc.getValue(message)));
         hint.addClassName(CssStyles.HINT_TEXT);
         if (StringUtils.isNotBlank(quote)) {
             Div old = new Div(new Span(StringUtils.abbreviate(quote, 240)));
-            old.addClassName(CssStyles.ANNOTATION_QUOTE);
+            old.addClassName(MarginaliaCssStyles.ANNOTATION_QUOTE);
             Div both = new Div(hint, old);
             return both;
         }
@@ -200,7 +204,7 @@ public class AnnotationView extends VerticalLayout {
     private Component buildNote() {
         Div note = new Div();
         note.setText(StringUtils.defaultString(annotation.getText()));
-        note.addClassName(CssStyles.ANNOTATION_NOTE);
+        note.addClassName(MarginaliaCssStyles.ANNOTATION_NOTE);
         return note;
     }
 
@@ -208,7 +212,7 @@ public class AnnotationView extends VerticalLayout {
         TextArea text = new TextArea();
         text.setWidthFull();
         text.setMinHeight("80px");
-        text.setLabel(loc.getValue(L.LABEL_NOTE));
+        text.setLabel(loc.getValue(M_L.LABEL_NOTE));
         text.setValue(StringUtils.defaultString(annotation.getText()));
 
         TextField type = new TextField(loc.getValue(L.LABEL_TYPE));
@@ -248,7 +252,7 @@ public class AnnotationView extends VerticalLayout {
         // in the narrow sidebar and margin the buttons go under the check box instead of squeezing its text
         footer.setWrap(true);
 
-        Checkbox send = new Checkbox(loc.getValue(L.LABEL_ANNOTATION_SEND_TO_PROMPT));
+        Checkbox send = new Checkbox(loc.getValue(M_L.LABEL_ANNOTATION_SEND_TO_PROMPT));
         send.setValue(annotation.isSendToPrompt());
         send.addValueChangeListener(event -> {
             if (event.isFromClient()) {
@@ -258,13 +262,13 @@ public class AnnotationView extends VerticalLayout {
         footer.add(send);
 
         if (!annotation.hasRange() && host.canAttach(annotation)) {
-            Button attach = new Button(loc.getValue(L.LABEL_ANNOTATION_ATTACH_SELECTION), event -> host.attachToSelection(annotation));
+            Button attach = new Button(loc.getValue(M_L.LABEL_ANNOTATION_ATTACH_SELECTION), event -> host.attachToSelection(annotation));
             attach.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
             attach.addClassName(CssStyles.MARGIN_LEFT_AUTO);
             footer.add(attach);
         }
         if (host.canGoToPart(annotation)) {
-            Button go = new Button(loc.getValue(L.LABEL_SHOW_IN_STORY), event -> host.goToPart(annotation));
+            Button go = new Button(loc.getValue(M_L.LABEL_SHOW_IN_STORY), event -> host.goToPart(annotation));
             go.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
             go.addClassName(CssStyles.MARGIN_LEFT_AUTO);
             footer.add(go);
@@ -288,12 +292,12 @@ public class AnnotationView extends VerticalLayout {
         build();
     }
 
-    static L statusLabel(AnnotationStatus status) {
+    static LocalizationKey statusLabel(AnnotationStatus status) {
         return switch (status) {
-            case RESOLVED -> L.ENUM_ANNOTATION_STATUS_RESOLVED;
-            case DISMISSED -> L.ENUM_ANNOTATION_STATUS_DISMISSED;
-            case ORPHANED -> L.ENUM_ANNOTATION_STATUS_ORPHANED;
-            default -> L.ENUM_ANNOTATION_STATUS_OPEN;
+            case RESOLVED -> M_L.ENUM_ANNOTATION_STATUS_RESOLVED;
+            case DISMISSED -> M_L.ENUM_ANNOTATION_STATUS_DISMISSED;
+            case ORPHANED -> M_L.ENUM_ANNOTATION_STATUS_ORPHANED;
+            default -> M_L.ENUM_ANNOTATION_STATUS_OPEN;
         };
     }
 

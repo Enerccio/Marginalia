@@ -211,4 +211,28 @@ class KnowledgeStateTest {
         assertTrue(fiora.getAliases().isEmpty());
         assertNotNull(new Gson().fromJson("{}", KnowledgeState.class).getCharacters());
     }
+
+    @Test
+    void ticksAndUnticksAMeetingWithATrackedCharacterUnderAnyOfItsNames() {
+        TrackedCharacter fiora = fiora();
+        TrackedCharacter thomas = new TrackedCharacter("Thomas");
+        assertFalse(thomas.hasMet(fiora));
+
+        thomas.addMet("fi", "msg-1");
+        assertTrue(thomas.hasMet(fiora), "an alias counts");
+        assertFalse(thomas.setMet(fiora, true), "already met: nothing changes");
+        assertEquals(1, thomas.getMet().size());
+
+        assertTrue(thomas.setMet(fiora, false));
+        assertFalse(thomas.hasMet(fiora));
+        assertFalse(thomas.setMet(fiora, false));
+
+        assertTrue(thomas.setMet(fiora, true));
+        assertEquals("Fiora", thomas.getMet().getFirst().getName());
+        assertNull(thomas.getMet().getFirst().getSourceMessage(), "a meeting ticked by hand survives a reprocessing");
+        assertEquals(0, thomas.rewind(_ -> true));
+        assertTrue(thomas.hasMet(fiora));
+        assertFalse(fiora.hasMet(thomas), "a meeting is recorded for one side only");
+        assertFalse(fiora.setMet(fiora, true), "a character does not meet itself");
+    }
 }

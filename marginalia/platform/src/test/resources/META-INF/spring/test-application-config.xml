@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The platform on its own: the wiring of the platform's services, entities and tables, without any application. It is
+  the context PlatformTestBase starts (classpath:META-INF/spring/test-application-config.xml) in the platform's own
+  tests. It is left out of the test-jar: the tests of an application have a file of this name in their own test
+  resources with the application's wiring (Marginalia's imports its application-config.xml); in a reactor build,
+  where the platform's test classes folder is on their class path, their own file comes first. It is also the example of
+  what an application on the platform writes for itself: the platform ships no
+  Spring XML, no persistence unit and no migrations (TODO.REFACTOR.md). Kept close to Marginalia's
+  application-config.xml, datasources-config.xml, container-config.xml and the platform's part of services-config.xml.
+-->
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop" xmlns:task="http://www.springframework.org/schema/task"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/aop https://www.springframework.org/schema/aop/spring-aop.xsd http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+    <context:property-placeholder ignore-unresolvable="true" />
+    <context:annotation-config/>
+    <context:spring-configured/>
+    <task:annotation-driven/>
+    <aop:aspectj-autoproxy proxy-target-class="true"/>
+    <context:component-scan base-package="com.github.enerccio" />
+
+    <!-- ===== container ===== -->
+
+    <bean name="localization" class="com.github.enerccio.marginalia.loc.LocalizationImpl">
+        <property name="bundles">
+            <list>
+                <bean class="com.github.enerccio.marginalia.loc.LocalizationBundleEN" />
+                <bean class="com.github.enerccio.marginalia.loc.LocalizationBundleJP" />
+                <bean class="com.github.enerccio.marginalia.loc.LocalizationBundleFR" />
+                <bean class="com.github.enerccio.marginalia.loc.LocalizationBundleES" />
+                <bean class="com.github.enerccio.marginalia.loc.LocalizationBundleDE" />
+                <bean class="com.github.enerccio.marginalia.loc.LocalizationBundleKO" />
+                <bean class="com.github.enerccio.marginalia.loc.LocalizationBundleIT" />
+            </list>
+        </property>
+    </bean>
+
+    <!-- the folder is set by TestContextPostProcessor; the platform's own migrations and core tables -->
+    <bean name="configuration" class="com.github.enerccio.marginalia.Configuration">
+        <property name="defaultFolderName" value=".marginalia-platform-test" />
+        <property name="databaseSchema">
+            <bean class="com.github.enerccio.marginalia.DatabaseCheck$Schema">
+                <constructor-arg index="0" value="classpath:platform-test-migration" />
+                <constructor-arg index="1" value="#{T(com.github.enerccio.marginalia.DatabaseCheck$Schema).PLATFORM.coreTables()}" />
+            </bean>
+        </property>
+    </bean>
+    <bean name="applicationPoint" class="com.github.enerccio.marginalia.bound.ApplicationPoint" />
+    <bean name="sessionManager" class="com.github.enerccio.marginalia.bound.SessionManager" />
+    <bean name="sessionPoint" class="com.github.enerccio.marginalia.bound.SessionPoint" scope="session">
+        <aop:scoped-proxy />
+    </bean>
+    <bean name="user" class="com.github.enerccio.marginalia.domain.security.model.User" scope="session">
+        <aop:scoped-proxy />
+    </bean>
+    <bean name="applicationInitializer" class="com.github.enerccio.marginalia.bound.ApplicationInitializer">
+        <property name="appVersion" value="1" />
+        <property name="dbVersion" value="1" />
+    </bean>
+
+    <!-- ===== data sources ===== -->
+
+    <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close" depends-on="configuration" >
+        <property name="driverClassName" value="org.sqlite.JDBC"/>
+        <property name="url" value="#{configuration.resolveDb('platform.sqlite')}"/>
+        <property name="username" value="" />
+        <property name="password" value="" />
+        <property name="testOnBorrow" value="true"/>
+        <property name="validationQuery" value="SELECT 1"/>
+        <property name="initialSize" value="4" />
+        <property name="maxActive" value="20" />
+    </bean>
+    <!-- the connections of read-write transactions begin with the write lock, see ReadWriteRoutingDataSource -->
+    <bean id="writeDataSource" parent="dataSource" depends-on="configuration,dataSource">
+        <property name="url" value="#{configuration.resolveWriteDb()}"/>
+        <property name="initialSize" value="2" />
+    </bean>
+    <bean id="routingDataSource" class="com.github.enerccio.marginalia.ReadWriteRoutingDataSource">
+        <constructor-arg index="0" ref="dataSource"/>
+        <constructor-arg index="1" ref="writeDataSource"/>
+    </bean>
+    <bean id="flywayConfiguration" factory-bean="configuration" factory-method="flywayConfiguration">
+        <constructor-arg index="0" ref="dataSource"/>
+    </bean>
+    <bean id="flyway" class="org.flywaydb.core.Flyway" init-method="migrate" >
+        <constructor-arg index="0" ref="flywayConfiguration" />
+    </bean>
+    <bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+        <property name="dataSource" ref="ds"/>
+    </bean>
+    <bean id="emf" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean" depends-on="flyway">
+        <property name="persistenceUnitName" value="PU"/>
+        <property name="persistenceXmlLocation" value="classpath:platform-test/persistence.xml" />
+        <property name="dataSource" ref="ds"/>
+        <property name="jpaPropertyMap">
+            <map>
+                <entry key="hibernate.resource.beans.container">
+                    <bean class="org.springframework.orm.jpa.hibernate.SpringBeanContainer" autowire="constructor" />
+                </entry>
+            </map>
+        </property>
+    </bean>
+    <bean id="ds" class="org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy">
+        <constructor-arg ref="routingDataSource" />
+    </bean>
+    <bean id="em" class="org.springframework.orm.jpa.support.SharedEntityManagerBean">
+        <property name = "entityManagerFactory" ref="emf"/>
+    </bean>
+    <tx:annotation-driven/>
+    <bean id="jpaDialect" class="com.github.enerccio.marginalia.ReadWriteRoutingDataSource$Dialect" />
+    <bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager" >
+        <property name="entityManagerFactory" ref="emf"/>
+        <property name="jpaDialect" ref="jpaDialect"/>
+        <qualifier value="common" />
+    </bean>
+
+    <!-- ===== services (the platform's part of Marginalia's services-config.xml) ===== -->
+
+
+    <bean id="userRepository" class="com.github.enerccio.marginalia.domain.security.repository.impl.JpaUserRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.security.AdminGuard" />
+
+    <bean class="com.github.enerccio.marginalia.domain.security.service.impl.UserServiceImpl">
+        <property name="repository" ref="userRepository" />
+    </bean>
+
+    <bean id="permissionRepository" class="com.github.enerccio.marginalia.domain.security.repository.impl.JpaPermissionRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.security.service.impl.PermissionServiceImpl">
+        <property name="repository" ref="permissionRepository" />
+    </bean>
+
+    <bean id="apiKeyRepository" class="com.github.enerccio.marginalia.domain.security.repository.impl.JpaApiKeyRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.security.service.impl.ApiKeyServiceImpl">
+        <property name="repository" ref="apiKeyRepository" />
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.api.ApiDispatcher" />
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.InferenceServicesImpl">
+        <property name="inferenceProviders">
+            <list>
+                <value>com.github.enerccio.marginalia.domain.service.impl.inference.OpenAICompatibleInferenceService</value>
+            </list>
+        </property>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.TemplateServiceImpl" />
+
+    <bean id="settingRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaSettingRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.SettingServiceImpl">
+        <property name="repository" ref="settingRepository" />
+        <!-- an application names its own user settings, the platform's tests have a minimal one -->
+        <property name="userSettingClass" value="com.github.enerccio.marginalia.test.TestUserSetting" />
+    </bean>
+
+    <bean id="resourceRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaResourceRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.ResourceServiceImpl">
+        <property name="repository" ref="resourceRepository" />
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.ResourceGarbageServiceImpl" />
+
+    <bean id="aiRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaAIRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.AIServiceImpl">
+        <property name="repository" ref="aiRepository" />
+    </bean>
+
+    <bean id="usageRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaUsageRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.UsageServiceImpl">
+        <property name="repository" ref="usageRepository" />
+    </bean>
+
+    <bean id="jobRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaJobRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.JobServiceImpl">
+        <property name="repository" ref="jobRepository" />
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.AILimitServiceImpl" />
+
+    <bean id="protocolRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaProtocolRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.ProtocolServiceImpl">
+        <property name="repository" ref="protocolRepository" />
+    </bean>
+
+    <bean id="tagRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaTagRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.TagServiceImpl">
+        <property name="repository" ref="tagRepository" />
+    </bean>
+
+    <bean id="tagRelationRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaTagRelationRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.TagRelationServiceImpl">
+        <property name="repository" ref="tagRelationRepository" />
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.AIGateImpl" />
+
+    <bean id="gpuRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaGpuRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean id="gpuLockRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaGpuLockRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean id="gpuStepRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaGpuStepRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.GpuServiceImpl">
+        <property name="gpuRepository" ref="gpuRepository" />
+        <property name="lockRepository" ref="gpuLockRepository" />
+        <property name="stepRepository" ref="gpuStepRepository" />
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.TokenizerServiceImpl" />
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.ManualServiceImpl" init-method="load" />
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.ToolServiceImpl" />
+
+    <!-- the desktop notifications of the browser: what can notify (the sources, extensions add theirs) and what the user chose -->
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.NotificationServiceImpl" />
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.ExtensionServiceImpl" />
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.DatabaseBackupServiceImpl" />
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.UpdateServiceImpl" />
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.CommandServiceImpl" />
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.CleanupServiceImpl">
+        <property name="entityManager" ref="em" />
+    </bean>
+
+    <!-- ===== tests ===== -->
+
+    <bean class="com.github.enerccio.marginalia.test.TestContextPostProcessor" />
+
+</beans>

@@ -1,11 +1,11 @@
 package com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.read;
 
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService.MessageFulltext;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService.SummaryFulltext;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.traits.*;
-import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.utils.RegexTimeoutException;
 import com.github.enerccio.marginalia.utils.TimeSafeText;
 import com.google.gson.JsonArray;
@@ -27,77 +27,116 @@ public class FindOccurrencesCommand extends ManuscriptReadSupport {
     /** The characters around a match in a snippet. */
     private static final int SNIPPET_RADIUS = 40;
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_FIND_OCCURRENCES,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_FIND_OCCURRENCES, llmDescription = L.DESC_COMMAND_FIND_OCCURRENCES_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "terms", type = Object.class, description = L.DESC_COMMAND_TERMS_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_FIND_OCCURRENCES_RETURN))
+                    @CommandParameter(name = "terms", type = Object.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_FIND_OCCURRENCES,
+            description = M_L.DESC_COMMAND_FIND_OCCURRENCES,
+            llmDescription = M_L.DESC_COMMAND_FIND_OCCURRENCES_LLM,
+            parameters = @MarginaliaParameterText(name = "terms", description = M_L.DESC_COMMAND_TERMS_PARAM),
+            returns = M_L.DESC_COMMAND_FIND_OCCURRENCES_RETURN)
     public void findOccurrences(CommandContext context) throws Exception {
         findOccurrences(context, context.get("terms", Object.class), null, null, null, null, null);
     }
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_FIND_OCCURRENCES,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_FIND_OCCURRENCES, llmDescription = L.DESC_COMMAND_FIND_OCCURRENCES_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "terms", type = Object.class, description = L.DESC_COMMAND_TERMS_PARAM),
-                    @CommandParameter(name = "regex", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_REGEX_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_FIND_OCCURRENCES_RETURN))
+                    @CommandParameter(name = "terms", type = Object.class),
+                    @CommandParameter(name = "regex", type = Boolean.class, optional = true, defaultValue = "false")}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_FIND_OCCURRENCES,
+            description = M_L.DESC_COMMAND_FIND_OCCURRENCES,
+            llmDescription = M_L.DESC_COMMAND_FIND_OCCURRENCES_LLM,
+            parameters = {@MarginaliaParameterText(name = "terms", description = M_L.DESC_COMMAND_TERMS_PARAM),
+                    @MarginaliaParameterText(name = "regex", description = M_L.DESC_COMMAND_REGEX_PARAM)},
+            returns = M_L.DESC_COMMAND_FIND_OCCURRENCES_RETURN)
     public void findOccurrencesRegex(CommandContext context) throws Exception {
         findOccurrences(context, context.get("terms", Object.class), context.get("regex", Boolean.class), null, null, null, null);
     }
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_FIND_OCCURRENCES,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_FIND_OCCURRENCES, llmDescription = L.DESC_COMMAND_FIND_OCCURRENCES_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "terms", type = Object.class, description = L.DESC_COMMAND_TERMS_PARAM),
-                    @CommandParameter(name = "regex", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_REGEX_PARAM),
-                    @CommandParameter(name = "caseSensitive", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_FIND_CASE_SENSITIVE_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_FIND_OCCURRENCES_RETURN))
+                    @CommandParameter(name = "terms", type = Object.class),
+                    @CommandParameter(name = "regex", type = Boolean.class, optional = true, defaultValue = "false"),
+                    @CommandParameter(name = "caseSensitive", type = Boolean.class, optional = true, defaultValue = "false")}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_FIND_OCCURRENCES,
+            description = M_L.DESC_COMMAND_FIND_OCCURRENCES,
+            llmDescription = M_L.DESC_COMMAND_FIND_OCCURRENCES_LLM,
+            parameters = {@MarginaliaParameterText(name = "terms", description = M_L.DESC_COMMAND_TERMS_PARAM),
+                    @MarginaliaParameterText(name = "regex", description = M_L.DESC_COMMAND_REGEX_PARAM),
+                    @MarginaliaParameterText(name = "caseSensitive", description = M_L.DESC_COMMAND_FIND_CASE_SENSITIVE_PARAM)},
+            returns = M_L.DESC_COMMAND_FIND_OCCURRENCES_RETURN)
     public void findOccurrencesCaseSensitive(CommandContext context) throws Exception {
         findOccurrences(context, context.get("terms", Object.class), context.get("regex", Boolean.class), context.get("caseSensitive", Boolean.class), null, null, null);
     }
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_FIND_OCCURRENCES,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_FIND_OCCURRENCES, llmDescription = L.DESC_COMMAND_FIND_OCCURRENCES_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "terms", type = Object.class, description = L.DESC_COMMAND_TERMS_PARAM),
-                    @CommandParameter(name = "regex", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_REGEX_PARAM),
-                    @CommandParameter(name = "caseSensitive", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_FIND_CASE_SENSITIVE_PARAM),
-                    @CommandParameter(name = "summaries", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_FIND_SUMMARIES_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_FIND_OCCURRENCES_RETURN))
+                    @CommandParameter(name = "terms", type = Object.class),
+                    @CommandParameter(name = "regex", type = Boolean.class, optional = true, defaultValue = "false"),
+                    @CommandParameter(name = "caseSensitive", type = Boolean.class, optional = true, defaultValue = "false"),
+                    @CommandParameter(name = "summaries", type = Boolean.class, optional = true, defaultValue = "false")}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_FIND_OCCURRENCES,
+            description = M_L.DESC_COMMAND_FIND_OCCURRENCES,
+            llmDescription = M_L.DESC_COMMAND_FIND_OCCURRENCES_LLM,
+            parameters = {@MarginaliaParameterText(name = "terms", description = M_L.DESC_COMMAND_TERMS_PARAM),
+                    @MarginaliaParameterText(name = "regex", description = M_L.DESC_COMMAND_REGEX_PARAM),
+                    @MarginaliaParameterText(name = "caseSensitive", description = M_L.DESC_COMMAND_FIND_CASE_SENSITIVE_PARAM),
+                    @MarginaliaParameterText(name = "summaries", description = M_L.DESC_COMMAND_FIND_SUMMARIES_PARAM)},
+            returns = M_L.DESC_COMMAND_FIND_OCCURRENCES_RETURN)
     public void findOccurrencesSummaries(CommandContext context) throws Exception {
         findOccurrences(context, context.get("terms", Object.class), context.get("regex", Boolean.class), context.get("caseSensitive", Boolean.class), context.get("summaries", Boolean.class), null, null);
     }
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_FIND_OCCURRENCES,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_FIND_OCCURRENCES, llmDescription = L.DESC_COMMAND_FIND_OCCURRENCES_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "terms", type = Object.class, description = L.DESC_COMMAND_TERMS_PARAM),
-                    @CommandParameter(name = "regex", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_REGEX_PARAM),
-                    @CommandParameter(name = "caseSensitive", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_FIND_CASE_SENSITIVE_PARAM),
-                    @CommandParameter(name = "summaries", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_FIND_SUMMARIES_PARAM),
-                    @CommandParameter(name = "allBranches", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_ALL_BRANCHES_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_FIND_OCCURRENCES_RETURN))
+                    @CommandParameter(name = "terms", type = Object.class),
+                    @CommandParameter(name = "regex", type = Boolean.class, optional = true, defaultValue = "false"),
+                    @CommandParameter(name = "caseSensitive", type = Boolean.class, optional = true, defaultValue = "false"),
+                    @CommandParameter(name = "summaries", type = Boolean.class, optional = true, defaultValue = "false"),
+                    @CommandParameter(name = "allBranches", type = Boolean.class, optional = true, defaultValue = "false")}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_FIND_OCCURRENCES,
+            description = M_L.DESC_COMMAND_FIND_OCCURRENCES,
+            llmDescription = M_L.DESC_COMMAND_FIND_OCCURRENCES_LLM,
+            parameters = {@MarginaliaParameterText(name = "terms", description = M_L.DESC_COMMAND_TERMS_PARAM),
+                    @MarginaliaParameterText(name = "regex", description = M_L.DESC_COMMAND_REGEX_PARAM),
+                    @MarginaliaParameterText(name = "caseSensitive", description = M_L.DESC_COMMAND_FIND_CASE_SENSITIVE_PARAM),
+                    @MarginaliaParameterText(name = "summaries", description = M_L.DESC_COMMAND_FIND_SUMMARIES_PARAM),
+                    @MarginaliaParameterText(name = "allBranches", description = M_L.DESC_COMMAND_ALL_BRANCHES_PARAM)},
+            returns = M_L.DESC_COMMAND_FIND_OCCURRENCES_RETURN)
     public void findOccurrencesAllBranches(CommandContext context) throws Exception {
         findOccurrences(context, context.get("terms", Object.class), context.get("regex", Boolean.class), context.get("caseSensitive", Boolean.class), context.get("summaries", Boolean.class), context.get("allBranches", Boolean.class), null);
     }
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_FIND_OCCURRENCES,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_FIND_OCCURRENCES, llmDescription = L.DESC_COMMAND_FIND_OCCURRENCES_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "terms", type = Object.class, description = L.DESC_COMMAND_TERMS_PARAM),
-                    @CommandParameter(name = "regex", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_REGEX_PARAM),
-                    @CommandParameter(name = "caseSensitive", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_FIND_CASE_SENSITIVE_PARAM),
-                    @CommandParameter(name = "summaries", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_FIND_SUMMARIES_PARAM),
-                    @CommandParameter(name = "allBranches", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_ALL_BRANCHES_PARAM),
-                    @CommandParameter(name = "limit", type = Integer.class, optional = true, defaultValue = "50", min = "1", max = "200", description = L.DESC_COMMAND_LIMIT_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_FIND_OCCURRENCES_RETURN))
+                    @CommandParameter(name = "terms", type = Object.class),
+                    @CommandParameter(name = "regex", type = Boolean.class, optional = true, defaultValue = "false"),
+                    @CommandParameter(name = "caseSensitive", type = Boolean.class, optional = true, defaultValue = "false"),
+                    @CommandParameter(name = "summaries", type = Boolean.class, optional = true, defaultValue = "false"),
+                    @CommandParameter(name = "allBranches", type = Boolean.class, optional = true, defaultValue = "false"),
+                    @CommandParameter(name = "limit", type = Integer.class, optional = true, defaultValue = "50", min = "1", max = "200")}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_FIND_OCCURRENCES,
+            description = M_L.DESC_COMMAND_FIND_OCCURRENCES,
+            llmDescription = M_L.DESC_COMMAND_FIND_OCCURRENCES_LLM,
+            parameters = {@MarginaliaParameterText(name = "terms", description = M_L.DESC_COMMAND_TERMS_PARAM),
+                    @MarginaliaParameterText(name = "regex", description = M_L.DESC_COMMAND_REGEX_PARAM),
+                    @MarginaliaParameterText(name = "caseSensitive", description = M_L.DESC_COMMAND_FIND_CASE_SENSITIVE_PARAM),
+                    @MarginaliaParameterText(name = "summaries", description = M_L.DESC_COMMAND_FIND_SUMMARIES_PARAM),
+                    @MarginaliaParameterText(name = "allBranches", description = M_L.DESC_COMMAND_ALL_BRANCHES_PARAM),
+                    @MarginaliaParameterText(name = "limit", description = M_L.DESC_COMMAND_LIMIT_PARAM)},
+            returns = M_L.DESC_COMMAND_FIND_OCCURRENCES_RETURN)
     public void findOccurrencesLimit(CommandContext context) throws Exception {
         findOccurrences(context, context.get("terms", Object.class), context.get("regex", Boolean.class), context.get("caseSensitive", Boolean.class), context.get("summaries", Boolean.class), context.get("allBranches", Boolean.class), context.get("limit", Integer.class));
     }
@@ -109,7 +148,7 @@ public class FindOccurrencesCommand extends ManuscriptReadSupport {
         try {
             find(context, terms, regex, caseSensitive, summaries, allBranches, limit, deadline);
         } catch (RegexTimeoutException e) {
-            throw new IllegalStateException(String.format(loc.getValue(L.ERROR_REGEX_TIMEOUT), TimeSafeText.timeoutMillis() / 1000), e);
+            throw new IllegalStateException(String.format(loc.getValue(M_L.ERROR_REGEX_TIMEOUT), TimeSafeText.timeoutMillis() / 1000), e);
         }
     }
 
@@ -123,7 +162,7 @@ public class FindOccurrencesCommand extends ManuscriptReadSupport {
         }
         words.removeIf(String::isEmpty);
         if (words.isEmpty()) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_SEARCH_TEXT_EMPTY));
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_SEARCH_TEXT_EMPTY));
         }
         boolean isRegex = Boolean.TRUE.equals(regex);
         int flags = Boolean.TRUE.equals(caseSensitive) ? 0 : Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE;
@@ -132,7 +171,7 @@ public class FindOccurrencesCommand extends ManuscriptReadSupport {
             try {
                 patterns.add(Pattern.compile(isRegex ? word : Pattern.quote(word), isRegex ? flags | Pattern.MULTILINE : flags));
             } catch (PatternSyntaxException e) {
-                throw new IllegalArgumentException(String.format(loc.getValue(L.ERROR_INVALID_REGEX), e.getDescription()), e);
+                throw new IllegalArgumentException(String.format(loc.getValue(M_L.ERROR_INVALID_REGEX), e.getDescription()), e);
             }
         }
 

@@ -17,6 +17,7 @@ import com.github.enerccio.marginalia.extensions.arcoutline.ui.ArcOutlineStyles;
 import com.github.enerccio.marginalia.extensions.arcoutline.ui.ArcOutlineView;
 import com.github.enerccio.marginalia.ui.dialogs.manuscript.ManuscriptStoryPart;
 import com.github.enerccio.marginalia.ui.dialogs.story.NewTurnForm;
+import com.github.enerccio.marginalia.ui.dialogs.story.StoryEditor;
 import com.github.enerccio.marginalia.ui.dialogs.story.StoryLazyLoader;
 import com.github.enerccio.marginalia.ui.main.ApplicationEntryPoint;
 import com.github.enerccio.marginalia.ui.main.Main;
@@ -191,6 +192,13 @@ public class ArcOutlineExtension implements MarginaliaExtension, ExtensionHasCss
                                 } catch (Exception e) {
                                     log.warn("Can't show the part {}: {}", order, e.getMessage(), e);
                                     return false;
+                                }
+                            }
+
+                            @Override
+                            public void reloadStory() {
+                                if (instrumented instanceof StoryEditor editor) {
+                                    editor.reloadStory();
                                 }
                             }
                         };

@@ -27,7 +27,8 @@ To pick up on another machine; delete this section when it is done.
    and stamp each with `--stamp` in a commit of its own.
 4. Optional: a code review of the commits of this work (`097b30d14` onwards), mainly the fold / detach / close paths of
    `FloatingWindow` and the plugins' `onDetach`.
-5. Then the open items of the steps below (Audiobook batches as runs, Review / finished runs in the panel, Side Query's tab name...).
+5. ~~Then the open items of the steps below~~: built 2026-11-17 (the list is in item 101 of `TODO.md`); the "Not done" lists of the
+   steps below are older than that. Left: the checks on a phone and in a real browser.
 
 ## Summary
 

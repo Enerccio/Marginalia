@@ -8,7 +8,7 @@ import com.github.enerccio.marginalia.domain.service.EffectiveHistoryLimit;
 import com.github.enerccio.marginalia.domain.service.EffectiveHistoryLimit.Origin;
 import com.github.enerccio.marginalia.domain.service.FolderService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
 import com.github.enerccio.marginalia.ui.dialogs.permissions.VersionHistoryPermissionComponent;
@@ -58,23 +58,23 @@ class HistoryLimitSettingsTest extends MarginaliaTestBase {
         field.load(null, new EffectiveHistoryLimit(20, Origin.FOLDER, folder));
         assertThat(field.getValue()).isNull();
         assertThat(field.getPlaceholder()).isEqualTo("20");
-        assertThat(field.getHelperText()).isEqualTo(String.format(loc.getValue(L.MSG_HISTORY_LIMIT_FOLDER), 20, "Sci-fi"));
+        assertThat(field.getHelperText()).isEqualTo(String.format(loc.getValue(M_L.MSG_HISTORY_LIMIT_FOLDER), 20, "Sci-fi"));
 
         field.load(null, new EffectiveHistoryLimit(7, Origin.USER, null));
-        assertThat(field.getHelperText()).isEqualTo(String.format(loc.getValue(L.MSG_HISTORY_LIMIT_USER), 7));
+        assertThat(field.getHelperText()).isEqualTo(String.format(loc.getValue(M_L.MSG_HISTORY_LIMIT_USER), 7));
 
         field.load(null, new EffectiveHistoryLimit(50, Origin.PERMISSION, null));
-        assertThat(field.getHelperText()).isEqualTo(String.format(loc.getValue(L.MSG_HISTORY_LIMIT_PERMISSION), 50));
+        assertThat(field.getHelperText()).isEqualTo(String.format(loc.getValue(M_L.MSG_HISTORY_LIMIT_PERMISSION), 50));
     }
 
     @Test
     void aNumberAboveTheLimitOfTheLevelsAboveHasNoEffectAndTheBoxSaysSo() {
         HistoryLimitField field = field();
         field.load(100, new EffectiveHistoryLimit(50, Origin.PERMISSION, null));
-        assertThat(field.getHelperText()).isEqualTo(String.format(loc.getValue(L.MSG_HISTORY_LIMIT_PERMISSION), 50));
+        assertThat(field.getHelperText()).isEqualTo(String.format(loc.getValue(M_L.MSG_HISTORY_LIMIT_PERMISSION), 50));
 
         field.setValue(10);
-        assertThat(field.getHelperText()).as("a stricter number is the limit").isEqualTo(loc.getValue(L.HELP_HISTORY_MAX_VERSIONS));
+        assertThat(field.getHelperText()).as("a stricter number is the limit").isEqualTo(loc.getValue(M_L.HELP_HISTORY_MAX_VERSIONS));
     }
 
     @Test
@@ -84,9 +84,9 @@ class HistoryLimitSettingsTest extends MarginaliaTestBase {
         field.load(null, new EffectiveHistoryLimit(null, Origin.NONE, null));
 
         assertThat(field.getPlaceholder()).isEmpty();
-        assertThat(field.getHelperText()).isEqualTo(loc.getValue(L.MSG_HISTORY_LIMIT_NONE));
+        assertThat(field.getHelperText()).isEqualTo(loc.getValue(M_L.MSG_HISTORY_LIMIT_NONE));
         field.setValue(5);
-        assertThat(field.getHelperText()).isEqualTo(loc.getValue(L.HELP_HISTORY_MAX_VERSIONS));
+        assertThat(field.getHelperText()).isEqualTo(loc.getValue(M_L.HELP_HISTORY_MAX_VERSIONS));
     }
 
     @Test

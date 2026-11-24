@@ -6,7 +6,7 @@ import com.github.enerccio.marginalia.domain.traits.APIParameter;
 import com.github.enerccio.marginalia.domain.traits.APIReturn;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.domain.traits.PublicAPI;
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
 import com.vaadin.flow.component.HasComponents;
@@ -38,7 +38,7 @@ public class TurnDetailsForm {
     public TurnDetailsForm(Localization loc, ChatMessage message, Supplier<ChatMessage> current, BooleanSupplier isLast, Runnable save) {
         boolean last = isLast.getAsBoolean();
 
-        sceneField = new TextArea(loc.getValue(L.LABEL_SCENE_SETTING), StringUtils.defaultString(message.getSceneSetting()), "");
+        sceneField = new TextArea(loc.getValue(M_L.LABEL_SCENE_SETTING), StringUtils.defaultString(message.getSceneSetting()), "");
         sceneField.setReadOnly(!last);
         sceneField.setWidthFull();
         ResizableTextArea.install(loc, sceneField, "100px");
@@ -49,7 +49,7 @@ public class TurnDetailsForm {
             }
         });
 
-        povField = new TextField(loc.getValue(L.LABEL_POV_CHARACTER), StringUtils.defaultString(message.getPovCharacter()), "");
+        povField = new TextField(loc.getValue(M_L.LABEL_POV_CHARACTER), StringUtils.defaultString(message.getPovCharacter()), "");
         povField.setReadOnly(!last);
         povField.setWidthFull();
         povField.addValueChangeListener(e -> {
@@ -59,7 +59,7 @@ public class TurnDetailsForm {
             }
         });
 
-        presentField = new TextArea(loc.getValue(L.LABEL_PRESENT_CHARACTERS), StringUtils.defaultString(message.getPresentCharacters()), "");
+        presentField = new TextArea(loc.getValue(M_L.LABEL_PRESENT_CHARACTERS), StringUtils.defaultString(message.getPresentCharacters()), "");
         presentField.setReadOnly(!last);
         presentField.setWidthFull();
         ResizableTextArea.install(loc, presentField, "80px");
@@ -70,7 +70,7 @@ public class TurnDetailsForm {
             }
         });
 
-        instructionsField = new TextArea(loc.getValue(L.LABEL_INSTRUCTIONS), StringUtils.defaultString(message.getInstructions()), "");
+        instructionsField = new TextArea(loc.getValue(M_L.LABEL_INSTRUCTIONS), StringUtils.defaultString(message.getInstructions()), "");
         instructionsField.setReadOnly(!last);
         instructionsField.setWidthFull();
         ResizableTextArea.install(loc, instructionsField, "120px");

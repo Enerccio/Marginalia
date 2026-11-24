@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service.impl.generation.impl;
 
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.Constants;
 import com.github.enerccio.marginalia.domain.components.TokenLimits;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
@@ -12,7 +13,6 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationController.State;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMToolCall;
-import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.utils.AppClock;
 import com.github.enerccio.tools.Pointer;
 import org.apache.commons.lang3.StringUtils;
@@ -57,7 +57,7 @@ public class InferenceStep extends GenerationStepBase {
                     if (Thread.interrupted()) {
                         ChatMessage chatMessage = controller.getMessage();
                         controller.setMessage(chatMessageService.save(chatMessage));
-                        controller.getUIListener().onSimpleError(loc.getValue(L.MSG_INTERRUPTED));
+                        controller.getUIListener().onSimpleError(loc.getValue(M_L.MSG_INTERRUPTED));
                         controller.jumpTo(GenerationStepType.CLEANUP);
                         inferenceController.terminateInference();
                         return;
@@ -222,7 +222,7 @@ public class InferenceStep extends GenerationStepBase {
         int response = TokenLimits.responseTokens(controller.getAi(), controller.getProtocol());
         if (context > 0 && promptTokens + response > context) {
             log.warn("Prompt of {} tokens and response of {} exceed the context of {}", promptTokens, response, context);
-            controller.getUIListener().onWarning(String.format(loc.getValue(L.MSG_PROMPT_MAY_OVERFLOW), promptTokens, response, context));
+            controller.getUIListener().onWarning(String.format(loc.getValue(M_L.MSG_PROMPT_MAY_OVERFLOW), promptTokens, response, context));
         }
     }
 

@@ -1,17 +1,21 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
 import com.github.enerccio.marginalia.domain.collections.Language;
+import com.github.enerccio.marginalia.domain.model.WatchedPhrase;
 import com.github.enerccio.marginalia.domain.model.impl.Folder;
 import com.github.enerccio.marginalia.domain.service.FolderService;
 import com.github.enerccio.marginalia.domain.service.PromptField;
 import com.github.enerccio.marginalia.extensions.InheritedSettingValues;
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Type;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -19,7 +23,8 @@ import java.util.Map;
 
 /**
  * The folder of a book in its backup: the {@code folder} object holds the {@code uuid} of the folder and the {@code path},
- * the folders from the top one to it, each with its name, uuid, description, language and the text settings it sets. A
+ * the folders from the top one to it, each with its name, uuid, description, language, the text settings it sets and its phrase
+ * watch list. A
  * book restored from the backup goes into the folder of that uuid if the user has it, else into the folders of that path
  * (a missing one is made with the settings it had), else to the top level.
  */
@@ -28,6 +33,12 @@ final class BackupFolders {
     private static final Logger log = LoggerFactory.getLogger(BackupFolders.class);
 
     static final String KEY = "folder";
+    /** The phrase watch list of a folder in its level of the path. */
+    static final String PHRASES = "watchedPhrases";
+
+    private static final Gson GSON = new Gson();
+    private static final Type PHRASE_LIST = new TypeToken<List<WatchedPhrase>>() {
+    }.getType();
 
     private BackupFolders() {
     }
@@ -65,6 +76,9 @@ final class BackupFolders {
             InheritedSettingValues.all(folder).forEach(extensions::addProperty);
             if (!extensions.isEmpty()) {
                 level.add("extensions", extensions);
+            }
+            if (!folder.getWatchedPhrases().isEmpty()) {
+                level.add(PHRASES, GSON.toJsonTree(folder.getWatchedPhrases()));
             }
             path.add(level);
         }
@@ -140,6 +154,18 @@ final class BackupFolders {
         }
         String description = level.has("description") && level.get("description").isJsonPrimitive() ? level.get("description").getAsString() : null;
         Folder updated = folders.update(made, new FolderService.Details(made.getName(), description, language, prompts, null, extensions));
-        return updated == null ? made : updated;
+        Folder result = updated == null ? made : updated;
+        if (level.has(PHRASES) && level.get(PHRASES).isJsonArray()) {
+            try {
+                List<WatchedPhrase> phrases = GSON.fromJson(level.get(PHRASES), PHRASE_LIST);
+                if (phrases != null && !phrases.isEmpty()) {
+                    result.setWatchedPhrases(phrases);
+                    result = folders.save(result);
+                }
+            } catch (RuntimeException e) {
+                log.warn("The phrase watch list of the folder {} in the backup can't be read", name, e);
+            }
+        }
+        return result;
     }
 }

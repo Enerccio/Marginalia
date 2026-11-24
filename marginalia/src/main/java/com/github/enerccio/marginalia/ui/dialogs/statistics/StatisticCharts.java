@@ -7,6 +7,8 @@ import com.github.enerccio.marginalia.domain.components.StatisticReport;
 import com.github.enerccio.marginalia.domain.components.StatisticReport.BookLine;
 import com.github.enerccio.marginalia.domain.components.StatisticReport.DayLine;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
+import com.github.enerccio.marginalia.loc.M_L;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -62,24 +64,24 @@ public final class StatisticCharts {
      * The things a book can be measured by in the chart of the books: the values of the lines of the list.
      */
     public enum BookMetric {
-        WORDS(L.LABEL_WORDS, line -> line.book().counts().wordsAdded()),
-        TOKENS(L.LABEL_TOKENS, line -> line.book().counts().prefillTokens() + line.book().counts().generatedTokens()),
-        GROWTH_WORDS(L.LABEL_GROWTH_WORDS, line -> line.growth().known() ? line.growth().bookWords() : 0),
-        GROWTH_TOKENS(L.LABEL_GROWTH_TOKENS, line -> line.growth().known() ? line.growth().bookTokens() : 0),
+        WORDS(M_L.LABEL_WORDS, line -> line.book().counts().wordsAdded()),
+        TOKENS(M_L.LABEL_TOKENS, line -> line.book().counts().prefillTokens() + line.book().counts().generatedTokens()),
+        GROWTH_WORDS(M_L.LABEL_GROWTH_WORDS, line -> line.growth().known() ? line.growth().bookWords() : 0),
+        GROWTH_TOKENS(M_L.LABEL_GROWTH_TOKENS, line -> line.growth().known() ? line.growth().bookTokens() : 0),
         TIME_OPEN(L.LABEL_OPEN, line -> line.times().open()),
-        TIME_EDITING(L.LABEL_TIME_EDITING, line -> line.times().edit()),
-        TIME_GENERATING(L.LABEL_TIME_GENERATING, line -> line.times().generate()),
-        TIME_AGENTS(L.LABEL_TIME_AGENTS_RUNNING, line -> line.times().run());
+        TIME_EDITING(M_L.LABEL_TIME_EDITING, line -> line.times().edit()),
+        TIME_GENERATING(M_L.LABEL_TIME_GENERATING, line -> line.times().generate()),
+        TIME_AGENTS(M_L.LABEL_TIME_AGENTS_RUNNING, line -> line.times().run());
 
-        private final L label;
+        private final LocalizationKey label;
         private final ToLongFunction<BookLine> value;
 
-        BookMetric(L label, ToLongFunction<BookLine> value) {
+        BookMetric(LocalizationKey label, ToLongFunction<BookLine> value) {
             this.label = label;
             this.value = value;
         }
 
-        public L getLabel() {
+        public LocalizationKey getLabel() {
             return label;
         }
 
@@ -196,31 +198,31 @@ public final class StatisticCharts {
     /**
      * What a chart says about the bars: the grouping of a long range, null for days.
      */
-    private static String grouping(StatisticReport report, Function<L, String> text) {
+    private static String grouping(StatisticReport report, Function<LocalizationKey, String> text) {
         return switch (grainOf(report.filter().from(), report.filter().to())) {
             case DAY -> null;
-            case WEEK -> text.apply(L.MSG_STATISTICS_GROUPED_WEEK);
-            case MONTH -> text.apply(L.MSG_STATISTICS_GROUPED_MONTH);
+            case WEEK -> text.apply(M_L.MSG_STATISTICS_GROUPED_WEEK);
+            case MONTH -> text.apply(M_L.MSG_STATISTICS_GROUPED_MONTH);
         };
     }
 
     /**
      * Words per day: stacked bars of the written and the generated ones, the removed ones below the axis.
      */
-    public static Map<String, Object> words(StatisticReport report, Function<L, String> text) {
+    public static Map<String, Object> words(StatisticReport report, Function<LocalizationKey, String> text) {
         List<Bucket> buckets = buckets(report.filter().from(), report.filter().to());
         List<StatisticCounts> counts = countsOf(report, buckets);
         return bars(labels(buckets), List.of(
-                dataset(text.apply(L.LABEL_WORDS_WRITTEN), COLOR_WRITTEN, counts.stream().map(StatisticCounts::wordsWritten).toList()),
-                dataset(text.apply(L.LABEL_WORDS_GENERATED), COLOR_GENERATED, counts.stream().map(StatisticCounts::wordsGenerated).toList()),
-                dataset(text.apply(L.LABEL_WORDS_REMOVED), COLOR_REMOVED, counts.stream().map(c -> -c.wordsRemoved()).toList())),
+                dataset(text.apply(M_L.LABEL_WORDS_WRITTEN), COLOR_WRITTEN, counts.stream().map(StatisticCounts::wordsWritten).toList()),
+                dataset(text.apply(M_L.LABEL_WORDS_GENERATED), COLOR_GENERATED, counts.stream().map(StatisticCounts::wordsGenerated).toList()),
+                dataset(text.apply(M_L.LABEL_WORDS_REMOVED), COLOR_REMOVED, counts.stream().map(c -> -c.wordsRemoved()).toList())),
                 true, grouping(report, text), null);
     }
 
     /**
      * Tokens per day: stacked bars of the sent and the generated ones.
      */
-    public static Map<String, Object> tokens(StatisticReport report, Function<L, String> text) {
+    public static Map<String, Object> tokens(StatisticReport report, Function<LocalizationKey, String> text) {
         List<Bucket> buckets = buckets(report.filter().from(), report.filter().to());
         List<StatisticCounts> counts = countsOf(report, buckets);
         return bars(labels(buckets), List.of(
@@ -232,17 +234,17 @@ public final class StatisticCharts {
     /**
      * Time per day in hours: grouped, not stacked, bars of the four kinds, which overlap in time and are not parts of a whole.
      */
-    public static Map<String, Object> time(StatisticReport report, Function<L, String> text) {
+    public static Map<String, Object> time(StatisticReport report, Function<LocalizationKey, String> text) {
         List<Bucket> buckets = buckets(report.filter().from(), report.filter().to());
         List<ActivityTimes> times = timesOf(report, buckets);
         // a bar of days on which no time was recorded is left out, not drawn as zero
         List<Boolean> known = buckets.stream().map(bucket -> report.timeKnown(bucket.to())).toList();
         return bars(labels(buckets), List.of(
                 dataset(text.apply(L.LABEL_OPEN), COLOR_OPEN, hours(times, known, ActivityTimes::open)),
-                dataset(text.apply(L.LABEL_TIME_EDITING), COLOR_EDITING, hours(times, known, ActivityTimes::edit)),
-                dataset(text.apply(L.LABEL_TIME_GENERATING), COLOR_GENERATING, hours(times, known, ActivityTimes::generate)),
-                dataset(text.apply(L.LABEL_TIME_AGENTS_RUNNING), COLOR_AGENTS, hours(times, known, ActivityTimes::run))),
-                false, grouping(report, text), text.apply(L.LABEL_STATISTICS_HOURS));
+                dataset(text.apply(M_L.LABEL_TIME_EDITING), COLOR_EDITING, hours(times, known, ActivityTimes::edit)),
+                dataset(text.apply(M_L.LABEL_TIME_GENERATING), COLOR_GENERATING, hours(times, known, ActivityTimes::generate)),
+                dataset(text.apply(M_L.LABEL_TIME_AGENTS_RUNNING), COLOR_AGENTS, hours(times, known, ActivityTimes::run))),
+                false, grouping(report, text), text.apply(M_L.LABEL_STATISTICS_HOURS));
     }
 
     private static List<Double> hours(List<ActivityTimes> times, List<Boolean> known, ToLongFunction<ActivityTimes> kind) {
@@ -261,7 +263,7 @@ public final class StatisticCharts {
      * The size of the book(s) at the end of each bar: a step line of the whole book and of the current branch, in words or tokens.
      * A bar on which the branch changed is marked on the branch line, a bar before the first known size has no point.
      */
-    public static Map<String, Object> size(StatisticReport report, boolean tokens, Function<L, String> text) {
+    public static Map<String, Object> size(StatisticReport report, boolean tokens, Function<LocalizationKey, String> text) {
         List<Bucket> buckets = buckets(report.filter().from(), report.filter().to());
         List<Object> book = new ArrayList<>();
         List<Object> branch = new ArrayList<>();
@@ -279,8 +281,8 @@ public final class StatisticCharts {
             branch.add(tokens ? last.branchTokens() : last.branchWords());
             radius.add(points.stream().anyMatch(SizeSeries.Point::branchChanged) ? 5 : 0);
         }
-        Map<String, Object> bookLine = line(text.apply(tokens ? L.LABEL_SIZE_BOOK_TOKENS : L.LABEL_SIZE_BOOK_WORDS), COLOR_WRITTEN, book);
-        Map<String, Object> branchLine = line(text.apply(tokens ? L.LABEL_SIZE_BRANCH_TOKENS : L.LABEL_SIZE_BRANCH_WORDS), COLOR_BRANCH, branch);
+        Map<String, Object> bookLine = line(text.apply(tokens ? M_L.LABEL_SIZE_BOOK_TOKENS : M_L.LABEL_SIZE_BOOK_WORDS), COLOR_WRITTEN, book);
+        Map<String, Object> branchLine = line(text.apply(tokens ? M_L.LABEL_SIZE_BRANCH_TOKENS : M_L.LABEL_SIZE_BRANCH_WORDS), COLOR_BRANCH, branch);
         branchLine.put("pointRadius", radius);
         branchLine.put("pointStyle", "triangle");
         return chart("line", labels(buckets), List.of(bookLine, branchLine), Map.of("y", Map.of("beginAtZero", true)),
@@ -299,7 +301,7 @@ public final class StatisticCharts {
     /**
      * The growth of the size in each bar (negative when the book shrank), of the whole book and of the current branch.
      */
-    public static Map<String, Object> growth(StatisticReport report, boolean tokens, Function<L, String> text) {
+    public static Map<String, Object> growth(StatisticReport report, boolean tokens, Function<LocalizationKey, String> text) {
         List<Bucket> buckets = buckets(report.filter().from(), report.filter().to());
         List<Long> book = new ArrayList<>();
         List<Long> branch = new ArrayList<>();
@@ -315,9 +317,9 @@ public final class StatisticCharts {
             branch.add(branchGrowth);
         }
         return bars(labels(buckets), List.of(
-                dataset(text.apply(tokens ? L.LABEL_SIZE_BOOK_TOKENS : L.LABEL_SIZE_BOOK_WORDS), COLOR_WRITTEN, book),
-                dataset(text.apply(tokens ? L.LABEL_SIZE_BRANCH_TOKENS : L.LABEL_SIZE_BRANCH_WORDS), COLOR_BRANCH, branch)),
-                false, text.apply(tokens ? L.LABEL_GROWTH_TOKENS : L.LABEL_GROWTH_WORDS), null);
+                dataset(text.apply(tokens ? M_L.LABEL_SIZE_BOOK_TOKENS : M_L.LABEL_SIZE_BOOK_WORDS), COLOR_WRITTEN, book),
+                dataset(text.apply(tokens ? M_L.LABEL_SIZE_BRANCH_TOKENS : M_L.LABEL_SIZE_BRANCH_WORDS), COLOR_BRANCH, branch)),
+                false, text.apply(tokens ? M_L.LABEL_GROWTH_TOKENS : M_L.LABEL_GROWTH_WORDS), null);
     }
 
     /**
@@ -341,7 +343,7 @@ public final class StatisticCharts {
     /**
      * The name of a book as the list and the chart show it: its name, the tag of a book that has a twin and a mark of one that is gone.
      */
-    public static String bookLabel(BookLine line, Map<String, String> tags, Function<L, String> text) {
+    public static String bookLabel(BookLine line, Map<String, String> tags, Function<LocalizationKey, String> text) {
         StringBuilder label = new StringBuilder(line.book().bookName().isEmpty() ? line.book().bookUuid() : line.book().bookName());
         String tag = tags.get(line.book().bookUuid());
         if (tag != null) {
@@ -357,7 +359,7 @@ public final class StatisticCharts {
      * The books of the report by one measure: a horizontal bar each for the ones that come first, and the rest as {@code Other}
      * (not for a time, whose lines overlap and do not make a total).
      */
-    public static Map<String, Object> byBook(StatisticReport report, BookMetric metric, Function<L, String> text) {
+    public static Map<String, Object> byBook(StatisticReport report, BookMetric metric, Function<LocalizationKey, String> text) {
         List<BookLine> sorted = new ArrayList<>(report.books());
         sorted.removeIf(line -> metric.value(line) == 0);
         sorted.sort(Comparator.comparingLong((BookLine line) -> Math.abs(metric.value(line))).reversed());
@@ -376,11 +378,11 @@ public final class StatisticCharts {
             }
         }
         if (rest != 0 && !metric.isTime()) {
-            labels.add(text.apply(L.LABEL_STATISTICS_OTHER));
+            labels.add(text.apply(M_L.LABEL_STATISTICS_OTHER));
             values.add(value(metric, rest));
         }
-        String title = text.apply(metric.getLabel()) + (metric.isTime() ? " (" + text.apply(L.LABEL_STATISTICS_HOURS) + ") — "
-                + text.apply(L.MSG_STATISTICS_TIMES_OVERLAP) : "");
+        String title = text.apply(metric.getLabel()) + (metric.isTime() ? " (" + text.apply(M_L.LABEL_STATISTICS_HOURS) + ") — "
+                + text.apply(M_L.MSG_STATISTICS_TIMES_OVERLAP) : "");
         Map<String, Object> config = chart("bar", labels, List.of(dataset(text.apply(metric.getLabel()), COLOR_WRITTEN, values)),
                 Map.of("x", Map.of("beginAtZero", true)), title);
         @SuppressWarnings("unchecked")

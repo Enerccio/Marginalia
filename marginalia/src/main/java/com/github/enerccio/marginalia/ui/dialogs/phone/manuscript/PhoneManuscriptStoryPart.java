@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.ui.dialogs.phone.manuscript;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.components.SummaryNode;
 import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.impl.Annotation;
@@ -12,6 +13,7 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationR
 import com.github.enerccio.marginalia.domain.styles.PartStyle;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.RestorableState;
 import com.github.enerccio.marginalia.ui.components.LorebookPreview;
@@ -166,7 +168,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
     @Override
     public Component create() throws Exception {
         layout = new AppLayout();
-        layout.addClassNames(CssStyles.FULL_SIZE, CssStyles.PHONE_STORY_LAYOUT);
+        layout.addClassNames(CssStyles.FULL_SIZE, MarginaliaCssStyles.PHONE_STORY_LAYOUT);
 
         drawerToggle = new DrawerToggle();
         navTitle = new Span();
@@ -185,7 +187,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
 
         centerContentPanel = new ScrollPanel();
         centerContentPanel.setSizeFull();
-        centerContentPanel.addClassName(CssStyles.STORY_SCROLL_PANEL);
+        centerContentPanel.addClassName(MarginaliaCssStyles.STORY_SCROLL_PANEL);
 
         lazyLoader = new StoryLazyLoader<>(centerContentPanel, cards, ChatMessageCard::new, () -> isFrozen, loc);
 
@@ -265,7 +267,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
             locals = {@APILocals(name = "item", type = MenuItem.class)})
     private MenuItem createSummariesMenuItem(MenuBar bar) {
         MenuItem item = bar.addItem(Solid.LIST_UL.create(), event -> openSummariesDialog());
-        UIUtils.addTooltip(item, loc.getValue(L.LABEL_SUMMARIES));
+        UIUtils.addTooltip(item, loc.getValue(M_L.LABEL_SUMMARIES));
         return item;
     }
 
@@ -632,8 +634,8 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
         }
         try {
             long tokens = summaryService.collectTree(currentManuscript).stream().filter(SummaryNode::isValid).mapToLong(SummaryNode::getTokens).sum();
-            UIUtils.addTooltip(summariesMenuItem, loc.getValue(L.LABEL_SUMMARIES) + "\n"
-                    + String.format(loc.getValue(L.MSG_ACTIVE_SUMMARIES_TOKENS), tokens));
+            UIUtils.addTooltip(summariesMenuItem, loc.getValue(M_L.LABEL_SUMMARIES) + "\n"
+                    + String.format(loc.getValue(M_L.MSG_ACTIVE_SUMMARIES_TOKENS), tokens));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
@@ -707,7 +709,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
                 startGeneration();
             }
         });
-        content.addClassName(CssStyles.PHONE_POPOVER_CONTENT);
+        content.addClassName(MarginaliaCssStyles.PHONE_POPOVER_CONTENT);
         popover.add(content);
 
         popover.addOpenedChangeListener(event -> {
@@ -752,13 +754,13 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
             navTitle.setText("");
             branchSearch.refresh(List.of());
             annotationsPanel.refresh(Map.of());
-            Span emptyLabel = new Span(loc.getValue(L.MSG_NO_ACTIVE_BRANCH));
+            Span emptyLabel = new Span(loc.getValue(M_L.MSG_NO_ACTIVE_BRANCH));
             centerContentPanel.add(UIUtils.centerComponent(emptyLabel));
         } else {
             try {
                 List<ChatMessage> branch = chatMessageService.getBranchFromLeaf(currentManuscript.getActiveLeaf());
                 int total = branch.size();
-                String header = String.format(loc.getValue(L.LABEL_CHAPTER_OUTLINE_HEADER), total);
+                String header = String.format(loc.getValue(M_L.LABEL_CHAPTER_OUTLINE_HEADER), total);
                 sidebarHeader.setText(header);
                 navTitle.setText(header);
 
@@ -813,10 +815,10 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
                     @APIParameter(name = "dbId", type = Long.class)},
             locals = {@APILocals(name = "sidebarBtn", type = Button.class)})
     private void createSidebarButton(ChatMessage msg, int orderId, Long dbId) {
-        Button sidebarBtn = new Button(String.format(loc.getValue(L.LABEL_CHAPTER_OUTLINE_NODE), orderId, dbId));
+        Button sidebarBtn = new Button(String.format(loc.getValue(M_L.LABEL_CHAPTER_OUTLINE_NODE), orderId, dbId));
         sidebarBtn.setThemeName("tertiary small");
         sidebarBtn.setWidthFull();
-        sidebarBtn.addClassName(CssStyles.SIDEBAR_BUTTON);
+        sidebarBtn.addClassName(MarginaliaCssStyles.SIDEBAR_BUTTON);
         OutlineSummaryMarks.init(sidebarBtn, msg, dbId, loc);
 
         sidebarBtn.addClickListener(event -> {
@@ -847,7 +849,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
         outlineTab.setSpacing(false);
 
         sidebarHeader = new Span();
-        sidebarHeader.addClassName(CssStyles.SIDEBAR_HEADER);
+        sidebarHeader.addClassName(MarginaliaCssStyles.SIDEBAR_HEADER);
 
         sidebarList = new VerticalLayout();
         sidebarList.setPadding(false);
@@ -858,12 +860,12 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
                 ids -> lazyLoader.renderResponses(ids), id -> {
                     // the drawer covers the story, the user opens it again for the next match
                     layout.setDrawerOpened(false);
-                    lazyLoader.showMatch(id, CssStyles.SEARCH_MATCH_CURRENT);
+                    lazyLoader.showMatch(id, MarginaliaCssStyles.SEARCH_MATCH_CURRENT);
                 });
 
         outlineTab.add(branchSearch, sidebarHeader, sidebarList);
         outlineTab.setFlexGrow(1, sidebarList);
-        leftBar.add(ManuscriptStoryPart.CHAPTERS_TAB, loc.getValue(L.LABEL_CHAPTERS), outlineTab);
+        leftBar.add(ManuscriptStoryPart.CHAPTERS_TAB, loc.getValue(M_L.LABEL_CHAPTERS), outlineTab);
 
         annotations = new StoryAnnotations(() -> currentManuscript, ids -> lazyLoader.renderResponses(ids));
         annotationsPanel = new AnnotationsPanel(annotations, new AnnotationView.Host() {
@@ -879,7 +881,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
                 lazyLoader.scrollTo(annotation.getPartId());
             }
         });
-        leftBar.add(ManuscriptStoryPart.ANNOTATIONS_TAB, loc.getValue(L.LABEL_ANNOTATIONS), annotationsPanel);
+        leftBar.add(ManuscriptStoryPart.ANNOTATIONS_TAB, loc.getValue(M_L.LABEL_ANNOTATIONS), annotationsPanel);
 
         plannerPanel = new PlannerPanel(() -> currentManuscript, scene -> {
             if (newTurnForm == null || newTurnPopover == null) {
@@ -891,12 +893,12 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
             newTurnPopover.setOpened(true);
             return true;
         });
-        leftBar.add(ManuscriptStoryPart.PLANNER_TAB, loc.getValue(L.LABEL_PLANNER), plannerPanel);
+        leftBar.add(ManuscriptStoryPart.PLANNER_TAB, loc.getValue(M_L.LABEL_PLANNER), plannerPanel);
 
         // the lore of the story: look at the entries and fix their text without leaving the story
         lorebookPreview = new LorebookPreview().create();
         lorebookPreview.setEditable(true);
-        leftBar.add(ManuscriptStoryPart.LOREBOOK_TAB, loc.getValue(L.LABEL_LOREBOOK), lorebookPreview);
+        leftBar.add(ManuscriptStoryPart.LOREBOOK_TAB, loc.getValue(M_L.LABEL_LOREBOOK), lorebookPreview);
 
         VerticalLayout outline = new VerticalLayout(leftBar);
         outline.setSizeFull();
@@ -1154,7 +1156,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
         private final Button infoBtn;
         private final MassDeleteBox massDeleteBox = new MassDeleteBox((checked, shift) -> {
             massDelete.clicked(this.message.getId(), checked, shift);
-            getClassNames().set(CssStyles.MARKED_FOR_DELETE, checked);
+            getClassNames().set(MarginaliaCssStyles.MARKED_FOR_DELETE, checked);
         });
         @PublicAPI(from = "1.1.0", type = ContextMenu.class)
         private ContextMenu hamburgerMenu;
@@ -1201,28 +1203,28 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
             setWidthFull();
             setPadding(false);
             setSpacing(false);
-            addClassName(CssStyles.PHONE_MESSAGE);
+            addClassName(MarginaliaCssStyles.PHONE_MESSAGE);
 
             HorizontalLayout headerBar = new HorizontalLayout();
             headerBar.setWidthFull();
             headerBar.setPadding(false);
             headerBar.setSpacing(false);
             headerBar.setAlignItems(FlexComponent.Alignment.CENTER);
-            headerBar.addClassName(CssStyles.PHONE_MESSAGE_HEADER);
+            headerBar.addClassName(MarginaliaCssStyles.PHONE_MESSAGE_HEADER);
 
             menuBtn = new Button(Solid.HAMBURGER.create());
             menuBtn.setThemeName("tertiary icon small");
 
             infoBtn = new Button(Solid.INFO_CIRCLE.create());
             infoBtn.setThemeName("tertiary icon small");
-            UIUtils.addTooltip(infoBtn, loc.getValue(L.LABEL_NODE_METADATA));
+            UIUtils.addTooltip(infoBtn, loc.getValue(M_L.LABEL_NODE_METADATA));
 
             createHamburgerMenu();
             createInfoPopover();
 
             showMassDelete(massDelete.isActive(), massDelete.isSelected(message.getId()));
 
-            busyBadge.addClassName(CssStyles.PART_BUSY);
+            busyBadge.addClassName(MarginaliaCssStyles.PART_BUSY);
             busyBadge.setVisible(false);
             addAttachListener(event -> {
                 busyRegistration = RunsOnPage.listen(event.getUI(), this::refreshBusy);
@@ -1238,17 +1240,17 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
             headerBar.add(massDeleteBox, menuBtn, infoBtn, busyBadge);
 
             reasoningMarkdown = new Markdown();
-            reasoningMarkdown.addClassName(CssStyles.CHAT_MESSAGE_MARKDOWN);
+            reasoningMarkdown.addClassName(MarginaliaCssStyles.CHAT_MESSAGE_MARKDOWN);
             if (StringUtils.isNotBlank(message.getResponseReasoning())) {
                 reasoningMarkdown.setContent(message.getResponseReasoning());
             }
 
-            reasoningDetails = new Details(loc.getValue(L.LABEL_VIEW_REASONING), reasoningMarkdown);
+            reasoningDetails = new Details(loc.getValue(M_L.LABEL_VIEW_REASONING), reasoningMarkdown);
             reasoningDetails.setWidthFull();
             reasoningDetails.addClassNames(CssStyles.MAX_WIDTH_FULL, CssStyles.MIN_WIDTH_0, CssStyles.BORDER_BOX);
 
             responseMarkdown = new Markdown();
-            responseMarkdown.addClassName(CssStyles.CHAT_MESSAGE_MARKDOWN);
+            responseMarkdown.addClassName(MarginaliaCssStyles.CHAT_MESSAGE_MARKDOWN);
             renderResponse();
 
             // a tap on a mark of an annotation opens its note at the mark
@@ -1304,7 +1306,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
         public void showMassDelete(boolean shown, boolean selected) {
             massDeleteBox.setVisible(shown && message.getId() != null);
             massDeleteBox.setChecked(selected);
-            getClassNames().set(CssStyles.MARKED_FOR_DELETE, shown && selected);
+            getClassNames().set(MarginaliaCssStyles.MARKED_FOR_DELETE, shown && selected);
         }
 
         @PublicAPI(from = "1.1.0",
@@ -1339,9 +1341,9 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
             VerticalLayout content = new VerticalLayout();
             content.setPadding(false);
             content.setSpacing(false);
-            content.addClassName(CssStyles.PHONE_POPOVER_CONTENT);
+            content.addClassName(MarginaliaCssStyles.PHONE_POPOVER_CONTENT);
 
-            Span detailsHeader = new Span(loc.getValue(L.LABEL_TURN_DETAILS));
+            Span detailsHeader = new Span(loc.getValue(M_L.LABEL_TURN_DETAILS));
             detailsHeader.addClassNames(CssStyles.TEXT_SEMIBOLD, CssStyles.TEXT_XS);
 
             detailsForm = new TurnDetailsForm(loc, message, () -> this.message, () -> this.isLast, this::saveMessage);
@@ -1754,7 +1756,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
             if (StringUtils.defaultString(responseTextArea.getValue()).equals(StringUtils.defaultString(message.getResponse()))) {
                 closeEditor();
             } else {
-                ConfirmDialog.show(loc.getValue(L.MSG_CONFIRM_DISCARD_EDIT), this::closeEditor);
+                ConfirmDialog.show(loc.getValue(M_L.MSG_CONFIRM_DISCARD_EDIT), this::closeEditor);
             }
         }
 

@@ -1,15 +1,18 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.UIConstants;
 import com.github.enerccio.marginalia.domain.model.impl.Folder;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.AgentRunService;
 import com.github.enerccio.marginalia.domain.service.FolderService;
-import com.github.enerccio.marginalia.domain.service.ManuscriptLockedException;
+import com.github.enerccio.marginalia.domain.service.LockedException;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.widgets.BookLabels;
@@ -54,18 +57,18 @@ public class MassRenameDialog extends Dialog implements LLMInteract {
      * How the names are changed.
      */
     public enum Mode {
-        PREFIX(L.LABEL_RENAME_ADD_PREFIX),
-        POSTFIX(L.LABEL_RENAME_ADD_POSTFIX),
-        REPLACE(L.LABEL_RENAME_FIND_REPLACE),
-        NUMBER(L.LABEL_RENAME_NUMBER);
+        PREFIX(M_L.LABEL_RENAME_ADD_PREFIX),
+        POSTFIX(M_L.LABEL_RENAME_ADD_POSTFIX),
+        REPLACE(M_L.LABEL_RENAME_FIND_REPLACE),
+        NUMBER(M_L.LABEL_RENAME_NUMBER);
 
-        private final L label;
+        private final LocalizationKey label;
 
-        Mode(L label) {
+        Mode(LocalizationKey label) {
             this.label = label;
         }
 
-        L label() {
+        LocalizationKey label() {
             return label;
         }
     }
@@ -203,11 +206,11 @@ public class MassRenameDialog extends Dialog implements LLMInteract {
         setCloseOnOutsideClick(false);
         UIUtils.fitPhone(this, true);
 
-        subfolders = new Checkbox(loc.getValue(L.LABEL_INCLUDE_SUBFOLDERS));
+        subfolders = new Checkbox(loc.getValue(M_L.LABEL_INCLUDE_SUBFOLDERS));
         subfolders.setVisible(chosen == null);
         subfolders.addValueChangeListener(event -> load());
 
-        Span hint = new Span(loc.getValue(L.HELP_MASS_RENAME));
+        Span hint = new Span(loc.getValue(M_L.HELP_MASS_RENAME));
         hint.addClassName(CssStyles.HINT_TEXT);
 
         modeBox = new RadioButtonGroup<>();
@@ -216,17 +219,17 @@ public class MassRenameDialog extends Dialog implements LLMInteract {
         modeBox.setValue(Mode.PREFIX);
         modeBox.addValueChangeListener(event -> modeChanged());
 
-        textBox = field(loc.getValue(L.LABEL_RENAME_TEXT_TO_ADD), "260px");
-        findBox = field(loc.getValue(L.LABEL_RENAME_FIND), "220px");
-        withBox = field(loc.getValue(L.LABEL_REPLACE_WITH), "220px");
-        caseBox = new Checkbox(loc.getValue(L.LABEL_CASE_SENSITIVE));
+        textBox = field(loc.getValue(M_L.LABEL_RENAME_TEXT_TO_ADD), "260px");
+        findBox = field(loc.getValue(M_L.LABEL_RENAME_FIND), "220px");
+        withBox = field(loc.getValue(M_L.LABEL_REPLACE_WITH), "220px");
+        caseBox = new Checkbox(loc.getValue(M_L.LABEL_CASE_SENSITIVE));
         caseBox.addValueChangeListener(event -> preview());
-        patternBox = field(loc.getValue(L.LABEL_RENAME_PATTERN), "260px");
+        patternBox = field(loc.getValue(M_L.LABEL_RENAME_PATTERN), "260px");
         patternBox.setValue(MassRename.NAME + " " + MassRename.NUMBER);
         patternBox.setHelperText(MassRename.NAME + ", " + MassRename.NUMBER);
-        startBox = numberField(loc.getValue(L.LABEL_RENAME_START_AT), 1, null);
-        stepBox = numberField(loc.getValue(L.LABEL_RENAME_STEP), 1, null);
-        digitsBox = numberField(loc.getValue(L.LABEL_RENAME_DIGITS), 1, 12);
+        startBox = numberField(loc.getValue(M_L.LABEL_RENAME_START_AT), 1, null);
+        stepBox = numberField(loc.getValue(M_L.LABEL_RENAME_STEP), 1, null);
+        digitsBox = numberField(loc.getValue(M_L.LABEL_RENAME_DIGITS), 1, 12);
         digitsBox.setMin(1);
 
         HorizontalLayout fields = new HorizontalLayout(textBox, findBox, withBox, caseBox, patternBox, startBox, stepBox, digitsBox);
@@ -258,7 +261,7 @@ public class MassRenameDialog extends Dialog implements LLMInteract {
         Grid.Column<Row> nameColumn = grid.addComponentColumn(row -> text(row, row.label))
                 .setHeader(loc.getValue(L.LABEL_NAME)).setFlexGrow(3);
         grid.addComponentColumn(row -> text(row, StringUtils.defaultString(row.preview)))
-                .setHeader(loc.getValue(L.LABEL_NEW_NAME)).setFlexGrow(3);
+                .setHeader(loc.getValue(M_L.LABEL_NEW_NAME)).setFlexGrow(3);
         HeaderRow filterRow = grid.appendHeaderRow();
         filterRow.getCell(nameColumn).setComponent(nameFilter);
 
@@ -346,9 +349,9 @@ public class MassRenameDialog extends Dialog implements LLMInteract {
     private String scopeName() {
         try {
             if (chosen != null) {
-                return loc.getValue(L.LABEL_BOOKS) + " (" + chosen.size() + ")";
+                return loc.getValue(M_L.LABEL_BOOKS) + " (" + chosen.size() + ")";
             }
-            return folder == null ? loc.getValue(L.LABEL_TOP_LEVEL) : folderService.getPath(folder);
+            return folder == null ? loc.getValue(M_L.LABEL_TOP_LEVEL) : folderService.getPath(folder);
         } catch (Exception e) {
             return folder.getName();
         }
@@ -454,10 +457,10 @@ public class MassRenameDialog extends Dialog implements LLMInteract {
     /**
      * What is missing in the settings of the way to rename, as the message to show; null when they are complete.
      */
-    @PublicAPI(from = "1.6.0",
-            returns = @APIReturn(type = L.class),
-            locals = {@APILocals(name = "mode", type = Mode.class)})
-    private L problem() {
+    @PublicAPI(from = "1.9.0",
+            returns = @APIReturn(type = LocalizationKey.class),
+            locals = {@APILocals(name = "mode", type = MassRenameDialog.Mode.class)})
+    private LocalizationKey problem() {
         Mode mode = modeBox.getValue();
         boolean empty = switch (mode) {
             case PREFIX, POSTFIX -> StringUtils.isEmpty(textBox.getValue());
@@ -465,10 +468,10 @@ public class MassRenameDialog extends Dialog implements LLMInteract {
             case NUMBER -> StringUtils.isEmpty(patternBox.getValue());
         };
         if (empty) {
-            return L.MSG_MASS_RENAME_FILL_FIRST;
+            return M_L.MSG_MASS_RENAME_FILL_FIRST;
         }
         if (mode == Mode.NUMBER && !MassRename.hasNumber(patternBox.getValue())) {
-            return L.MSG_MASS_RENAME_PATTERN_NEEDS_NUMBER;
+            return M_L.MSG_MASS_RENAME_PATTERN_NEEDS_NUMBER;
         }
         return null;
     }
@@ -540,7 +543,7 @@ public class MassRenameDialog extends Dialog implements LLMInteract {
     private Span text(Row row, String value) {
         Span text = new Span(value);
         if (row.locked) {
-            UIUtils.addTooltip(text, loc.getValue(L.LABEL_LOCKED_BY_AGENT));
+            UIUtils.addTooltip(text, loc.getValue(M_L.LABEL_LOCKED_BY_AGENT));
         }
         return dimmed(text, row);
     }
@@ -550,7 +553,7 @@ public class MassRenameDialog extends Dialog implements LLMInteract {
      */
     private static <T extends Component> T dimmed(T component, Row row) {
         if (row.locked) {
-            component.addClassName(CssStyles.MULTI_TAG_LOCKED);
+            component.addClassName(MarginaliaCssStyles.MULTI_TAG_LOCKED);
         }
         return component;
     }
@@ -568,9 +571,9 @@ public class MassRenameDialog extends Dialog implements LLMInteract {
      *
      * @return whether books were renamed, false when there was nothing to do (the window stays open then)
      */
-    @PublicAPI(from = "1.6.0",
+    @PublicAPI(from = "1.9.0",
             returns = @APIReturn(type = boolean.class),
-            locals = {@APILocals(name = "problem", type = L.class),
+            locals = {@APILocals(name = "problem", type = LocalizationKey.class),
                     @APILocals(name = "targets", type = List.class),
                     @APILocals(name = "rule", type = MassRename.class),
                     @APILocals(name = "names", type = Map.class),
@@ -579,14 +582,14 @@ public class MassRenameDialog extends Dialog implements LLMInteract {
                     @APILocals(name = "entry", type = Map.Entry.class),
                     @APILocals(name = "e", type = Exception.class)})
     boolean rename() {
-        L problem = problem();
+        LocalizationKey problem = problem();
         if (problem != null) {
             Notification.warning(loc.getValue(problem));
             return false;
         }
         List<Row> targets = shown.stream().filter(row -> row.checked && !row.locked).toList();
         if (targets.isEmpty()) {
-            Notification.warning(loc.getValue(L.MSG_TAG_CHECK_FIRST));
+            Notification.warning(loc.getValue(M_L.MSG_TAG_CHECK_FIRST));
             return false;
         }
         MassRename rule = rule();
@@ -595,7 +598,7 @@ public class MassRenameDialog extends Dialog implements LLMInteract {
         for (Row row : targets) {
             String name = rule.rename(row.name, index++);
             if (name.isEmpty()) {
-                Notification.warning(String.format(loc.getValue(L.MSG_MASS_RENAME_EMPTY_NAME), row.name));
+                Notification.warning(String.format(loc.getValue(M_L.MSG_MASS_RENAME_EMPTY_NAME), row.name));
                 return false;
             }
             if (!name.equals(row.name)) {
@@ -603,7 +606,7 @@ public class MassRenameDialog extends Dialog implements LLMInteract {
             }
         }
         if (names.isEmpty()) {
-            Notification.warning(loc.getValue(L.MSG_MASS_RENAME_NOTHING_CHANGES));
+            Notification.warning(loc.getValue(M_L.MSG_MASS_RENAME_NOTHING_CHANGES));
             return false;
         }
         int renamed = 0;
@@ -612,14 +615,14 @@ public class MassRenameDialog extends Dialog implements LLMInteract {
                 try {
                     manuscriptService.update(entry.getKey().book, stored -> stored.setName(entry.getValue()));
                     renamed++;
-                } catch (ManuscriptLockedException ignored) {
+                } catch (LockedException ignored) {
                     // an agent started on the book meanwhile
                 }
             }
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
-        Notification.success(String.format(loc.getValue(L.MSG_MASS_RENAME_DONE), renamed));
+        Notification.success(String.format(loc.getValue(M_L.MSG_MASS_RENAME_DONE), renamed));
         if (renamed > 0 && onChange != null) {
             onChange.run();
         }

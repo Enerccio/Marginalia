@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.extensions.conlangtranslator.commands;
 
+import com.github.enerccio.marginalia.domain.service.command.CommandScope;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.read.ManuscriptReadSupport;
@@ -43,7 +44,7 @@ public abstract class ConlangCommandSupport extends ManuscriptReadSupport {
      */
     protected Manuscript scopeBook(CommandContext context) {
         try {
-            return context.getScope().getManuscript();
+            return CommandScope.of(context).getManuscript();
         } catch (Exception e) {
             return null;
         }

@@ -3,7 +3,7 @@ label: Developer guide
 icon: code
 expanded: true
 order: 800
-verified: 8a278a19f
+verified: f337fe83d
 covers:
   - marginalia/pom.xml
   - Dockerfile
@@ -43,11 +43,11 @@ Marginalia/
 │   ├── src/main/java      application code (com.github.enerccio.marginalia)
 │   ├── src/main/resources Spring XML, Flyway migrations, logging
 │   ├── src/main/webapp    configuration.properties, persistence.xml
-│   ├── src/main/frontend  CSS and JS used by the Vaadin frontend
+│   ├── src/main/frontend  Marginalia's CSS for the Vaadin frontend (the platform's CSS and JS are in its JAR)
 │   ├── src/desktop        desktop launcher (tray icon, starts Jetty) and launch scripts
 │   ├── src/test           tests
-│   ├── libs/              code that plugins share, embedded in their bundles (`translator-common`, `http-hooks`)
-│   └── plugins/           the twenty-nine bundled extensions, each a separate Maven project
+│   ├── libs/              code that plugins share, embedded in their bundles (`translator-common`, `story-tracker-common`, `http-hooks`)
+│   └── plugins/           the thirty bundled extensions, each a separate Maven project
 ├── manual/                this manual (Retype sources); manual/user and its translations are also packed into the WAR for the help assistant
 ├── Dockerfile, docker-compose.yml
 └── .github/workflows/     CI (desktop builds and releases)
@@ -89,6 +89,7 @@ the details.
 | [Version history](version-history.md) | The versions of the text of a part: data, recording, limit and pruning, restoring, search, backups, migrations, windows. |
 | [Generation pipeline](generation-pipeline.md) | How a story part is generated, step by step. |
 | [Agents](agents.md) | How agents work inside: runs and their states, the runner, the tools, references, the files, the screens. |
+| [HTTP API](api.md) | Bearer keys, the request context of a call, the calls (commands, runs, update, extensions), installing plugins without a full update. |
 | [Templating & macros](templating.md) | Prompt templates, template data, the macro translator. |
 | [User interface](ui.md) | Routes, workspace, dialogs, push and background threads. |
 | [Custom components](custom-components.md) | The components that draw with a JavaScript library (story tree, charts, graphs), how they work and how to add one. |

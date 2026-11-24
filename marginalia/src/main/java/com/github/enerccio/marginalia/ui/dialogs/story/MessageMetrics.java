@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.html.Span;
@@ -37,7 +38,7 @@ public class MessageMetrics {
         this.loc = loc;
         this.orderId = orderId;
 
-        header = new Span(loc.getValue(L.LABEL_NODE_METADATA));
+        header = new Span(loc.getValue(M_L.LABEL_NODE_METADATA));
         header.addClassNames(CssStyles.TEXT_SEMIBOLD, CssStyles.TEXT_XS);
 
         idSpan = new Span(idText(message));
@@ -104,7 +105,7 @@ public class MessageMetrics {
             returns = @APIReturn(type = String.class),
             parameters = {@APIParameter(name = "message", type = ChatMessage.class)})
     private String idText(ChatMessage message) {
-        return String.format(loc.getValue(L.LABEL_MESSAGE_IDS), orderId, (message.getId() != null ? message.getId() : NOT_AVAILABLE));
+        return String.format(loc.getValue(M_L.LABEL_MESSAGE_IDS), orderId, (message.getId() != null ? message.getId() : NOT_AVAILABLE));
     }
 
     @PublicAPI(from = "1.2.0",
@@ -125,14 +126,14 @@ public class MessageMetrics {
             returns = @APIReturn(type = String.class),
             parameters = {@APIParameter(name = "message", type = ChatMessage.class)})
     private String tokensText(ChatMessage message) {
-        return loc.getValue(L.LABEL_TOKENS) + ": " + message.getTokenCount() + " (" + message.getPromptTokens() + ")";
+        return loc.getValue(M_L.LABEL_TOKENS) + ": " + message.getTokenCount() + " (" + message.getPromptTokens() + ")";
     }
 
     @PublicAPI(from = "1.2.0",
             returns = @APIReturn(type = String.class),
             parameters = {@APIParameter(name = "message", type = ChatMessage.class)})
     private String wordsText(ChatMessage message) {
-        return loc.getValue(L.LABEL_WORDS) + ": " + message.getWordCount();
+        return loc.getValue(M_L.LABEL_WORDS) + ": " + message.getWordCount();
     }
 
 }

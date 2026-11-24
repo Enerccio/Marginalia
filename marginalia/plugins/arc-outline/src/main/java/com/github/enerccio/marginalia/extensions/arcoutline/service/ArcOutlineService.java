@@ -3,6 +3,8 @@ package com.github.enerccio.marginalia.extensions.arcoutline.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.enerccio.marginalia.domain.collections.DestructiveCommandMode;
+import com.github.enerccio.marginalia.domain.collections.RevisionSource;
+import com.github.enerccio.marginalia.domain.components.RevisionOrigin;
 import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.*;
@@ -439,7 +441,8 @@ public class ArcOutlineService {
 
     /**
      * The names of the commands a group of tools is made of. The commands that are not there (a plugin that is not installed) are skipped
-     * by the function set. Deleting commands are left out: they ask a question that nobody can answer there.
+     * by the function set. Most deleting commands are left out; those of the planner and of the characters are in, they run on their
+     * own or after the author's answer to the question of the dialog (the option to ask before changing).
      */
     public static List<String> toolNames(WizardOptions.ToolGroup group) {
         return switch (group) {
@@ -451,6 +454,9 @@ public class ArcOutlineService {
                     "move-outline-chapter");
             // the commands of the Story Notes plugin, not imported: found by name, skipped when it is not installed (delete-note is left out)
             case NOTES -> List.of("list-notes", "get-note", "search-notes", "create-note", "update-note", "append-to-note", "edit-note");
+            // the commands of the Character Tracker plugin, the same way: the characters and their relationships, deleting included
+            case CHARACTERS -> List.of("list-characters", "get-character", "create-character", "update-character", "delete-character",
+                    "list-character-relations", "add-character-relation", "update-character-relation", "delete-character-relation");
             case GENERATE -> List.of("generate-arc", "generate-outline-chapters", "list-lore-templates", "generate-lore-entry");
         };
     }
@@ -459,6 +465,42 @@ public class ArcOutlineService {
     public static final String NOTES_BUNDLE = "story-notes";
     public static final String NOTES_INDEX_SOURCE = "notes-index";
     public static final String NOTES_FULL_SOURCE = "notes";
+
+    /** The command the tools of the characters are found by: there when the Character Tracker plugin is installed and loaded. */
+    public static final String CHARACTERS_COMMAND = "list-characters";
+
+    /** Whether the Character Tracker plugin is installed and loaded, so its tools can be offered. */
+    public boolean charactersAvailable() {
+        return !commandService.getCommands(CHARACTERS_COMMAND).isEmpty();
+    }
+
+    /** Whether the command is one of the tools of the characters (the Character Tracker plugin). */
+    public static boolean isCharacterTool(String command) {
+        return command != null && toolNames(WizardOptions.ToolGroup.CHARACTERS).contains(command);
+    }
+
+    /**
+     * The cast of the book as the commands of the characters number it: what the wizard shows instead of the numbers the model passes.
+     * Read with {@code list-characters} and {@code list-character-relations} in the scope of the book, on the thread of the caller;
+     * {@link CharacterNumbers#NONE} when the plugin is not there or the commands fail.
+     */
+    public CharacterNumbers characterNumbers(Manuscript book) {
+        try {
+            String characters = runForText("list-characters", book);
+            String relations = runForText("list-character-relations", book);
+            return CharacterNumbers.parse(characters, relations);
+        } catch (Exception e) {
+            if (log != null) {
+                log.debug("The characters could not be read for the wizard: {}", e.getMessage());
+            }
+            return CharacterNumbers.NONE;
+        }
+    }
+
+    private String runForText(String command, Manuscript book) throws Exception {
+        Object value = commandService.execute(command, new LinkedHashMap<>(), false, commandScopes.forManuscript(book)).get(30, TimeUnit.SECONDS);
+        return value == null ? null : value.toString();
+    }
 
     /** Whether the Story Notes plugin is installed and loaded. */
     public boolean notesAvailable() {
@@ -494,7 +536,9 @@ public class ArcOutlineService {
         if (!allowed.isEmpty()) {
             DestructiveCommandMode mode = options.isAskBeforeChanging() ? DestructiveCommandMode.ASK : DestructiveCommandMode.AUTO;
             functions = functions.and(CommandFunctions.create(commandService, allowed, mode, loc::getValue, approval, null, null, null,
-                    new CommandCage(commandScopes.forManuscript(book), null)));
+                    // the question a command asks itself (delete-character) was answered by then: the dialog asked the author before the call
+                    // (the option to ask), or the author let the model change and delete on its own; the scope of templates would say no
+                    new CommandCage(commandScopes.forApi(book, true), null)));
         }
         return functions;
     }
@@ -765,6 +809,89 @@ public class ArcOutlineService {
                     .append(message.text().strip()).append("\n\n");
         }
         return text.toString().stripTrailing();
+    }
+
+    // --- chapter headings in the text ---
+
+    /** The version of the history a heading change makes. */
+    private static final RevisionOrigin HEADINGS_ORIGIN = new RevisionOrigin(RevisionSource.PLUGIN, "Arc Outline", false, null);
+
+    /**
+     * What writing or removing the headings did.
+     *
+     * @param changed     the parts whose text changed
+     * @param revalidated the summaries that the change made outdated and that were marked valid again
+     * @param unlinked    the chapters (and arcs) that got no heading because they are not linked to a part
+     * @param outside     the headings whose part is not in the active branch (it is shorter than the link)
+     */
+    public record HeadingResult(int changed, int revalidated, int unlinked, int outside) {
+    }
+
+    /**
+     * Writes the heading of every linked arc and chapter at the start of its part of the active branch (see
+     * {@link ChapterHeadings#plan}); the headings a part starts with are replaced, so running it again does not add them twice.
+     *
+     * @param arcPrefix     the word before the number of an arc
+     * @param chapterPrefix the word before the number of a chapter
+     */
+    public HeadingResult writeHeadings(Manuscript manuscript, ArcOutline outline, HeadingOptions options, String arcPrefix,
+                                       String chapterPrefix) throws Exception {
+        ChapterHeadings.Plan plan = ChapterHeadings.plan(outline, options, arcPrefix, chapterPrefix);
+        Map<Integer, List<String>> lines = new LinkedHashMap<>();
+        plan.headings().forEach(heading -> lines.computeIfAbsent(heading.part(), _ -> new ArrayList<>()).add(heading.line()));
+        return rewriteHeadings(manuscript, options.isWipeFirst(), lines, options.isRevalidateSummaries(), plan.unlinked());
+    }
+
+    /**
+     * Removes every heading line from the text of the active branch.
+     */
+    public HeadingResult wipeHeadings(Manuscript manuscript, boolean revalidateSummaries) throws Exception {
+        return rewriteHeadings(manuscript, true, Map.of(), revalidateSummaries, 0);
+    }
+
+    private HeadingResult rewriteHeadings(Manuscript manuscript, boolean wipe, Map<Integer, List<String>> headings,
+                                          boolean revalidateSummaries, int unlinked) throws Exception {
+        Manuscript current = manuscriptService.find(manuscript);
+        Manuscript book = current != null ? current : manuscript;
+        ChatMessage leaf = book.getActiveLeaf();
+        if (leaf == null) {
+            return new HeadingResult(0, 0, unlinked, headings.values().stream().mapToInt(List::size).sum());
+        }
+        List<ChatMessage> branch = chatMessageService.getBranchFromLeaf(leaf);
+        int outside = headings.entrySet().stream().filter(entry -> entry.getKey() < 1 || entry.getKey() > branch.size())
+                .mapToInt(entry -> entry.getValue().size()).sum();
+        // the summaries that describe the story now: only those are made valid again, not the ones outdated before
+        Set<Long> validBefore = new HashSet<>();
+        if (revalidateSummaries) {
+            summaryService.collectBlocks(new ArrayList<>(branch.reversed())).stream().filter(SummaryService.SummaryBlock::isValid)
+                    .forEach(block -> validBefore.add(block.summary().getId()));
+        }
+        int changed = 0;
+        for (int i = 0; i < branch.size(); i++) {
+            ChatMessage part = branch.get(i);
+            String text = StringUtils.defaultString(part.getResponse());
+            String rewritten = wipe ? ChapterHeadings.wipe(text) : text;
+            List<String> lines = headings.get(i + 1);
+            if (lines != null) {
+                rewritten = ChapterHeadings.withHeadings(rewritten, lines);
+            }
+            if (!rewritten.equals(text)) {
+                chatMessageService.storeResponse(book, part, rewritten, HEADINGS_ORIGIN);
+                changed++;
+            }
+        }
+        int revalidated = 0;
+        if (revalidateSummaries && changed > 0 && !validBefore.isEmpty()) {
+            Manuscript after = manuscriptService.find(book);
+            List<ChatMessage> newBranch = chatMessageService.getBranchFromLeaf((after != null ? after : book).getActiveLeaf());
+            List<SummaryService.SummaryBlock> outdated = summaryService.collectBlocks(new ArrayList<>(newBranch.reversed())).stream()
+                    .filter(block -> !block.isValid() && validBefore.contains(block.summary().getId())).toList();
+            if (!outdated.isEmpty()) {
+                summaryService.revalidate(book, outdated);
+                revalidated = outdated.size();
+            }
+        }
+        return new HeadingResult(changed, revalidated, unlinked, outside);
     }
 
     /**

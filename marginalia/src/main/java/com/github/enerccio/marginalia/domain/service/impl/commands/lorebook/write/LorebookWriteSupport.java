@@ -1,12 +1,12 @@
 package com.github.enerccio.marginalia.domain.service.impl.commands.lorebook.write;
 
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.LorebookEntryService.EntryProblem;
 import com.github.enerccio.marginalia.domain.service.TagService;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.service.impl.commands.lorebook.read.LorebookReadSupport;
-import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.utils.CommandUtils;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -54,7 +54,7 @@ public abstract class LorebookWriteSupport extends LorebookReadSupport {
      */
     protected Lorebook book(Lore lore, String handle) throws Exception {
         if (!isHandle(handle)) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_HANDLE_REQUIRED));
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_COMMAND_HANDLE_REQUIRED));
         }
         return lore.book(handle);
     }
@@ -64,7 +64,7 @@ public abstract class LorebookWriteSupport extends LorebookReadSupport {
      */
     protected Lore.Found entry(Lore lore, String handle) throws Exception {
         if (!isHandle(handle)) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_HANDLE_REQUIRED));
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_COMMAND_HANDLE_REQUIRED));
         }
         return lore.find(null, handle);
     }
@@ -111,7 +111,7 @@ public abstract class LorebookWriteSupport extends LorebookReadSupport {
             return true;
         }
         if (!context.isTerminated()) {
-            context.setReturn(loc.getValue(L.MSG_COMMAND_NOTHING_CHANGED));
+            context.setReturn(loc.getValue(M_L.MSG_COMMAND_NOTHING_CHANGED));
         }
         return false;
     }

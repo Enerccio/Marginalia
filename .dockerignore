@@ -1,4 +1,5 @@
 marginalia/target/
+marginalia/platform/target/
 .idea/
 /data/
 /marginalia/node_modules/

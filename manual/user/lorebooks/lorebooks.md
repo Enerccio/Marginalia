@@ -123,7 +123,7 @@ under another one, and drag the splitters between them.
   (PNG, JPEG, GIF or WebP, up to 10 MB). It is stored with your files (the *Resources* tab) and the content gets a
   line like `![Map](resource:…)` where the cursor was; the preview shows the image, and the text in brackets is its caption.
   Delete the line to take the image out of the entry. The model reads the entry without these lines. The images
-  themselves are sent only when the model's settings say *Send lore images* (see [Inference providers](../inference-providers.md)).
+  themselves are sent only when the model's settings say *Multimodal (accepts images)* (see [Inference providers](../inference-providers.md)).
   Images travel with the lorebook: a clone, a copy of a shared lorebook, an exported lorebook file and a book backup
   with its files carry them, and the copy gets images of its own. The SillyTavern export and the book exports leave them
   out. The story's *Lorebook* tab shows them under the text of the entry. Images do not count in the token estimates yet.

@@ -13,7 +13,7 @@ covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/components/PartAuthorship.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/components/BookAuthorship.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/utils/AuthorshipTracker.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/utils/WordAlignment.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/utils/WordAlignment.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/dialogs/story/CardAuthorship.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/widgets/AuthorshipField.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/repository/MessageRevisionRepository.java

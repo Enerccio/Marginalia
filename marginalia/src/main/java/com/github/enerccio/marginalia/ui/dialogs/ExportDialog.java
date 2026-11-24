@@ -13,6 +13,7 @@ import com.github.enerccio.marginalia.domain.styles.PartStyle;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.extensions.ExportTextRegistry;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.styles.PartStyleApplier;
@@ -107,14 +108,14 @@ public class ExportDialog extends Dialog implements LLMInteract {
     public ExportDialog(Manuscript manuscript) {
         this.manuscript = manuscript;
 
-        setHeaderTitle(loc.getValue(L.LABEL_EXPORT_STORY));
+        setHeaderTitle(loc.getValue(M_L.LABEL_EXPORT_STORY));
         setWidth("500px");
         setCloseOnEsc(true);
         setCloseOnOutsideClick(false);
         setModality(ModalityMode.STRICT);
 
         format = new Select<>();
-        format.setLabel(loc.getValue(L.LABEL_EXPORT_FORMAT));
+        format.setLabel(loc.getValue(M_L.LABEL_EXPORT_FORMAT));
         List<Exporter> exporters = exporterService.getExporters();
         format.setItems(exporters);
         format.setItemLabelGenerator(e -> e.getName() + " (." + e.getFileExtension() + ")");
@@ -131,23 +132,23 @@ public class ExportDialog extends Dialog implements LLMInteract {
             selectDefaultStyle(event.getValue());
         });
 
-        fileName = new TextField(loc.getValue(L.LABEL_FILE_NAME), StringUtils.defaultString(manuscript.getName()), "");
-        bookTitle = new TextField(loc.getValue(L.LABEL_BOOK_TITLE), StringUtils.defaultString(manuscript.getName()), "");
-        author = new TextField(loc.getValue(L.LABEL_AUTHOR), StringUtils.defaultIfBlank(user.getFullName(), user.getLogin()), "");
+        fileName = new TextField(loc.getValue(M_L.LABEL_FILE_NAME), StringUtils.defaultString(manuscript.getName()), "");
+        bookTitle = new TextField(loc.getValue(M_L.LABEL_BOOK_TITLE), StringUtils.defaultString(manuscript.getName()), "");
+        author = new TextField(loc.getValue(M_L.LABEL_AUTHOR), StringUtils.defaultIfBlank(user.getFullName(), user.getLogin()), "");
         DialogFocus.onOpen(this, fileName);
 
-        from = new IntegerField(loc.getValue(L.LABEL_FROM_MESSAGE));
+        from = new IntegerField(loc.getValue(M_L.LABEL_FROM_MESSAGE));
         from.setMin(1);
         from.setValue(1);
         from.setStepButtonsVisible(true);
-        to = new IntegerField(loc.getValue(L.LABEL_TO_MESSAGE));
+        to = new IntegerField(loc.getValue(M_L.LABEL_TO_MESSAGE));
         to.setMin(1);
         to.setStepButtonsVisible(true);
 
-        includeHeaders = new Checkbox(loc.getValue(L.LABEL_INCLUDE_TITLE_PAGE), true);
+        includeHeaders = new Checkbox(loc.getValue(M_L.LABEL_INCLUDE_TITLE_PAGE), true);
 
-        includeAuthorship = new Checkbox(loc.getValue(L.LABEL_INCLUDE_AUTHORSHIP), false);
-        includeAuthorship.setHelperText(loc.getValue(L.HELP_INCLUDE_AUTHORSHIP));
+        includeAuthorship = new Checkbox(loc.getValue(M_L.LABEL_INCLUDE_AUTHORSHIP), false);
+        includeAuthorship.setHelperText(loc.getValue(M_L.HELP_INCLUDE_AUTHORSHIP));
         includeAuthorship.setVisible(format.getValue() != null && format.getValue().usesAuthorship());
         format.addValueChangeListener(event -> includeAuthorship.setVisible(event.getValue() != null && event.getValue().usesAuthorship()));
 
@@ -158,7 +159,7 @@ public class ExportDialog extends Dialog implements LLMInteract {
         form.getChildren().forEach(c -> c.getElement().getClassList().add(CssStyles.FULL_WIDTH));
         add(form);
 
-        Button export = new Button(loc.getValue(L.LABEL_EXPORT_BACKUP), Solid.FILE_EXPORT.create(), event -> start());
+        Button export = new Button(loc.getValue(M_L.LABEL_EXPORT_BACKUP), Solid.FILE_EXPORT.create(), event -> start());
         export.setThemeName("primary");
         export.setEnabled(!exporters.isEmpty());
         getFooter().add(new Button(loc.getValue(L.LABEL_CANCEL), event -> close()), export);
@@ -189,7 +190,7 @@ public class ExportDialog extends Dialog implements LLMInteract {
                     @APILocals(name = "e", type = Exception.class)})
     private Select<StyleChoice> createStyleChoice() {
         Select<StyleChoice> choice = new Select<>();
-        choice.setLabel(loc.getValue(L.LABEL_EXPORT_STYLE));
+        choice.setLabel(loc.getValue(M_L.LABEL_EXPORT_STYLE));
         choice.setItemLabelGenerator(StyleChoice::text);
         List<StyleChoice> choices = new ArrayList<>();
         try {
@@ -252,7 +253,7 @@ public class ExportDialog extends Dialog implements LLMInteract {
         if (from.isInvalid() || to.isInvalid()) {
             valid = false;
         } else if (from.getValue() != null && to.getValue() != null && to.getValue() < from.getValue()) {
-            to.setErrorMessage(loc.getValue(L.ERROR_EXPORT_RANGE_INVALID));
+            to.setErrorMessage(loc.getValue(M_L.ERROR_EXPORT_RANGE_INVALID));
             to.setInvalid(true);
             valid = false;
         } else {
@@ -299,7 +300,7 @@ public class ExportDialog extends Dialog implements LLMInteract {
         AtomicReference<List<ChatMessage>> collected = new AtomicReference<>(List.of());
 
         ProgressBarDialog collecting = new ProgressBarDialog(true);
-        collecting.setTitle(loc.getValue(L.MSG_EXPORT_COLLECTING));
+        collecting.setTitle(loc.getValue(M_L.MSG_EXPORT_COLLECTING));
         collecting.create();
         collecting.setAction(dialog -> {
             try {
@@ -314,7 +315,7 @@ public class ExportDialog extends Dialog implements LLMInteract {
             List<ChatMessage> all = collected.get();
             int toIndex = last == null ? all.size() : Math.min(last, all.size());
             if (first > toIndex) {
-                Notification.warning(loc.getValue(L.MSG_EXPORT_NOTHING));
+                Notification.warning(loc.getValue(M_L.MSG_EXPORT_NOTHING));
                 return;
             }
             List<ChatMessage> range = all.subList(first - 1, toIndex);
@@ -367,7 +368,7 @@ public class ExportDialog extends Dialog implements LLMInteract {
         AtomicReference<Path> exported = new AtomicReference<>();
 
         ProgressBarDialog exporting = new ProgressBarDialog(true);
-        exporting.setTitle(loc.getValue(L.MSG_EXPORTING));
+        exporting.setTitle(loc.getValue(M_L.MSG_EXPORTING));
         exporting.setTotal((long) messages.size());
         exporting.create();
         exporting.setAction(dialog -> {
@@ -416,7 +417,7 @@ public class ExportDialog extends Dialog implements LLMInteract {
                     @APILocals(name = "content", type = VerticalLayout.class)})
     private void showResult(Exporter exporter, String file, Path exported) {
         Dialog result = new Dialog();
-        result.setHeaderTitle(loc.getValue(L.LABEL_EXPORT_STORY));
+        result.setHeaderTitle(loc.getValue(M_L.LABEL_EXPORT_STORY));
         result.setCloseOnEsc(true);
         result.setCloseOnOutsideClick(false);
         result.setModality(ModalityMode.STRICT);
@@ -428,7 +429,7 @@ public class ExportDialog extends Dialog implements LLMInteract {
         downloadButton.setThemeName("primary");
         download.add(downloadButton);
 
-        VerticalLayout content = new VerticalLayout(new Span(String.format(loc.getValue(L.MSG_EXPORT_READY), file)), download);
+        VerticalLayout content = new VerticalLayout(new Span(String.format(loc.getValue(M_L.MSG_EXPORT_READY), file)), download);
         content.setPadding(false);
         result.add(content);
         result.getFooter().add(new Button(loc.getValue(L.LABEL_CLOSE), event -> result.close()));

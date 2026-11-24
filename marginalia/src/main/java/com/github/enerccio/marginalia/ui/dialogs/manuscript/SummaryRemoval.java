@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Summary;
 import com.github.enerccio.marginalia.domain.service.SummaryService;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -30,7 +31,7 @@ public final class SummaryRemoval {
                 return;
             }
             if (summary.getSummaryType() == SummaryType.META_SUMMARY) {
-                ConfirmDialog.show(loc.getValue(L.MSG_CONFIRM_DELETE_META_SUMMARY), loc.getValue(L.LABEL_UNWIND), loc.getValue(L.LABEL_DELETE),
+                ConfirmDialog.show(loc.getValue(M_L.MSG_CONFIRM_DELETE_META_SUMMARY), loc.getValue(M_L.LABEL_UNWIND), loc.getValue(L.LABEL_DELETE),
                         () -> remove(loc, summaryService, message, true, done), () -> remove(loc, summaryService, message, false, done), true);
             } else {
                 ConfirmDialog.show(loc.getValue(L.MSG_CONFIRM_DELETE), () -> remove(loc, summaryService, message, false, done));

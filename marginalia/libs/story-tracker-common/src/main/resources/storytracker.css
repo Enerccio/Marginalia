@@ -1,0 +1,145 @@
+/* Styles of story-tracker-common: the progress panel and the review dialog of a tracker. The plugin that embeds the library returns
+   them from its getCss together with its own (StoryTrackerStyles.css()); the same rules from two plugins are harmless. */
+
+.story-tracker-name {
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.story-tracker-counts {
+    color: var(--lumo-secondary-text-color);
+    font-size: var(--lumo-font-size-s);
+}
+
+.story-tracker-card-header {
+    display: flex;
+    align-items: center;
+    gap: var(--lumo-space-xs);
+}
+
+.story-tracker-card-header vaadin-button {
+    margin: 0;
+}
+
+.story-tracker-card-title {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+/* The progress panel: small, it floats over the page without blocking it */
+.story-tracker-progress {
+    display: flex;
+    flex-direction: column;
+    gap: var(--lumo-space-s);
+    width: 22em;
+    max-width: 80vw;
+}
+
+/* What the model writes and thought: plain text, long, scrolls instead of making the dialog taller */
+.story-tracker-reasoning {
+    max-height: 16em;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    color: var(--lumo-secondary-text-color);
+    font-size: var(--lumo-font-size-s);
+}
+
+/* The review of the changes the model proposed: a group per character, a row per change */
+.story-tracker-review {
+    display: flex;
+    flex-direction: column;
+    gap: var(--lumo-space-s);
+}
+
+.story-tracker-review-group {
+    /* every group as wide as the dialog, not as its longest row */
+    align-self: stretch;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: var(--lumo-space-xs);
+    padding: var(--lumo-space-xs) var(--lumo-space-s);
+    border-radius: var(--lumo-border-radius-m);
+    background-color: var(--lumo-contrast-5pct);
+}
+
+.story-tracker-review-row {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--lumo-space-s);
+}
+
+.story-tracker-review-body {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow-wrap: anywhere;
+}
+
+/* The label of a change (Add, Retract, Set, Remove...) */
+.story-tracker-kind {
+    flex: none;
+    min-width: 6em;
+    box-sizing: border-box;
+    text-align: center;
+    white-space: nowrap;
+    border-radius: var(--lumo-border-radius-s);
+    padding: 0 var(--lumo-space-xs);
+    font-size: var(--lumo-font-size-xs);
+    font-weight: 600;
+    color: var(--lumo-success-text-color);
+    background-color: var(--lumo-success-color-10pct);
+}
+
+.story-tracker-kind-not {
+    color: var(--lumo-error-text-color);
+    background-color: var(--lumo-error-color-10pct);
+}
+
+.story-tracker-old-item {
+    text-decoration: line-through;
+    color: var(--lumo-secondary-text-color);
+}
+
+.story-tracker-stale {
+    color: var(--lumo-error-text-color);
+    font-size: var(--lumo-font-size-xs);
+}
+
+/* A line of the log of automatic runs: the text, then its revert button or "Reverted" */
+.story-tracker-log-row {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--lumo-space-xs);
+}
+
+.story-tracker-log-row vaadin-button {
+    margin: 0;
+}
+
+.story-tracker-log-text {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+/* The review on a phone (the dialog is as wide as the screen): the tick and the label share a line, the body uses the whole width */
+@media (max-width: 640px) {
+    .story-tracker-review-row {
+        flex-wrap: wrap;
+    }
+
+    .story-tracker-review-body {
+        order: 3;
+        flex: 1 1 100%;
+    }
+
+    .story-tracker-review-group .story-tracker-card-header {
+        flex-wrap: wrap;
+    }
+}

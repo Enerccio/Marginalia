@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.FolderService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.test.ComponentTree;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
@@ -137,7 +138,7 @@ class PhoneManuscriptPartFoldersTest extends MarginaliaTestBase {
     void aFolderIsOpenedByTappingItAndLeftFromTheBreadcrumb() {
         tap(row("Sci-fi"));
         assertThat(names()).containsExactly("[Expanse]", "Leviathan");
-        assertThat(ComponentTree.all(view, Button.class).map(Button::getText)).contains(loc.getValue(L.LABEL_BOOKS));
+        assertThat(ComponentTree.all(view, Button.class).map(Button::getText)).contains(loc.getValue(M_L.LABEL_BOOKS));
 
         tap(row("Expanse"));
         assertThat(names()).containsExactly("Caliban");
@@ -145,7 +146,7 @@ class PhoneManuscriptPartFoldersTest extends MarginaliaTestBase {
         click("Sci-fi");
         assertThat(names()).containsExactly("[Expanse]", "Leviathan");
 
-        click(loc.getValue(L.LABEL_BOOKS));
+        click(loc.getValue(M_L.LABEL_BOOKS));
         assertThat(names()).containsExactly("[Sci-fi]", "Loose");
     }
 
@@ -203,8 +204,8 @@ class PhoneManuscriptPartFoldersTest extends MarginaliaTestBase {
     void aBookRowHasTheStarAndTheQuickMoveButtons() {
         Component item = cell(row("Loose"));
 
-        assertThat(withTooltip(item, loc.getValue(L.LABEL_FAVORITES))).isNotNull();
-        assertThat(withTooltip(item, loc.getValue(L.LABEL_MOVE_TO_FOLDER))).isNotNull();
+        assertThat(withTooltip(item, loc.getValue(M_L.LABEL_FAVORITES))).isNotNull();
+        assertThat(withTooltip(item, loc.getValue(M_L.LABEL_MOVE_TO_FOLDER))).isNotNull();
     }
 
     @Test
@@ -218,8 +219,8 @@ class PhoneManuscriptPartFoldersTest extends MarginaliaTestBase {
     void theStarMakesAFavoriteThatTheListOffersAsAFolder() throws Exception {
         assertThat(names()).as("no favorite, no folder").containsExactly("[Sci-fi]", "Loose");
 
-        ComponentUtil.fireEvent(withTooltip(cell(row("Loose")), loc.getValue(L.LABEL_FAVORITES)),
-                new ClickEvent<>(withTooltip(cell(row("Loose")), loc.getValue(L.LABEL_FAVORITES))));
+        ComponentUtil.fireEvent(withTooltip(cell(row("Loose")), loc.getValue(M_L.LABEL_FAVORITES)),
+                new ClickEvent<>(withTooltip(cell(row("Loose")), loc.getValue(M_L.LABEL_FAVORITES))));
         assertThat(manuscriptService.getFavorites()).containsExactly(loose.getUuid());
 
         manuscriptService.setFavorite(inExpanse, true);
@@ -231,12 +232,12 @@ class PhoneManuscriptPartFoldersTest extends MarginaliaTestBase {
         assertThat(names()).containsExactlyInAnyOrder("Caliban", "Loose");
         assertThat(row("Caliban").getPath()).isEqualTo("Sci-fi/Expanse");
         assertThat(part.storeState().get("favorites").getAsBoolean()).isTrue();
-        assertThat(ComponentTree.button(view, loc.getValue(L.LABEL_ADD_BOOK)).isEnabled()).as("no book is added to the favorites").isFalse();
+        assertThat(ComponentTree.button(view, loc.getValue(M_L.LABEL_ADD_BOOK)).isEnabled()).as("no book is added to the favorites").isFalse();
 
-        click(loc.getValue(L.LABEL_BOOKS));
+        click(loc.getValue(M_L.LABEL_BOOKS));
         assertThat(names()).contains("Loose");
         assertThat(part.storeState().has("favorites")).isFalse();
-        assertThat(ComponentTree.button(view, loc.getValue(L.LABEL_ADD_BOOK)).isEnabled()).isTrue();
+        assertThat(ComponentTree.button(view, loc.getValue(M_L.LABEL_ADD_BOOK)).isEnabled()).isTrue();
     }
 
     @Test

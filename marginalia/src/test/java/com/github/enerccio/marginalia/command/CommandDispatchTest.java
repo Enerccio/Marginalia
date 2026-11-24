@@ -1,5 +1,7 @@
 package com.github.enerccio.marginalia.command;
 
+import com.github.enerccio.marginalia.domain.service.impl.commands.BuiltInCommands;
+import org.springframework.test.util.ReflectionTestUtils;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.service.command.CommandDefinition;
 import com.github.enerccio.marginalia.domain.service.impl.CommandServiceImpl;
@@ -231,7 +233,9 @@ class CommandDispatchTest {
 
     @Test
     void theCommandsOfTheApplicationAreRegisteredAtStartup() {
-        commands.afterPropertiesSet();
+        BuiltInCommands builtIn = new BuiltInCommands();
+        ReflectionTestUtils.setField(builtIn, "commandService", commands);
+        builtIn.install();
 
         assertThat(commands.getCommands("take-backup")).isNotEmpty();
         assertThat(commands.getCommands("get-book-info")).isNotEmpty();

@@ -14,5 +14,5 @@ other's classes), so the state that must be shared between plugins, the gates of
 | `ui.HookListEditor` | The settings form of a list of hooks (a row for each: address, method, timeout, wait, headers, body; add and remove buttons). The texts and the functions that open and protect the headers are the plugin's. |
 | `BackendException` | The one exception of all of the above (a plugin throws it for its own failures too). |
 
-Build: `mvn install -DskipTests` here (a plugin needs it in the local repository first); `install-plugins.sh`, `marginalia/plugins/Dockerfile` and the workflows do it. Developer
+Build: `mvn install -DskipTests` here (a plugin needs it in the local repository first); `install-plugins.sh`, the root `Dockerfile` and the workflows do it. Developer
 manual: *Plugin development / Libraries / http-hooks*.

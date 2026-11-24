@@ -3,7 +3,7 @@ package com.github.enerccio.marginalia.ui.dialogs.manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.extensions.InheritedSettingValues;
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ManuscriptDialog;
 import com.github.enerccio.marginalia.ui.widgets.ExtensionSettingsForm;
@@ -54,7 +54,7 @@ public class ManuscriptPromptPart implements ManuscriptDialogPart {
             mainLayout.add(extensionForm.layout());
         }
 
-        container.add(loc.getValue(L.LABEL_PROMPT_PART), mainLayout);
+        container.add(loc.getValue(M_L.LABEL_PROMPT_PART), mainLayout);
         return mainLayout;
     }
 

@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.ui.dialogs;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -49,7 +50,7 @@ public class PromptDialog extends Dialog implements LLMInteract {
                     @APILocals(name = "closeButton", type = Button.class),
                     @APILocals(name = "footerLayout", type = HorizontalLayout.class)})
     public void create() {
-        setHeaderTitle(loc.getValue(L.LABEL_SHOW_PROMPT));
+        setHeaderTitle(loc.getValue(M_L.LABEL_SHOW_PROMPT));
         setWidth("850px");
         setHeight("650px");
         setResizable(true);
@@ -66,7 +67,7 @@ public class PromptDialog extends Dialog implements LLMInteract {
 
         formatCombo = new ComboBox<>();
         formatCombo.setItems(FORMAT_YAML, FORMAT_JSON, FORMAT_RAW);
-        formatCombo.setItemLabelGenerator(format -> FORMAT_RAW.equals(format) ? loc.getValue(L.LABEL_RAW) : format);
+        formatCombo.setItemLabelGenerator(format -> FORMAT_RAW.equals(format) ? loc.getValue(M_L.LABEL_RAW) : format);
         formatCombo.setValue(FORMAT_YAML);
         formatCombo.setWidth("120px");
         formatCombo.addValueChangeListener(e -> updatePromptView(e.getValue()));

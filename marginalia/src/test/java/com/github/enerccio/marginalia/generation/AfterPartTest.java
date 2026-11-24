@@ -7,11 +7,13 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.AfterPart;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationControllerEvent.Registration;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationOptions;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequest;
+import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.test.GenerationRun;
 import com.github.enerccio.marginalia.test.GenerationTestBase;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +31,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * What follows a generated part: the steps bound to the stages, run after a completed generation as one run of the registry.
  */
 class AfterPartTest extends GenerationTestBase {
+
+    @Autowired
+    private ChatMessageService chatMessageService;
 
     private final List<Registration> bindings = new ArrayList<>();
     private final List<String> done = new CopyOnWriteArrayList<>();
@@ -175,6 +180,22 @@ class AfterPartTest extends GenerationTestBase {
         assertThat(done).isEmpty();
         assertThat(generation.finalPart).as("the part is in the author's hands").isNotDone();
         assertThat(generation.getWarnings()).anyMatch(warning -> warning.contains("review") && warning.contains("media"));
+    }
+
+    @Test
+    void aParallelStepThatChangesTheTextOfThePartFailsAndTheTextStays() throws Exception {
+        Manuscript book = manuscriptService.save(newManuscript());
+        bind(book, "media", AfterPart.Stage.MEDIA, AfterPart.Mode.PARALLEL, context ->
+                chatMessageService.storeResponse(context.getManuscript(), context.getPart(), "written by a parallel step"));
+        CompletableFuture<Runs.Run> ended = phaseEnd(book);
+        Watched generation = start(book, GenerationOptions.defaults());
+        Runs.Run phase = ended.get(30, TimeUnit.SECONDS);
+
+        assertThat(phase.getOutcome()).isEqualTo(Runs.Outcome.FAILED);
+        assertThat(done).isEmpty();
+        assertThat(chatMessageService.find(generation.getMessage().getId()).getResponse()).isEqualTo("generated");
+        // the thread of the step is given back as one that may write again
+        Runs.checkMayWriteText();
     }
 
     @Test

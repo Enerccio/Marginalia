@@ -5,8 +5,8 @@ import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.LorebookService;
 import com.github.enerccio.marginalia.domain.traits.*;
-import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.ui.RestorableState;
 import com.github.enerccio.marginalia.ui.components.PhoneLorebookView;
 import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneManuscriptDialog;
@@ -62,7 +62,7 @@ public class PhoneManuscriptLorebookPart implements PhoneManuscriptDialogPart {
         mainLayout.setPadding(true);
         mainLayout.setSpacing(true);
 
-        activeLorebookCombo = new ComboBox<>(loc.getValue(L.LABEL_LOREBOOK));
+        activeLorebookCombo = new ComboBox<>(loc.getValue(M_L.LABEL_LOREBOOK));
         activeLorebookCombo.setItemLabelGenerator(Lorebook::getName);
         activeLorebookCombo.setClearButtonVisible(true);
         activeLorebookCombo.setWidthFull();
@@ -72,7 +72,7 @@ public class PhoneManuscriptLorebookPart implements PhoneManuscriptDialogPart {
             }
         });
 
-        shownLorebookCombo = new ComboBox<>(loc.getValue(L.LABEL_SHOWN_LOREBOOK));
+        shownLorebookCombo = new ComboBox<>(loc.getValue(M_L.LABEL_SHOWN_LOREBOOK));
         shownLorebookCombo.setItemLabelGenerator(Lorebook::getName);
         shownLorebookCombo.setWidthFull();
         shownLorebookCombo.setVisible(false);

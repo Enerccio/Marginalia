@@ -12,7 +12,7 @@ import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.ActivityIntervalService;
 import com.github.enerccio.marginalia.domain.service.ActivityTracker;
 import com.github.enerccio.marginalia.domain.service.ActivityTracker.BookPresence;
-import com.github.enerccio.marginalia.domain.service.ActivityTracker.Registration;
+import com.github.enerccio.marginalia.domain.service.RequestActivity.Registration;
 import com.github.enerccio.marginalia.domain.service.SettingService;
 import com.github.enerccio.marginalia.domain.service.StatisticsPolicyService;
 import com.github.enerccio.marginalia.domain.service.impl.ActivityTrackerImpl;

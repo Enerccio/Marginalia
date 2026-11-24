@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.Folder;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
@@ -9,10 +10,12 @@ import com.github.enerccio.marginalia.domain.service.FolderService.Choice;
 import com.github.enerccio.marginalia.domain.service.FolderService.Outcome;
 import com.github.enerccio.marginalia.domain.service.FolderService.Resolution;
 import com.github.enerccio.marginalia.domain.service.FolderService.Transfer;
-import com.github.enerccio.marginalia.domain.service.ManuscriptLockedException;
+import com.github.enerccio.marginalia.domain.service.LockedException;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.SettingService;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.dialogs.agent.AgentLockCheck;
@@ -105,7 +108,7 @@ public class OrganiseDialog extends Dialog {
     /**
      * A button of the row under the panes and the key of the user for it.
      */
-    private record Action(String id, L label, Runnable run, boolean button) {
+    private record Action(String id, LocalizationKey label, Runnable run, boolean button) {
     }
 
     private final List<Action> actions = new ArrayList<>();
@@ -179,7 +182,7 @@ public class OrganiseDialog extends Dialog {
         left = new Pane(leftStart);
         right = new Pane(rightStart);
 
-        Span hint = new Span(loc.getValue(L.HELP_ORGANISE));
+        Span hint = new Span(loc.getValue(M_L.HELP_ORGANISE));
         hint.addClassName(CssStyles.HINT_TEXT);
 
         // a phone has no room for two panes side by side (nor a keyboard for the hint of the keys): one over the other
@@ -345,11 +348,11 @@ public class OrganiseDialog extends Dialog {
         Pane to = other(from);
         List<Entry> chosen = from.selection();
         if (chosen.isEmpty()) {
-            Notification.warning(loc.getValue(L.MSG_ORGANISE_NOTHING_SELECTED));
+            Notification.warning(loc.getValue(M_L.MSG_ORGANISE_NOTHING_SELECTED));
             return;
         }
         if (sameFolder(from.folder, to.folder)) {
-            Notification.warning(loc.getValue(L.MSG_ORGANISE_SAME_FOLDER));
+            Notification.warning(loc.getValue(M_L.MSG_ORGANISE_SAME_FOLDER));
             return;
         }
         try {
@@ -396,7 +399,7 @@ public class OrganiseDialog extends Dialog {
     }
 
     private String pathOf(Folder folder) throws Exception {
-        return folder == null ? loc.getValue(L.LABEL_TOP_LEVEL) : folderService.getPath(folder);
+        return folder == null ? loc.getValue(M_L.LABEL_TOP_LEVEL) : folderService.getPath(folder);
     }
 
     /**
@@ -462,9 +465,9 @@ public class OrganiseDialog extends Dialog {
         dialog.setWidth("460px");
         UIUtils.fitPhone(dialog, false);
 
-        Checkbox onlyCurrentBranch = new Checkbox(loc.getValue(L.LABEL_ONLY_CURRENT_BRANCH), true);
+        Checkbox onlyCurrentBranch = new Checkbox(loc.getValue(M_L.LABEL_ONLY_CURRENT_BRANCH), true);
         onlyCurrentBranch.setVisible(withBooks);
-        VerticalLayout layout = new VerticalLayout(new Span(String.format(loc.getValue(L.MSG_ORGANISE_COPY_TO), count, pathOf(target))),
+        VerticalLayout layout = new VerticalLayout(new Span(String.format(loc.getValue(M_L.MSG_ORGANISE_COPY_TO), count, pathOf(target))),
                 onlyCurrentBranch);
         layout.setPadding(false);
         dialog.add(layout);
@@ -534,11 +537,11 @@ public class OrganiseDialog extends Dialog {
 
     private void report(Outcome outcome, Exception failure) {
         if (failure == null) {
-            Notification.success(String.format(loc.getValue(L.MSG_ORGANISE_DONE), outcome.books(), outcome.folders(), outcome.skipped()));
-        } else if (failure instanceof ManuscriptLockedException) {
+            Notification.success(String.format(loc.getValue(M_L.MSG_ORGANISE_DONE), outcome.books(), outcome.folders(), outcome.skipped()));
+        } else if (failure instanceof LockedException) {
             UIUtils.internalServerError(loc, failure);
         } else if (failure instanceof IllegalStateException) {
-            Notification.warning(loc.getValue(L.ERROR_FOLDER_TRANSFER_REFUSED));
+            Notification.warning(loc.getValue(M_L.ERROR_FOLDER_TRANSFER_REFUSED));
         } else {
             UIUtils.internalServerError(loc, failure);
         }
@@ -635,7 +638,7 @@ public class OrganiseDialog extends Dialog {
     private Entry underCursor() {
         Entry entry = active.cursor;
         if (entry == null || entry.kind() == Kind.UP) {
-            Notification.warning(loc.getValue(L.MSG_ORGANISE_NOTHING_SELECTED));
+            Notification.warning(loc.getValue(M_L.MSG_ORGANISE_NOTHING_SELECTED));
             return null;
         }
         return entry;
@@ -755,9 +758,9 @@ public class OrganiseDialog extends Dialog {
                 }
             }
         }
-        left.layout.removeClassName(CssStyles.ORGANISE_PANE_ACTIVE);
-        right.layout.removeClassName(CssStyles.ORGANISE_PANE_ACTIVE);
-        pane.layout.addClassName(CssStyles.ORGANISE_PANE_ACTIVE);
+        left.layout.removeClassName(MarginaliaCssStyles.ORGANISE_PANE_ACTIVE);
+        right.layout.removeClassName(MarginaliaCssStyles.ORGANISE_PANE_ACTIVE);
+        pane.layout.addClassName(MarginaliaCssStyles.ORGANISE_PANE_ACTIVE);
     }
 
     /**
@@ -784,9 +787,9 @@ public class OrganiseDialog extends Dialog {
             grid.addComponentColumn(this::markBox).setFlexGrow(0).setWidth("56px");
             grid.addComponentColumn(entry -> name(entry)).setHeader(loc.getValue(L.LABEL_NAME)).setFlexGrow(3);
             grid.addColumn(entry -> entry.kind() == Kind.FOLDER ? count(entry.folder()) : "")
-                    .setHeader(loc.getValue(L.LABEL_BOOKS)).setFlexGrow(0).setWidth("100px");
+                    .setHeader(loc.getValue(M_L.LABEL_BOOKS)).setFlexGrow(0).setWidth("100px");
             // only the pane the keyboard is in shows its cursor row
-            grid.setPartNameGenerator(entry -> entry == cursor && active == this ? CssStyles.ORGANISE_CURSOR_ROW : null);
+            grid.setPartNameGenerator(entry -> entry == cursor && active == this ? MarginaliaCssStyles.ORGANISE_CURSOR_ROW : null);
             grid.addCellFocusListener(event -> {
                 moveCursor(event.getItem().orElse(null));
                 activate(this);
@@ -804,7 +807,7 @@ public class OrganiseDialog extends Dialog {
             layout = new VerticalLayout(path, grid);
             layout.setPadding(false);
             layout.setSpacing(false);
-            layout.addClassNames(CssStyles.ORGANISE_PANE, CssStyles.MIN_HEIGHT_0);
+            layout.addClassNames(MarginaliaCssStyles.ORGANISE_PANE, CssStyles.MIN_HEIGHT_0);
             layout.expand(grid);
         }
 
@@ -930,7 +933,7 @@ public class OrganiseDialog extends Dialog {
                 grid.setItems(entries);
                 // the grid focuses the first row when it gets the focus
                 cursor = entries.isEmpty() ? null : entries.getFirst();
-                path.setText(folder == null ? loc.getValue(L.LABEL_TOP_LEVEL) : folderService.getPath(folder));
+                path.setText(folder == null ? loc.getValue(M_L.LABEL_TOP_LEVEL) : folderService.getPath(folder));
             } catch (Exception e) {
                 UIUtils.internalServerError(loc, e);
             }

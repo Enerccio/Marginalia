@@ -6,6 +6,8 @@ import com.github.enerccio.marginalia.domain.collections.AnnotationStatus;
 import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.service.AnnotationService;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
+import com.github.enerccio.marginalia.domain.service.PhraseWatchService;
+import com.github.enerccio.marginalia.domain.model.WatchedPhrase;
 import com.github.enerccio.marginalia.domain.service.CommandScopes;
 import com.github.enerccio.marginalia.domain.service.CommandService;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
@@ -48,6 +50,9 @@ class AnnotationCommandsTest extends GenerationTestBase {
 
     @Autowired
     private AnnotationService annotationService;
+
+    @Autowired
+    private PhraseWatchService phraseWatch;
 
     private AgenticRequestAttributes session;
     private Manuscript manuscript;
@@ -156,6 +161,18 @@ class AnnotationCommandsTest extends GenerationTestBase {
         assertThat(result.get("start").getAsInt()).isZero();
         assertThat(result.get("quote").getAsString()).isEqualTo("They talked for hours.");
         assertThat(result.has("hint")).isFalse();
+    }
+
+    @Test
+    void scanPhrasesAnnotatesTheHitsOfTheActiveBranchOrOfARange() throws Exception {
+        manuscript = phraseWatch.setForBook(manuscriptService.find(manuscript.getId()),
+                List.of(new WatchedPhrase("John|hours", true, null)), true);
+
+        assertThat(run("/scan-phrases " + second.getUuid() + " " + second.getUuid()).get("annotations").getAsInt())
+                .as("only the second part").isEqualTo(1);
+        assertThat(run("/scan-phrases").get("annotations").getAsInt()).as("the first part: the second is done").isEqualTo(1);
+        assertThat(annotationService.listForPart(manuscript, other)).as("not on the active branch").isEmpty();
+        assertThat(run("/scan-phrases").get("annotations").getAsInt()).isZero();
     }
 
     @Test

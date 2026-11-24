@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.BackupService;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
@@ -63,7 +64,7 @@ public class ManuscriptCloneDialog extends Dialog implements LLMInteract {
                     @APILocals(name = "cancelButton", type = Button.class),
                     @APILocals(name = "footer", type = HorizontalLayout.class)})
     public void create() {
-        setHeaderTitle(loc.getValue(L.LABEL_CLONE_BOOK));
+        setHeaderTitle(loc.getValue(M_L.LABEL_CLONE_BOOK));
         setWidth("460px");
         UIUtils.fitPhone(this, false);
         setCloseOnEsc(false);
@@ -73,14 +74,14 @@ public class ManuscriptCloneDialog extends Dialog implements LLMInteract {
         nameField.setRequiredIndicatorVisible(true);
         nameField.setWidthFull();
 
-        onlyCurrentBranch = new Checkbox(loc.getValue(L.LABEL_ONLY_CURRENT_BRANCH), true);
+        onlyCurrentBranch = new Checkbox(loc.getValue(M_L.LABEL_ONLY_CURRENT_BRANCH), true);
 
         VerticalLayout content = new VerticalLayout(nameField, onlyCurrentBranch);
         content.setPadding(false);
         add(content);
 
         Button cancelButton = new Button(loc.getValue(L.LABEL_CANCEL), event -> close());
-        cloneButton = new Button(loc.getValue(L.LABEL_CLONE_BOOK), event -> cloneBook());
+        cloneButton = new Button(loc.getValue(M_L.LABEL_CLONE_BOOK), event -> cloneBook());
         cloneButton.setThemeName("primary");
         HorizontalLayout footer = new HorizontalLayout(cancelButton, cloneButton);
         footer.setWidthFull();
@@ -107,7 +108,7 @@ public class ManuscriptCloneDialog extends Dialog implements LLMInteract {
             return;
         }
         close();
-        Notification.success(loc.getValue(L.LABEL_CLONE_BOOK) + ": " + clone.getName());
+        Notification.success(loc.getValue(M_L.LABEL_CLONE_BOOK) + ": " + clone.getName());
         if (onClone != null) {
             onClone.accept(clone);
         }

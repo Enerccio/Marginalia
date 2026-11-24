@@ -88,6 +88,21 @@ public interface StoryEditor {
     boolean isAutoAnnotate();
 
     /**
+     * Opens the phrase watch list of the book: the phrases its generated parts are scanned for, and the scan of the story.
+     */
+    default void openPhraseWatchDialog() {
+        PhraseWatchDialog.open(getCurrentManuscript(), this::reloadStory);
+    }
+
+    /**
+     * Whether the parts generated in the book are scanned for the phrases of the watch list.
+     */
+    default boolean isPhraseWatch() {
+        Manuscript book = getCurrentManuscript();
+        return book != null && book.getPhraseWatch();
+    }
+
+    /**
      * Opens the export of the story.
      */
     void openExportDialog();

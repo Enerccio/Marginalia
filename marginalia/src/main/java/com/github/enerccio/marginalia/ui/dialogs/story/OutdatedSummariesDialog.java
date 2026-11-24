@@ -1,7 +1,7 @@
 package com.github.enerccio.marginalia.ui.dialogs.story;
 
 import com.github.enerccio.marginalia.CssStyles;
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.button.Button;
@@ -48,13 +48,13 @@ public class OutdatedSummariesDialog extends Dialog {
     private void create() {
         setCloseOnOutsideClick(false);
 
-        Button back = new Button(loc.getValue(L.LABEL_BACK_TO_EDIT), _ -> close());
+        Button back = new Button(loc.getValue(M_L.LABEL_BACK_TO_EDIT), _ -> close());
         back.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        Button anyway = new Button(loc.getValue(L.LABEL_SAVE_ANYWAY), _ -> {
+        Button anyway = new Button(loc.getValue(M_L.LABEL_SAVE_ANYWAY), _ -> {
             close();
             saveAnyway.run();
         });
-        Button revalidate = new Button(loc.getValue(L.LABEL_SAVE_AND_REVALIDATE_SUMMARIES), _ -> {
+        Button revalidate = new Button(loc.getValue(M_L.LABEL_SAVE_AND_REVALIDATE_SUMMARIES), _ -> {
             close();
             saveAndRevalidate.run();
         });
@@ -64,7 +64,7 @@ public class OutdatedSummariesDialog extends Dialog {
         buttons.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
         buttons.setWrap(true);
 
-        String text = HtmlUtils.htmlEscape(String.format(loc.getValue(L.MSG_SAVE_OUTDATED_SUMMARIES), count)).replace("\n", "<br/>");
+        String text = HtmlUtils.htmlEscape(String.format(loc.getValue(M_L.MSG_SAVE_OUTDATED_SUMMARIES), count)).replace("\n", "<br/>");
         Html message = new Html("<h3 class='" + CssStyles.TEXT_CENTER + "'>" + text + "</h3>");
 
         VerticalLayout layout = new VerticalLayout(message, buttons);

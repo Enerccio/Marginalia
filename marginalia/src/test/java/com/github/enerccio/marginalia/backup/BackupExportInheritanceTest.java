@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.backup;
 
 import com.github.enerccio.marginalia.domain.collections.Language;
+import com.github.enerccio.marginalia.domain.model.WatchedPhrase;
 import com.github.enerccio.marginalia.domain.model.impl.Folder;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
@@ -9,6 +10,7 @@ import com.github.enerccio.marginalia.domain.service.BackupService.ManuscriptBac
 import com.github.enerccio.marginalia.domain.service.EffectiveSetting;
 import com.github.enerccio.marginalia.domain.service.EffectiveSetting.Origin;
 import com.github.enerccio.marginalia.domain.service.FolderService;
+import com.github.enerccio.marginalia.domain.service.PhraseWatchService;
 import com.github.enerccio.marginalia.domain.service.PromptField;
 import com.github.enerccio.marginalia.domain.service.SettingService;
 import com.google.gson.JsonObject;
@@ -37,6 +39,9 @@ class BackupExportInheritanceTest extends BackupTestBase {
 
     @Autowired
     private SettingService settingService;
+
+    @Autowired
+    private PhraseWatchService phraseWatchService;
 
     private Manuscript original;
 
@@ -100,6 +105,25 @@ class BackupExportInheritanceTest extends BackupTestBase {
         Manuscript stored = manuscriptService.find(book.getId());
         assertThat(stored.getOwnLanguage()).isEqualTo(Language.CZECH);
         assertThat(manuscriptService.getLanguage(stored)).isEqualTo(Language.CZECH);
+    }
+
+    @Test
+    void thePhraseWatchListTheBookUsesIsWrittenAsItsOwn() throws Exception {
+        UserSetting user = settingService.getOrCreate(UserSetting.class);
+        user.setWatchedPhrases(List.of(new WatchedPhrase("smirk", false, null), new WatchedPhrase("orbs", false, null)));
+        settingService.save(user);
+        Folder near = manuscriptService.find(original.getId()).getFolder();
+        WatchedPhrase off = new WatchedPhrase("orbs", false, null);
+        off.setDisabled(true);
+        phraseWatchService.setForFolder(near, List.of(new WatchedPhrase("tapestry", false, null), off));
+        phraseWatchService.setForBook(original, List.of(new WatchedPhrase("eyes sparkled", false, null)), true);
+
+        Manuscript book = manuscriptService.find(imported(exported(true)).getId());
+
+        assertThat(book.getWatchedPhrases()).extracting(WatchedPhrase::getPhrase).containsExactly("smirk", "tapestry", "eyes sparkled");
+        assertThat(book.getPhraseWatch()).isTrue();
+        assertThat(manuscriptService.find(imported(exported(false)).getId()).getWatchedPhrases())
+                .extracting(WatchedPhrase::getPhrase).containsExactly("eyes sparkled");
     }
 
     @Test

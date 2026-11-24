@@ -133,6 +133,8 @@ insertion is switched on.
 
 Adding and changing is not destructive; only the `delete` commands are, which an agent may be set to ask you about.
 
+The [plot wizard](arc-outline.md) of the Arc Outline uses the same commands when you tick its **Characters** tools, so you can develop the cast while you talk about the plot.
+
 ## Phone
 
 The tab is in the drawer of the story, next to the outline, like the [Author's Note](authors-note.md). The buttons for the

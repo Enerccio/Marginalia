@@ -910,19 +910,14 @@ You are a sub-agent: another agent started you for one task, which is your first
     }
 
     /**
-     * Added to the result of {@code read_file} when the whole file is shown and has at least {@link #AGENT_FILE_HINT_FROM}
-     * characters: the model is about to use the text in a call, and writing it out again costs it the time of every token, while
-     * the reference to the file costs nothing. {@code %s} is the path of the file.
+     * Added to the result of {@code read_file} when the whole file is shown and has at least
+     * {@link com.github.enerccio.marginalia.domain.service.agent.AgentFileToolsImpl#FILE_HINT_FROM} characters: the model is
+     * about to use the text in a call, and writing it out again costs it the time of every token, while the reference to
+     * the file costs nothing. {@code %s} is the path of the file.
      */
     public String agentFileHint() {
-        return "[To use this text in a command or in write_file, pass @file:%s as the argument "
-            + "instead of writing the text out.]";
+        return com.github.enerccio.marginalia.domain.service.agent.AgentFileToolsImpl.FILE_HINT;
     }
-
-    /**
-     * The shortest file (in characters) whose {@code read_file} result gets the {@link #agentFileHint()}.
-     */
-    public static final int AGENT_FILE_HINT_FROM = 500;
 
     /**
      * What the agent is told when the model server could not read the arguments of a call it wrote (an answer that ended in the middle

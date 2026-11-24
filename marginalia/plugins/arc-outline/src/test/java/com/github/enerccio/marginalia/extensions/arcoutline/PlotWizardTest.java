@@ -134,11 +134,12 @@ class PlotWizardTest {
     }
 
     @Test
-    void everyGroupOfToolsHasCommandsAndNoneOfThemDeletesFromTheBookExceptThePlanner() {
+    void everyGroupOfToolsHasCommandsAndNoneOfThemDeletesFromTheBookExceptThePlannerAndTheCharacters() {
         for (var group : com.github.enerccio.marginalia.extensions.arcoutline.model.WizardOptions.ToolGroup.values()) {
             List<String> names = com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineService.toolNames(group);
             assertFalse(names.isEmpty(), group.name());
-            if (group != com.github.enerccio.marginalia.extensions.arcoutline.model.WizardOptions.ToolGroup.PLANNER) {
+            if (group != com.github.enerccio.marginalia.extensions.arcoutline.model.WizardOptions.ToolGroup.PLANNER
+                    && group != com.github.enerccio.marginalia.extensions.arcoutline.model.WizardOptions.ToolGroup.CHARACTERS) {
                 names.forEach(name -> assertFalse(name.startsWith("delete-"), name + " asks a question nobody can answer there"));
             }
         }
@@ -151,6 +152,17 @@ class PlotWizardTest {
 
         // the commands of the Story Notes plugin, named here as text: the plugin is not imported
         assertEquals(List.of("list-notes", "get-note", "search-notes", "create-note", "update-note", "append-to-note", "edit-note"), names);
+    }
+
+    @Test
+    void theCharactersGroupReadsAddsChangesAndDeletesTheCastAndItsRelationships() {
+        List<String> names = com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineService.toolNames(
+                com.github.enerccio.marginalia.extensions.arcoutline.model.WizardOptions.ToolGroup.CHARACTERS);
+
+        // the commands of the Character Tracker plugin, named here as text: the plugin is not imported
+        assertEquals(List.of("list-characters", "get-character", "create-character", "update-character", "delete-character",
+                "list-character-relations", "add-character-relation", "update-character-relation", "delete-character-relation"), names);
+        assertTrue(names.contains(com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineService.CHARACTERS_COMMAND));
     }
 
     @Test

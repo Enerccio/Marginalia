@@ -1,12 +1,12 @@
 package com.github.enerccio.marginalia.ui.workspace;
 
-import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.vaadin.flow.component.html.Span;
 
 /**
  * The icons of the parts of the {@link DesktopWorkspace} (the tabs on its left side): line drawings on a 24 x 24 grid, a 2 px
  * round stroke in the color of the text ({@code currentColor}, so the icon follows the theme and turns to the primary color with
- * the selected tab) and no fill. The size and the stroke come from the {@link CssStyles#WORKSPACE_PART_ICON} rule, a drawing only
+ * the selected tab) and no fill. The size and the stroke come from the {@link MarginaliaCssStyles#WORKSPACE_PART_ICON} rule, a drawing only
  * says the SVG elements.
  */
 public enum PartIcon {
@@ -56,7 +56,7 @@ public enum PartIcon {
      */
     public Span create() {
         Span span = new Span();
-        span.addClassName(CssStyles.WORKSPACE_PART_ICON);
+        span.addClassName(MarginaliaCssStyles.WORKSPACE_PART_ICON);
         span.getElement().setProperty("innerHTML", svg());
         return span;
     }

@@ -2,13 +2,13 @@
 label: Custom components
 order: 905
 covers:
-  - marginalia/src/main/java/com/github/enerccio/marginalia/ui/components/TreantTree.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/ui/widgets/ChartJs.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/ui/widgets/GraphView.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/ui/widgets/MarkdownEditor.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/ui/JavascriptLibrary.java
-  - marginalia/src/main/frontend
-verified: 3cbdfc044
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/ui/components/TreantTree.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/ui/widgets/ChartJs.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/ui/widgets/GraphView.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/ui/widgets/MarkdownEditor.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/ui/JavascriptLibrary.java
+  - marginalia/platform/src/main/resources/META-INF/frontend
+verified: f337fe83d
 ---
 
 # Custom components
@@ -28,7 +28,8 @@ how to add another one. Plugins can use all four; a plugin can't bring a library
 The first three work the same way (the Markdown editor is a React component, see [its section](#markdowneditor)):
 
 1. The Java class is a `Div` annotated with `@NpmPackage` (the library, downloaded by the Vaadin frontend build) and
-   `@JsModule` (the connector in `src/main/frontend`).
+   `@JsModule` (the connector in the platform JAR, `platform/src/main/resources/META-INF/frontend`: an add-on's place, Vaadin copies the
+   files to `src/main/frontend/generated/jar-resources/` and finds the module there).
 2. The connector is a small ES module that imports the library, exports a function that draws into an element and
    registers it as `window.<name>`.
 3. The Java method sends the data **as JSON** to `JavascriptLibrary.<name>(element, json)`, which runs
@@ -73,7 +74,7 @@ Events, as `addNodeClickListener` / `addNodeGotoListener`:
 - `NodeGotoEvent` - an element with `data-goto-id` inside a node was clicked (the node isn't clicked then):
   `getNodeId()` is that attribute.
 
-The look is `.Treant` and `.Treant .node` in `shared-styles.css`, written with `!important` because Treant sets its own
+The look is `.Treant` and `.Treant .node` in the platform's `platform-styles.css`, written with `!important` because Treant sets its own
 inline styles. A tree is **only a tree**: a graph with cycles or nodes with several parents has to be cut into trees
 and repeated nodes, which is why the graph below exists.
 
@@ -82,7 +83,7 @@ and repeated nodes, which is why the graph below exists.
 `ui/widgets/ChartJs.java`, `frontend/chart-connector.js`. npm package `chart.js`.
 
 `setChartConfig(json)` takes a Chart.js configuration (`type`, `data`, `options`) and draws it responsively into the
-element (320px high, `chart-js` style in `shared-styles.css`; `setHeight` changes it). The connector takes the text and
+element (320px high, `chart-js` style in `platform-styles.css`; `setHeight` changes it). The connector takes the text and
 grid colors from the Lumo variables of the page, so charts follow the theme. Examples: the doughnut and bar charts of
 `TokenUsageDialog` and the charts of `AgentContextView`.
 
@@ -149,7 +150,7 @@ script): `value`, `placeholder`, `readOnly` and `preview` (`edit`, `live`, `prev
   full screen (Ctrl+0). A command's shortcut is its `shortcuts` field, the editor builds the key map from the commands it
   gets; matching is loose (Ctrl+Shift+B is bold too), Ctrl+Enter is not taken. `defaultTabEnable`: Tab moves the focus.
 - **The preview is sanitized** (`rehype-sanitize`): HTML in the text shows as text, `{{macros}}` stay as typed.
-- **Styling.** The editor renders into the light DOM, so the rules of `markdown-editor` in `shared-styles.css` reach it:
+- **Styling.** The editor renders into the light DOM, so the rules of `markdown-editor` in `platform-styles.css` reach it:
   it fills its height and its variables (`--md-editor-*`, `--color-*`) are Lumo's, which follow the color scheme by
   themselves; the script also sets `data-color-mode` from the `theme` attribute of `<html>` (a `MutationObserver`).
 - **Images.** `setImageUploader(uploader)` sets the state `images`: the toolbar gets an image button (a hidden file input),
@@ -171,12 +172,13 @@ script): `value`, `placeholder`, `readOnly` and `preview` (`edit`, `live`, `prev
 1. Add the Java class (a `Div`) with `@NpmPackage(value = "<package>", version = "^x.y.z")` and
    `@JsModule("./<name>-connector.js")`. The Maven build downloads the package with the rest of the frontend; the first
    build after adding one is slow.
-2. Write `src/main/frontend/<name>-connector.js`: import the library, export `render<Name>(element, config)` that
+2. Write `platform/src/main/resources/META-INF/frontend/<name>-connector.js` (a component of the platform; one only Marginalia uses would
+   live in `marginalia/src/main/frontend`): import the library, export `render<Name>(element, config)` that
    destroys what it drew into `element` before, and set `window.render<Name> = render<Name>`. Take colors from the Lumo
    variables rather than hard-coding them.
 3. Add the static method to `JavascriptLibrary` (`element.executeJs("if (window.render<Name>) { window.render<Name>($0, JSON.parse($1)); }", element, json)`).
-4. If the element needs a size or a positioning context, add the rule to `shared-styles.css` and its name to `CssStyles`
-   (both with the same name).
+4. If the element needs a size or a positioning context, add the rule to `platform-styles.css` and its name to `CssStyles`
+   (both with the same name; `StylesheetLayersTest` checks it).
 5. Mark the class `@Extendable` and give each public method `@PublicAPI`, run
    `mvn test -Dtest=PublicAPISignatureTest` and paste what it prints ([Extendable hooks](plugins/extendable.md)).
 6. Note it here, in [Project structure](project-structure.md) (components, frontend files) and in the changelog.

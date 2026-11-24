@@ -10,8 +10,8 @@ import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookDec
 import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookImportCandidate;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService.MissingHistory;
 import com.github.enerccio.marginalia.extensions.InheritedSettingRegistry;
-import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.google.gson.*;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
@@ -81,7 +81,7 @@ public class BackupServiceImpl implements BackupService {
     @Override
     public ManuscriptBackup takeBackup(Manuscript manuscript, boolean includeHistory) throws Exception {
         if (manuscript == null) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_MANUSCRIPT_NULL));
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_MANUSCRIPT_NULL));
         }
 
         File folder = getManuscriptBackupFolder(manuscript);
@@ -148,13 +148,13 @@ public class BackupServiceImpl implements BackupService {
     public Manuscript applyBackup(Manuscript manuscript, ManuscriptBackup backup, boolean messagesOnly,
                                   Map<String, LorebookDecision> lorebookDecisions) throws Exception {
         if (manuscript == null || backup == null) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_BACKUP_NULL));
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_BACKUP_NULL));
         }
 
         ensureLoaded(backup);
 
         if (backup.getBackup() == null) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_BACKUP_NULL));
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_BACKUP_NULL));
         }
 
         // Ensure target manuscript backup directory exists
@@ -197,7 +197,7 @@ public class BackupServiceImpl implements BackupService {
 
             // Validate metadata before creating backup file
             if (innerBackup == null || !innerBackup.isJsonObject()) {
-                throw new IllegalArgumentException(loc.getValue(L.ERROR_BACKUP_MISSING_CONTENT));
+                throw new IllegalArgumentException(loc.getValue(M_L.ERROR_BACKUP_MISSING_CONTENT));
             }
 
             boolean hasName = innerBackup.has("name") && !innerBackup.get("name").isJsonNull();
@@ -205,7 +205,7 @@ public class BackupServiceImpl implements BackupService {
             boolean hasMessages = innerBackup.has("messages") && innerBackup.get("messages").isJsonArray();
 
             if (!hasName && !hasUuid && !hasMessages) {
-                throw new IllegalArgumentException(loc.getValue(L.ERROR_BACKUP_MISSING_METADATA));
+                throw new IllegalArgumentException(loc.getValue(M_L.ERROR_BACKUP_MISSING_METADATA));
             }
 
             // Ensure metadata fields are populated on ManuscriptBackup object
@@ -322,7 +322,7 @@ public class BackupServiceImpl implements BackupService {
     @Override
     public Manuscript cloneBackup(ManuscriptBackup backup, String newName, Map<String, LorebookDecision> lorebookDecisions, boolean withImages) throws Exception {
         if (backup == null) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_BACKUP_NULL));
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_BACKUP_NULL));
         }
 
         ensureLoaded(backup);
@@ -565,7 +565,7 @@ public class BackupServiceImpl implements BackupService {
 
     private <T> T withTempFile(byte[] data, FileAction<T> action) throws Exception {
         if (data == null || data.length == 0) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_BACKUP_DATA_EMPTY));
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_BACKUP_DATA_EMPTY));
         }
         File file = Files.createTempFile("marginalia-backup-", ".json").toFile();
         try {
@@ -585,7 +585,7 @@ public class BackupServiceImpl implements BackupService {
 
     private BackupSource openSource(File file) throws Exception {
         if (file == null || !file.isFile() || file.length() == 0) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_BACKUP_DATA_EMPTY));
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_BACKUP_DATA_EMPTY));
         }
         if (!isZip(file)) {
             try (InputStream in = Files.newInputStream(file.toPath())) {
@@ -597,12 +597,12 @@ public class BackupServiceImpl implements BackupService {
         try {
             zip = new ZipFile(file);
         } catch (IOException e) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_BACKUP_INVALID_JSON), e);
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_BACKUP_INVALID_JSON), e);
         }
         try {
             ZipEntry entry = zip.getEntry(ARCHIVE_BACKUP);
             if (entry == null) {
-                throw new IllegalArgumentException(loc.getValue(L.ERROR_BACKUP_MISSING_CONTENT));
+                throw new IllegalArgumentException(loc.getValue(M_L.ERROR_BACKUP_MISSING_CONTENT));
             }
             JsonObject root;
             try (InputStream in = zip.getInputStream(entry)) {
@@ -620,10 +620,10 @@ public class BackupServiceImpl implements BackupService {
         try (Reader reader = new InputStreamReader(in, StandardCharsets.UTF_8)) {
             element = JsonParser.parseReader(reader);
         } catch (JsonParseException e) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_BACKUP_INVALID_JSON), e);
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_BACKUP_INVALID_JSON), e);
         }
         if (!element.isJsonObject()) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_BACKUP_INVALID_ROOT_OBJECT));
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_BACKUP_INVALID_ROOT_OBJECT));
         }
         return element.getAsJsonObject();
     }
@@ -814,7 +814,7 @@ public class BackupServiceImpl implements BackupService {
     @Override
     public BackupExport exportBackup(ManuscriptBackup backup, boolean withImages, boolean includeInherited, Runnable imagePacked) throws Exception {
         if (backup == null || backup.getFile() == null || !new File(backup.getFile()).isFile()) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_BACKUP_NULL));
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_BACKUP_NULL));
         }
         File stored = new File(backup.getFile());
         String name = StringUtils.isBlank(backup.getManuscriptName()) ? "manuscript" : backup.getManuscriptName();
@@ -1005,7 +1005,7 @@ public class BackupServiceImpl implements BackupService {
 
     private synchronized File getManuscriptBackupFolder(Manuscript manuscript) {
         if (manuscript == null || manuscript.getUuid() == null) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_MANUSCRIPT_UUID_NULL));
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_MANUSCRIPT_UUID_NULL));
         }
 
         File dataFolder = configuration.getUserDataFolder(currentUser);

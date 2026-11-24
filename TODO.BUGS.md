@@ -1129,3 +1129,173 @@ opens the console while the agent still works, which works).
 are disabled and there is no way to decide (the approval dialog can not be closed with Esc or a click outside either).
 
 **Fixed:** `showApproval()` opens the window only when the console is open (`isOpened()`), and an opened-change listener of the console asks again when it opens, so the window is opened after the console and lies over it. `AgentConsoleDialogTest` has the case.
+
+~~## BUG-66 - GPU lock: a step before every job cannot say "keep the model of the text generation" (medium)~~
+
+Found in Joi (2026-11-23): a model loaded in a shared `llama-server` router was unloaded and loaded again between two requests.
+
+**Where:** `domain/service/gpu/GpuArbiter.java`, `GpuStepRunner.Step.with` (the variables), `domain/service/GpuService.java` (`VAR_MODEL`,
+`model(...)`), `domain/service/impl/inference/GatedInferenceService.java` (the text job), and the callers of `GpuService.acquire` that
+bring a model that is not a text one (Joi's `TtsServiceImpl`, plugin backends).
+
+**Steps:**
+1. One lock for the text model and the speech model (a lock is a way to fill a GPU, the jobs of one lock run side by side).
+2. A step *before every job*: `POST /llama/unload` of `tools/gpu-control` with `{"keep": ["{{model | strip:openai/}}"]}`, to unload the
+   other program's big model and keep this one.
+3. Generate text, then speak the reply.
+
+**Expected:** the text model stays loaded. **Actual:** `{{model}}` is the model of the job that runs, so the speech job sends
+`{"keep": ["<the speech model>"]}`, which no router model matches, and gpu-control unloads the text model right after the text job
+(about 0.3 s after the request ends in the log of the router) and the next request loads it again. A hardcoded model in the step
+works, but is the thing the variable was meant to avoid.
+
+**Idea (the author's):** the lock remembers the model of the last text generation, `last_text_model`, and every step gets it as
+`{{last_text_model}}`:
+- The text job (`GatedInferenceService`) brings it as a variable of its own (`text_model`, next to `model`); speech and backend jobs
+  bring only `model`.
+- `GpuArbiter` keeps `lastTextModel` per lock, in memory, and sets it when a text job is *taken*, before the steps run, so for a text
+  job `last_text_model == model`. Every job (and the release steps, which get the variables of the lock's last job) sees the
+  remembered value; empty until the first text job.
+- The step becomes `{"keep": ["{{last_text_model | strip:openai/}}"]}`. It does not depend on the order: when speech runs first, the
+  value is empty, nothing is kept and every other model is unloaded; the text job then sets it and the next jobs of both kinds keep it.
+- A restart empties it (the state of the arbiter is in memory anyway), which is right: nothing is known to be loaded.
+- Docs: `manual/developer/plugins/gpu-locks.md` (the variables), the user manual page of the GPU steps, `CHANGELOG.MD`
+  (Added: the variable; plugin-visible: the variable name), a test in `GpuStepVariablesTest` / `GpuArbiter` tests (the variable is
+  set before the steps, kept for a job that has none, empty before any text job).
+
+**Workaround until it is done:** name the text model in the keep list as well, `{"keep": ["{{model | strip:openai/}}", "<router id of the text model>"]}`.
+
+**Fixed:** as the idea says. `GatedInferenceService` passes `GpuService.textModel(model)` (`model` and `text_model`); `GpuArbiter.take`
+sets the lock's `lastTextModel` (per lock uuid, in memory) when a job is taken, before its steps, and gives every job `last_text_model`
+(a caller's own value is replaced). `GpuArbiterTest` has the cases (the text job sees its own model, speech before any text job gets it
+empty, after it keeps it, one lock does not see another's). Docs: *Administration → GPUs*, `gpu-locks.md`, the help of the step dialog.
+
+## BUG-67 - Resources: no way to store a file that is already on the disk, so Joi builds `Resource` rows by hand (low)
+
+Found in Joi (2026-11-23), while its chat images were stored.
+
+**Where:** `domain/service/ResourceService.java` (`upload`, `uploadImage` take a `byte[]`), `domain/service/impl/ResourceServiceImpl.java`
+(`store`: the hash, the size, the path, the reuse of a file with the same content, the folder by mime type), and Joi's copies of it:
+`ModelServiceImpl`, `BodyServiceImpl` (the `.joia`), `AnimationServiceImpl`, `ChatMessageServiceImpl.attachClip` and `ChatImageServiceImpl.store`.
+
+**What happens:** a file that came streamed to the disk (an upload of a model, a clip, an image can be large: it must not be read into a
+byte array) cannot be given to `ResourceService`. Every such caller moves the file into the folder of the user, writes `originalName`,
+`mimeType`, `path`, `size` and the SHA-256 on a new `Resource` and calls `save` (and `link`) itself: the same ten lines five times.
+The copies differ from `store` in what it does for them: they do not reuse an existing file with the same content (two resources for one
+file take two files), they leave the choice between the `images` and the `resources` folder to the caller (`ResourceGarbageService`
+lists both folders), and each has its own `newUploadFile()` for the `.part` file the upload handler writes.
+
+**Expected:** one call that does what `store` does for a file.
+
+**Needed (platform):**
+1. `Resource ResourceService.saveFile(File file, String originalName, String mimeType)`: the file is one of the user's (checked as the
+   callers do now: its parent is `getResourcesFolder(currentUser)`); streams the SHA-256 (no byte array); looks for a resource of the user
+   with the same hash and size and the same content (compare as streams) and then deletes the file and uses the existing path, else moves
+   the file to `<uuid>.<extension>` in the `images` folder for an `image/*` type and the `resources` folder for the others; sets size, hash and path;
+   saves; returns the resource (not linked; `link` stays the caller's). A variant with the class and object id, like `uploadImage(..., clazz, objectId)`.
+2. `File ResourceService.newUploadFile()`: the `<uuid>.part` file in the user's `resources` folder that an upload handler writes into (now
+   copied in `ChatImageServiceImpl` and `ChatMessageServiceImpl`).
+3. Optional: `int ResourceService.deleteUnlinked(String originalName, Date before)`, the resources of the user with that name that no object
+   took since `before` (Joi sweeps its chat-image uploads that no message took within an hour; each user's list is read in Java now).
+4. Tests in `ResourceServiceTest`: a file stored once, the same content twice shares the file, a file outside the user's folder is refused,
+   the folder by mime type, a deleted resource leaves the file of the other one.
+5. Docs (`manual/developer`, the page of resources), `CHANGELOG.MD` (Added: the three methods; plugin-visible).
+
+**Then in Joi:** replace the five hand-built blocks with `saveFile` (and `deleteUnlinked` for the sweep), after the submodule is bumped.
+
+**Fixed (platform):** `ResourceService.saveFile(file, originalName, mimeType)` and the variant with the class and object id, `newUploadFile()`
+and `deleteUnlinked(originalName, before)` (`ResourceRepository.findUnlinked`), as the idea says. `store` and `saveFile` share the lookup of a file
+with the same content, which now also requires the same folder (both images or both not: before, an image and a text with the same bytes
+shared a path and the second one's file was looked up in the wrong folder). Tests in the platform's `ResourceServiceTest`. Docs:
+`services.md` (`ResourceService`), `CHANGELOG.MD`. Joi still has to be changed to use them after the submodule is bumped.
+
+---
+
+~~## BUG-68 - The login dialog always says "Marginalia <version>" under the form, an application that embeds the platform cannot change it (low)~~
+
+**Where:** `ui/main/LoginCheckRoute.java`, private `getLoginI18n()`: `i18n.setAdditionalInformation("Marginalia " + BuildInfo.current().getShortText());`.
+
+The title and the description of the dialog come from the abstract `getAppTitle()` / `getAppDescription()`, but the line under the form is
+hard-coded, and `getLoginI18n()` and `login()` are private. An application on the platform (Joi) shows "Marginalia dev" under its own login. It can
+not fix it from outside: `loginOverlay.getI18n()` is not public (Vaadin's `AbstractLogin`), and replacing the whole `LoginI18n` would copy the
+platform's setup of the labels and the authentication error texts.
+
+**Steps:** run Joi (`mvn jetty:run -pl joi-server`) and open `/`: the dialog is titled "Joi" and its footer reads "Marginalia dev".
+
+**Expected:** the footer text is a hook, e.g. `protected String getAppAdditionalInformation()` of `LoginCheckRoute` (default: what is there now),
+used by `getLoginI18n()`; `@PublicAPI` like the other hooks. The same goes for the other places that write "Marginalia" in Java code outside the
+localization bundles (`BuildInfoFooter`, `BuildInfo.getDetailText()`: "Marginalia <version>"; the version is Marginalia's `marginalia-version`,
+so an application on the platform wants its own name and version there too, e.g. from an overridable `BuildInfo` source).
+Joi then overrides the hook and drops the workaround.
+
+**Fixed (platform):** `LoginCheckRoute.getAppAdditionalInformation()` (`@PublicAPI` 1.9.0, default `BuildInfo.current().getNamedShortText()`)
+is the line under the form. `BuildInfo` has a name (`getName`, `getNamedShortText`; `getDetailText` starts with it) and an installable current build:
+`BuildInfo.install(BuildInfo.load(name, buildResource, keyPrefix, gitResource, classLoader))` reads `<keyPrefix>-version` /
+`<keyPrefix>-build-timestamp`. `BuildInfoFooter` and `GET /api/v1/version` (`application`) use the name. Tests in `BuildInfoTest`. Joi still has to
+call `install` in its initializer, override the hook if it wants another line, and drop the workaround.
+
+---
+
+~~## BUG-69 - Two applications on the platform (Marginalia and Joi) on one host log each other out: same cookie names, all with path `/` (medium)~~
+
+**Where:** `ui/main/LoginCheckRoute.java`: `getCookiePrefix()`, `addRememberMeCookies()`, `deleteRememberMeCookies()`, `authenticateFromCookie()`;
+the servlet container's session cookie (`JSESSIONID`); `JavascriptLibrary.rememberViewerFolder` (`marginalia_viewer_folder`, path `/`).
+
+**Cause (read from the code; not yet reproduced with both servers running):** cookies are scoped to the host, not to the port. Marginalia on
+`localhost:8080` and Joi on `localhost:8090` (or `127.0.0.1:...`, or the same domain on two ports / behind one reverse proxy) therefore share one
+cookie jar, and:
+
+1. **Remember-me cookies have the same names.** The prefix is `<context path or "root">_<simple class name of the page>`; both applications have
+   a root page `Main`, so both write `root_Main_llllm_rememberMe_login`, `..._identifier`, `..._secret` and `..._wasSaved` with `Path=/`. The
+   second application to log in with "Save login" overwrites the first one's cookies. When a page of the first one then runs
+   `authenticateFromCookie()`, the identifier is not in its database, it gets `null` and calls `deleteRememberMeCookies()` (the same names, `Path=/`,
+   `Max-Age=0`), which deletes the cookies of the other application too. Each visit to one application removes the other's saved login.
+   If both have a user of the same login, the identifier still does not match, so it is the same.
+2. **The session cookie has the same name.** Neither application sets `session-config / cookie-config` or the Jetty `SessionHandler`'s cookie name, so both
+   use `JSESSIONID` with `Path=/`. The browser sends the id of the other server's session; the server does not know it, starts a new session
+   and answers `Set-Cookie: JSESSIONID=...`, which replaces the other one's. Switching between the two tabs then drops the Vaadin session (login page,
+   "session expired", a lost workspace) on every switch.
+3. `marginalia_viewer_folder` is a plain browser cookie with `Path=/`; harmless (a remembered folder) but shared too.
+
+**Steps:** run Marginalia and Joi on one host (two ports), log in to both with "Save login" ticked, open one, then the other, then the first again:
+the first asks for the login (the session and the saved login are gone).
+
+**Expected:** an application's cookies do not meet another one's.
+- The prefix of the remember-me cookies contains a name of the application (`Configuration` / `ApplicationEntryPoint`: e.g. an overridable
+  `getCookieNamespace()` or the configured application name; Marginalia keeps the old names by default so the saved logins survive the update) and not only
+  the simple name of the class.
+- The session cookie has an application-specific name, set in the platform's initializer
+  (`servletContext.getSessionCookieConfig().setName(...)`), configurable, default stays `JSESSIONID` for Marginalia.
+- A cookie of another application is never deleted: `deleteRememberMeCookies()` is called only when a cookie of this application is wrong.
+- The port is no part of a cookie's scope: the manual (`manual/user`, the page about running behind a proxy / several applications) says so, so that
+  someone who runs two of them on one domain knows to set the names.
+Joi then sets its own names.
+
+**Fixed (platform):** the saved login cookies start with `Configuration.cookieNamespace` (`MARGINALIA_COOKIE_NAMESPACE`, empty for Marginalia so the
+old names stay) through `LoginCheckRoute.getCookieNamespace()`; `authenticateFromCookie` no longer deletes the cookies when none of this page's is there,
+and the *Save login* checkbox reads the page's own `wasSaved` cookie (`equals`, not `endsWith` of the class name). `bound.SessionCookie.configure(servletContext,
+defaultName)` sets the session cookie's name (`MARGINALIA_SESSION_COOKIE` wins; Marginalia's `WebappApplicationInitializer` passes none, so `JSESSIONID`
+stays). `marginalia_viewer_folder` is written only by Marginalia's `Viewer`, so it stays. Manual: Docker server page, *Several applications on one host*;
+developer docs `architecture.md` (settings), `ui.md`. Tests in `SessionCookieTest`. Not reproduced with both servers; Joi still has to set
+`cookieNamespace` in its `configuration` bean and call `SessionCookie.configure(ctx, "JOISESSIONID")`.
+
+---
+
+~~## BUG-70 - Localization: an application on the platform can override a text of the platform only by subclassing each language's bundle (low)~~
+
+**Where:** `loc/LocalizationBundleBase`, `LocalizationBundleEN` ... `LocalizationBundleKO`, `Localization`/`LocalizationImpl`.
+
+Joi wants to say "Joi" where the platform's texts say "Marginalia" or to replace a few of them. Now it must subclass every language's bundle
+(`PlatformTexts$EN`, `$JP`, `$FR`, `$ES`, `$DE`, `$KO`, `$IT`), override `loadMessages()`, run a string replace over all texts, and register the seven classes in its
+`container-config.xml` in place of the platform's. A new language in the platform is missed until Joi adds a class.
+
+**Expected:** an override option in the localization itself: a bundle (or a bean, e.g. `LocalizationOverride`) that gives, per language and per
+key (`L` or the key of another enum), a text that wins over the platform's, with a fallback along language → English → platform's default.
+It would also take a "text transformer" per language (for the "Marginalia" → "Joi" replace), so one bean in Joi's XML replaces the seven subclasses,
+and a language the platform adds later is covered automatically. Documented in `manual/developer` (localization page) and `CHANGELOG.MD` (Added, plugin-visible).
+Joi's `PlatformTexts` is then removed.
+
+**Fixed (platform):** `loc.LocalizationOverride` beans (any number, autowired into `LocalizationImpl.setOverrides`): `texts` per language code or `*`
+(`L.LABEL_CLOSE`, `M_L.X`, or the constant alone for `L`), `replacements` per language or `*` applied to every text, `TextTransformer`s last. Lookup:
+language override → `*` override → language bundle → default-language override → default bundle; `parseValue` sees the overridden texts. Tests in
+`LocalizationOverrideTest`; documented in `architecture.md` (Localization) and `CHANGELOG.MD`. Joi's `PlatformTexts` can then be replaced by one bean.

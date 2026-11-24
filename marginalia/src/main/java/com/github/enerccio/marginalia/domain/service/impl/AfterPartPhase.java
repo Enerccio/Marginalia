@@ -11,8 +11,8 @@ import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.impl.generation.AfterPart;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequest;
 import com.github.enerccio.marginalia.domain.service.run.Runs;
-import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
 import com.vaadin.flow.component.UI;
 import org.apache.commons.lang3.StringUtils;
@@ -171,7 +171,9 @@ final class AfterPartPhase {
                     Map<Step, Future<Throwable>> running = new LinkedHashMap<>();
                     for (Step step : parallel) {
                         running.put(step, executor.submit(() -> {
-                            try (InRequestScope _ = new InRequestScope(attributes); Runs.Binding _ = run.bind()) {
+                            // a parallel step only reads the part: a change of its text from here is refused
+                            try (InRequestScope _ = new InRequestScope(attributes); Runs.Binding _ = run.bind();
+                                 Runs.Binding _ = Runs.readingOnly()) {
                                 return runStep(step);
                             }
                         }));
@@ -200,13 +202,13 @@ final class AfterPartPhase {
     /** What the author is told when the phase was stopped or failed: where, and what did not run. */
     private void report(Step failed, Throwable failure) {
         String notRun = notRun();
-        String rest = notRun.isEmpty() ? "" : " " + String.format(loc.getValue(L.MSG_AFTER_PART_NOT_RUN), notRun);
+        String rest = notRun.isEmpty() ? "" : " " + String.format(loc.getValue(M_L.MSG_AFTER_PART_NOT_RUN), notRun);
         if (failure != null) {
-            tell(String.format(loc.getValue(L.MSG_AFTER_PART_FAILED), failed.name(), failureText(failure)) + rest);
+            tell(String.format(loc.getValue(M_L.MSG_AFTER_PART_FAILED), failed.name(), failureText(failure)) + rest);
         } else if (stopped) {
             Step at = steps.stream().filter(step -> step.state == State.STOPPED).findFirst().orElse(null);
             if (at != null) {
-                tell(String.format(loc.getValue(L.MSG_AFTER_PART_STOPPED), at.name()) + rest);
+                tell(String.format(loc.getValue(M_L.MSG_AFTER_PART_STOPPED), at.name()) + rest);
             } else if (!rest.isEmpty()) {
                 tell(rest.strip());
             }
@@ -274,7 +276,7 @@ final class AfterPartPhase {
             case FAILED, STOPPED -> " ✕";
             default -> "";
         }).collect(Collectors.joining(" · "));
-        return String.format(loc.getValue(L.MSG_AFTER_PART_RUN), position, list);
+        return String.format(loc.getValue(M_L.MSG_AFTER_PART_RUN), position, list);
     }
 
     private void stopped() {
@@ -323,7 +325,7 @@ final class AfterPartPhase {
             this.storedBook = manuscriptService.find(book);
             this.storedPart = chatMessageService.find(part);
             if (storedBook == null || storedPart == null || storedPart.isDeleted()) {
-                throw new IllegalStateException(loc.getValue(L.MSG_RUN_PART_GONE));
+                throw new IllegalStateException(loc.getValue(M_L.MSG_RUN_PART_GONE));
             }
         }
 

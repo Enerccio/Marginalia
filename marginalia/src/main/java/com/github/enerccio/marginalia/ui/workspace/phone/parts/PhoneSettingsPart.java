@@ -5,8 +5,8 @@ import com.github.enerccio.marginalia.domain.traits.APILocals;
 import com.github.enerccio.marginalia.domain.traits.APIReturn;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.domain.traits.PublicAPI;
-import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
 import com.github.enerccio.marginalia.ui.workspace.parts.UserPart;
 import com.vaadin.flow.component.Component;
@@ -54,7 +54,7 @@ public class PhoneSettingsPart extends UserPart {
         Span titleSpan = createTitle();
 
         // a backup file can be brought back as a new book from the phone too
-        Button importBackupAsNewButton = new Button(loc.getValue(L.LABEL_IMPORT_BACKUP_AS_NEW), event -> openImportBackupAsNewDialog());
+        Button importBackupAsNewButton = new Button(loc.getValue(M_L.LABEL_IMPORT_BACKUP_AS_NEW), event -> openImportBackupAsNewDialog());
         importBackupAsNewButton.setWidthFull();
 
         VerticalLayout headerLayout = new VerticalLayout(titleSpan, unsavedChangesSpan, importBackupAsNewButton, buttons);

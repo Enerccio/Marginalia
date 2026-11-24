@@ -1,18 +1,17 @@
 ---
 label: Packaging & releases
 order: 880
-verified: 8a278a19f
+verified: f337fe83d
 covers:
   - pom.xml
   - Dockerfile
   - docker-compose.yml
   - docker-entrypoint.sh
-  - marginalia/plugins/Dockerfile
   - marginalia/plugins/docker-compose.yml
   - rebuild.sh
   - rebuild.bat
   - tools/update-watcher
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/UpdateServiceImpl.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/impl/UpdateServiceImpl.java
   - .github
   - marginalia/src/desktop
   - marginalia/pom.xml
@@ -67,9 +66,9 @@ every WAR from `mvn package` - the Docker image, the `desktop` profile, a WAR de
 The user manual is packed too: `<resources>` in `marginalia/pom.xml` copies the Markdown pages of `manual/user` (no
 pictures, never filtered) to `classpath:/manual/`, where `ManualService` reads them (see
 [Services](services.md#the-manual)). The source folder is outside `marginalia/`, so a build that copies only
-`marginalia/src` must copy `manual/user` as well, as both Dockerfiles do (`/build/manual/user`); without it the WAR
+`marginalia/src` must copy `manual/user` as well, as the `Dockerfile` does (`/build/manual/user`); without it the WAR
 builds, with an empty manual. The same for the translations of the manual (`translations/<language>/user`, copied to
-`classpath:/manual-translations/<language>/user/`, read when the help assistant is asked in that language): the Dockerfiles copy
+`classpath:/manual-translations/<language>/user/`, read when the help assistant is asked in that language): the Dockerfile copies
 `translations` (`/build/translations`), and without it the help is English only.
 
 The build also needs the Git history: `git-commit-id-plugin` writes the commit id and the closest tag into
@@ -77,14 +76,21 @@ The build also needs the Git history: `git-commit-id-plugin` writes the commit i
 
 ## Docker image
 
-The `Dockerfile` in the repository root has two stages:
+The `Dockerfile` in the repository root builds the image and, in two more stages, the
+[plugins](#building-the-plugins-in-docker); the image is its last stage, the default target:
 
 1. **builder** (`maven:3.9-eclipse-temurin-25`)
    - copies the parent `pom.xml` and `marginalia/pom.xml` and runs `mvn dependency:go-offline`, so the dependency layer is cached while only
      the sources change;
-   - copies `marginalia/src`, `manual/user` (the manual packed into the WAR) and `.git` (for `git-commit-id-plugin`);
-   - runs `mvn clean package -DskipTests`.
-2. **runtime** (`jetty:12-jdk25-eclipse-temurin`)
+   - copies `marginalia/src`, `manual/user` (the manual packed into the WAR), `translations` and `.git` (for `git-commit-id-plugin`);
+   - runs `mvn clean install -DskipTests` and `mvn install -N` for the parent POM: the WAR for the image, and the
+     classes JAR and the parent POM in the local Maven repository for the plugin stages. The same step then deletes
+     what no later stage needs (`node_modules`, Node.js in `~/.vaadin`, the npm cache, `target/` except the WAR, the
+     WAR's copy in `~/.m2`): otherwise these tens of thousands of files end up in the layer, and the classic builder
+     (no BuildKit) pauses for a long time after the build while it writes them.
+2. **plugins-build** and **plugins**, used only by the plugin build (see below); BuildKit skips them when it builds the
+   image, the classic builder builds them too.
+3. **runtime** (`jetty:12-jdk25-eclipse-temurin`)
    - creates a Jetty base with the modules `server, http, ee11-deploy, ee11-websocket-jakarta, ee11-webapp,
      ee11-jsp` (the WebSocket module is required for Vaadin push);
    - deploys the WAR as `webapps/ROOT.war`, so Marginalia is at `/`;
@@ -102,7 +108,7 @@ The `Dockerfile` in the repository root has two stages:
 Tests are skipped in the image build - they run in CI. `.dockerignore` keeps `marginalia/target/`, `.idea/`, the
 server's `data/` folder, `marginalia/node_modules/` and the plugin `target/` and `build/` folders out of the build context
 (the plugin sources are in it, because the [plugin image](#building-the-plugins-in-docker) is built from the same
-context).
+Dockerfile).
 
 `docker-compose.yml` builds the image and sets the runtime configuration:
 
@@ -237,7 +243,8 @@ in CI.
 ## Plugins
 
 Each plugin in `marginalia/plugins/` is a Maven project with `bundle` packaging (Apache Felix
-`maven-bundle-plugin`) that depends on the application's classes JAR with `provided` scope. They are built against
+`maven-bundle-plugin`) that depends on the application's classes JAR with `provided` scope. The parent POM gives every module the servlet API (`provided`): a provided
+dependency of the application does not pass to the plugins, and their AspectJ compiler needs the servlet types the Vaadin classes refer to. They are built against
 one exact version of the application:
 
 ```sh
@@ -246,8 +253,8 @@ cd marginalia && mvn install -DskipTests
 cd plugins/reviewer && mvn package        # target/reviewer-1.8.0.jar
 ```
 
-A plugin that uses a shared library (the two translators, which embed `translator-common`; the Image Generator and the Audiobook, which embed `http-hooks`) needs the library installed first:
-`cd marginalia/libs/translator-common && mvn install -DskipTests`. The workflows and the plugins `Dockerfile` do that for every folder of `marginalia/libs/`
+A plugin that uses a shared library (the two translators, which embed `translator-common`; the Knowledge Tracker and the State Tracker, which embed `story-tracker-common`; the Image Generator and the Audiobook, which embed `http-hooks`) needs the library installed first:
+`cd marginalia/libs/translator-common && mvn install -DskipTests`. The workflows and the `plugins-build` stage of the `Dockerfile` do that for every folder of `marginalia/libs/`
 before they build the plugins ([Libraries for plugins](plugins/libraries/index.md)).
 
 `server.yml` builds all the plugins against the freshly installed application and attaches the JARs to the release
@@ -258,13 +265,16 @@ application. See [Plugin development](plugins/index.md).
 
 ### Building the plugins in Docker
 
-`marginalia/plugins/Dockerfile` is a separate build environment for the plugins, used by servers that build from
-source (and by anyone without a local JDK/Maven). Its `builder` stage (Maven + JDK 25, like the main `Dockerfile`)
-installs the application into the image's local Maven repository (with `-Dvaadin.skip=true`: the plugins need only the
-classes JAR, so the frontend is not built, see [Building](building.md)), installs the libraries of `marginalia/libs` and builds every plugin against them (`mvn package -DskipTests`: the plugin tests are not run in the image); the final
-stage is a small Alpine image that holds the JARs in `/jars`. Its command copies them to `/output`, replacing the
-`*.jar` files there, so the compose file (`marginalia/plugins/docker-compose.yml`, build context `../..`) mounts
-`marginalia/plugins/build` as `/output`. The plugins are built one after the other and none of them needs another one
+The plugins are built by the stages `plugins-build` and `plugins` of the root `Dockerfile`, used by servers that
+build from source (and by anyone without a local JDK/Maven). `plugins-build` starts from the `builder` stage of the
+image, whose application is already installed into the local Maven repository, installs the libraries of
+`marginalia/libs` and builds every plugin against them (`mvn package -DskipTests`: the plugin tests are not run in the
+image); `plugins` is a small Alpine image that holds the JARs in `/jars`. Its command copies them to `/output`,
+replacing the `*.jar` files there, so the compose file (`marginalia/plugins/docker-compose.yml`, build context `../..`,
+target `plugins`) mounts `marginalia/plugins/build` as `/output`. Because the image and the plugins share the `builder`
+stage, a host that builds both (as `rebuild.sh` does) compiles the application once: the second build takes the stage
+from Docker's build cache (same instructions, same files, `.git` included). Building only the plugins therefore builds
+the whole application, frontend included. The plugins are built one after the other and none of them needs another one
 installed first (the Lore Generator finds the Name generator at run time, not at build time); only the libraries come before them. The Name generator's
 build clones the sources of its names from GitHub (the Maven image has `git`); without network it keeps the tables
 committed in the repository, see its [README](https://github.com/Enerccio/Marginalia/blob/master/marginalia/plugins/name-generator/README.md):
@@ -307,8 +317,9 @@ the commit of the running build (`BuildInfo`), so the application never names a 
 
 ## Continuous integration
 
-Three workflows: `desktop.yml` (tests and the desktop archives), `server.yml` (WAR, plugins, Docker image) and
-`manual.yml` (the manual, see [Publishing the manual](#publishing-the-manual)). The first two run
+Four workflows: `desktop.yml` (tests and the desktop archives), `server.yml` (WAR, plugins, Docker image),
+`manual.yml` (the manual, see [Publishing the manual](#publishing-the-manual)) and `health.yml` (a weekly vulnerability scan and coverage
+report, see [health.yml](#healthyml)). The first two run
 on pushes to `master`, on `v*` tags, on pull requests that change `marginalia/**` or the workflow, and by hand
 (*workflow_dispatch*). A newer run on the same ref cancels the running one.
 
@@ -331,7 +342,7 @@ flowchart LR
 | Job | Runs on | Does |
 |---|---|---|
 | `test` | `ubuntu-latest` | For `v*` tags, checks that the tag matches the POM version; `mvn test`; uploads `surefire-reports/` when a test fails. |
-| `plugins` | `ubuntu-latest` | Installs the application (`-Dvaadin.skip=true`: the plugins need only its classes JAR), installs the libraries of `marginalia/libs` and builds every plugin; uploads the JARs, which are the same on every platform (kept 14 days). |
+| `plugins` | `ubuntu-latest` | Installs the application (`-Dvaadin.skip=true`: the plugins need only its classes JAR), installs the libraries of `marginalia/libs` and builds every plugin; runs the [plugin smoke test](testing.md#the-plugin-smoke-test) on the JARs (each verifies, loads and unloads without leaving anything behind; `surefire-reports/` are uploaded when it fails); uploads the JARs, which are the same on every platform (kept 14 days). |
 | `desktop` | one runner per platform | downloads the plugin JARs to `target/desktop-plugins`, `mvn -Pdesktop -DskipTests -Ddesktop.installerRequired=true -Ddesktop.skipFull=false package`, a smoke test, uploads the archives and the installer (kept 14 days). |
 | `release` | `ubuntu-latest`, `v*` tags only | Downloads all archives and attaches them to the GitHub release of the tag. |
 
@@ -342,6 +353,21 @@ The **smoke test** starts the native app (and on Linux and macOS also the portab
 `--home`, a fixed port, `--no-browser --no-tray`, and waits up to three minutes until the start page contains
 `<title>Marginalia</title>`. On Linux it also installs the `.deb` (the package registers its menu entry with `xdg-desktop-menu`, which fails on a runner without a desktop, so the step first creates `/usr/share/desktop-directories`, `/usr/share/applications` and `/etc/xdg/menus/applications-merged`) and then the full `.deb` and starts the installed `/opt/marginalia/bin/Marginalia` each time; the plain package must install no plugin, the full one must have copied its plugins into the extensions folder. It fails and prints the launcher log otherwise. It catches broken packaging - a missing
 JDK module, a launcher that can't find `server/`, a WAR that doesn't deploy - but doesn't test any feature.
+
+### health.yml
+
+Weekly (Monday morning) and by hand, never on a push: what no build waits for. Neither job fails on a finding or a low number, only when it could not
+write its report.
+
+| Job | Does |
+|---|---|
+| `scan` | `mvn -DskipTests -Dvaadin.skip=true install` in the root (the application, the libraries, the plugins), then OWASP Dependency-Check (`dependency-check-maven`, `aggregate`) over all of them: the JARs the WAR and the plugin bundles carry. The findings by severity go into the job summary, the HTML and JSON report is an artifact (30 days). The database of the National Vulnerability Database is cached between runs; without the repository secret `NVD_API_KEY` (free from the NVD) its download takes an hour or more, with it a few minutes. The npm packages are not scanned: Vaadin's are generated, the screenshot tooling is not shipped. |
+| `coverage` | `mvn -Pcoverage -Dmaven.test.failure.ignore=true test` in `marginalia/` (see [Coverage](testing.md#coverage)): the line and branch numbers into the summary, the JaCoCo report as an artifact. A failing test is the Desktop workflow's to report. |
+
+**Dependabot** (`.github/dependabot.yml`) opens the update pull requests once a week: Maven from the root `pom.xml` (it is the parent and aggregator of the
+application, the libraries and every plugin; Vaadin, Spring, Hibernate, Jetty, the Maven plugins and the other patch updates each in one group), the GitHub
+Actions, the base images of the `Dockerfile` and the npm packages of `screenshots/`. `marginalia/package.json` is left out: Vaadin writes it from the Java
+dependencies.
 
 ### server.yml
 
@@ -367,8 +393,10 @@ the first time it is pushed; make it public in the package settings on GitHub so
 1. **Version.** Set the new version in the parent `pom.xml` in the repository root and in the `<parent>` of the
    application and the plugin POMs - `mvn versions:set -DnewVersion=<version> -DgenerateBackupPoms=false` in the root
    does all of it (the plugins' `marginalia` dependency follows `${project.version}`). The archive names and the app version shown by the OS
-   come from the POM, not from the tag, so the two must match: for a `v*` tag the `test` job first checks that the
-   tag is `v` + the POM version and fails otherwise, so no archives are built or attached. `jpackage` on macOS
+   come from the POM; on a build of a `v*` tag every job that builds first runs `tools/version_from_tag.sh`, which sets every POM to
+   the tag's version (`versions:set` over the modules of the root POM), so the release is named by its tag. A POM that says another
+   version only gets a warning in the run, so set it before tagging anyway: the builds of `master` and the changelog use it. A tag
+   that is not `v<major>.<minor>.<patch>[-suffix]` fails the job. `jpackage` on macOS
    requires a version of the form `x.y.z` with `x` ≥ 1.
 2. **Database.** If the release changes the schema, check that the migrations upgrade a database of the previous
    release (keep a copy of one around) - `FlywayMigrationTest` covers only the migrations themselves.

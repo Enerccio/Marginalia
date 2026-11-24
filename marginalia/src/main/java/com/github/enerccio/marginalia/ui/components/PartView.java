@@ -1,6 +1,6 @@
 package com.github.enerccio.marginalia.ui.components;
 
-import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.model.ImageAnchor;
 import com.github.enerccio.marginalia.domain.model.ImageAttachment;
 import com.github.enerccio.marginalia.domain.model.PartLayout;
@@ -41,7 +41,7 @@ public class PartView extends Div {
      */
     public PartView(String markdown, List<ImageAttachment> images, String manuscriptUuid) {
         this.manuscriptUuid = manuscriptUuid;
-        addClassName(CssStyles.PART_VIEW);
+        addClassName(MarginaliaCssStyles.PART_VIEW);
         setContent(markdown, images);
     }
 
@@ -59,7 +59,7 @@ public class PartView extends Div {
 
     private Markdown markdown(String text) {
         Markdown piece = new Markdown();
-        piece.addClassName(CssStyles.CHAT_MESSAGE_MARKDOWN);
+        piece.addClassName(MarginaliaCssStyles.CHAT_MESSAGE_MARKDOWN);
         piece.setContent(text);
         return piece;
     }
@@ -75,9 +75,9 @@ public class PartView extends Div {
                 return null;
             }
             Div picture = renderer.figure(resource, attachment.caption(), "100%");
-            picture.addClassName(CssStyles.PART_PICTURE);
+            picture.addClassName(MarginaliaCssStyles.PART_PICTURE);
             if (width != null) {
-                picture.addClassName(CssStyles.PART_PICTURE_SIZED);
+                picture.addClassName(MarginaliaCssStyles.PART_PICTURE_SIZED);
                 // the width asked for by the author
                 picture.getStyle().setWidth(width + "%");
             }
@@ -90,14 +90,14 @@ public class PartView extends Div {
 
     private void addPictures(PartLayout.Pictures pictures) {
         Div group = new Div();
-        group.addClassName(CssStyles.PART_PICTURES);
+        group.addClassName(MarginaliaCssStyles.PART_PICTURES);
         if (pictures.wrap()) {
-            group.addClassName(CssStyles.PART_PICTURES_FLOAT);
+            group.addClassName(MarginaliaCssStyles.PART_PICTURES_FLOAT);
         } else {
             group.addClassName(switch (pictures.anchor().horizontal()) {
-                case LEFT -> CssStyles.PART_PICTURES_LEFT;
-                case CENTER -> CssStyles.PART_PICTURES_CENTER;
-                case RIGHT -> CssStyles.PART_PICTURES_RIGHT;
+                case LEFT -> MarginaliaCssStyles.PART_PICTURES_LEFT;
+                case CENTER -> MarginaliaCssStyles.PART_PICTURES_CENTER;
+                case RIGHT -> MarginaliaCssStyles.PART_PICTURES_RIGHT;
             });
         }
         for (ImageAttachment attachment : pictures.images()) {
@@ -107,7 +107,7 @@ public class PartView extends Div {
             }
             if (pictures.wrap()) {
                 picture.addClassName(pictures.anchor().horizontal() == ImageAnchor.Horizontal.LEFT
-                        ? CssStyles.PART_PICTURE_FLOAT_LEFT : CssStyles.PART_PICTURE_FLOAT_RIGHT);
+                        ? MarginaliaCssStyles.PART_PICTURE_FLOAT_LEFT : MarginaliaCssStyles.PART_PICTURE_FLOAT_RIGHT);
             }
             group.add(picture);
         }
@@ -122,7 +122,7 @@ public class PartView extends Div {
     private void addBand(PartLayout.Surrounded band) {
         int widest = band.images().stream().mapToInt(image -> image.effectiveWidth()).max().orElse(ImageAttachment.SURROUNDED_WIDTH);
         Div middle = new Div();
-        middle.addClassName(CssStyles.PART_BAND_MIDDLE);
+        middle.addClassName(MarginaliaCssStyles.PART_BAND_MIDDLE);
         for (ImageAttachment attachment : band.images()) {
             // each is a part of the column
             Div picture = picture(attachment, attachment.effectiveWidth() * 100 / widest);
@@ -136,11 +136,11 @@ public class PartView extends Div {
             return;
         }
         Div left = new Div(markdown(band.left()));
-        left.addClassName(CssStyles.PART_BAND_TEXT);
+        left.addClassName(MarginaliaCssStyles.PART_BAND_TEXT);
         Div right = new Div(markdown(band.right()));
-        right.addClassName(CssStyles.PART_BAND_TEXT);
+        right.addClassName(MarginaliaCssStyles.PART_BAND_TEXT);
         Div grid = new Div(left, middle, right);
-        grid.addClassName(CssStyles.PART_BAND);
+        grid.addClassName(MarginaliaCssStyles.PART_BAND);
         // the width of the middle column is the one the author asked for
         grid.getStyle().set("grid-template-columns", "1fr " + widest + "% 1fr");
         add(grid);

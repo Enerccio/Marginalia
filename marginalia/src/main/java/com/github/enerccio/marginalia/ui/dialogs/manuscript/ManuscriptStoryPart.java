@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.ui.dialogs.manuscript;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.components.SummaryNode;
 import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.impl.Annotation;
@@ -14,6 +15,7 @@ import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.domain.styles.PartStyle;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.RestorableState;
@@ -76,6 +78,12 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
      * save of the layout removes it.
      */
     public static final String SPLIT_POSITION_ATTRIBUTE = "$desktopManuscriptStoryPartSplitPosition";
+
+    /**
+     * Key of the {@link Manuscript#getAttributes() attributes} of the manuscript that holds the selected tab of every sheet of
+     * the story editor ({@link TabDock#storeState()}), so that a book opens with the tabs it was left with.
+     */
+    public static final String TABS_STATE_ATTRIBUTE = "$desktopManuscriptStoryPartTabsState";
 
     /**
      * Id of the story (the cards and the controls under them) in the layout of the tabs.
@@ -204,6 +212,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
         leftBar.setOnLayoutChange(this::saveTabsConfig);
         leftBar.setOnStateChange(() -> {
             if (parent != null) {
+                saveTabsState();
                 parent.stateChanged();
             }
         });
@@ -221,7 +230,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
 
         centerContentPanel = new ScrollPanel();
         centerContentPanel.setSizeFull();
-        centerContentPanel.addClassName(CssStyles.STORY_SCROLL_PANEL);
+        centerContentPanel.addClassName(MarginaliaCssStyles.STORY_SCROLL_PANEL);
 
         lazyLoader = new StoryLazyLoader<>(centerContentPanel, cards, ChatMessageCard::new, () -> isFrozen, loc);
 
@@ -238,14 +247,14 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
         activity.track(currentManuscript);
 
         // the story is a tab like the others, the user puts it where they want it
-        leftBar.add(STORY_TAB, loc.getValue(L.LABEL_STORY_PART), centerLayout);
+        leftBar.add(STORY_TAB, loc.getValue(M_L.LABEL_STORY_PART), centerLayout);
         // the one tab that stays on the screen when all the others are minimized
         leftBar.setMinimizable(STORY_TAB, false);
         // a tab sheet drops the content of the tabs it does not show from the page: the browser builds the story again
         // when its tab is shown, without the scripts that watch the edges
         centerLayout.addAttachListener(event -> lazyLoader.reattached());
 
-        container.add(loc.getValue(L.LABEL_STORY_PART), leftBar);
+        container.add(loc.getValue(M_L.LABEL_STORY_PART), leftBar);
         installShortcuts();
         return leftBar;
     }
@@ -434,14 +443,14 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             returns = @APIReturn(type = Component.class))
     private Component createCommandBox() {
         commandBar = new CommandBar();
-        commandBar.addClassName(CssStyles.COMMAND_BOX);
+        commandBar.addClassName(MarginaliaCssStyles.COMMAND_BOX);
         commandResultView = new CommandResultView();
         commandResultView.create(commandBar);
         commandBar.setResultTarget(commandResultView);
         // a generation by a command of the bar streams into the story as one of the round button
         commandBar.addAttachListener(event -> commandPage = event.getUI());
         commandBar.addDetachListener(_ -> commandPage = null);
-        commandBar.setGenerationView(new GenerationView() {
+        commandBar.setHost(new StoryCommandBarHost(new GenerationView() {
             @Override
             public Object getPage() {
                 return commandPage;
@@ -451,7 +460,12 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             public GenerationListener show(Manuscript book, GenerationRequest request) {
                 return showCommandGeneration(book, request);
             }
-        });
+
+            @Override
+            public Manuscript getBook() {
+                return currentManuscript;
+            }
+        }));
         return commandBar;
     }
 
@@ -523,7 +537,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             locals = {@APILocals(name = "item", type = MenuItem.class)})
     private MenuItem createSummariesMenuItem(MenuBar bar) {
         MenuItem item = bar.addItem(Solid.LIST_UL.create(), event -> openSummariesDialog());
-        UIUtils.addTooltip(item, loc.getValue(L.LABEL_SUMMARIES));
+        UIUtils.addTooltip(item, loc.getValue(M_L.LABEL_SUMMARIES));
         return item;
     }
 
@@ -637,7 +651,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             returns = @APIReturn(type = void.class))
     @Override
     public void confirmRestoreDefaultLayout() {
-        ConfirmDialog.show(loc.getValue(L.MSG_CONFIRM_RESTORE_DEFAULT_LAYOUT), this::restoreDefaultLayout);
+        ConfirmDialog.show(loc.getValue(M_L.MSG_CONFIRM_RESTORE_DEFAULT_LAYOUT), this::restoreDefaultLayout);
     }
 
     /**
@@ -947,8 +961,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
         }
         try {
             long tokens = summaryService.collectTree(currentManuscript).stream().filter(SummaryNode::isValid).mapToLong(SummaryNode::getTokens).sum();
-            UIUtils.addTooltip(summariesMenuItem, loc.getValue(L.LABEL_SUMMARIES) + "\n"
-                    + String.format(loc.getValue(L.MSG_ACTIVE_SUMMARIES_TOKENS), tokens));
+            UIUtils.addTooltip(summariesMenuItem, loc.getValue(M_L.LABEL_SUMMARIES) + "\n"
+                    + String.format(loc.getValue(M_L.MSG_ACTIVE_SUMMARIES_TOKENS), tokens));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
@@ -1072,13 +1086,13 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
         if (currentManuscript == null || currentManuscript.getActiveLeaf() == null) {
             branchSearch.refresh(List.of());
             annotationsPanel.refresh(Map.of());
-            Span emptyLabel = new Span(loc.getValue(L.MSG_NO_ACTIVE_BRANCH));
+            Span emptyLabel = new Span(loc.getValue(M_L.MSG_NO_ACTIVE_BRANCH));
             centerContentPanel.add(UIUtils.centerComponent(emptyLabel));
         } else {
             try {
                 List<ChatMessage> branch = chatMessageService.getBranchFromLeaf(currentManuscript.getActiveLeaf());
                 int total = branch.size();
-                sidebarHeader.setText(String.format(loc.getValue(L.LABEL_CHAPTER_OUTLINE_HEADER), total));
+                sidebarHeader.setText(String.format(loc.getValue(M_L.LABEL_CHAPTER_OUTLINE_HEADER), total));
 
                 for (int i = 0; i < total; i++) {
                     ChatMessage msg = branch.get(i);
@@ -1131,10 +1145,10 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
                     @APIParameter(name = "dbId", type = Long.class)},
             locals = {@APILocals(name = "sidebarBtn", type = Button.class)})
     private void createSidebarButton(ChatMessage msg, int orderId, Long dbId) {
-        Button sidebarBtn = new Button(String.format(loc.getValue(L.LABEL_CHAPTER_OUTLINE_NODE), orderId, dbId));
+        Button sidebarBtn = new Button(String.format(loc.getValue(M_L.LABEL_CHAPTER_OUTLINE_NODE), orderId, dbId));
         sidebarBtn.setThemeName("tertiary small");
         sidebarBtn.setWidthFull();
-        sidebarBtn.addClassName(CssStyles.SIDEBAR_BUTTON);
+        sidebarBtn.addClassName(MarginaliaCssStyles.SIDEBAR_BUTTON);
         OutlineSummaryMarks.init(sidebarBtn, msg, dbId, loc);
 
         sidebarBtn.addClickListener(event -> {
@@ -1152,10 +1166,10 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
     private void createStoryOutlineTab() {
         VerticalLayout leftMarginLayout = new VerticalLayout();
         leftMarginLayout.setSizeFull();
-        leftBar.add(CHAPTERS_TAB, loc.getValue(L.LABEL_CHAPTERS), TabDockIcon.CHAPTERS, leftMarginLayout);
+        leftBar.add(CHAPTERS_TAB, loc.getValue(M_L.LABEL_CHAPTERS), TabDockIcon.CHAPTERS, leftMarginLayout);
 
         sidebarHeader = new Span();
-        sidebarHeader.addClassName(CssStyles.SIDEBAR_HEADER);
+        sidebarHeader.addClassName(MarginaliaCssStyles.SIDEBAR_HEADER);
 
         sidebarList = new VerticalLayout();
         sidebarList.setPadding(false);
@@ -1165,7 +1179,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
         branchSearch = new StoryBranchSearch(this::currentBranch,
                 ids -> lazyLoader.renderResponses(ids), id -> {
             showStory();
-            lazyLoader.showMatch(id, CssStyles.SEARCH_MATCH_CURRENT);
+            lazyLoader.showMatch(id, MarginaliaCssStyles.SEARCH_MATCH_CURRENT);
         });
 
         leftMarginLayout.add(branchSearch, sidebarHeader, sidebarList);
@@ -1183,7 +1197,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
         // the phone's story part has no full-screen editor
         lorebookPreview.setFullScreenEditor(true);
         lorebookPreview.setBook(parent::refreshManuscript);
-        leftBar.add(LOREBOOK_TAB, loc.getValue(L.LABEL_LOREBOOK), TabDockIcon.LOREBOOK, lorebookPreview);
+        leftBar.add(LOREBOOK_TAB, loc.getValue(M_L.LABEL_LOREBOOK), TabDockIcon.LOREBOOK, lorebookPreview);
     }
 
     /**
@@ -1223,7 +1237,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
                 }
             }
         });
-        leftBar.add(ANNOTATIONS_TAB, loc.getValue(L.LABEL_ANNOTATIONS), TabDockIcon.ANNOTATIONS, annotationsPanel);
+        leftBar.add(ANNOTATIONS_TAB, loc.getValue(M_L.LABEL_ANNOTATIONS), TabDockIcon.ANNOTATIONS, annotationsPanel);
     }
 
     /**
@@ -1240,7 +1254,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             newTurnPopover.setOpened(true);
             return true;
         });
-        leftBar.add(PLANNER_TAB, loc.getValue(L.LABEL_PLANNER), TabDockIcon.PLANNER, plannerPanel);
+        leftBar.add(PLANNER_TAB, loc.getValue(M_L.LABEL_PLANNER), TabDockIcon.PLANNER, plannerPanel);
     }
 
     /**
@@ -1470,7 +1484,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             parameters = {@APIParameter(name = "manuscript", type = Manuscript.class)},
             locals = {@APILocals(name = "config", type = JsonElement.class),
                     @APILocals(name = "position", type = JsonElement.class),
-                    @APILocals(name = "stored", type = JsonObject.class)})
+                    @APILocals(name = "stored", type = JsonObject.class),
+                    @APILocals(name = "state", type = JsonElement.class)})
     private void applyTabsConfig(Manuscript manuscript) {
         if (leftBar == null || manuscript == null) {
             return;
@@ -1485,6 +1500,10 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
         leftBar.setLayout(StoryDockLayout.migrate(stored,
                 position != null && position.isJsonPrimitive() && position.getAsJsonPrimitive().isNumber() ? position.getAsDouble() : null,
                 STORY_TAB, CHAPTERS_TAB, LOREBOOK_TAB, ANNOTATIONS_TAB, PLANNER_TAB));
+        JsonElement state = manuscript.getAttributes().get(TABS_STATE_ATTRIBUTE);
+        if (state != null && state.isJsonObject()) {
+            leftBar.restoreState(state.getAsJsonObject());
+        }
     }
 
     /**
@@ -1518,7 +1537,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             UserSetting setting = settingService.getOrCreate(UserSetting.class);
             setting.setDefaultStoryLayout(leftBar.getLayout());
             settingService.save(setting);
-            Notification.success(loc.getValue(L.MSG_LAYOUT_SAVED_AS_DEFAULT));
+            Notification.success(loc.getValue(M_L.MSG_LAYOUT_SAVED_AS_DEFAULT));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
@@ -1537,6 +1556,29 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             manuscript.getAttributes().add(TABS_CONFIG_ATTRIBUTE, leftBar.getLayout());
             // the splitter of the old layout is a column of the layout now
             manuscript.getAttributes().remove(SPLIT_POSITION_ATTRIBUTE);
+            parent.save();
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    /**
+     * Saves the selected tab of every sheet into the attributes of the manuscript when it changed, called after the user (or
+     * the code) showed a tab.
+     */
+    @PublicAPI(from = "1.9.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "state", type = JsonObject.class),
+                    @APILocals(name = "manuscript", type = Manuscript.class),
+                    @APILocals(name = "e", type = Exception.class)})
+    private void saveTabsState() {
+        try {
+            JsonObject state = leftBar.storeState();
+            Manuscript manuscript = parent.refreshManuscript();
+            if (manuscript == null || state.equals(manuscript.getAttributes().get(TABS_STATE_ATTRIBUTE))) {
+                return;
+            }
+            manuscript.getAttributes().add(TABS_STATE_ATTRIBUTE, state);
             parent.save();
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
@@ -1652,7 +1694,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
         private Button menuBtn;
         private final MassDeleteBox massDeleteBox = new MassDeleteBox((checked, shift) -> {
             massDelete.clicked(this.message.getId(), checked, shift);
-            getClassNames().set(CssStyles.MARKED_FOR_DELETE, checked);
+            getClassNames().set(MarginaliaCssStyles.MARKED_FOR_DELETE, checked);
         });
         @PublicAPI(from = "1.1.0", type = ContextMenu.class)
         private ContextMenu hamburgerMenu;
@@ -1701,13 +1743,13 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             setWidthFull();
             setPadding(false);
             setSpacing(false);
-            addClassName(CssStyles.CHAT_MESSAGE);
+            addClassName(MarginaliaCssStyles.CHAT_MESSAGE);
 
             contentLayout = new VerticalLayout();
             contentLayout.setWidthFull();
             contentLayout.setPadding(false);
             contentLayout.setSpacing(false);
-            contentLayout.addClassName(CssStyles.CHAT_MESSAGE_CONTENT);
+            contentLayout.addClassName(MarginaliaCssStyles.CHAT_MESSAGE_CONTENT);
 
             HorizontalLayout headerBar = new HorizontalLayout();
             headerBar.setWidthFull();
@@ -1721,7 +1763,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
 
             createHamburgerMenu();
 
-            busyBadge.addClassName(CssStyles.PART_BUSY);
+            busyBadge.addClassName(MarginaliaCssStyles.PART_BUSY);
             busyBadge.setVisible(false);
             addAttachListener(event -> {
                 busyRegistration = RunsOnPage.listen(event.getUI(), this::refreshBusy);
@@ -1743,17 +1785,17 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             headerBar.add(UIUtils.voidComponent(), actions);
 
             reasoningMarkdown = new Markdown();
-            reasoningMarkdown.addClassName(CssStyles.CHAT_MESSAGE_MARKDOWN);
+            reasoningMarkdown.addClassName(MarginaliaCssStyles.CHAT_MESSAGE_MARKDOWN);
             if (StringUtils.isNotBlank(message.getResponseReasoning())) {
                 reasoningMarkdown.setContent(message.getResponseReasoning());
             }
 
-            reasoningDetails = new Details(loc.getValue(L.LABEL_VIEW_REASONING), reasoningMarkdown);
+            reasoningDetails = new Details(loc.getValue(M_L.LABEL_VIEW_REASONING), reasoningMarkdown);
             reasoningDetails.setWidthFull();
             reasoningDetails.addClassNames(CssStyles.MAX_WIDTH_FULL, CssStyles.MIN_WIDTH_0, CssStyles.BORDER_BOX);
 
             responseMarkdown = new Markdown();
-            responseMarkdown.addClassName(CssStyles.CHAT_MESSAGE_MARKDOWN);
+            responseMarkdown.addClassName(MarginaliaCssStyles.CHAT_MESSAGE_MARKDOWN);
             renderResponse();
 
             // a click on a mark of an annotation opens its note at the mark
@@ -1769,13 +1811,13 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
 
             metaLayout = new VerticalLayout();
             metaLayout.setWidth("220px");
-            metaLayout.addClassName(CssStyles.CHAT_MESSAGE_META);
+            metaLayout.addClassName(MarginaliaCssStyles.CHAT_MESSAGE_META);
             metaLayout.setPadding(false);
             metaLayout.setSpacing(false);
 
             metrics = new MessageMetrics(loc, message, this.orderId, false);
 
-            turnDetailsBtn = new Button(loc.getValue(L.LABEL_TURN_DETAILS), Solid.INFO_CIRCLE.create());
+            turnDetailsBtn = new Button(loc.getValue(M_L.LABEL_TURN_DETAILS), Solid.INFO_CIRCLE.create());
             turnDetailsBtn.setThemeName("tertiary small");
             turnDetailsBtn.setWidthFull();
 
@@ -1843,7 +1885,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
         public void showMassDelete(boolean shown, boolean selected) {
             massDeleteBox.setVisible(shown && message.getId() != null);
             massDeleteBox.setChecked(selected);
-            getClassNames().set(CssStyles.MARKED_FOR_DELETE, shown && selected);
+            getClassNames().set(MarginaliaCssStyles.MARKED_FOR_DELETE, shown && selected);
         }
 
         /**
@@ -2275,7 +2317,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             if (StringUtils.defaultString(responseTextArea.getValue()).equals(StringUtils.defaultString(message.getResponse()))) {
                 closeEditor();
             } else {
-                ConfirmDialog.show(loc.getValue(L.MSG_CONFIRM_DISCARD_EDIT), this::closeEditor);
+                ConfirmDialog.show(loc.getValue(M_L.MSG_CONFIRM_DISCARD_EDIT), this::closeEditor);
             }
         }
 
@@ -2421,7 +2463,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
         @PublicAPI(from = "1.5.0",
                 returns = @APIReturn(type = void.class))
         private void applyAnnotationMargin() {
-            contentLayout.setClassName(CssStyles.ANNOTATION_MARGIN_LAYOUT, annotationsInMargin);
+            contentLayout.setClassName(MarginaliaCssStyles.ANNOTATION_MARGIN_LAYOUT, annotationsInMargin);
             cardAnnotations.setMarginMode(annotationsInMargin);
         }
 

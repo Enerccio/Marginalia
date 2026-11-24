@@ -40,6 +40,12 @@ class ConversionQueueTest {
     private volatile CountDownLatch holdSpeech;
     private volatile CountDownLatch speechStarted = new CountDownLatch(1);
     private volatile String beforeFails;
+    /** Changes the backend the queue gets (the checks). */
+    private java.util.function.Consumer<BackendConfig> configure = config -> {
+    };
+    /** The audio of a request, null for the tone. */
+    private java.util.function.Function<SpeechRequest, byte[]> audioOf = request -> null;
+    private ConversionQueue.WordChecker checker = ConversionQueue.WordChecker.NONE;
 
     private ConversionQueue queue;
 
@@ -51,7 +57,14 @@ class ConversionQueueTest {
         }
     }
 
+    private final Map<String, List<List<LabelTrace.Window>>> reasoning = new java.util.concurrent.ConcurrentHashMap<>();
+
     private final AudioStore store = new AudioStore() {
+        @Override
+        public void putReasoning(String partId, List<LabelTrace.Window> windows) {
+            reasoning.computeIfAbsent(partId, p -> new CopyOnWriteArrayList<>()).add(windows);
+        }
+
         public synchronized byte[] segment(String partId, String key) {
             return segments.get(partId + "/" + key);
         }
@@ -102,7 +115,8 @@ class ConversionQueueTest {
                     throw new BackendException("the server said no to: " + request.text());
                 }
                 spoken.add(request);
-                return tone();
+                byte[] audio = audioOf.apply(request);
+                return audio != null ? audio : tone();
             }
 
             public List<String> referenceFiles() {
@@ -144,8 +158,9 @@ class ConversionQueueTest {
             }
             BackendConfig config = new BackendConfig();
             config.setModel(model);
+            configure.accept(config);
             return config;
-        }, runner, paused::get, 10, loudness, leveller));
+        }, runner, paused::get, 10, loudness, leveller, checker));
         return queue;
     }
 
@@ -272,6 +287,39 @@ class ConversionQueueTest {
         assertEquals("{\"labels\":[]}", windows.get(0).output());
         assertEquals("second", windows.get(1).output());
         assertNull(queue.trace("nobody"));
+        assertEquals(List.of(windows), reasoning.get("p1"), "the whole run is stored with the part");
+    }
+
+    @Test
+    void theReasoningOfALabellingThatFailsIsStoredToo() throws Exception {
+        queue(Set.of(BackendConfig.MODEL_TURBO));
+        ConversionJob job = queue.submit("p1", "Part 1", () -> {
+            com.github.enerccio.marginalia.extensions.audiobook.label.LabelWatch.window(0, 16, 16);
+            com.github.enerccio.marginalia.extensions.audiobook.label.LabelWatch.current().chunk(true, "Hm.");
+            throw new IllegalStateException("cut off");
+        });
+        ConversionJob.Snapshot done = finished(job);
+
+        assertEquals(State.FAILED, done.state());
+        assertEquals(List.of(List.of(new LabelTrace.Window("pieces 1-16 of 16", "Hm.", ""))), reasoning.get("p1"));
+    }
+
+    @Test
+    void theStoredRunIsNotCutLikeTheTraceOfTheJob() throws Exception {
+        queue(Set.of(BackendConfig.MODEL_TURBO));
+        PartScript script = script("One.");
+        String chunk = "x".repeat(LabelTrace.MAX_CHARS / 2);
+        ConversionJob job = queue.submit("p1", "Part 1", () -> {
+            for (int i = 0; i < 4; i++) {
+                com.github.enerccio.marginalia.extensions.audiobook.label.LabelWatch.window(i, i + 1, 4);
+                com.github.enerccio.marginalia.extensions.audiobook.label.LabelWatch.current().chunk(true, chunk);
+            }
+            return script;
+        });
+        finished(job);
+
+        assertTrue(queue.trace(job.id()).windows().size() < 4);
+        assertEquals(4, reasoning.get("p1").getFirst().size());
     }
 
     @Test
@@ -279,6 +327,7 @@ class ConversionQueueTest {
         queue(Set.of(BackendConfig.MODEL_TURBO));
         ConversionJob job = queue.submit("p1", "Part 1", () -> script("One."));
         finished(job);
+        assertNull(reasoning.get("p1"), "nothing is stored when the model was not asked");
 
         assertTrue(queue.trace(job.id()).isEmpty());
     }
@@ -472,6 +521,29 @@ class ConversionQueueTest {
 
         assertEquals(State.CANCELLED, done.state(), done.message());
         assertNull(parts.get("p1"));
+    }
+
+    @Test
+    void aStoppedPartWhosePiecesWereAllMadeIsStillJoined() throws Exception {
+        queue(Set.of(BackendConfig.MODEL_TURBO));
+        // the user stops the run while the first piece of the second part is made
+        audioOf = request -> {
+            if (request.text().equals("Two.")) {
+                queue.cancelAll();
+            }
+            return null;
+        };
+
+        List<ConversionJob> jobs = queue.submitAll(List.of(new ConversionQueue.Task("p1", "Part 1", () -> script("One.")),
+                new ConversionQueue.Task("p2", "Part 2", () -> script("Two.\n\nThree."))));
+        ConversionJob first = jobs.get(0);
+        ConversionJob second = jobs.get(1);
+        assertTrue(queue.awaitIdle(10, TimeUnit.SECONDS), "the queue is still busy: " + queue.jobs());
+
+        assertEquals(State.DONE, first.snapshot().state(), first.snapshot().message());
+        assertNotNull(partBytes.get("p1"));
+        assertEquals(State.CANCELLED, second.snapshot().state(), second.snapshot().message());
+        assertNull(parts.get("p2"));
     }
 
     @Test
@@ -718,5 +790,163 @@ class ConversionQueueTest {
         assertTrue(done.message().contains("not levelled: ffmpeg failed"), done.message());
         assertNull(parts.get("p1").loudness());
         assertTrue(partBytes.get("p1").length > 0);
+    }
+
+    // --- the checks of the pieces ---
+
+    private static byte[] tone16() {
+        try (var in = ConversionQueueTest.class.getResourceAsStream("/tone16.mp3")) {
+            return in.readAllBytes();
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    /** A piece of about 14 s: far too long for a few words. */
+    private static byte[] longPiece() {
+        try {
+            List<byte[]> tones = new ArrayList<>();
+            List<Double> pauses = new ArrayList<>();
+            for (int i = 0; i < 30; i++) {
+                tones.add(tone());
+                pauses.add(0.0);
+            }
+            return com.github.enerccio.marginalia.extensions.audiobook.audio.Mp3Joiner.join(tones, pauses);
+        } catch (BackendException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    @Test
+    void aPieceFarLongerThanItsTextIsMadeAgainWithTheNextSeed() throws Exception {
+        byte[] babble = longPiece();
+        audioOf = request -> request.seed() == 42 ? babble : null;
+        queue(Set.of(BackendConfig.MODEL_TURBO));
+
+        ConversionJob.Snapshot done = finished(queue.submit("p1", "Part 1", () -> script("A short line.")));
+
+        assertEquals(State.DONE, done.state(), done.message());
+        assertEquals(List.of(42, 43), spoken.stream().map(SpeechRequest::seed).toList());
+        assertArrayEquals(tone(), segments.values().iterator().next(), "the take of the right length is stored");
+    }
+
+    @Test
+    void theLengthCheckCanBeTurnedOff() throws Exception {
+        byte[] babble = longPiece();
+        audioOf = request -> babble;
+        configure = config -> config.setCheckLength(false);
+        queue(Set.of(BackendConfig.MODEL_TURBO));
+
+        finished(queue.submit("p1", "Part 1", () -> script("A short line.")));
+
+        assertEquals(List.of(42), spoken.stream().map(SpeechRequest::seed).toList());
+    }
+
+    @Test
+    void aPieceStillTooLongAfterTheRetriesKeepsTheShortestTake() throws Exception {
+        byte[] babble = longPiece();
+        audioOf = request -> babble;
+        configure = config -> config.setRetries(1);
+        queue(Set.of(BackendConfig.MODEL_TURBO));
+
+        ConversionJob.Snapshot done = finished(queue.submit("p1", "Part 1", () -> script("A short line.")));
+
+        assertEquals(State.DONE, done.state(), done.message());
+        assertEquals(List.of(42, 43), spoken.stream().map(SpeechRequest::seed).toList());
+    }
+
+    /** A recogniser that hears the text of the request a take was made from, except for the seeds given. */
+    private ConversionQueue.WordChecker hearing(Map<byte[], String> heard, List<String> log) {
+        return (cancelled, work) -> {
+            log.add("lock");
+            work.run(new com.github.enerccio.marginalia.extensions.audiobook.recognize.SpeechRecognizer() {
+                public String transcribe(byte[] audio, String extension, String language, Cancel cancel) {
+                    log.add("heard");
+                    return heard.getOrDefault(audio, "");
+                }
+
+                public void test() {
+                }
+            });
+            return true;
+        };
+    }
+
+    @Test
+    void piecesWhoseWordsAreOffAreMadeAgainAfterTheBatchAndTheBestTakeIsStored() throws Exception {
+        byte[] wrong = tone();
+        byte[] right = tone16();
+        Map<byte[], String> heard = new IdentityHashMap<>();
+        heard.put(wrong, "drake kumla kund kund kund");
+        heard.put(right, "The banging continued, rhythmic and aggressive.");
+        audioOf = request -> request.seed() == 42 ? wrong : right;
+        configure = config -> {
+            config.setCheckLength(false);
+            config.setCheckWords(true);
+        };
+        List<String> log = new CopyOnWriteArrayList<>();
+        checker = hearing(heard, log);
+        queue(Set.of(BackendConfig.MODEL_TURBO));
+
+        ConversionJob job = queue.submit("p1", "Part 1", () -> script("The banging continued, rhythmic and aggressive."));
+        ConversionJob.Snapshot done = finished(job);
+
+        assertEquals(List.of(42, 43), spoken.stream().map(SpeechRequest::seed).toList());
+        assertEquals(List.of(BackendConfig.MODEL_TURBO, BackendConfig.MODEL_TURBO), batches, "the batch, then one more for the piece that was off");
+        assertEquals(List.of("lock", "heard", "lock", "heard"), log, "checked after the batch, under the lock of the recognition");
+        assertSame(right, segments.values().iterator().next());
+        assertTrue(done.message().contains("1 pieces made again"), done.message());
+    }
+
+    @Test
+    void piecesThatStayOffAreReportedAndTheBestTakeKept() throws Exception {
+        byte[] bad = tone();
+        byte[] worse = tone16();
+        Map<byte[], String> heard = new IdentityHashMap<>();
+        heard.put(bad, "the banging continued wildly");
+        heard.put(worse, "nothing at all here");
+        audioOf = request -> request.seed() == 42 ? bad : worse;
+        configure = config -> {
+            config.setCheckLength(false);
+            config.setCheckWords(true);
+            config.setRetries(1);
+        };
+        checker = hearing(heard, new CopyOnWriteArrayList<>());
+        queue(Set.of(BackendConfig.MODEL_TURBO));
+
+        ConversionJob.Snapshot done = finished(queue.submit("p1", "Part 1", () -> script("The banging continued, rhythmic and aggressive.")));
+
+        assertEquals(State.DONE, done.state(), done.message());
+        assertSame(bad, segments.values().iterator().next(), "the take with fewer wrong words stays");
+        assertTrue(done.message().contains("1 pieces still differ"), done.message());
+    }
+
+    @Test
+    void withoutASpeechRecognitionTheWordsAreNotCheckedAndThePartIsMade() throws Exception {
+        configure = config -> config.setCheckWords(true);
+        queue(Set.of(BackendConfig.MODEL_TURBO));
+
+        ConversionJob.Snapshot done = finished(queue.submit("p1", "Part 1", () -> script("One line.")));
+
+        assertEquals(State.DONE, done.state(), done.message());
+        assertTrue(done.message().contains("no speech recognition"), done.message());
+    }
+
+    @Test
+    void theTextOfTheClipIsSentToHiggsOnlyWhenTheBackendSendsIt() throws Exception {
+        Voices voices = (backend, voice) -> new Voices.Resolved(VoiceMode.CLONE, "m-x.wav", "words of the clip");
+        for (boolean send : List.of(false, true)) {
+            spoken.clear();
+            queue = new ConversionQueue(new ConversionQueue.Environment(store, voices, model -> {
+                BackendConfig config = new BackendConfig();
+                config.setModel(BackendConfig.MODEL_HIGGS);
+                config.setSendClipText(send);
+                return config;
+            }, runner, paused::get, 10, () -> null, (audio, lufs) -> audio));
+            finished(queue.submit("p" + send, "Part", () -> script("Hello there.", BackendConfig.MODEL_HIGGS)));
+            queue.close();
+            assertEquals(send ? "words of the clip" : null, spoken.getFirst().referenceText());
+        }
+        queue = null;
     }
 }

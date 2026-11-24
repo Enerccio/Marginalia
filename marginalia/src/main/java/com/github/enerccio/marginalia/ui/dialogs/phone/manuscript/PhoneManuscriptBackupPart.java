@@ -13,6 +13,8 @@ import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.SettingService;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
+import com.github.enerccio.marginalia.loc.MarginaliaLocalization;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.dialogs.LorebookImportDialog;
@@ -62,7 +64,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class PhoneManuscriptBackupPart implements PhoneManuscriptDialogPart {
 
     @Autowired
-    private Localization loc;
+    private MarginaliaLocalization loc;
 
     @Autowired
     private BackupService backupService;
@@ -107,20 +109,20 @@ public class PhoneManuscriptBackupPart implements PhoneManuscriptDialogPart {
         strategyForm.setWidthFull();
         strategyForm.setPadding(false);
 
-        perManuscriptCheckbox = new Checkbox(loc.getValue(L.LABEL_PER_MANUSCRIPT_BACKUP));
+        perManuscriptCheckbox = new Checkbox(loc.getValue(M_L.LABEL_PER_MANUSCRIPT_BACKUP));
 
-        backupStrategyCombo = new ComboBox<>(loc.getValue(L.LABEL_BACKUP_STRATEGY));
+        backupStrategyCombo = new ComboBox<>(loc.getValue(M_L.LABEL_BACKUP_STRATEGY));
         backupStrategyCombo.setWidthFull();
         backupStrategyCombo.setItems(BackupStrategy.values());
         backupStrategyCombo.setClearButtonVisible(true);
         backupStrategyCombo.setItemLabelGenerator(s -> {
             if (s == null) {
-                return loc.getValue(L.ENUM_BACKUP_STRATEGY_NONE);
+                return loc.getValue(M_L.ENUM_BACKUP_STRATEGY_NONE);
             }
             return loc.getValue(loc.getBackupStrategy(s));
         });
 
-        backupStrategyValueField = new IntegerField(loc.getValue(L.LABEL_BACKUP_STRATEGY_VALUE_MESSAGES));
+        backupStrategyValueField = new IntegerField(loc.getValue(M_L.LABEL_BACKUP_STRATEGY_VALUE_MESSAGES));
         backupStrategyValueField.setWidthFull();
         backupStrategyValueField.setMin(1);
         backupStrategyValueField.setStepButtonsVisible(true);
@@ -164,16 +166,16 @@ public class PhoneManuscriptBackupPart implements PhoneManuscriptDialogPart {
         toolbar.setWidthFull();
         toolbar.addClassNames(CssStyles.FLEX_WRAP, CssStyles.GAP_S);
 
-        takeBackupBtn = new Button(loc.getValue(L.LABEL_TAKE_BACKUP), Solid.PLUS.create(), event -> takeBackup());
+        takeBackupBtn = new Button(loc.getValue(M_L.LABEL_TAKE_BACKUP), Solid.PLUS.create(), event -> takeBackup());
         takeBackupBtn.setThemeName("primary");
 
-        importBackupBtn = new Button(loc.getValue(L.LABEL_IMPORT_BACKUP), Solid.FILE_IMPORT.create(), event -> openImportDialog());
+        importBackupBtn = new Button(loc.getValue(M_L.LABEL_IMPORT_BACKUP), Solid.FILE_IMPORT.create(), event -> openImportDialog());
 
         refreshBtn = new Button(loc.getValue(L.LABEL_REFRESH), Solid.REFRESH.create(), event -> refreshBackups());
 
-        includeInheritedCheckbox = new Checkbox(loc.getValue(L.LABEL_EXPORT_INHERITED_SETTINGS), true);
+        includeInheritedCheckbox = new Checkbox(loc.getValue(M_L.LABEL_EXPORT_INHERITED_SETTINGS), true);
 
-        includeHistoryCheckbox = new Checkbox(loc.getValue(L.LABEL_BACKUP_INCLUDE_HISTORY), false);
+        includeHistoryCheckbox = new Checkbox(loc.getValue(M_L.LABEL_BACKUP_INCLUDE_HISTORY), false);
 
         toolbar.add(takeBackupBtn, includeHistoryCheckbox, importBackupBtn, refreshBtn, includeInheritedCheckbox);
 
@@ -205,14 +207,14 @@ public class PhoneManuscriptBackupPart implements PhoneManuscriptDialogPart {
                 : "");
         date.addClassName(CssStyles.TEXT_BOLD);
 
-        Span counts = new Span(loc.getValue(L.LABEL_MESSAGES_COUNT) + ": " + backup.getTotalMessagesCount()
-                + ", " + loc.getValue(L.LABEL_RESOURCES) + ": " + backup.getImageCount());
+        Span counts = new Span(loc.getValue(M_L.LABEL_MESSAGES_COUNT) + ": " + backup.getTotalMessagesCount()
+                + ", " + loc.getValue(M_L.LABEL_RESOURCES) + ": " + backup.getImageCount());
         counts.addClassName(CssStyles.HINT_TEXT);
 
-        Button restoreBtn = new Button(loc.getValue(L.LABEL_RESTORE_BACKUP), Solid.UNDO.create(), event -> openRestoreOptionsDialog(backup));
+        Button restoreBtn = new Button(loc.getValue(M_L.LABEL_RESTORE_BACKUP), Solid.UNDO.create(), event -> openRestoreOptionsDialog(backup));
         restoreBtn.setThemeName("small primary");
 
-        Button cloneBtn = new Button(loc.getValue(L.LABEL_CLONE_BACKUP), Solid.COPY.create(), event -> cloneBackup(backup));
+        Button cloneBtn = new Button(loc.getValue(M_L.LABEL_CLONE_BACKUP), Solid.COPY.create(), event -> cloneBackup(backup));
         cloneBtn.setThemeName("small");
 
         Component exportComponent = createExport(backup);
@@ -240,10 +242,10 @@ public class PhoneManuscriptBackupPart implements PhoneManuscriptDialogPart {
             backupStrategyValueField.setVisible(false);
         } else if (strategy == BackupStrategy.AFTER_N_MESSAGES) {
             backupStrategyValueField.setVisible(true);
-            backupStrategyValueField.setLabel(loc.getValue(L.LABEL_BACKUP_STRATEGY_VALUE_MESSAGES));
+            backupStrategyValueField.setLabel(loc.getValue(M_L.LABEL_BACKUP_STRATEGY_VALUE_MESSAGES));
         } else if (strategy == BackupStrategy.AFTER_N_MINUTES) {
             backupStrategyValueField.setVisible(true);
-            backupStrategyValueField.setLabel(loc.getValue(L.LABEL_BACKUP_STRATEGY_VALUE_MINUTES));
+            backupStrategyValueField.setLabel(loc.getValue(M_L.LABEL_BACKUP_STRATEGY_VALUE_MINUTES));
         }
         if (!perManuscriptCheckbox.getValue()) {
             backupStrategyValueField.setReadOnly(true);
@@ -322,11 +324,11 @@ public class PhoneManuscriptBackupPart implements PhoneManuscriptDialogPart {
             locals = {@APILocals(name = "exportBtn", type = Button.class)})
     private Component createExport(ManuscriptBackup backup) {
         if (backup.getImageCount() == 0) {
-            Button exportBtn = new Button(loc.getValue(L.LABEL_EXPORT_BACKUP), Solid.DOWNLOAD.create());
+            Button exportBtn = new Button(loc.getValue(M_L.LABEL_EXPORT_BACKUP), Solid.DOWNLOAD.create());
             exportBtn.setThemeName("small");
             return downloadOf(backup, exportBtn);
         }
-        Button exportBtn = new Button(loc.getValue(L.LABEL_EXPORT_BACKUP), Solid.DOWNLOAD.create(), event -> askAboutImages(backup));
+        Button exportBtn = new Button(loc.getValue(M_L.LABEL_EXPORT_BACKUP), Solid.DOWNLOAD.create(), event -> askAboutImages(backup));
         exportBtn.setThemeName("small");
         return exportBtn;
     }
@@ -364,21 +366,21 @@ public class PhoneManuscriptBackupPart implements PhoneManuscriptDialogPart {
                     @APILocals(name = "content", type = VerticalLayout.class)})
     private void askAboutImages(ManuscriptBackup backup) {
         Dialog dialog = new Dialog();
-        dialog.setHeaderTitle(loc.getValue(L.LABEL_EXPORT_BACKUP));
+        dialog.setHeaderTitle(loc.getValue(M_L.LABEL_EXPORT_BACKUP));
         dialog.setWidth("90vw");
 
-        Button withImages = new Button(loc.getValue(L.LABEL_WITH_RESOURCES), Solid.IMAGES.create(), event -> {
+        Button withImages = new Button(loc.getValue(M_L.LABEL_WITH_RESOURCES), Solid.IMAGES.create(), event -> {
             dialog.close();
             packWithImages(backup);
         });
         withImages.setThemeName("primary");
 
-        Button without = new Button(loc.getValue(L.LABEL_WITHOUT_RESOURCES), Solid.FILE_CODE.create());
+        Button without = new Button(loc.getValue(M_L.LABEL_WITHOUT_RESOURCES), Solid.FILE_CODE.create());
         // the download starts with the click, the dialog closes with it
         Anchor withoutImages = downloadOf(backup, without);
         without.addClickListener(event -> dialog.close());
 
-        VerticalLayout content = new VerticalLayout(new Span(String.format(loc.getValue(L.MSG_BACKUP_EXPORT_RESOURCES), backup.getImageCount())));
+        VerticalLayout content = new VerticalLayout(new Span(String.format(loc.getValue(M_L.MSG_BACKUP_EXPORT_RESOURCES), backup.getImageCount())));
         content.setPadding(false);
         dialog.add(content);
         dialog.getFooter().add(new Button(loc.getValue(L.LABEL_CANCEL), event -> dialog.close()), withoutImages, withImages);
@@ -401,7 +403,7 @@ public class PhoneManuscriptBackupPart implements PhoneManuscriptDialogPart {
         AtomicReference<Exception> failure = new AtomicReference<>();
 
         ProgressBarDialog packing = new ProgressBarDialog(true);
-        packing.setTitle(loc.getValue(L.MSG_PACKING_BACKUP));
+        packing.setTitle(loc.getValue(M_L.MSG_PACKING_BACKUP));
         packing.setTotal((long) backup.getImageCount());
         packing.create();
         packing.setAction(dialog -> {
@@ -431,7 +433,7 @@ public class PhoneManuscriptBackupPart implements PhoneManuscriptDialogPart {
                     @APILocals(name = "missing", type = Span.class)})
     private void showPacked(BackupExport export) {
         Dialog result = new Dialog();
-        result.setHeaderTitle(loc.getValue(L.LABEL_EXPORT_BACKUP));
+        result.setHeaderTitle(loc.getValue(M_L.LABEL_EXPORT_BACKUP));
         result.setCloseOnEsc(true);
         result.setCloseOnOutsideClick(false);
         result.setModality(ModalityMode.STRICT);
@@ -443,9 +445,9 @@ public class PhoneManuscriptBackupPart implements PhoneManuscriptDialogPart {
         downloadButton.setThemeName("primary");
         download.add(downloadButton);
 
-        VerticalLayout content = new VerticalLayout(new Span(String.format(loc.getValue(L.MSG_BACKUP_READY), export.fileName())), download);
+        VerticalLayout content = new VerticalLayout(new Span(String.format(loc.getValue(M_L.MSG_BACKUP_READY), export.fileName())), download);
         if (export.missingImages() > 0) {
-            Span missing = new Span(String.format(loc.getValue(L.MSG_BACKUP_RESOURCES_MISSING), export.missingImages()));
+            Span missing = new Span(String.format(loc.getValue(M_L.MSG_BACKUP_RESOURCES_MISSING), export.missingImages()));
             missing.addClassName(CssStyles.TEXT_ERROR);
             content.add(missing);
         }
@@ -504,7 +506,7 @@ public class PhoneManuscriptBackupPart implements PhoneManuscriptDialogPart {
                     @APILocals(name = "layout", type = VerticalLayout.class)})
     private void openImportDialog() {
         Dialog dialog = new Dialog();
-        dialog.setHeaderTitle(loc.getValue(L.LABEL_IMPORT_BACKUP));
+        dialog.setHeaderTitle(loc.getValue(M_L.LABEL_IMPORT_BACKUP));
         dialog.setWidth("90vw");
 
         // a backup can be big (and have images), it is read from a file and not held in memory
@@ -545,16 +547,16 @@ public class PhoneManuscriptBackupPart implements PhoneManuscriptDialogPart {
                     @APILocals(name = "cancelBtn", type = Button.class)})
     private void openRestoreOptionsDialog(ManuscriptBackup backup) {
         Dialog dialog = new Dialog();
-        dialog.setHeaderTitle(loc.getValue(L.LABEL_RESTORE_OPTION_TITLE));
+        dialog.setHeaderTitle(loc.getValue(M_L.LABEL_RESTORE_OPTION_TITLE));
         dialog.setWidth("90vw");
 
         VerticalLayout layout = new VerticalLayout();
         layout.setPadding(true);
         layout.setSpacing(true);
 
-        Span msgSpan = new Span(loc.getValue(L.LABEL_RESTORE_OPTION_MSG));
+        Span msgSpan = new Span(loc.getValue(M_L.LABEL_RESTORE_OPTION_MSG));
 
-        Button fullRestoreBtn = new Button(loc.getValue(L.LABEL_FULL_RESTORE), Solid.CHECK_DOUBLE.create(), event -> {
+        Button fullRestoreBtn = new Button(loc.getValue(M_L.LABEL_FULL_RESTORE), Solid.CHECK_DOUBLE.create(), event -> {
             dialog.close();
             try {
                 LorebookImportDialog.resolve(backupService.analyzeLorebooks(backup),
@@ -566,7 +568,7 @@ public class PhoneManuscriptBackupPart implements PhoneManuscriptDialogPart {
         fullRestoreBtn.setThemeName("primary");
         fullRestoreBtn.setWidthFull();
 
-        Button messagesOnlyBtn = new Button(loc.getValue(L.LABEL_MESSAGES_ONLY_RESTORE), Solid.COMMENT_ALT.create(), event -> {
+        Button messagesOnlyBtn = new Button(loc.getValue(M_L.LABEL_MESSAGES_ONLY_RESTORE), Solid.COMMENT_ALT.create(), event -> {
             dialog.close();
             performRestore(backup, true, null);
         });
@@ -615,13 +617,13 @@ public class PhoneManuscriptBackupPart implements PhoneManuscriptDialogPart {
             parameters = {@APIParameter(name = "backup", type = BackupService.ManuscriptBackup.class)},
             locals = {@APILocals(name = "dialog", type = TextInputDialog.class)})
     private void cloneBackup(ManuscriptBackup backup) {
-        TextInputDialog dialog = new TextInputDialog.Builder(loc.getValue(L.LABEL_NEW_MANUSCRIPT_NAME), newName -> {
+        TextInputDialog dialog = new TextInputDialog.Builder(loc.getValue(M_L.LABEL_NEW_MANUSCRIPT_NAME), newName -> {
             if (backup.getImageCount() == 0) {
                 cloneBackup(backup, newName, false);
                 return;
             }
-            ConfirmDialog.show(String.format(loc.getValue(L.MSG_CLONE_BACKUP_RESOURCES), backup.getImageCount()),
-                    loc.getValue(L.LABEL_WITH_RESOURCES), loc.getValue(L.LABEL_WITHOUT_RESOURCES),
+            ConfirmDialog.show(String.format(loc.getValue(M_L.MSG_CLONE_BACKUP_RESOURCES), backup.getImageCount()),
+                    loc.getValue(M_L.LABEL_WITH_RESOURCES), loc.getValue(M_L.LABEL_WITHOUT_RESOURCES),
                     () -> cloneBackup(backup, newName, true), () -> cloneBackup(backup, newName, false), true);
         }).messageRequired().showCancel(true).build();
         dialog.open();
@@ -638,7 +640,7 @@ public class PhoneManuscriptBackupPart implements PhoneManuscriptDialogPart {
             LorebookImportDialog.resolve(backupService.analyzeLorebooks(backup), decisions -> {
                 try {
                     Manuscript cloned = backupService.cloneBackup(backup, newName, decisions, withImages);
-                    Notification.success(loc.getValue(L.LABEL_CLONE_BACKUP) + ": " + cloned.getName());
+                    Notification.success(loc.getValue(M_L.LABEL_CLONE_BACKUP) + ": " + cloned.getName());
                     refreshBackups();
                 } catch (Exception e) {
                     UIUtils.internalServerError(loc, e);

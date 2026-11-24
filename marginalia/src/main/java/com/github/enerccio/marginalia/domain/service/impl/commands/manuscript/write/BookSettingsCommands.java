@@ -7,7 +7,7 @@ import com.github.enerccio.marginalia.domain.service.EffectiveHistoryLimit;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.traits.*;
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
@@ -26,167 +26,244 @@ public class BookSettingsCommands extends ManuscriptWriteSupport {
     static final String SET_BOOK_TAGS = "set-book-tags";
     static final String SET_BOOK_HISTORY_LIMIT = "set-book-history-limit";
 
-    @Command(commandName = SET_BOOK_INFO, humanName = L.LABEL_COMMAND_SET_BOOK_INFO,
+    @Command(commandName = SET_BOOK_INFO,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_SET_BOOK_INFO, llmDescription = L.DESC_COMMAND_SET_BOOK_INFO_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "name", type = String.class, description = L.DESC_COMMAND_BOOK_NAME_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SET_BOOK_INFO_RETURN))
+                    @CommandParameter(name = "name", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SET_BOOK_INFO,
+            description = M_L.DESC_COMMAND_SET_BOOK_INFO,
+            llmDescription = M_L.DESC_COMMAND_SET_BOOK_INFO_LLM,
+            parameters = @MarginaliaParameterText(name = "name", description = M_L.DESC_COMMAND_BOOK_NAME_PARAM),
+            returns = M_L.DESC_COMMAND_SET_BOOK_INFO_RETURN)
     public void setBookInfo(CommandContext context) throws Exception {
         setBookInfo(context, context.get("name", String.class), null, null, null, null, null);
     }
 
-    @Command(commandName = SET_BOOK_INFO, humanName = L.LABEL_COMMAND_SET_BOOK_INFO,
+    @Command(commandName = SET_BOOK_INFO,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_SET_BOOK_INFO, llmDescription = L.DESC_COMMAND_SET_BOOK_INFO_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "name", type = String.class, description = L.DESC_COMMAND_BOOK_NAME_PARAM),
-                    @CommandParameter(name = "description", type = String.class, description = L.DESC_COMMAND_BOOK_DESCRIPTION_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SET_BOOK_INFO_RETURN))
+                    @CommandParameter(name = "name", type = String.class),
+                    @CommandParameter(name = "description", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SET_BOOK_INFO,
+            description = M_L.DESC_COMMAND_SET_BOOK_INFO,
+            llmDescription = M_L.DESC_COMMAND_SET_BOOK_INFO_LLM,
+            parameters = {@MarginaliaParameterText(name = "name", description = M_L.DESC_COMMAND_BOOK_NAME_PARAM),
+                    @MarginaliaParameterText(name = "description", description = M_L.DESC_COMMAND_BOOK_DESCRIPTION_PARAM)},
+            returns = M_L.DESC_COMMAND_SET_BOOK_INFO_RETURN)
     public void setBookInfoDescription(CommandContext context) throws Exception {
         setBookInfo(context, context.get("name", String.class), context.get("description", String.class), null, null, null, null);
     }
 
-    @Command(commandName = SET_BOOK_INFO, humanName = L.LABEL_COMMAND_SET_BOOK_INFO,
+    @Command(commandName = SET_BOOK_INFO,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_SET_BOOK_INFO, llmDescription = L.DESC_COMMAND_SET_BOOK_INFO_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "name", type = String.class, description = L.DESC_COMMAND_BOOK_NAME_PARAM),
-                    @CommandParameter(name = "description", type = String.class, description = L.DESC_COMMAND_BOOK_DESCRIPTION_PARAM),
-                    @CommandParameter(name = "pov", type = String.class, description = L.DESC_COMMAND_BOOK_POV_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SET_BOOK_INFO_RETURN))
+                    @CommandParameter(name = "name", type = String.class),
+                    @CommandParameter(name = "description", type = String.class),
+                    @CommandParameter(name = "pov", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SET_BOOK_INFO,
+            description = M_L.DESC_COMMAND_SET_BOOK_INFO,
+            llmDescription = M_L.DESC_COMMAND_SET_BOOK_INFO_LLM,
+            parameters = {@MarginaliaParameterText(name = "name", description = M_L.DESC_COMMAND_BOOK_NAME_PARAM),
+                    @MarginaliaParameterText(name = "description", description = M_L.DESC_COMMAND_BOOK_DESCRIPTION_PARAM),
+                    @MarginaliaParameterText(name = "pov", description = M_L.DESC_COMMAND_BOOK_POV_PARAM)},
+            returns = M_L.DESC_COMMAND_SET_BOOK_INFO_RETURN)
     public void setBookInfoPov(CommandContext context) throws Exception {
         setBookInfo(context, context.get("name", String.class), context.get("description", String.class), context.get("pov", String.class), null, null, null);
     }
 
-    @Command(commandName = SET_BOOK_INFO, humanName = L.LABEL_COMMAND_SET_BOOK_INFO,
+    @Command(commandName = SET_BOOK_INFO,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_SET_BOOK_INFO, llmDescription = L.DESC_COMMAND_SET_BOOK_INFO_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "name", type = String.class, description = L.DESC_COMMAND_BOOK_NAME_PARAM),
-                    @CommandParameter(name = "description", type = String.class, description = L.DESC_COMMAND_BOOK_DESCRIPTION_PARAM),
-                    @CommandParameter(name = "pov", type = String.class, description = L.DESC_COMMAND_BOOK_POV_PARAM),
-                    @CommandParameter(name = "tense", type = String.class, description = L.DESC_COMMAND_BOOK_TENSE_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SET_BOOK_INFO_RETURN))
+                    @CommandParameter(name = "name", type = String.class),
+                    @CommandParameter(name = "description", type = String.class),
+                    @CommandParameter(name = "pov", type = String.class),
+                    @CommandParameter(name = "tense", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SET_BOOK_INFO,
+            description = M_L.DESC_COMMAND_SET_BOOK_INFO,
+            llmDescription = M_L.DESC_COMMAND_SET_BOOK_INFO_LLM,
+            parameters = {@MarginaliaParameterText(name = "name", description = M_L.DESC_COMMAND_BOOK_NAME_PARAM),
+                    @MarginaliaParameterText(name = "description", description = M_L.DESC_COMMAND_BOOK_DESCRIPTION_PARAM),
+                    @MarginaliaParameterText(name = "pov", description = M_L.DESC_COMMAND_BOOK_POV_PARAM),
+                    @MarginaliaParameterText(name = "tense", description = M_L.DESC_COMMAND_BOOK_TENSE_PARAM)},
+            returns = M_L.DESC_COMMAND_SET_BOOK_INFO_RETURN)
     public void setBookInfoTense(CommandContext context) throws Exception {
         setBookInfo(context, context.get("name", String.class), context.get("description", String.class), context.get("pov", String.class), context.get("tense", String.class), null, null);
     }
 
-    @Command(commandName = SET_BOOK_INFO, humanName = L.LABEL_COMMAND_SET_BOOK_INFO,
+    @Command(commandName = SET_BOOK_INFO,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_SET_BOOK_INFO, llmDescription = L.DESC_COMMAND_SET_BOOK_INFO_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "name", type = String.class, description = L.DESC_COMMAND_BOOK_NAME_PARAM),
-                    @CommandParameter(name = "description", type = String.class, description = L.DESC_COMMAND_BOOK_DESCRIPTION_PARAM),
-                    @CommandParameter(name = "pov", type = String.class, description = L.DESC_COMMAND_BOOK_POV_PARAM),
-                    @CommandParameter(name = "tense", type = String.class, description = L.DESC_COMMAND_BOOK_TENSE_PARAM),
-                    @CommandParameter(name = "style", type = String.class, description = L.DESC_COMMAND_BOOK_STYLE_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SET_BOOK_INFO_RETURN))
+                    @CommandParameter(name = "name", type = String.class),
+                    @CommandParameter(name = "description", type = String.class),
+                    @CommandParameter(name = "pov", type = String.class),
+                    @CommandParameter(name = "tense", type = String.class),
+                    @CommandParameter(name = "style", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SET_BOOK_INFO,
+            description = M_L.DESC_COMMAND_SET_BOOK_INFO,
+            llmDescription = M_L.DESC_COMMAND_SET_BOOK_INFO_LLM,
+            parameters = {@MarginaliaParameterText(name = "name", description = M_L.DESC_COMMAND_BOOK_NAME_PARAM),
+                    @MarginaliaParameterText(name = "description", description = M_L.DESC_COMMAND_BOOK_DESCRIPTION_PARAM),
+                    @MarginaliaParameterText(name = "pov", description = M_L.DESC_COMMAND_BOOK_POV_PARAM),
+                    @MarginaliaParameterText(name = "tense", description = M_L.DESC_COMMAND_BOOK_TENSE_PARAM),
+                    @MarginaliaParameterText(name = "style", description = M_L.DESC_COMMAND_BOOK_STYLE_PARAM)},
+            returns = M_L.DESC_COMMAND_SET_BOOK_INFO_RETURN)
     public void setBookInfoStyle(CommandContext context) throws Exception {
         setBookInfo(context, context.get("name", String.class), context.get("description", String.class), context.get("pov", String.class), context.get("tense", String.class), context.get("style", String.class), null);
     }
 
-    @Command(commandName = SET_BOOK_INFO, humanName = L.LABEL_COMMAND_SET_BOOK_INFO,
+    @Command(commandName = SET_BOOK_INFO,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_SET_BOOK_INFO, llmDescription = L.DESC_COMMAND_SET_BOOK_INFO_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "name", type = String.class, description = L.DESC_COMMAND_BOOK_NAME_PARAM),
-                    @CommandParameter(name = "description", type = String.class, description = L.DESC_COMMAND_BOOK_DESCRIPTION_PARAM),
-                    @CommandParameter(name = "pov", type = String.class, description = L.DESC_COMMAND_BOOK_POV_PARAM),
-                    @CommandParameter(name = "tense", type = String.class, description = L.DESC_COMMAND_BOOK_TENSE_PARAM),
-                    @CommandParameter(name = "style", type = String.class, description = L.DESC_COMMAND_BOOK_STYLE_PARAM),
-                    @CommandParameter(name = "language", type = String.class, description = L.DESC_COMMAND_BOOK_LANGUAGE_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SET_BOOK_INFO_RETURN))
+                    @CommandParameter(name = "name", type = String.class),
+                    @CommandParameter(name = "description", type = String.class),
+                    @CommandParameter(name = "pov", type = String.class),
+                    @CommandParameter(name = "tense", type = String.class),
+                    @CommandParameter(name = "style", type = String.class),
+                    @CommandParameter(name = "language", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SET_BOOK_INFO,
+            description = M_L.DESC_COMMAND_SET_BOOK_INFO,
+            llmDescription = M_L.DESC_COMMAND_SET_BOOK_INFO_LLM,
+            parameters = {@MarginaliaParameterText(name = "name", description = M_L.DESC_COMMAND_BOOK_NAME_PARAM),
+                    @MarginaliaParameterText(name = "description", description = M_L.DESC_COMMAND_BOOK_DESCRIPTION_PARAM),
+                    @MarginaliaParameterText(name = "pov", description = M_L.DESC_COMMAND_BOOK_POV_PARAM),
+                    @MarginaliaParameterText(name = "tense", description = M_L.DESC_COMMAND_BOOK_TENSE_PARAM),
+                    @MarginaliaParameterText(name = "style", description = M_L.DESC_COMMAND_BOOK_STYLE_PARAM),
+                    @MarginaliaParameterText(name = "language", description = M_L.DESC_COMMAND_BOOK_LANGUAGE_PARAM)},
+            returns = M_L.DESC_COMMAND_SET_BOOK_INFO_RETURN)
     public void setBookInfoLanguage(CommandContext context) throws Exception {
         setBookInfo(context, context.get("name", String.class), context.get("description", String.class), context.get("pov", String.class), context.get("tense", String.class), context.get("style", String.class), ref(context, "language"));
     }
 
-    @Command(commandName = SET_BOOK_PROMPTS, humanName = L.LABEL_COMMAND_SET_BOOK_PROMPTS,
+    @Command(commandName = SET_BOOK_PROMPTS,
             dataSeverity = CommandDataSeverity.DESTRUCTIVE,
-            description = L.DESC_COMMAND_SET_BOOK_PROMPTS, llmDescription = L.DESC_COMMAND_SET_BOOK_PROMPTS_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "template", type = String.class, description = L.DESC_COMMAND_BOOK_TEMPLATE_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SET_BOOK_PROMPTS_RETURN))
+                    @CommandParameter(name = "template", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SET_BOOK_PROMPTS,
+            description = M_L.DESC_COMMAND_SET_BOOK_PROMPTS,
+            llmDescription = M_L.DESC_COMMAND_SET_BOOK_PROMPTS_LLM,
+            parameters = @MarginaliaParameterText(name = "template", description = M_L.DESC_COMMAND_BOOK_TEMPLATE_PARAM),
+            returns = M_L.DESC_COMMAND_SET_BOOK_PROMPTS_RETURN)
     public void setBookPrompts(CommandContext context) throws Exception {
         setBookPrompts(context, context.get("template", String.class), null, null, null);
     }
 
-    @Command(commandName = SET_BOOK_PROMPTS, humanName = L.LABEL_COMMAND_SET_BOOK_PROMPTS,
+    @Command(commandName = SET_BOOK_PROMPTS,
             dataSeverity = CommandDataSeverity.DESTRUCTIVE,
-            description = L.DESC_COMMAND_SET_BOOK_PROMPTS, llmDescription = L.DESC_COMMAND_SET_BOOK_PROMPTS_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "template", type = String.class, description = L.DESC_COMMAND_BOOK_TEMPLATE_PARAM),
-                    @CommandParameter(name = "userPrompt", type = String.class, description = L.DESC_COMMAND_BOOK_USER_PROMPT_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SET_BOOK_PROMPTS_RETURN))
+                    @CommandParameter(name = "template", type = String.class),
+                    @CommandParameter(name = "userPrompt", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SET_BOOK_PROMPTS,
+            description = M_L.DESC_COMMAND_SET_BOOK_PROMPTS,
+            llmDescription = M_L.DESC_COMMAND_SET_BOOK_PROMPTS_LLM,
+            parameters = {@MarginaliaParameterText(name = "template", description = M_L.DESC_COMMAND_BOOK_TEMPLATE_PARAM),
+                    @MarginaliaParameterText(name = "userPrompt", description = M_L.DESC_COMMAND_BOOK_USER_PROMPT_PARAM)},
+            returns = M_L.DESC_COMMAND_SET_BOOK_PROMPTS_RETURN)
     public void setBookPromptsUserPrompt(CommandContext context) throws Exception {
         setBookPrompts(context, context.get("template", String.class), context.get("userPrompt", String.class), null, null);
     }
 
-    @Command(commandName = SET_BOOK_PROMPTS, humanName = L.LABEL_COMMAND_SET_BOOK_PROMPTS,
+    @Command(commandName = SET_BOOK_PROMPTS,
             dataSeverity = CommandDataSeverity.DESTRUCTIVE,
-            description = L.DESC_COMMAND_SET_BOOK_PROMPTS, llmDescription = L.DESC_COMMAND_SET_BOOK_PROMPTS_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "template", type = String.class, description = L.DESC_COMMAND_BOOK_TEMPLATE_PARAM),
-                    @CommandParameter(name = "userPrompt", type = String.class, description = L.DESC_COMMAND_BOOK_USER_PROMPT_PARAM),
-                    @CommandParameter(name = "summaryPrompt", type = String.class, description = L.DESC_COMMAND_BOOK_SUMMARY_PROMPT_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SET_BOOK_PROMPTS_RETURN))
+                    @CommandParameter(name = "template", type = String.class),
+                    @CommandParameter(name = "userPrompt", type = String.class),
+                    @CommandParameter(name = "summaryPrompt", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SET_BOOK_PROMPTS,
+            description = M_L.DESC_COMMAND_SET_BOOK_PROMPTS,
+            llmDescription = M_L.DESC_COMMAND_SET_BOOK_PROMPTS_LLM,
+            parameters = {@MarginaliaParameterText(name = "template", description = M_L.DESC_COMMAND_BOOK_TEMPLATE_PARAM),
+                    @MarginaliaParameterText(name = "userPrompt", description = M_L.DESC_COMMAND_BOOK_USER_PROMPT_PARAM),
+                    @MarginaliaParameterText(name = "summaryPrompt", description = M_L.DESC_COMMAND_BOOK_SUMMARY_PROMPT_PARAM)},
+            returns = M_L.DESC_COMMAND_SET_BOOK_PROMPTS_RETURN)
     public void setBookPromptsSummaryPrompt(CommandContext context) throws Exception {
         setBookPrompts(context, context.get("template", String.class), context.get("userPrompt", String.class), context.get("summaryPrompt", String.class), null);
     }
 
-    @Command(commandName = SET_BOOK_PROMPTS, humanName = L.LABEL_COMMAND_SET_BOOK_PROMPTS,
+    @Command(commandName = SET_BOOK_PROMPTS,
             dataSeverity = CommandDataSeverity.DESTRUCTIVE,
-            description = L.DESC_COMMAND_SET_BOOK_PROMPTS, llmDescription = L.DESC_COMMAND_SET_BOOK_PROMPTS_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "template", type = String.class, description = L.DESC_COMMAND_BOOK_TEMPLATE_PARAM),
-                    @CommandParameter(name = "userPrompt", type = String.class, description = L.DESC_COMMAND_BOOK_USER_PROMPT_PARAM),
-                    @CommandParameter(name = "summaryPrompt", type = String.class, description = L.DESC_COMMAND_BOOK_SUMMARY_PROMPT_PARAM),
-                    @CommandParameter(name = "metaSummaryPrompt", type = String.class, description = L.DESC_COMMAND_BOOK_META_SUMMARY_PROMPT_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SET_BOOK_PROMPTS_RETURN))
+                    @CommandParameter(name = "template", type = String.class),
+                    @CommandParameter(name = "userPrompt", type = String.class),
+                    @CommandParameter(name = "summaryPrompt", type = String.class),
+                    @CommandParameter(name = "metaSummaryPrompt", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SET_BOOK_PROMPTS,
+            description = M_L.DESC_COMMAND_SET_BOOK_PROMPTS,
+            llmDescription = M_L.DESC_COMMAND_SET_BOOK_PROMPTS_LLM,
+            parameters = {@MarginaliaParameterText(name = "template", description = M_L.DESC_COMMAND_BOOK_TEMPLATE_PARAM),
+                    @MarginaliaParameterText(name = "userPrompt", description = M_L.DESC_COMMAND_BOOK_USER_PROMPT_PARAM),
+                    @MarginaliaParameterText(name = "summaryPrompt", description = M_L.DESC_COMMAND_BOOK_SUMMARY_PROMPT_PARAM),
+                    @MarginaliaParameterText(name = "metaSummaryPrompt", description = M_L.DESC_COMMAND_BOOK_META_SUMMARY_PROMPT_PARAM)},
+            returns = M_L.DESC_COMMAND_SET_BOOK_PROMPTS_RETURN)
     public void setBookPromptsMetaSummaryPrompt(CommandContext context) throws Exception {
         setBookPrompts(context, context.get("template", String.class), context.get("userPrompt", String.class), context.get("summaryPrompt", String.class), context.get("metaSummaryPrompt", String.class));
     }
 
-    @Command(commandName = SET_BOOK_TAGS, humanName = L.LABEL_COMMAND_SET_BOOK_TAGS,
+    @Command(commandName = SET_BOOK_TAGS,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_SET_BOOK_TAGS, llmDescription = L.DESC_COMMAND_SET_BOOK_TAGS_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "add", type = String.class, description = L.DESC_COMMAND_TAGS_ADD_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SET_BOOK_TAGS_RETURN))
+                    @CommandParameter(name = "add", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SET_BOOK_TAGS,
+            description = M_L.DESC_COMMAND_SET_BOOK_TAGS,
+            llmDescription = M_L.DESC_COMMAND_SET_BOOK_TAGS_LLM,
+            parameters = @MarginaliaParameterText(name = "add", description = M_L.DESC_COMMAND_TAGS_ADD_PARAM),
+            returns = M_L.DESC_COMMAND_SET_BOOK_TAGS_RETURN)
     public void setBookTags(CommandContext context) throws Exception {
         setBookTags(context, context.get("add", String.class), null);
     }
 
-    @Command(commandName = SET_BOOK_TAGS, humanName = L.LABEL_COMMAND_SET_BOOK_TAGS,
+    @Command(commandName = SET_BOOK_TAGS,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_SET_BOOK_TAGS, llmDescription = L.DESC_COMMAND_SET_BOOK_TAGS_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "add", type = String.class, description = L.DESC_COMMAND_TAGS_ADD_PARAM),
-                    @CommandParameter(name = "remove", type = String.class, description = L.DESC_COMMAND_TAGS_REMOVE_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SET_BOOK_TAGS_RETURN))
+                    @CommandParameter(name = "add", type = String.class),
+                    @CommandParameter(name = "remove", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SET_BOOK_TAGS,
+            description = M_L.DESC_COMMAND_SET_BOOK_TAGS,
+            llmDescription = M_L.DESC_COMMAND_SET_BOOK_TAGS_LLM,
+            parameters = {@MarginaliaParameterText(name = "add", description = M_L.DESC_COMMAND_TAGS_ADD_PARAM),
+                    @MarginaliaParameterText(name = "remove", description = M_L.DESC_COMMAND_TAGS_REMOVE_PARAM)},
+            returns = M_L.DESC_COMMAND_SET_BOOK_TAGS_RETURN)
     public void setBookTagsRemove(CommandContext context) throws Exception {
         setBookTags(context, context.get("add", String.class), context.get("remove", String.class));
     }
 
-    @Command(commandName = SET_BOOK_HISTORY_LIMIT, humanName = L.LABEL_COMMAND_SET_BOOK_HISTORY_LIMIT,
+    @Command(commandName = SET_BOOK_HISTORY_LIMIT,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_SET_BOOK_HISTORY_LIMIT, llmDescription = L.DESC_COMMAND_SET_BOOK_HISTORY_LIMIT_LLM,
             signature = @CommandParameterSignature,
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SET_BOOK_HISTORY_LIMIT_RETURN))
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SET_BOOK_HISTORY_LIMIT,
+            description = M_L.DESC_COMMAND_SET_BOOK_HISTORY_LIMIT,
+            llmDescription = M_L.DESC_COMMAND_SET_BOOK_HISTORY_LIMIT_LLM,
+            returns = M_L.DESC_COMMAND_SET_BOOK_HISTORY_LIMIT_RETURN)
     public void removeBookHistoryLimit(CommandContext context) throws Exception {
         setBookHistoryLimit(context, -1);
     }
 
-    @Command(commandName = SET_BOOK_HISTORY_LIMIT, humanName = L.LABEL_COMMAND_SET_BOOK_HISTORY_LIMIT,
+    @Command(commandName = SET_BOOK_HISTORY_LIMIT,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_SET_BOOK_HISTORY_LIMIT, llmDescription = L.DESC_COMMAND_SET_BOOK_HISTORY_LIMIT_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "maxVersions", type = Integer.class, min = "0", description = L.DESC_COMMAND_HISTORY_MAX_VERSIONS_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SET_BOOK_HISTORY_LIMIT_RETURN))
+                    @CommandParameter(name = "maxVersions", type = Integer.class, min = "0")}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SET_BOOK_HISTORY_LIMIT,
+            description = M_L.DESC_COMMAND_SET_BOOK_HISTORY_LIMIT,
+            llmDescription = M_L.DESC_COMMAND_SET_BOOK_HISTORY_LIMIT_LLM,
+            parameters = @MarginaliaParameterText(name = "maxVersions", description = M_L.DESC_COMMAND_HISTORY_MAX_VERSIONS_PARAM),
+            returns = M_L.DESC_COMMAND_SET_BOOK_HISTORY_LIMIT_RETURN)
     public void setBookHistoryLimit(CommandContext context) throws Exception {
         int maxVersions = context.get("maxVersions", Integer.class);
         if (maxVersions < 0) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_HISTORY_LIMIT_NEGATIVE));
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_COMMAND_HISTORY_LIMIT_NEGATIVE));
         }
         setBookHistoryLimit(context, maxVersions);
     }
@@ -197,7 +274,7 @@ public class BookSettingsCommands extends ManuscriptWriteSupport {
         ManuscriptService.BookSettings changes = new ManuscriptService.BookSettings().name(name).description(description)
                 .pov(pov).tense(tense).style(style).language(language == null ? null : language(language));
         if (name == null && description == null && pov == null && tense == null && style == null && language == null) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_NOTHING_TO_CHANGE));
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_COMMAND_NOTHING_TO_CHANGE));
         }
         ManuscriptService.SettingsSaved saved = manuscriptService.updateSettings(book.manuscript, changes);
         Manuscript manuscript = saved.manuscript();
@@ -216,9 +293,9 @@ public class BookSettingsCommands extends ManuscriptWriteSupport {
                                 String metaSummaryPrompt) throws Exception {
         Book book = new Book(context);
         if (template == null && userPrompt == null && summaryPrompt == null && metaSummaryPrompt == null) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_NOTHING_TO_CHANGE));
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_COMMAND_NOTHING_TO_CHANGE));
         }
-        if (!confirmed(context, loc.getValue(L.MSG_COMMAND_SET_PROMPTS_CONFIRM))) {
+        if (!confirmed(context, loc.getValue(M_L.MSG_COMMAND_SET_PROMPTS_CONFIRM))) {
             return;
         }
         ManuscriptService.SettingsSaved saved = manuscriptService.updateSettings(book.manuscript,
@@ -262,7 +339,7 @@ public class BookSettingsCommands extends ManuscriptWriteSupport {
     private void setBookTags(CommandContext context, String add, String remove) throws Exception {
         Book book = new Book(context);
         if (add == null && remove == null) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_NOTHING_TO_CHANGE));
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_COMMAND_NOTHING_TO_CHANGE));
         }
         Manuscript manuscript = book.manuscript;
         List<Tag> current = tagRelationService.getTagsForObject(manuscript);
@@ -290,6 +367,6 @@ public class BookSettingsCommands extends ManuscriptWriteSupport {
         String wanted = text.strip();
         return Arrays.stream(Language.values())
                 .filter(l -> l.getCode().equalsIgnoreCase(wanted) || l.getDisplayName().equalsIgnoreCase(wanted) || l.name().equalsIgnoreCase(wanted))
-                .findFirst().orElseThrow(() -> new IllegalArgumentException(String.format(loc.getValue(L.ERROR_COMMAND_UNKNOWN_LANGUAGE), text)));
+                .findFirst().orElseThrow(() -> new IllegalArgumentException(String.format(loc.getValue(M_L.ERROR_COMMAND_UNKNOWN_LANGUAGE), text)));
     }
 }

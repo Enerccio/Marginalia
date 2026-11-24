@@ -25,7 +25,7 @@ Cleanup can't be undone, what it removes is gone from the [Trash](../trash.md) t
 Cleanup covers the data of all users.
 
 Cleanup deletes entries from the database, and only the files of [agents](../agents.md): the workspace of a purged
-agent and the folder of a purged run. The files of deleted [resources](../resources.md) (pictures of the parts) stay in
+agent and the folder of a purged run. The files of deleted and unused [resources](../resources.md) (pictures of the parts, audio) stay in
 the data folder of their owner until you remove them in the [Resource Files](resource-files.md) tab.
 
 ## Seeing what is deleted
@@ -61,6 +61,13 @@ Cleanup removes deleted objects that nothing alive uses any more, together with 
 | an inference provider or protocol | cleared from the users' defaults in *Settings* |
 | a tag | its links to books and entries |
 | a user | everything they owned: books (with their story parts and summaries), lorebooks, inference providers, protocols, tags and settings |
+
+Cleanup also removes the [resources](../resources.md) that nothing uses any more, though nobody deleted them: files
+added to an object (the audio of an [audiobook](../extensions/audiobook.md), a picture of a part) whose object is gone
+from the database, or is removed by this cleanup, when no other object names them either. A branch made from the part
+has the same pictures and clips, so they stay while the branch exists; so do the files named by a deleted object that is
+still in the trash. They count in **To purge** of `Resource`, not in *Deleted*. A file that is not used by any object
+(*nothing* in the Resources tab) is kept.
 
 ## What is kept
 

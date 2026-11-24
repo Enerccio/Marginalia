@@ -4,7 +4,7 @@ import com.github.enerccio.marginalia.domain.components.BookAuthorship;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.MessageRevisionService;
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.button.Button;
@@ -38,11 +38,11 @@ public class AuthorshipField extends TextField {
      */
     public AuthorshipField(Supplier<Manuscript> book) {
         this.book = book;
-        setLabel(loc.getValue(L.LABEL_AUTHORSHIP));
-        setHelperText(loc.getValue(L.HELP_AUTHORSHIP));
+        setLabel(loc.getValue(M_L.LABEL_AUTHORSHIP));
+        setHelperText(loc.getValue(M_L.HELP_AUTHORSHIP));
         setWidthFull();
         setReadOnly(true);
-        Button calculate = new Button(loc.getValue(L.LABEL_CALCULATE), _ -> calculate());
+        Button calculate = new Button(loc.getValue(M_L.LABEL_CALCULATE), _ -> calculate());
         setSuffixComponent(calculate);
     }
 
@@ -57,13 +57,13 @@ public class AuthorshipField extends TextField {
         try {
             Manuscript manuscript = book.get();
             if (manuscript == null || manuscript.getActiveLeaf() == null) {
-                setValue(String.format(loc.getValue(L.MSG_AUTHORSHIP_RATIO), 0, 0, 0));
+                setValue(String.format(loc.getValue(M_L.MSG_AUTHORSHIP_RATIO), 0, 0, 0));
                 return;
             }
             BookAuthorship authorship = messageRevisionService.authorship(chatMessageService.getBranchFromLeaf(manuscript.getActiveLeaf()));
             long generated = Math.round(authorship.generatedShare() * 100);
             long written = authorship.totalWords() == 0 ? 0 : 100 - generated;
-            setValue(String.format(loc.getValue(L.MSG_AUTHORSHIP_RATIO), written, generated, authorship.totalWords()));
+            setValue(String.format(loc.getValue(M_L.MSG_AUTHORSHIP_RATIO), written, generated, authorship.totalWords()));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }

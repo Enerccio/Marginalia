@@ -10,6 +10,8 @@ public class Actor extends Role {
 
     private String id = UUID.randomUUID().toString();
     private String name = "";
+    /** A note of the user shown under the name in the pickers of an actor (the character they play, any tag); empty for none. */
+    private String tagline = "";
 
     public String getId() {
         return id;
@@ -25,5 +27,13 @@ public class Actor extends Role {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getTagline() {
+        return tagline == null ? "" : tagline;
+    }
+
+    public void setTagline(String tagline) {
+        this.tagline = tagline;
     }
 }

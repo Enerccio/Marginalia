@@ -17,7 +17,6 @@ import com.github.enerccio.marginalia.ui.widgets.TemplateHints;
 import com.github.enerccio.marginalia.ui.widgets.TextAreaPopoverComponent;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
-import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -53,6 +52,7 @@ public class AudiobookSettingsForm extends VerticalLayout {
     private final Select<BackendConfig> picker = new Select<>();
     private final Button addButton = new Button(Solid.PLUS.create(), e -> addBackend());
     private final Button deleteButton = new Button(Solid.TRASH.create(), e -> deleteBackend());
+    private final Button duplicateButton = new Button(Solid.COPY.create(), e -> duplicateBackend());
 
     private final Select<Actor> actorPicker = new Select<>();
     private final Button editActor = new Button(Solid.PEN.create(), e -> openActor(actorPicker.getValue()));
@@ -66,12 +66,16 @@ public class AudiobookSettingsForm extends VerticalLayout {
 
     private final BackendEditor editor;
     private final VerticalLayout ownSection = new VerticalLayout();
+    private final RecognizerEditor recognizer;
+    private final CleanupEditor cleanup;
     private final Select<BackendConfig> inUse = new Select<>();
     private final Span ownDisabled = new Span(T.localized(OWN_SPEECH_SERVERS_ARE_OFF));
 
     public AudiobookSettingsForm(AudiobookService service) {
         this.service = service;
         this.editor = new BackendEditor(service);
+        this.recognizer = new RecognizerEditor(service);
+        this.cleanup = new CleanupEditor(service);
 
         setWidthFull();
         setPadding(true);
@@ -90,16 +94,27 @@ public class AudiobookSettingsForm extends VerticalLayout {
                 refreshInUse();
             }
         });
+        editor.onRename(() -> {
+            if (current != null) {
+                picker.getListDataView().refreshItem(current);
+                if (inUse.getListDataView().contains(current)) {
+                    inUse.getListDataView().refreshItem(current);
+                }
+            }
+        });
         addButton.setThemeName("tertiary icon");
         addButton.setTooltipText(T.localized(ADD_A_BACKEND));
         deleteButton.setThemeName("tertiary icon");
         deleteButton.setTooltipText(T.localized(DELETE_THE_BACKEND));
-        HorizontalLayout bar = new HorizontalLayout(picker, addButton, deleteButton);
+        duplicateButton.setThemeName("tertiary icon");
+        duplicateButton.setTooltipText(T.localized(DUPLICATE_THE_BACKEND));
+        HorizontalLayout bar = new HorizontalLayout(picker, addButton, duplicateButton, deleteButton);
         bar.setAlignItems(FlexComponent.Alignment.END);
 
 
         actorPicker.setLabel(T.localized(ACTORS));
         actorPicker.setItemLabelGenerator(ActorDialog::nameOf);
+        ActorDialog.showTaglines(actorPicker);
         actorPicker.setWidth("20em");
         actorPicker.addValueChangeListener(e -> updateActorButtons());
         for (Button button : List.of(editActor, newActor, deleteActor)) {
@@ -108,7 +123,9 @@ public class AudiobookSettingsForm extends VerticalLayout {
         editActor.setTooltipText(T.localized(EDIT_THE_ACTOR));
         newActor.setTooltipText(T.localized(NEW_ACTOR));
         deleteActor.setTooltipText(T.localized(DELETE_THE_ACTOR));
-        HorizontalLayout actorBar = new HorizontalLayout(actorPicker, editActor, newActor, deleteActor);
+        Button voices = new Button(T.localized(VOICES_AND_CLIPS), Solid.MICROPHONE_LINES.create(), e -> openVoices());
+        voices.setThemeName("tertiary");
+        HorizontalLayout actorBar = new HorizontalLayout(actorPicker, editActor, newActor, deleteActor, voices);
         actorBar.setAlignItems(FlexComponent.Alignment.END);
         Span actorHelp = new Span(T.localized(ACTORS_HELP));
         actorHelp.addClassName(CssStyles.HINT_TEXT);
@@ -162,7 +179,7 @@ public class AudiobookSettingsForm extends VerticalLayout {
         ownSection.setSpacing(true);
         ownSection.add(bar, editor);
 
-        add(help, inUse, ownSection, ownDisabled, actorSection, autoSection, normalizeSection, labelSection);
+        add(help, inUse, ownSection, ownDisabled, actorSection, recognizer, cleanup, autoSection, normalizeSection, labelSection);
         if (service.isAdmin()) {
             add(sharedSection(), storageSection());
         }
@@ -217,7 +234,7 @@ public class AudiobookSettingsForm extends VerticalLayout {
         ownDisabled.setVisible(!own);
         binding = true;
         try {
-            picker.setItems(backends);
+            picker.setItems(BackendConfig.byName(backends));
             BackendConfig first = settings.find(settings.getSelectedBackendId());
             current = first != null ? first : backends.stream().findFirst().orElse(null);
             picker.setValue(current);
@@ -231,6 +248,8 @@ public class AudiobookSettingsForm extends VerticalLayout {
         labelPrompt.setValue(StringUtils.defaultString(settings.getLabelPrompt()));
         normalize.setValue(settings.isNormalizeLoudness());
         targetLufs.setValue(settings.getTargetLufs());
+        recognizer.show(settings.getRecognizer());
+        cleanup.show(settings.getCleanup());
     }
 
     /** Fills the box of the backend in use: the shared ones the user may use and their own (those on the form, saved or not). */
@@ -241,7 +260,7 @@ public class AudiobookSettingsForm extends VerticalLayout {
         if (service.usersMayAddOwn()) {
             items.addAll(backends);
         }
-        inUse.setItems(items);
+        inUse.setItems(BackendConfig.byName(items));
         BackendConfig value = items.stream().filter(b -> b.getId().equals(keptId)).findFirst().orElse(items.stream().findFirst().orElse(null));
         inUse.setValue(value);
     }
@@ -267,20 +286,23 @@ public class AudiobookSettingsForm extends VerticalLayout {
     }
 
     private void confirmDeleteActor() {
-        Actor doomed = actorPicker.getValue();
-        if (doomed == null) {
-            return;
+        ActorDialog.confirmDelete(service, actorPicker.getValue(), () -> showActors(service.getSettings(), null));
+    }
+
+    private void openVoices() {
+        new VoicesDialog(service, () -> showActors(service.getSettings(), actorPicker.getValue() == null ? null : actorPicker.getValue().getId()),
+                this::voiceReplaced).open();
+    }
+
+    /** A clip replaced in Voices and clips: the backends of the form (saved with the page) follow, so the save does not put the old clip back. */
+    private void voiceReplaced(String from, String to) {
+        commit();
+        for (BackendConfig backend : backends) {
+            if (from.equals(backend.getNarratorVoice().strip())) {
+                backend.setNarratorVoice(to);
+            }
         }
-        ConfirmDialog confirm = new ConfirmDialog();
-        confirm.setHeader(T.localized(DELETE_THE_ACTOR));
-        confirm.setText(T.localized(THE_ACTOR_IS_DELETED).formatted(ActorDialog.nameOf(doomed)));
-        confirm.setCancelable(true);
-        confirm.setConfirmText(T.localized(DELETE));
-        confirm.addConfirmListener(e -> {
-            service.deleteActor(doomed.getId());
-            showActors(service.getSettings(), null);
-        });
-        confirm.open();
+        show(current);
     }
 
     /** The stored settings with what the form shows. */
@@ -295,6 +317,8 @@ public class AudiobookSettingsForm extends VerticalLayout {
         stored.setNormalizeLoudness(normalize.getValue());
         stored.setTargetLufs(targetLufs.getValue());
         stored.setSelectedBackendId(inUse.getValue() == null ? null : inUse.getValue().getId());
+        stored.setRecognizer(recognizer.commit());
+        stored.setCleanup(cleanup.commit());
         return stored;
     }
 
@@ -307,7 +331,25 @@ public class AudiobookSettingsForm extends VerticalLayout {
         backends.add(created);
         binding = true;
         try {
-            picker.setItems(backends);
+            picker.setItems(BackendConfig.byName(backends));
+            picker.setValue(created);
+        } finally {
+            binding = false;
+        }
+        show(created);
+        refreshInUse();
+    }
+
+    private void duplicateBackend() {
+        if (current == null) {
+            return;
+        }
+        commit();
+        BackendConfig created = current.duplicate(T.localized(COPY_OF).formatted(current.getName()));
+        backends.add(created);
+        binding = true;
+        try {
+            picker.setItems(BackendConfig.byName(backends));
             picker.setValue(created);
         } finally {
             binding = false;
@@ -324,7 +366,7 @@ public class AudiobookSettingsForm extends VerticalLayout {
         current = null;
         binding = true;
         try {
-            picker.setItems(backends);
+            picker.setItems(BackendConfig.byName(backends));
             BackendConfig next = backends.isEmpty() ? null : backends.getFirst();
             picker.setValue(next);
             current = next;
@@ -339,6 +381,7 @@ public class AudiobookSettingsForm extends VerticalLayout {
     private void show(BackendConfig config) {
         current = config;
         deleteButton.setEnabled(config != null);
+        duplicateButton.setEnabled(config != null);
         editor.show(config);
     }
 

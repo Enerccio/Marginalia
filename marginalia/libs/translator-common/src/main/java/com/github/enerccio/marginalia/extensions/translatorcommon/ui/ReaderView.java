@@ -1,6 +1,6 @@
 package com.github.enerccio.marginalia.extensions.translatorcommon.ui;
 
-import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.AnchoredPassage;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.extensions.translatorcommon.model.ReaderMode;
@@ -60,7 +60,7 @@ public final class ReaderView {
         // the popover is placed against this part, over the mark that was clicked
         view.addClassName(CommonStyles.READER_PART);
         Div anchor = new Div();
-        anchor.addClassName(CssStyles.ANNOTATION_ANCHOR);
+        anchor.addClassName(MarginaliaCssStyles.ANNOTATION_ANCHOR);
         view.add(anchor);
         view.getElement().executeJs(CLICK_SCRIPT, view.getElement(), anchor.getElement(), ReaderText.MARK_ATTRIBUTE, CLICK_EVENT);
         view.getElement().addEventListener(CLICK_EVENT, event -> {

@@ -1,10 +1,9 @@
 package com.github.enerccio.marginalia.extensions.knowledgetracker.process;
 
-import com.github.enerccio.marginalia.extensions.knowledgetracker.model.ItemKind;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.model.KnowledgeItem;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.model.KnowledgeState;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.model.MetPerson;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.model.TrackedCharacter;
+import com.github.enerccio.marginalia.extensions.knowledgetracker.model.*;
+import com.github.enerccio.marginalia.extensions.storytracker.process.BranchProcessor;
+import com.github.enerccio.marginalia.extensions.storytracker.process.Part;
+import com.github.enerccio.marginalia.extensions.storytracker.process.TextHash;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

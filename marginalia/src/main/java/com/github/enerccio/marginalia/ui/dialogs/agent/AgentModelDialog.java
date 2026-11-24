@@ -10,6 +10,7 @@ import com.github.enerccio.marginalia.domain.traits.APIReturn;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.domain.traits.PublicAPI;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
 import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
@@ -82,27 +83,27 @@ public class AgentModelDialog extends Dialog {
                     @APILocals(name = "okButton", type = Button.class),
                     @APILocals(name = "footer", type = HorizontalLayout.class)})
     public void create() {
-        setHeaderTitle(loc.getValue(main ? L.LABEL_AGENT_MAIN_MODEL : L.LABEL_AGENT_MODELS));
+        setHeaderTitle(loc.getValue(main ? M_L.LABEL_AGENT_MAIN_MODEL : M_L.LABEL_AGENT_MODELS));
         setWidth("900px");
         setMaxWidth("96vw");
         UIUtils.fitPhone(this, true);
         setCloseOnEsc(false);
         setCloseOnOutsideClick(false);
 
-        roleField = new TextField(loc.getValue(L.LABEL_ROLE));
+        roleField = new TextField(loc.getValue(M_L.LABEL_ROLE));
         roleField.setRequiredIndicatorVisible(true);
         roleField.setWidthFull();
         modelPicker = new ModelProtocolPicker();
         descriptionField = new TextArea(loc.getValue(L.LABEL_DESCRIPTION));
         descriptionField.setWidthFull();
         descriptionField.setMinHeight("5em");
-        toolsCheckbox = new Checkbox(loc.getValue(L.LABEL_AGENT_MODEL_TOOLS), true);
-        toolsCheckbox.setHelperText(loc.getValue(L.HELP_AGENT_MODEL_TOOLS));
-        contextLimitField = new IntegerField(loc.getValue(L.LABEL_CONTEXT_LIMIT));
+        toolsCheckbox = new Checkbox(loc.getValue(M_L.LABEL_AGENT_MODEL_TOOLS), true);
+        toolsCheckbox.setHelperText(loc.getValue(M_L.HELP_AGENT_MODEL_TOOLS));
+        contextLimitField = new IntegerField(loc.getValue(M_L.LABEL_CONTEXT_LIMIT));
         contextLimitField.setMin(1);
         contextLimitField.setWidthFull();
-        limitCommandsCheckbox = new Checkbox(loc.getValue(L.LABEL_AGENT_LIMIT_COMMANDS));
-        limitCommandsCheckbox.setHelperText(loc.getValue(L.HELP_AGENT_MODEL_COMMANDS));
+        limitCommandsCheckbox = new Checkbox(loc.getValue(M_L.LABEL_AGENT_LIMIT_COMMANDS));
+        limitCommandsCheckbox.setHelperText(loc.getValue(M_L.HELP_AGENT_MODEL_COMMANDS));
         commandsEditor = new AgentCommandsEditor();
         commandsEditor.setWidthFull();
         limitCommandsCheckbox.addValueChangeListener(event -> commandsEditor.setVisible(event.getValue()));

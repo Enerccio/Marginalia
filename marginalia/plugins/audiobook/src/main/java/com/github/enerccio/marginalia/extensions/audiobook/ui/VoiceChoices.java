@@ -29,7 +29,7 @@ public class VoiceChoices {
     public AudiobookService.Clip upload(String filename, byte[] content, String contentType) {
         AudiobookService.Clip clip = service.uploadClip(filename, content, contentType);
         clips.add(clip);
-        clips.sort(java.util.Comparator.comparing(AudiobookService.Clip::name, String.CASE_INSENSITIVE_ORDER));
+        clips.sort(AudiobookService.Clip.order());
         new ArrayList<>(listeners).forEach(Runnable::run);
         return clip;
     }
@@ -49,7 +49,7 @@ public class VoiceChoices {
         }
         if (voice.startsWith("clip:")) {
             String uuid = voice.substring("clip:".length());
-            return clips.stream().filter(c -> c.uuid().equals(uuid)).map(c -> "♪ " + c.name()).findFirst().orElse("♪ ?");
+            return clips.stream().filter(c -> c.uuid().equals(uuid)).map(c -> "♪ " + c.label()).findFirst().orElse("♪ ?");
         }
         return voice.startsWith("predefined:") ? voice.substring("predefined:".length()) : voice;
     }

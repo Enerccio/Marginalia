@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain;
 
+import com.github.enerccio.marginalia.architecture.ModuleClasses;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -36,17 +37,20 @@ class StoredTextReadersTest {
     }
 
     private static Set<String> found() throws IOException {
-        Path root = Path.of("src/main/java");
-        assertThat(root).as("the sources of the application, the tests run in its folder").isDirectory();
-        try (Stream<Path> files = Files.walk(root)) {
-            return files.filter(path -> path.toString().endsWith(".java")).filter(path -> {
-                try {
-                    return READS_STORED_TEXT.matcher(Files.readString(path, StandardCharsets.UTF_8)).find();
-                } catch (IOException e) {
-                    throw new IllegalStateException(e);
-                }
-            }).map(path -> root.relativize(path).toString().replace('\\', '/')).collect(Collectors.toCollection(TreeSet::new));
+        Set<String> found = new TreeSet<>();
+        for (Path root : ModuleClasses.SOURCES) {
+            assertThat(root).as("the sources of the platform and the application, the tests run in its folder").isDirectory();
+            try (Stream<Path> files = Files.walk(root)) {
+                files.filter(path -> path.toString().endsWith(".java")).filter(path -> {
+                    try {
+                        return READS_STORED_TEXT.matcher(Files.readString(path, StandardCharsets.UTF_8)).find();
+                    } catch (IOException e) {
+                        throw new IllegalStateException(e);
+                    }
+                }).map(path -> root.relativize(path).toString().replace('\\', '/')).forEach(found::add);
+            }
         }
+        return found;
     }
 
     @Test

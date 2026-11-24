@@ -74,26 +74,54 @@ Rules to remember:
 
 ## Texts
 
-Every text a command shows is given in two ways, as a pair of attributes:
+Every text a command shows is given in two ways: as a localization key, resolved in the language of the user every time
+it is shown (`CommandText.get(loc)`), or as a plain text, for an extension that brings no translations and shown as it is.
 
-| Attribute (localized)                      | Attribute (plain text)                         | Used for                                                     |
-|--------------------------------------------|------------------------------------------------|--------------------------------------------------------------|
-| `@Command.humanName`                       | `@Command.humanNameText`                       | Name shown to the user (required: one of the two)            |
-| `@Command.description`                     | `@Command.descriptionText`                     | What the command does, for the user                          |
-| `@Command.llmDescription`                  | `@Command.llmDescriptionText`                  | What it does and when to use it, for an agent                |
-| `@CommandParameter.description`            | `@CommandParameter.descriptionText`            | What the parameter is, in the help                           |
-| `@CommandReturn.description`               | `@CommandReturn.descriptionText`               | What the returned value is, in the help                      |
+| Localized (text annotation)        | Plain text                          | Used for                                                     |
+|------------------------------------|-------------------------------------|--------------------------------------------------------------|
+| `humanName`                        | `@Command.humanNameText`            | Name shown to the user (required: one of the two)            |
+| `description`                      | `@Command.descriptionText`          | What the command does, for the user                          |
+| `llmDescription`                   | `@Command.llmDescriptionText`       | What it does and when to use it, for an agent                |
+| `parameters` (by parameter name)   | `@CommandParameter.descriptionText` | What the parameter is, in the help                           |
+| `returns`                          | `@CommandReturn.descriptionText`    | What the returned value is, in the help                      |
 
-The localized one takes an `L` key and is resolved in the language of the user every time it is shown (`CommandText.get(loc)`),
-so the application's own commands use it (`humanName = L.LABEL_COMMAND_TAKE_BACKUP`; the key goes to `L` and to the English,
-Japanese and Chinese bundles as usual). The plain one is for an extension that brings no translations and is shown as it is.
-The identifiers (`commandName`, a parameter's `name`, the return `name`) are not texts and stay strings.
+The plain texts are elements of `@Command` and its nested annotations. The keys are in a second annotation on the same
+method, a **text annotation**: an annotation element holds one enum type, so each layer has its own, typed with its own
+key enum and marked with `@CommandTextSource`, and the registry finds it by that mark and reads its elements by name.
+The application's commands use `@MarginaliaCommandTexts` (`M_L` keys, a parameter's text is a
+`@MarginaliaParameterText`), the platform's `@CommandTexts` (`L` keys, `@CommandParameterText`):
 
-The attributes are arrays only so that "not given" can be told from "given" (the default is the empty array); write the value
-alone: `humanName = L.LABEL_X`, `humanNameText = "X"`. The human name needs one of the two; the other texts are optional. A pair may hold only one value: both
-attributes of a pair, more than one element, or none for the human name make `registerCommands` throw `IllegalArgumentException` that names the
-method and the attribute. The registry keeps each as a `CommandText` (`key()` or `text()`, `isEmpty()`, `get(...)`); an
-annotation attribute needs an enum constant, so use `L.X` directly there, not a constant that holds it.
+```java
+@Command(commandName = "scan-phrases", async = true, dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+        signature = @CommandParameterSignature({@CommandParameter(name = "from", type = String.class),
+                @CommandParameter(name = "to", type = String.class)}),
+        returns = @CommandReturn(name = "result", type = String.class))
+@MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_SCAN_PHRASES,
+        description = M_L.DESC_COMMAND_SCAN_PHRASES,
+        llmDescription = M_L.DESC_COMMAND_SCAN_PHRASES_LLM,
+        parameters = {@MarginaliaParameterText(name = "from", description = M_L.DESC_COMMAND_SCAN_PHRASES_FROM_PARAM),
+                @MarginaliaParameterText(name = "to", description = M_L.DESC_COMMAND_SCAN_PHRASES_TO_PARAM)},
+        returns = M_L.DESC_COMMAND_SCAN_PHRASES_RETURN)
+public void scanPhrases(CommandContext context) { ... }
+```
+
+The keys go to `M_L` and the `MarginaliaLocalizationBundle*` classes as usual. A layer above the platform that has
+commands declares its own text annotation the same way: the elements `humanName`, `description`, `llmDescription`,
+`returns` (arrays of its keys) and `parameters` (an array of an annotation with `String name()` and a `description()`
+array of keys), and `@CommandTextSource` on the annotation type. The identifiers (`commandName`, a parameter's `name`,
+the return `name`) are not texts and stay strings.
+
+The elements are arrays only so that "not given" can be told from "given" (the default is the empty array); write the value
+alone: `humanName = M_L.LABEL_X`, `humanNameText = "X"`. The human name needs one of the two; the other texts are optional.
+`registerCommands` throws `IllegalArgumentException` naming the method for: both texts of a pair, more than one element,
+none for the human name, two text annotations on one method, a text annotation without one of the elements, a
+parameter text whose name is not in the signature, or a parameter described twice. The registry keeps each text as a
+`CommandText` (`key()`, any `LocalizationKey`, or `text()`, `isEmpty()`, `get(...)`); an annotation element needs an
+enum constant, so use `M_L.X` directly there, not a constant that holds it.
+
+The variables of a template's data are described the same way: `@MarginaliaTemplateDescription(loc = M_L.X)` on the
+field or its getter (`@LocalizedTemplateDescription` with an `L` key for the platform's), both marked
+`@TemplateDescriptionSource` and read by `LocalizedAnnotations.templateDescription`.
 
 ## Data severity
 
@@ -168,7 +196,7 @@ carried by `CommandDataSeverity.getLabel()`/`getDescription()`.
 ```java
 @Command(commandName = "book-title", humanNameText = "Title of the open book", returns = @CommandReturn(name = "title", type = String.class))
 public void title(CommandContext context) {
-    Manuscript book = context.getScope().getManuscript();
+    Manuscript book = CommandScope.of(context).getManuscript();
     if (book == null) {
         context.fail(new IllegalStateException("No book is open"));
         return;
@@ -177,10 +205,10 @@ public void title(CommandContext context) {
 }
 ```
 
-`getScope().getManuscript()` returns `null` when nothing is open (no workspace yet, no book). The same code works in the desktop and in
+`CommandScope.of(context)` is the scope of the book (`context.getScope()` itself is the platform's `BaseCommandScope`, which only knows `isAgent()` and `confirm`). `getManuscript()` returns `null` when nothing is open (no workspace yet, no book). The same code works in the desktop and in
 the phone layout and for an agent, whose scope is its working copy (see [The scope](index.md#the-scope)); a command that must work for
 agents takes the book from the scope and does not go through the workspace or the open window itself. An item that is given to the command
-(a part, a lorebook, an entry) is found with `getScope().resolveMessage(uuid)` and its siblings, which keep the command inside the book.
+(a part, a lorebook, an entry) is found with `CommandScope.of(context).resolveMessage(uuid)` and its siblings, which keep the command inside the book.
 Use the services for data; they check ownership of the current user.
 
 ## Failing
@@ -220,7 +248,7 @@ Tell the user what is going on with `context.setStatus("Taking a backup of Dune"
 advances, `null` clears a line.
 
 `progressInStory = true` is for a command that generates a part of the story and shows it there itself, through
-`context.getScope().getGenerationView()` (see [The command bar](command-bar.md#running-and-asynchronous-commands)): the bar of the
+`CommandScope.of(context).getGenerationView()` (see [The command bar](command-bar.md#running-and-asynchronous-commands)): the bar of the
 story then opens no progress window for it. Only the core's `next`, `swipe` and `regenerate` use it; it requires `async`.
 
 Blocking calls (`Thread.sleep`, a network call) are interrupted when the run is cancelled; let the `InterruptedException`
@@ -231,10 +259,10 @@ does, the call is ignored.
 
 ### The application
 
-Add the suite in `CommandServiceImpl.afterPropertiesSet`:
+Add the suite in `impl.commands.BuiltInCommands.install` (a bean of the application; the command framework itself registers nothing):
 
 ```java
-registerCommands(new BackupCommands());
+commandService.registerCommands(new BackupCommands());
 ```
 
 The application's suites are plain objects, not Spring beans, and are created with `new`; one that needs services is
@@ -315,7 +343,7 @@ only after the answer. `/search-replace-parts` and `/search-replace-lore-entries
 
 ## Checklist
 
-- [ ] Each form has `description`, `llmDescription` (as `L` keys when the texts are translated), `signature`, `returns`.
+- [ ] Each form has `description`, `llmDescription` (as keys of the text annotation when the texts are translated), `signature`, `returns`.
 - [ ] Each command declares `dataSeverity` (`NON_DESTRUCTIVE` only when nothing that exists is changed or removed).
 - [ ] The suite has no state of a run or a user in fields.
 - [ ] `async` commands look at `isTerminated()`.

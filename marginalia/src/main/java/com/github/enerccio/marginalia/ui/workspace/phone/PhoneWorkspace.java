@@ -2,11 +2,14 @@ package com.github.enerccio.marginalia.ui.workspace.phone;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.service.UserService;
 import com.github.enerccio.marginalia.domain.service.AgentService;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.LLMInteract;
@@ -126,13 +129,13 @@ public class PhoneWorkspace implements Workspace {
         tabs.setOrientation(Tabs.Orientation.VERTICAL);
         tabs.setWidthFull();
 
-        addTab(L.LABEL_BOOKS, manuscriptPart);
-        addTab(L.LABEL_LOREBOOKS, lorebookPart);
-        addTab(L.LABEL_SETTINGS, settingsPart);
+        addTab(M_L.LABEL_BOOKS, manuscriptPart);
+        addTab(M_L.LABEL_LOREBOOKS, lorebookPart);
+        addTab(M_L.LABEL_SETTINGS, settingsPart);
         addTab(L.LABEL_PROTOCOLS, protocolPart);
-        addTab(L.LABEL_MODELS, aiPart);
+        addTab(M_L.LABEL_MODELS, aiPart);
         addAgentsTab();
-        addTab(L.LABEL_RESOURCES, resourcesPart);
+        addTab(M_L.LABEL_RESOURCES, resourcesPart);
         addTab(L.LABEL_TRASH, trashPart);
         addAdminTab();
 
@@ -218,13 +221,13 @@ public class PhoneWorkspace implements Workspace {
         return new InvalidExtensionsWarning(user != null && user.isAdmin(), this::showAdminExtensions).create();
     }
 
-    @PublicAPI(from = "1.1.0",
+    @PublicAPI(from = "1.9.0",
             returns = @APIReturn(type = void.class),
-            parameters = {@APIParameter(name = "label", type = L.class),
+            parameters = {@APIParameter(name = "label", type = LocalizationKey.class),
                     @APIParameter(name = "part", type = WorkspaceComponent.class)},
             locals = {@APILocals(name = "name", type = String.class),
                     @APILocals(name = "tab", type = Tab.class)})
-    private void addTab(L label, WorkspaceComponent part) throws Exception {
+    private void addTab(LocalizationKey label, WorkspaceComponent part) throws Exception {
         String name = loc.getValue(label);
         Tab tab = new Tab(name);
         tabs.add(tab);
@@ -265,7 +268,7 @@ public class PhoneWorkspace implements Workspace {
             return;
         }
         adminPart = new AdminPart(this, true);
-        String name = loc.getValue(L.LABEL_ADMIN);
+        String name = loc.getValue(M_L.LABEL_ADMIN);
         Tab tab = new Tab(name);
         tabs.add(tab);
         tabToComponent.put(tab, adminPart);
@@ -286,12 +289,12 @@ public class PhoneWorkspace implements Workspace {
             return;
         }
         agentPart = new AgentPart(this, true);
-        Tab tab = new Tab(new Span(loc.getValue(L.LABEL_AGENTS)), agentPart.getAttentionBadge());
+        Tab tab = new Tab(new Span(loc.getValue(M_L.LABEL_AGENTS)), agentPart.getAttentionBadge());
         agentsTab = tab;
         tabs.add(tab);
         tabToComponent.put(tab, agentPart);
         tabToContent.put(tab, agentPart.create());
-        tabToTitle.put(tab, loc.getValue(L.LABEL_AGENTS));
+        tabToTitle.put(tab, loc.getValue(M_L.LABEL_AGENTS));
         partsByKey.put("agents", agentPart);
 
         // the badge is in the drawer, which is closed most of the time: the top bar has the count too
@@ -303,9 +306,9 @@ public class PhoneWorkspace implements Workspace {
             }
         });
         attentionCue.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
-        attentionCue.addClassName(CssStyles.AGENT_ATTENTION_CUE);
-        attentionCue.setTooltipText(loc.getValue(L.LABEL_AGENTS_WAITING));
-        attentionCue.setAriaLabel(loc.getValue(L.LABEL_AGENTS_WAITING));
+        attentionCue.addClassName(MarginaliaCssStyles.AGENT_ATTENTION_CUE);
+        attentionCue.setTooltipText(loc.getValue(M_L.LABEL_AGENTS_WAITING));
+        attentionCue.setAriaLabel(loc.getValue(M_L.LABEL_AGENTS_WAITING));
         attentionCue.setVisible(false);
         layout.addToNavbar(attentionCue);
         layout.getElement().addPropertyChangeListener("drawerOpened", "drawer-opened-changed", event -> showAttentionCue());
@@ -408,7 +411,7 @@ public class PhoneWorkspace implements Workspace {
         footer.add(changePasswordButton);
 
         if (onLogout != null) {
-            logoutButton = new Button(loc.getValue(L.LABEL_LOGOUT), Solid.SIGN_OUT_ALT.create());
+            logoutButton = new Button(loc.getValue(M_L.LABEL_LOGOUT), Solid.SIGN_OUT_ALT.create());
             logoutButton.setWidthFull();
             logoutButton.addClickListener(e -> onLogout.run());
             footer.add(logoutButton);

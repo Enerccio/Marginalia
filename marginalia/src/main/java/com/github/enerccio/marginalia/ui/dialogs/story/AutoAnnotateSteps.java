@@ -14,6 +14,7 @@ import com.github.enerccio.marginalia.domain.service.AnnotationService;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.NotificationService;
+import com.github.enerccio.marginalia.domain.service.PhraseWatchService;
 import com.github.enerccio.marginalia.domain.service.ProtocolService;
 import com.github.enerccio.marginalia.domain.service.RedraftService;
 import com.github.enerccio.marginalia.domain.service.StoryGenerationService;
@@ -21,6 +22,7 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.AfterPart;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationControllerEvent.Registration;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationOptions;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
 import com.github.enerccio.marginalia.ui.widgets.DesktopNotifier;
@@ -49,6 +51,8 @@ public class AutoAnnotateSteps implements InitializingBean, DisposableBean {
     /** The steps' ids, the same as their notification sources. */
     public static final String ANNOTATE = NotificationService.ANNOTATE;
     public static final String REDRAFT = NotificationService.REDRAFT;
+    /** The step of the phrase watch list (no notification: there is no model to wait for). */
+    public static final String PHRASES = "phraseWatch";
     /** How many notes the annotation added (a property of the phase), for the redraft. */
     static final String NOTES_ADDED = AutoAnnotateSteps.class.getName() + ".notesAdded";
 
@@ -68,6 +72,9 @@ public class AutoAnnotateSteps implements InitializingBean, DisposableBean {
     private AnnotationService annotationService;
 
     @Autowired
+    private PhraseWatchService phraseWatchService;
+
+    @Autowired
     private ChatMessageService chatMessageService;
 
     @Autowired
@@ -78,10 +85,16 @@ public class AutoAnnotateSteps implements InitializingBean, DisposableBean {
 
     private final List<Registration> registrations = new ArrayList<>();
 
+    /**
+     * How many times the automatic redraft runs for one part at most: the first one and the ones for the phrases of the watch list it
+     * wrote back in. A model that keeps a phrase does not keep the next part waiting.
+     */
+    static final int REDRAFT_ROUNDS = 3;
+
     @Override
     public void afterPropertiesSet() {
         registrations.add(storyGenerationService.addAfterPartBinding(new AfterPart.Binding(ANNOTATE,
-                () -> loc.getValue(L.LABEL_ANNOTATE_RUN), AfterPart.Stage.REVIEW, AfterPart.Mode.SEQUENTIAL, new AfterPart.Handler() {
+                () -> loc.getValue(M_L.LABEL_ANNOTATE_RUN), AfterPart.Stage.REVIEW, AfterPart.Mode.SEQUENTIAL, new AfterPart.Handler() {
             @Override
             public boolean appliesTo(Manuscript book) {
                 return AutoAnnotate.isEnabled(book);
@@ -92,11 +105,24 @@ public class AutoAnnotateSteps implements InitializingBean, DisposableBean {
                 annotate(context);
             }
         })));
+        // after the model's notes, before the redraft: the redraft addresses the hits too
+        registrations.add(storyGenerationService.addAfterPartBinding(new AfterPart.Binding(PHRASES,
+                () -> loc.getValue(M_L.LABEL_PHRASE_WATCH_RUN), AfterPart.Stage.REVIEW, AfterPart.Mode.SEQUENTIAL, new AfterPart.Handler() {
+            @Override
+            public boolean appliesTo(Manuscript book) {
+                return book.getPhraseWatch();
+            }
+
+            @Override
+            public void run(AfterPart.Context context) throws Exception {
+                markPhrases(context);
+            }
+        })));
         registrations.add(storyGenerationService.addAfterPartBinding(new AfterPart.Binding(REDRAFT,
                 () -> loc.getValue(L.LABEL_REDRAFT), AfterPart.Stage.REWRITE, AfterPart.Mode.SEQUENTIAL, new AfterPart.Handler() {
             @Override
             public boolean appliesTo(Manuscript book) {
-                return AutoAnnotate.isEnabled(book) && book.getAutoAnnotateAccept() && book.getAutoAnnotateRedraft();
+                return (AutoAnnotate.isEnabled(book) || book.getPhraseWatch()) && book.getAutoAnnotateAccept() && book.getAutoAnnotateRedraft();
             }
 
             @Override
@@ -151,7 +177,7 @@ public class AutoAnnotateSteps implements InitializingBean, DisposableBean {
 
                 @Override
                 public void onUnreadable(String raw, String reason) {
-                    done.completeExceptionally(new IllegalStateException(String.format(loc.getValue(L.MSG_ANNOTATE_UNREADABLE), reason)));
+                    done.completeExceptionally(new IllegalStateException(String.format(loc.getValue(M_L.MSG_ANNOTATE_UNREADABLE), reason)));
                 }
 
                 @Override
@@ -165,10 +191,10 @@ public class AutoAnnotateSteps implements InitializingBean, DisposableBean {
                 }
             });
         } catch (AnnotateService.ContextInsufficient e) {
-            throw new IllegalStateException(loc.getValue(L.ERROR_CONTEXT_INSUFFICIENT), e);
+            throw new IllegalStateException(loc.getValue(M_L.ERROR_CONTEXT_INSUFFICIENT), e);
         }
         if (token == null) {
-            throw new IllegalStateException(loc.getValue(L.ERROR_ANNOTATE_FAILED));
+            throw new IllegalStateException(loc.getValue(M_L.ERROR_ANNOTATE_FAILED));
         }
         context.onStop(token::cancel);
         Found found = context.await(done);
@@ -180,7 +206,7 @@ public class AutoAnnotateSteps implements InitializingBean, DisposableBean {
         if (book.getAutoAnnotateAccept()) {
             ChatMessage stored = chatMessageService.find(part);
             if (stored == null || stored.isDeleted()) {
-                throw new IllegalStateException(loc.getValue(L.MSG_RUN_PART_GONE));
+                throw new IllegalStateException(loc.getValue(M_L.MSG_RUN_PART_GONE));
             }
             int made = annotateService.accept(book, stored, found.proposals(), modelName).size();
             context.getProperties().put(NOTES_ADDED, made);
@@ -197,6 +223,23 @@ public class AutoAnnotateSteps implements InitializingBean, DisposableBean {
     }
 
     /**
+     * The hits of the phrase watch list in the part are annotated (no model); they count as notes for the redraft.
+     */
+    void markPhrases(AfterPart.Context context) throws Exception {
+        ChatMessage part = context.getPart();
+        if (StringUtils.isBlank(part.getResponse())) {
+            context.skip();
+            return;
+        }
+        int made = phraseWatchService.scan(context.getManuscript(), part).size();
+        Object before = context.getProperties().get(NOTES_ADDED);
+        context.getProperties().put(NOTES_ADDED, (before instanceof Integer count ? count : 0) + made);
+        if (made > 0) {
+            context.changed();
+        }
+    }
+
+    /**
      * The model writes the part again to address its open notes; the redraft is applied, or waits for the author (also when the part
      * was changed while the model wrote).
      */
@@ -207,8 +250,16 @@ public class AutoAnnotateSteps implements InitializingBean, DisposableBean {
             context.skip();
             return;
         }
+        redraft(context, context.getPart(), 1);
+    }
+
+    /**
+     * One round of the redraft. A redraft applied without asking is scanned by the phrase watch list again: a phrase the model wrote
+     * back in is a new note, and the part is redrafted once more, at most {@link #REDRAFT_ROUNDS} times in all; the hits of the last
+     * round stay as open notes for the author.
+     */
+    private void redraft(AfterPart.Context context, ChatMessage part, int round) throws Exception {
         Manuscript book = context.getManuscript();
-        ChatMessage part = context.getPart();
         String base = StringUtils.defaultString(part.getResponse());
         List<Annotation> open = annotationService.listForPart(book, part).stream()
                 .filter(annotation -> annotation.getStatus() == AnnotationStatus.OPEN).toList();
@@ -238,21 +289,21 @@ public class AutoAnnotateSteps implements InitializingBean, DisposableBean {
                         }
                     });
         } catch (RedraftService.ContextInsufficient e) {
-            throw new IllegalStateException(loc.getValue(L.ERROR_CONTEXT_INSUFFICIENT), e);
+            throw new IllegalStateException(loc.getValue(M_L.ERROR_CONTEXT_INSUFFICIENT), e);
         }
         if (token == null) {
-            throw new IllegalStateException(loc.getValue(L.ERROR_REDRAFT_FAILED));
+            throw new IllegalStateException(loc.getValue(M_L.ERROR_REDRAFT_FAILED));
         }
         context.onStop(token::cancel);
         Redrafted redrafted = context.await(done);
         if (StringUtils.isBlank(redrafted.text())) {
-            throw new IllegalStateException(loc.getValue(L.ERROR_REDRAFT_FAILED));
+            throw new IllegalStateException(loc.getValue(M_L.ERROR_REDRAFT_FAILED));
         }
         notify(context, NotificationService.REDRAFT, book);
         if (book.getAutoAnnotateAcceptRedraft()) {
             ChatMessage current = chatMessageService.find(part);
             if (current == null || current.isDeleted()) {
-                throw new IllegalStateException(loc.getValue(L.MSG_RUN_PART_GONE));
+                throw new IllegalStateException(loc.getValue(M_L.MSG_RUN_PART_GONE));
             }
             if (StringUtils.defaultString(current.getResponse()).equals(base)) {
                 chatMessageService.updateResponse(book, current, redrafted.text(),
@@ -261,6 +312,13 @@ public class AutoAnnotateSteps implements InitializingBean, DisposableBean {
                     annotationService.setStatus(book, annotation, AnnotationStatus.RESOLVED);
                 }
                 context.changed();
+                ChatMessage written = book.getPhraseWatch() ? chatMessageService.find(part) : null;
+                if (written != null && !phraseWatchService.scan(book, written).isEmpty()) {
+                    context.changed();
+                    if (round < REDRAFT_ROUNDS) {
+                        redraft(context, written, round + 1);
+                    }
+                }
                 return;
             }
             // the author edited the part while the model wrote: they decide

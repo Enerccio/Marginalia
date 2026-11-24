@@ -1,7 +1,7 @@
 package com.github.enerccio.marginalia.extensions.knowledgetracker.extract;
 
 import com.github.enerccio.marginalia.extensions.knowledgetracker.model.KnowledgeState;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.process.Part;
+import com.github.enerccio.marginalia.extensions.storytracker.process.Part;
 import com.google.gson.Gson;
 import org.junit.jupiter.api.Test;
 

@@ -1,13 +1,12 @@
 ---
 label: Building from source
 order: 990
-verified: 8a278a19f
+verified: f337fe83d
 covers:
   - pom.xml
   - marginalia/pom.xml
   - marginalia/src/main/java/com/github/enerccio/tools
   - Dockerfile
-  - marginalia/plugins/Dockerfile
   - marginalia/plugins/docker-compose.yml
   - install-plugins.sh
   - marginalia/libs
@@ -37,12 +36,21 @@ are faster.
 ## Building the application
 
 The repository root holds the parent POM (`pom.xml`): it carries the version, which the application and all plugins
-inherit, and lists them as modules, so `mvn package` there builds the application and every plugin in one go. The
-application is the Maven project in `marginalia/`:
+inherit, the servlet API (`provided`) every module compiles against, and lists them as modules, so `mvn package` there builds the application and every plugin in one go. The
+application is the Maven project in `marginalia/`. It depends on the **platform** module `marginalia/platform`
+(artifact `marginalia-platform`, a JAR): the classes without a story concept that other applications can build on,
+in the same packages (see `TODO.REFACTOR.md`). The platform weaves its own classes (AspectJ for `@Configurable`, the
+`BuildTimeWeaver` for `@Extendable`), so the application weaves only its own. From the root, `-pl marginalia -am`
+builds the platform first; a build in `marginalia/` alone takes the platform from `~/.m2`, so install it first when
+it changed:
 
 ```sh
+mvn install -DskipTests -pl marginalia -am   # (repository root) the parent POM, the platform and the application
+mvn test -pl marginalia -am                  # (repository root) the tests, all in the application, after the platform build
+
 cd marginalia
-mvn package                  # builds and tests, WAR in target/marginalia-1.8.0.war
+mvn install -DskipTests -f platform/pom.xml  # the platform alone into ~/.m2, before the builds below
+mvn package                  # builds and tests, WAR in target/marginalia-1.9.0.war
 mvn package -DskipTests      # the same without tests
 mvn install -DskipTests      # also installs the WAR and the classes JAR into ~/.m2 (needed by plugins)
 mvn -N install                                # (repository root, once) installs the parent POM, the installed POMs refer to it
@@ -139,10 +147,17 @@ start: outside of the packaged WAR it installs a ByteBuddy agent that instrument
 the mark (see [JVM options](#jvm-options)). Nothing has to be set up for it, and a `target/classes` with classes of
 both kinds works. To weave by hand, `mvn process-classes` does it (woven classes are skipped).
 
+Both use ByteBuddy's own ASM, never the JDK's ClassFile API (`ExtendableWeaving.useAsm` sets
+`net.bytebuddy.processor=ASM_ONLY` unless it is given on the command line). On a JDK newer than the newest Java the
+ByteBuddy of `marginalia/platform/pom.xml` knows, ByteBuddy would switch to the ClassFile API and the hooks woven that
+way fail with *Detected branch target out of bytecode range*; with ASM the build stops with *Java N is not supported
+by the current version of Byte Buddy* instead. Then raise the ByteBuddy version (`byte-buddy` and `byte-buddy-agent`)
+to one that supports that Java.
+
 The IDE (with the `ajc` compiler) compiles into the same `target/` as Maven, and a class compiled by the other one is overwritten (or
 left unwoven, with `null` `@Autowired` fields). To keep a Maven run apart from an open IDE, move the output with `-Dbuild.dir=/tmp/marginalia-build`
 (the property `build.dir` of the POM, default `${project.basedir}/target`): the classes, the woven classes, the test home
-(`<build.dir>/test-home`) and the WAR go there. Use the same folder for the whole sequence (`mvn install` of the app and the plugins read
+(`<build.dir>/test-home`) and the WAR go there, the platform module's output into `<build.dir>-platform` (a profile of its POM that the property switches on; inside `<build.dir>` the application's `clean` would delete it). Use the same folder for the whole sequence (`mvn install` of the app and the plugins read
 from the local repository, not from it), delete it for a clean build, and never run two builds on the same folder.
 
 ## Running locally
@@ -297,24 +312,24 @@ options. [Testing](testing.md) describes the test base and how to write tests.
 ## Building the plugins
 
 The bundled extensions in `marginalia/plugins/` are separate Maven projects. They compile against the classes
-JAR of the application, so install the parent POM and the application first:
+JAR of the application (which brings the platform JAR with it), so install the parent POM, the platform and the
+application first:
 
 ```sh
-mvn -N install                    # in the repository root
+mvn install -DskipTests -pl marginalia -am   # in the repository root
 cd marginalia
-mvn install -DskipTests
 
-cd plugins/chaptermarker          # or anthropic, arc-outline, audiobook, authorsnote, beta-readers, book-description-generator, character-tracker, conlang-translator, gemma4toolsfix, google-genai, image-generator, instructionexporter, knowledge-tracker, lore-generator, lorebookvcs, manga-generator, name-generator, name-provider, place-provider, prompt-history, prompt-inspector, reallang-translator, reviewer, sidequery, sillytavern-converter, story-notes, tts-reader, chineselocalization
-mvn package                       # target/chaptermarker-1.8.0.jar
+cd plugins/chaptermarker          # or anthropic, arc-outline, audiobook, authorsnote, beta-readers, book-description-generator, character-tracker, conlang-translator, gemma4toolsfix, google-genai, grok, image-generator, instructionexporter, knowledge-tracker, lore-generator, lorebookvcs, manga-generator, name-generator, name-provider, place-provider, prompt-history, prompt-inspector, reallang-translator, reviewer, sidequery, sillytavern-converter, story-notes, tts-reader, chineselocalization
+mvn package                       # target/chaptermarker-1.9.0.jar
 ```
 
 ### Shared libraries
 
-Code that two plugins share lives in `marginalia/libs/` (see [Libraries for plugins](plugins/libraries/index.md)) (today `translator-common`, used by the Conlang Translator and the Real Language Translator, and `http-hooks`, used by the Image Generator and the Audiobook). A library is a plain
+Code that two plugins share lives in `marginalia/libs/` (see [Libraries for plugins](plugins/libraries/index.md)) (today `translator-common`, used by the Conlang Translator and the Real Language Translator, `story-tracker-common`, used by the Knowledge Tracker and the State Tracker, and `http-hooks`, used by the Image Generator and the Audiobook). A library is a plain
 Maven jar that **each plugin embeds** in its bundle (`<Embed-Dependency>translator-common;inline=true</Embed-Dependency>`): plugins do not see each other's classes, so this is
 shared source, not shared runtime, and a library holds no state the plugins would have to share. It is **not** an extension and never goes into the extensions folder (that is why it
 is not under `marginalia/plugins/`, the folder every script and workflow loops over to collect the JARs). A plugin that uses a library needs it in the local Maven repository before it
-builds: `mvn install -DskipTests` in `marginalia/libs/<library>`. The scripts (`install-plugins.sh`, `marginalia/plugins/Dockerfile`, the workflows `server.yml` and `desktop.yml`) do this.
+builds: `mvn install -DskipTests` in `marginalia/libs/<library>`. The scripts (`install-plugins.sh`, the `plugins-build` stage of the root `Dockerfile`, the workflows `server.yml` and `desktop.yml`) do this.
 
 Load the JAR in *Admin → Extensions* of your running instance, or copy it into `.marginalia/extensions` of your
 development home before starting. Rebuild the plugins whenever you change classes they use - they are built for one
@@ -322,10 +337,13 @@ exact version of the application. See [Plugin development](plugins/index.md).
 
 ### In Docker
 
-`marginalia/plugins/Dockerfile` and `docker-compose.yml` build everything in a container, so no local JDK or Maven is
-needed (this is how the Docker server is updated, see [Packaging](packaging.md#plugins)). The build context is the
-repository root; the image copies `pom.xml`, `marginalia/pom.xml`, `marginalia/src`, `manual/user` and `translations` (packed into the application's classes, so a plugin build against it sees the same manual), `.git`, `marginalia/libs` and `marginalia/plugins`, runs
-`mvn install -DskipTests -Dvaadin.skip=true` for the application, `mvn install -N` for the parent POM, `mvn install -DskipTests` in every folder of `libs/` and `mvn package` in every folder of `plugins/` that has a `pom.xml`.
+`marginalia/plugins/docker-compose.yml` builds everything in a container, so no local JDK or Maven is
+needed (this is how the Docker server is updated, see [Packaging](packaging.md#building-the-plugins-in-docker)). It
+builds the target `plugins` of the root `Dockerfile`, which starts from the stage that builds the application image:
+the build context is the repository root, the image copies `pom.xml`, `marginalia/pom.xml`, `marginalia/src`,
+`manual/user` and `translations` (packed into the application's classes, so a plugin build against it sees the same manual), `.git`, `marginalia/libs` and `marginalia/plugins`, runs
+`mvn clean install -DskipTests` for the application (the full build, frontend included: the stage is shared with the
+image, so a host that builds both compiles the application once), `mvn install -N` for the parent POM, `mvn install -DskipTests` in every folder of `libs/` and `mvn package` in every folder of `plugins/` that has a `pom.xml`.
 The JARs are copied out when the container runs, because they go into a bind mount:
 
 ```sh
@@ -337,7 +355,8 @@ A new plugin folder with a `pom.xml` is picked up without changes to the Dockerf
 
 `-Dvaadin.skip=true` turns off every goal of `vaadin-maven-plugin`, so the frontend (Node.js download, npm, Vite
 bundle) is not built; the plugins need only the classes JAR. The WAR of such a build has no frontend bundle and must not
-be deployed. Use the flag the same way for any build that only installs the classes JAR for plugins. Maven cannot tell
+be deployed. Use the flag for any build that only installs the classes JAR for plugins (the workflows do; the Docker
+build doesn't, it shares the application build with the image). Maven cannot tell
 that the goal was just `install` (it runs the whole lifecycle up to `package` first), so the flag has to be given.
 
 ## Database schema changes
@@ -376,6 +395,6 @@ Images go into `manual/images/`; most are taken by the scripts in
 | `couldn't find aspectjrt.jar on classpath` warning | Printed by the AspectJ plugin on every build; harmless. |
 | `Schema-validation: missing column ...` on start | An entity was changed without a Flyway migration. Add one ([Database schema changes](#database-schema-changes)). |
 | The frontend build fails downloading Node.js or npm packages | It needs internet access on the first build. Behind a proxy, configure it for Maven and npm, or delete `~/.vaadin` and `node_modules` and try again. |
-| A plugin fails with `NoSuchMethodError` / `ClassNotFoundException` | It was built against another version of the application. Run `mvn install` in `marginalia/` (and `mvn -N install` in the root) and rebuild the plugin. |
+| A plugin fails with `NoSuchMethodError` / `ClassNotFoundException` | It was built against another version of the application. Run `mvn install -DskipTests -pl marginalia -am` in the root and rebuild the plugin. |
 | `WARNING: A Java agent has been loaded dynamically` | A development run installed the agent for classes the build did not weave. Add the [JVM options](#jvm-options). |
 | `The instrumentation agent could not be installed` in the log, extensions do nothing on some screens | The JVM refused the agent and some `@Extendable` classes were compiled by the IDE. Add the [JVM options](#jvm-options) or run `mvn process-classes` ([Extension hooks](#extension-hooks)). |

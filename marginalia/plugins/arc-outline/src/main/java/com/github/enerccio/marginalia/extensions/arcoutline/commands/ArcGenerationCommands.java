@@ -464,7 +464,7 @@ public class ArcGenerationCommands extends ArcOutlineCommandSupport {
 
     private ModelSelection requireModel(CommandContext context, Book book) throws Exception {
         // an agent works with the model its scope names, see CommandScope.getModel
-        CommandScope.ModelChoice scoped = context.getScope().getModel();
+        CommandScope.ModelChoice scoped = CommandScope.of(context).getModel();
         if (scoped != null && scoped.ai() != null) {
             return new ModelSelection(scoped.ai(), scoped.protocol());
         }

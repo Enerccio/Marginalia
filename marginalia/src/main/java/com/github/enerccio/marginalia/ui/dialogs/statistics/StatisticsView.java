@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.dialogs.statistics;
 
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.collections.StatisticRange;
 import com.github.enerccio.marginalia.domain.collections.StatisticSide;
 import com.github.enerccio.marginalia.domain.components.*;
@@ -11,6 +12,8 @@ import com.github.enerccio.marginalia.domain.service.ManuscriptStatisticService;
 import com.github.enerccio.marginalia.domain.service.StatisticReportService;
 import com.github.enerccio.marginalia.domain.service.StatisticsPolicyService;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.widgets.ChartJs;
@@ -130,26 +133,26 @@ public class StatisticsView extends VerticalLayout {
 
         add(createControls());
         totals = new Div();
-        totals.addClassName(CssStyles.STATISTIC_TOTALS);
+        totals.addClassName(MarginaliaCssStyles.STATISTIC_TOTALS);
         notes = new Div();
-        notes.addClassName(CssStyles.TOKEN_USAGE_SUMMARY);
+        notes.addClassName(MarginaliaCssStyles.TOKEN_USAGE_SUMMARY);
         tabs = new TabSheet();
         tabs.setWidthFull();
-        addTab(loc.getValue(L.LABEL_STATISTICS_DAYS), createDays(), null);
+        addTab(loc.getValue(M_L.LABEL_STATISTICS_DAYS), createDays(), null);
         wordsChart = chart();
-        addTab(loc.getValue(L.LABEL_WORDS), wordsChart, () -> wordsChart.setChartConfig(gson.toJson(StatisticCharts.words(report, loc::getValue))));
+        addTab(loc.getValue(M_L.LABEL_WORDS), wordsChart, () -> wordsChart.setChartConfig(gson.toJson(StatisticCharts.words(report, loc::getValue))));
         timeChart = chart();
-        addTab(loc.getValue(L.LABEL_STATISTICS_TIME), timeChart, () -> timeChart.setChartConfig(gson.toJson(StatisticCharts.time(report, loc::getValue))));
+        addTab(loc.getValue(M_L.LABEL_STATISTICS_TIME), timeChart, () -> timeChart.setChartConfig(gson.toJson(StatisticCharts.time(report, loc::getValue))));
         tokensChart = chart();
-        addTab(loc.getValue(L.LABEL_TOKENS), tokensChart, () -> tokensChart.setChartConfig(gson.toJson(StatisticCharts.tokens(report, loc::getValue))));
+        addTab(loc.getValue(M_L.LABEL_TOKENS), tokensChart, () -> tokensChart.setChartConfig(gson.toJson(StatisticCharts.tokens(report, loc::getValue))));
         addTab(loc.getValue(L.LABEL_SIZE), createSize(), this::renderSize);
         if (bookUuid == null) {
-            addTab(loc.getValue(L.LABEL_BOOKS), createBooks(), null);
-            addTab(loc.getValue(L.LABEL_STATISTICS_BY_BOOK), createByBook(), this::renderByBook);
+            addTab(loc.getValue(M_L.LABEL_BOOKS), createBooks(), null);
+            addTab(loc.getValue(M_L.LABEL_STATISTICS_BY_BOOK), createByBook(), this::renderByBook);
         }
         calendar = new ActivityCalendarView(bookUuid, compact);
         calendar.create();
-        addTab(loc.getValue(L.LABEL_STATISTICS_CALENDAR), calendar, calendar::load);
+        addTab(loc.getValue(M_L.LABEL_STATISTICS_CALENDAR), calendar, calendar::load);
         tabs.addSelectedChangeListener(_ -> renderSelected());
         add(totals, notes, tabs);
         if (!compact) {
@@ -199,7 +202,7 @@ public class StatisticsView extends VerticalLayout {
     // controls
 
     private Component createControls() {
-        range = new ComboBox<>(loc.getValue(L.LABEL_STATISTICS_RANGE));
+        range = new ComboBox<>(loc.getValue(M_L.LABEL_STATISTICS_RANGE));
         range.setItems(StatisticRange.values());
         range.setItemLabelGenerator(item -> loc.getValue(item.getLabel()));
         range.setAllowCustomValue(false);
@@ -215,26 +218,26 @@ public class StatisticsView extends VerticalLayout {
             }
             reload();
         });
-        from = new DatePicker(loc.getValue(L.LABEL_STATISTICS_FROM));
-        to = new DatePicker(loc.getValue(L.LABEL_STATISTICS_TO));
+        from = new DatePicker(loc.getValue(M_L.LABEL_STATISTICS_FROM));
+        to = new DatePicker(loc.getValue(M_L.LABEL_STATISTICS_TO));
         from.setVisible(false);
         to.setVisible(false);
         from.addValueChangeListener(_ -> reload());
         to.addValueChangeListener(_ -> reload());
 
-        side = new RadioButtonGroup<>(loc.getValue(L.LABEL_STATISTICS_SIDE));
+        side = new RadioButtonGroup<>(loc.getValue(M_L.LABEL_STATISTICS_SIDE));
         side.setItems(StatisticSide.ALL, StatisticSide.AUTHOR, StatisticSide.AGENTS);
         side.setItemLabelGenerator(item -> loc.getValue(switch (item) {
-            case ALL -> L.LABEL_ALL;
-            case AUTHOR -> L.ENUM_STATISTIC_SIDE_AUTHOR;
-            case AGENTS -> L.LABEL_AGENTS;
+            case ALL -> M_L.LABEL_ALL;
+            case AUTHOR -> M_L.ENUM_STATISTIC_SIDE_AUTHOR;
+            case AGENTS -> M_L.LABEL_AGENTS;
         }));
         side.setValue(StatisticSide.ALL);
         side.addValueChangeListener(_ -> reload());
 
-        Button clear = new Button(loc.getValue(bookUuid == null ? L.LABEL_STATISTICS_CLEAR_ALL : L.LABEL_STATISTICS_CLEAR_BOOK),
-                _ -> ConfirmDialog.show(loc.getValue(bookUuid == null ? L.MSG_CONFIRM_STATISTICS_CLEAR_ALL
-                        : L.MSG_CONFIRM_STATISTICS_CLEAR_BOOK), () -> clear(bookUuid)));
+        Button clear = new Button(loc.getValue(bookUuid == null ? M_L.LABEL_STATISTICS_CLEAR_ALL : M_L.LABEL_STATISTICS_CLEAR_BOOK),
+                _ -> ConfirmDialog.show(loc.getValue(bookUuid == null ? M_L.MSG_CONFIRM_STATISTICS_CLEAR_ALL
+                        : M_L.MSG_CONFIRM_STATISTICS_CLEAR_BOOK), () -> clear(bookUuid)));
         clear.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ERROR);
 
         FlexLayout controls = new FlexLayout(range, from, to, side, clear);
@@ -253,7 +256,7 @@ public class StatisticsView extends VerticalLayout {
             } else {
                 statisticService.clearBook(uuid);
             }
-            Notification.success(loc.getValue(L.MSG_STATISTICS_CLEARED));
+            Notification.success(loc.getValue(M_L.MSG_STATISTICS_CLEARED));
             reload();
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
@@ -268,32 +271,32 @@ public class StatisticsView extends VerticalLayout {
         daysGrid.addThemeVariants(GridVariant.LUMO_COMPACT, GridVariant.LUMO_NO_BORDER);
         daysGrid.setWidthFull();
         daysGrid.setHeight(compact ? GRID_HEIGHT_COMPACT : GRID_HEIGHT);
-        Grid.Column<DayRow> date = daysGrid.addComponentColumn(this::dayCell).setHeader(loc.getValue(L.LABEL_DATE))
+        Grid.Column<DayRow> date = daysGrid.addComponentColumn(this::dayCell).setHeader(loc.getValue(M_L.LABEL_DATE))
                 .setComparator(Comparator.comparing(row -> row.line().day())).setAutoWidth(true).setFlexGrow(0).setFrozen(true);
         if (!compact) {
             estimate(daysGrid, row -> row.line().counts().prefillTokens(), L.LABEL_TOKENS_SENT);
             estimate(daysGrid, row -> row.line().counts().generatedTokens(), L.LABEL_TOKENS_GENERATED);
             number(daysGrid, row -> row.line().counts().requests(), L.LABEL_REQUESTS);
         }
-        number(daysGrid, row -> row.line().counts().wordsWritten(), L.LABEL_WORDS_WRITTEN);
-        number(daysGrid, row -> row.line().counts().wordsGenerated(), L.LABEL_WORDS_GENERATED);
-        number(daysGrid, row -> row.line().counts().wordsRemoved(), L.LABEL_WORDS_REMOVED);
+        number(daysGrid, row -> row.line().counts().wordsWritten(), M_L.LABEL_WORDS_WRITTEN);
+        number(daysGrid, row -> row.line().counts().wordsGenerated(), M_L.LABEL_WORDS_GENERATED);
+        number(daysGrid, row -> row.line().counts().wordsRemoved(), M_L.LABEL_WORDS_REMOVED);
         if (!compact) {
-            number(daysGrid, row -> row.line().counts().partsCreated(), L.LABEL_PARTS_CREATED);
-            number(daysGrid, row -> row.line().counts().edits(), L.LABEL_EDITS);
-            number(daysGrid, row -> row.line().counts().partsDeleted(), L.LABEL_PARTS_DELETED);
+            number(daysGrid, row -> row.line().counts().partsCreated(), M_L.LABEL_PARTS_CREATED);
+            number(daysGrid, row -> row.line().counts().edits(), M_L.LABEL_EDITS);
+            number(daysGrid, row -> row.line().counts().partsDeleted(), M_L.LABEL_PARTS_DELETED);
             dayTime(row -> row.line().times().open(), L.LABEL_OPEN);
         }
-        dayTime(row -> row.line().times().edit(), L.LABEL_TIME_EDITING);
+        dayTime(row -> row.line().times().edit(), M_L.LABEL_TIME_EDITING);
         if (!compact) {
-            dayTime(row -> row.line().times().generate(), L.LABEL_TIME_GENERATING);
-            dayTime(row -> row.line().times().run(), L.LABEL_TIME_AGENTS_RUNNING);
+            dayTime(row -> row.line().times().generate(), M_L.LABEL_TIME_GENERATING);
+            dayTime(row -> row.line().times().run(), M_L.LABEL_TIME_AGENTS_RUNNING);
             daysGrid.addColumn(row -> row.size() == null || !row.size().present() ? "–" : format(row.size().bookWords()))
-                    .setHeader(loc.getValue(L.LABEL_SIZE_BOOK_WORDS)).setTextAlign(ColumnTextAlign.END).setAutoWidth(true).setFlexGrow(0)
+                    .setHeader(loc.getValue(M_L.LABEL_SIZE_BOOK_WORDS)).setTextAlign(ColumnTextAlign.END).setAutoWidth(true).setFlexGrow(0)
                     .setComparator(Comparator.comparingLong(row -> row.size() == null ? 0 : row.size().bookWords()));
         }
         daysGrid.addColumn(row -> growth(row.size() == null || !row.size().growthKnown(), row.size() == null ? 0 : row.size().growthWords()))
-                .setHeader(loc.getValue(L.LABEL_GROWTH_WORDS)).setTextAlign(ColumnTextAlign.END).setAutoWidth(true).setFlexGrow(0)
+                .setHeader(loc.getValue(M_L.LABEL_GROWTH_WORDS)).setTextAlign(ColumnTextAlign.END).setAutoWidth(true).setFlexGrow(0)
                 .setPartNameGenerator(row -> signPart(row.size() == null || !row.size().growthKnown() ? 0 : row.size().growthWords()))
                 .setComparator(Comparator.comparingLong(row -> row.size() == null ? 0 : row.size().growthWords()));
         daysGrid.sort(List.of(new GridSortOrder<>(date, SortDirection.DESCENDING)));
@@ -303,7 +306,7 @@ public class StatisticsView extends VerticalLayout {
     private Component createSize() {
         sizeUnit = new RadioButtonGroup<>();
         sizeUnit.setItems(false, true);
-        sizeUnit.setItemLabelGenerator(tokens -> loc.getValue(tokens ? L.LABEL_TOKENS : L.LABEL_WORDS));
+        sizeUnit.setItemLabelGenerator(tokens -> loc.getValue(tokens ? M_L.LABEL_TOKENS : M_L.LABEL_WORDS));
         sizeUnit.setValue(false);
         sizeUnit.addValueChangeListener(_ -> renderSize());
         sizeChart = chart();
@@ -315,7 +318,7 @@ public class StatisticsView extends VerticalLayout {
     }
 
     private Component createBooks() {
-        showDeleted = new Checkbox(loc.getValue(L.LABEL_STATISTICS_SHOW_DELETED), true);
+        showDeleted = new Checkbox(loc.getValue(M_L.LABEL_STATISTICS_SHOW_DELETED), true);
         showDeleted.addValueChangeListener(_ -> refreshBooks());
         booksGrid = new Grid<>(BookLine.class, false);
         booksGrid.addThemeVariants(GridVariant.LUMO_COMPACT, GridVariant.LUMO_NO_BORDER);
@@ -324,30 +327,30 @@ public class StatisticsView extends VerticalLayout {
         booksGrid.addComponentColumn(this::bookName).setHeader(loc.getValue(L.LABEL_NAME)).setAutoWidth(true).setFlexGrow(0).setFrozen(true)
                 .setComparator(Comparator.comparing(line -> line.book().bookName(), String.CASE_INSENSITIVE_ORDER));
         if (!compact) {
-            booksGrid.addColumn(line -> line.book().folderPath()).setHeader(loc.getValue(L.LABEL_FOLDER)).setAutoWidth(true).setFlexGrow(0)
+            booksGrid.addColumn(line -> line.book().folderPath()).setHeader(loc.getValue(M_L.LABEL_FOLDER)).setAutoWidth(true).setFlexGrow(0)
                     .setComparator(Comparator.comparing(line -> line.book().folderPath(), String.CASE_INSENSITIVE_ORDER));
             number(booksGrid, line -> line.book().counts().prefillTokens(), L.LABEL_TOKENS_SENT);
             number(booksGrid, line -> line.book().counts().generatedTokens(), L.LABEL_TOKENS_GENERATED);
         }
-        number(booksGrid, line -> line.book().counts().wordsWritten(), L.LABEL_WORDS_WRITTEN);
-        number(booksGrid, line -> line.book().counts().wordsGenerated(), L.LABEL_WORDS_GENERATED);
-        number(booksGrid, line -> line.book().counts().wordsRemoved(), L.LABEL_WORDS_REMOVED);
+        number(booksGrid, line -> line.book().counts().wordsWritten(), M_L.LABEL_WORDS_WRITTEN);
+        number(booksGrid, line -> line.book().counts().wordsGenerated(), M_L.LABEL_WORDS_GENERATED);
+        number(booksGrid, line -> line.book().counts().wordsRemoved(), M_L.LABEL_WORDS_REMOVED);
         if (!compact) {
-            number(booksGrid, line -> line.book().counts().partsCreated(), L.LABEL_PARTS_CREATED);
-            number(booksGrid, line -> line.book().counts().edits(), L.LABEL_EDITS);
-            number(booksGrid, line -> line.book().counts().partsDeleted(), L.LABEL_PARTS_DELETED);
+            number(booksGrid, line -> line.book().counts().partsCreated(), M_L.LABEL_PARTS_CREATED);
+            number(booksGrid, line -> line.book().counts().edits(), M_L.LABEL_EDITS);
+            number(booksGrid, line -> line.book().counts().partsDeleted(), M_L.LABEL_PARTS_DELETED);
             time(booksGrid, line -> line.times().open(), L.LABEL_OPEN);
         }
-        time(booksGrid, line -> line.times().edit(), L.LABEL_TIME_EDITING);
+        time(booksGrid, line -> line.times().edit(), M_L.LABEL_TIME_EDITING);
         if (!compact) {
-            time(booksGrid, line -> line.times().generate(), L.LABEL_TIME_GENERATING);
-            time(booksGrid, line -> line.times().run(), L.LABEL_TIME_AGENTS_RUNNING);
+            time(booksGrid, line -> line.times().generate(), M_L.LABEL_TIME_GENERATING);
+            time(booksGrid, line -> line.times().run(), M_L.LABEL_TIME_AGENTS_RUNNING);
         }
         booksGrid.addColumn(line -> growth(!line.growth().known(), line.growth().bookWords()))
-                .setHeader(loc.getValue(L.LABEL_GROWTH_WORDS)).setTextAlign(ColumnTextAlign.END).setAutoWidth(true).setFlexGrow(0)
+                .setHeader(loc.getValue(M_L.LABEL_GROWTH_WORDS)).setTextAlign(ColumnTextAlign.END).setAutoWidth(true).setFlexGrow(0)
                 .setPartNameGenerator(line -> signPart(line.growth().known() ? line.growth().bookWords() : 0))
                 .setComparator(Comparator.comparingLong(line -> line.growth().known() ? line.growth().bookWords() : 0));
-        Grid.Column<BookLine> share = booksGrid.addColumn(this::share).setHeader(loc.getValue(L.LABEL_STATISTICS_SHARE))
+        Grid.Column<BookLine> share = booksGrid.addColumn(this::share).setHeader(loc.getValue(M_L.LABEL_STATISTICS_SHARE))
                 .setTextAlign(ColumnTextAlign.END).setAutoWidth(true).setFlexGrow(0)
                 .setComparator(Comparator.comparingLong(line -> line.book().counts().wordsAdded()));
         booksGrid.sort(List.of(new GridSortOrder<>(share, SortDirection.DESCENDING)));
@@ -370,7 +373,7 @@ public class StatisticsView extends VerticalLayout {
     }
 
     private Component createByBook() {
-        metric = new ComboBox<>(loc.getValue(L.LABEL_STATISTICS_METRIC));
+        metric = new ComboBox<>(loc.getValue(M_L.LABEL_STATISTICS_METRIC));
         metric.setItems(StatisticCharts.BookMetric.values());
         metric.setItemLabelGenerator(item -> loc.getValue(item.getLabel()));
         metric.setAllowCustomValue(false);
@@ -386,12 +389,12 @@ public class StatisticsView extends VerticalLayout {
     // ---------------------------------------------------------------------------------------------------------------
     // columns
 
-    private <T> void number(Grid<T> grid, ValueProvider<T, Long> value, L header) {
+    private <T> void number(Grid<T> grid, ValueProvider<T, Long> value, LocalizationKey header) {
         grid.addColumn(row -> format(value.apply(row))).setHeader(loc.getValue(header)).setTextAlign(ColumnTextAlign.END)
                 .setAutoWidth(true).setFlexGrow(0).setComparator(Comparator.comparingLong(value::apply));
     }
 
-    private <T> void time(Grid<T> grid, ValueProvider<T, Long> value, L header) {
+    private <T> void time(Grid<T> grid, ValueProvider<T, Long> value, LocalizationKey header) {
         grid.addColumn(row -> formatTime(value.apply(row))).setHeader(loc.getValue(header)).setTextAlign(ColumnTextAlign.END)
                 .setAutoWidth(true).setFlexGrow(0).setComparator(Comparator.comparingLong(value::apply));
     }
@@ -403,7 +406,7 @@ public class StatisticsView extends VerticalLayout {
         Div cell = new Div(new Span(row.line().day().toString()));
         if (row.line().reconstructed()) {
             Span mark = new Span(" ~");
-            mark.getElement().setAttribute("title", loc.getValue(L.MSG_STATISTICS_RECONSTRUCTED_DAY));
+            mark.getElement().setAttribute("title", loc.getValue(M_L.MSG_STATISTICS_RECONSTRUCTED_DAY));
             cell.add(mark);
         }
         return cell;
@@ -412,7 +415,7 @@ public class StatisticsView extends VerticalLayout {
     /**
      * A count that is an estimate on a rebuilt day (the tokens of the calls were not kept, what is shown is a floor).
      */
-    private void estimate(Grid<DayRow> grid, ValueProvider<DayRow, Long> value, L header) {
+    private void estimate(Grid<DayRow> grid, ValueProvider<DayRow, Long> value, LocalizationKey header) {
         grid.addColumn(row -> (row.line().reconstructed() && value.apply(row) > 0 ? "~" : "") + format(value.apply(row)))
                 .setHeader(loc.getValue(header)).setTextAlign(ColumnTextAlign.END).setAutoWidth(true).setFlexGrow(0)
                 .setComparator(Comparator.comparingLong(value::apply));
@@ -421,7 +424,7 @@ public class StatisticsView extends VerticalLayout {
     /**
      * A time of a day; a day before the time was recorded has none, which is not a zero.
      */
-    private void dayTime(ValueProvider<DayRow, Long> value, L header) {
+    private void dayTime(ValueProvider<DayRow, Long> value, LocalizationKey header) {
         daysGrid.addColumn(row -> report != null && !report.timeKnown(row.line().day()) ? "–" : formatTime(value.apply(row)))
                 .setHeader(loc.getValue(header)).setTextAlign(ColumnTextAlign.END).setAutoWidth(true).setFlexGrow(0)
                 .setComparator(Comparator.comparingLong(value::apply));
@@ -452,9 +455,9 @@ public class StatisticsView extends VerticalLayout {
         if (!line.book().deleted()) {
             return new Span();
         }
-        Button forget = new Button(loc.getValue(L.LABEL_STATISTICS_FORGET), _ -> {
+        Button forget = new Button(loc.getValue(M_L.LABEL_STATISTICS_FORGET), _ -> {
             String name = line.book().bookName().isEmpty() ? line.book().bookUuid() : line.book().bookName();
-            ConfirmDialog.show(String.format(loc.getValue(L.MSG_CONFIRM_STATISTICS_FORGET), name), () -> clear(line.book().bookUuid()));
+            ConfirmDialog.show(String.format(loc.getValue(M_L.MSG_CONFIRM_STATISTICS_FORGET), name), () -> clear(line.book().bookUuid()));
         });
         forget.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_ERROR);
         return forget;
@@ -493,40 +496,40 @@ public class StatisticsView extends VerticalLayout {
         totals.removeAll();
         StatisticCounts counts = report.total();
         ActivityTimes times = report.times();
-        addTotal(L.LABEL_WORDS_WRITTEN, format(counts.wordsWritten()));
-        addTotal(L.LABEL_WORDS_GENERATED, format(counts.wordsGenerated()));
-        addTotal(L.LABEL_WORDS_REMOVED, format(counts.wordsRemoved()));
-        addTotal(L.LABEL_PARTS_CREATED, format(counts.partsCreated()));
-        addTotal(L.LABEL_EDITS, format(counts.edits()));
-        addTotal(L.LABEL_PARTS_DELETED, format(counts.partsDeleted()));
+        addTotal(M_L.LABEL_WORDS_WRITTEN, format(counts.wordsWritten()));
+        addTotal(M_L.LABEL_WORDS_GENERATED, format(counts.wordsGenerated()));
+        addTotal(M_L.LABEL_WORDS_REMOVED, format(counts.wordsRemoved()));
+        addTotal(M_L.LABEL_PARTS_CREATED, format(counts.partsCreated()));
+        addTotal(M_L.LABEL_EDITS, format(counts.edits()));
+        addTotal(M_L.LABEL_PARTS_DELETED, format(counts.partsDeleted()));
         addTotal(L.LABEL_TOKENS_SENT, format(counts.prefillTokens()));
         addTotal(L.LABEL_TOKENS_GENERATED, format(counts.generatedTokens()));
         addTotal(L.LABEL_REQUESTS, format(counts.requests()));
         addTotal(L.LABEL_OPEN, formatTime(times.open()));
-        addTotal(L.LABEL_TIME_EDITING, formatTime(times.edit()));
-        addTotal(L.LABEL_TIME_GENERATING, formatTime(times.generate()));
-        addTotal(L.LABEL_TIME_AGENTS_RUNNING, formatTime(times.run()));
-        addTotal(L.LABEL_GROWTH_WORDS, growth(!report.growth().known(), report.growth().bookWords()));
+        addTotal(M_L.LABEL_TIME_EDITING, formatTime(times.edit()));
+        addTotal(M_L.LABEL_TIME_GENERATING, formatTime(times.generate()));
+        addTotal(M_L.LABEL_TIME_AGENTS_RUNNING, formatTime(times.run()));
+        addTotal(M_L.LABEL_GROWTH_WORDS, growth(!report.growth().known(), report.growth().bookWords()));
 
         notes.removeAll();
         List<String> lines = new ArrayList<>();
         if (!policyService.isRecording(currentUser)) {
-            lines.add(loc.getValue(L.MSG_STATISTICS_RECORDING_OFF));
+            lines.add(loc.getValue(M_L.MSG_STATISTICS_RECORDING_OFF));
         }
         if (report.isEmpty()) {
-            lines.add(loc.getValue(L.MSG_STATISTICS_EMPTY));
+            lines.add(loc.getValue(M_L.MSG_STATISTICS_EMPTY));
         }
         if (report.filter().side() != StatisticSide.AUTHOR) {
-            lines.add(loc.getValue(L.MSG_STATISTICS_AGENTS));
+            lines.add(loc.getValue(M_L.MSG_STATISTICS_AGENTS));
         }
         if (bookUuid == null) {
-            lines.add(loc.getValue(L.MSG_STATISTICS_TIMES_OVERLAP));
+            lines.add(loc.getValue(M_L.MSG_STATISTICS_TIMES_OVERLAP));
         }
         if (report.timeSince() != null && report.filter().from().isBefore(report.timeSince())) {
-            lines.add(String.format(loc.getValue(L.MSG_STATISTICS_TIME_SINCE), report.timeSince()));
+            lines.add(String.format(loc.getValue(M_L.MSG_STATISTICS_TIME_SINCE), report.timeSince()));
         }
         if (report.reconstructedDays() > 0) {
-            lines.add(String.format(loc.getValue(L.MSG_STATISTICS_RECONSTRUCTED), report.reconstructedDays()));
+            lines.add(String.format(loc.getValue(M_L.MSG_STATISTICS_RECONSTRUCTED), report.reconstructedDays()));
         }
         lines.forEach(line -> notes.add(new Div(line)));
 
@@ -556,9 +559,9 @@ public class StatisticsView extends VerticalLayout {
         booksGrid.setItems(books);
     }
 
-    private void addTotal(L label, String value) {
+    private void addTotal(LocalizationKey label, String value) {
         Span item = new Span(loc.getValue(label) + ": " + value);
-        item.addClassName(CssStyles.STATISTIC_TOTAL_ITEM);
+        item.addClassName(MarginaliaCssStyles.STATISTIC_TOTAL_ITEM);
         totals.add(item);
     }
 
@@ -577,7 +580,7 @@ public class StatisticsView extends VerticalLayout {
             return;
         }
         boolean tokens = sizeUnit.getValue();
-        Function<L, String> text = loc::getValue;
+        Function<LocalizationKey, String> text = loc::getValue;
         sizeChart.setChartConfig(gson.toJson(StatisticCharts.size(report, tokens, text)));
         growthChart.setChartConfig(gson.toJson(StatisticCharts.growth(report, tokens, text)));
     }
@@ -615,9 +618,9 @@ public class StatisticsView extends VerticalLayout {
 
     private static String signPart(long words) {
         if (words > 0) {
-            return CssStyles.STATISTIC_GROWTH_UP;
+            return MarginaliaCssStyles.STATISTIC_GROWTH_UP;
         }
-        return words < 0 ? CssStyles.STATISTIC_GROWTH_DOWN : null;
+        return words < 0 ? MarginaliaCssStyles.STATISTIC_GROWTH_DOWN : null;
     }
 
 }

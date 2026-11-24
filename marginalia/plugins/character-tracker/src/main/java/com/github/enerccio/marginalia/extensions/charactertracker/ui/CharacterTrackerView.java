@@ -78,6 +78,12 @@ public class CharacterTrackerView extends VerticalLayout {
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
+        if (!attachEvent.isInitialAttach()) {
+            // a detached view hears of no change (a minimized tab, a dock that was arranged anew): what was stored meanwhile, by a
+            // command of the plot wizard or of an agent, is read again
+            book = loadBook();
+            refreshGrid();
+        }
         // a command (the command bar, an agent) stores the characters behind the back of the view, which keeps them in memory
         changeRegistration = service.onChange(manuscript, () -> UIUtils.accessComponent(this, () -> {
             book = loadBook();

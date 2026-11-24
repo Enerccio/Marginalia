@@ -9,6 +9,7 @@ import com.github.enerccio.marginalia.domain.service.PartStyleService;
 import com.github.enerccio.marginalia.domain.service.TemplateService;
 import com.github.enerccio.marginalia.domain.styles.PartStyle;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.styles.PartStyleApplier;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
@@ -115,7 +116,7 @@ public class ExportSettingsEditor extends VerticalLayout {
 
     private Select<String> createStyleSelect(Exporter exporter, List<PartStyle> styles) throws Exception {
         Select<String> select = new Select<>();
-        select.setLabel(loc.getValue(L.LABEL_EXPORT_STYLE));
+        select.setLabel(loc.getValue(M_L.LABEL_EXPORT_STYLE));
         select.setWidthFull();
         Map<String, String> names = new LinkedHashMap<>();
         styles.forEach(style -> names.put(style.getId(), style.getDisplayName(loc)));
@@ -123,7 +124,7 @@ public class ExportSettingsEditor extends VerticalLayout {
         select.setItemLabelGenerator(names::get);
         // a format that has no look of its own can also be left without a style
         select.setEmptySelectionAllowed(exporter.getDefaultStyleId() == null);
-        select.setEmptySelectionCaption(loc.getValue(L.LABEL_EXPORT_STYLE_OF_FORMAT));
+        select.setEmptySelectionCaption(loc.getValue(M_L.LABEL_EXPORT_STYLE_OF_FORMAT));
         select.setValue(settingsService.getStyleId(exporter));
         select.addValueChangeListener(event -> changed());
         return select;

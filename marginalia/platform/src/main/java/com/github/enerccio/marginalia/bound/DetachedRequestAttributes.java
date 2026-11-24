@@ -1,0 +1,126 @@
+package com.github.enerccio.marginalia.bound;
+
+import com.github.enerccio.marginalia.domain.security.model.User;
+import org.springframework.web.context.request.RequestAttributes;
+
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+
+/**
+ * A request context with no browser, no servlet request and no session of the container behind it: what the session scoped beans
+ * ({@code user}, {@code sessionPoint}) resolve against for work that a program does as a user, the run of an agent
+ * ({@link AgentRequestAttributes}) or a call of the HTTP API ({@link ApiRequestAttributes}). The session scope is kept in memory and
+ * shared by all the threads of the work: {@code ThreadCopyRequestAttributes.create()} hands it on as it is.
+ * <p>
+ * The session scope starts with the {@code user} (a copy of the user, as the login makes it) and the {@code sessionPoint} (an
+ * {@link SessionPoint} without a workspace; the application gives an {@code AgenticSessionPoint}, which holds the book directly). Any other session bean is created on first use, empty, as in
+ * a new browser session.
+ */
+public abstract class DetachedRequestAttributes implements RequestAttributes, AutoCloseable {
+
+    /**
+     * Name of the session scoped attribute that holds the {@link User}: the name of the target bean behind the scoped proxy of
+     * {@code user}.
+     */
+    public static final String USER_TARGET_NAME = "scopedTarget.user";
+    /** The name of the target of the session scoped {@code sessionPoint} bean. */
+    public static final String SESSION_POINT_TARGET_NAME = "scopedTarget.sessionPoint";
+
+    private final String sessionId;
+    private final Object mutex = new Object();
+    private final Map<String, Object> sessionAttributes = new ConcurrentHashMap<>();
+    private final Map<String, Object> requestAttributes = new ConcurrentHashMap<>();
+    private final Map<String, Runnable> sessionCallbacks = new ConcurrentHashMap<>();
+    private final Map<String, Runnable> requestCallbacks = new ConcurrentHashMap<>();
+
+    /**
+     * @param kind         the start of the session id ({@code agent}, {@code api})
+     * @param user         the user, loaded from the database; the {@code user} bean is a copy of it
+     * @param sessionPoint where the commands find the book
+     */
+    protected DetachedRequestAttributes(String kind, User user, SessionPoint sessionPoint) {
+        if (user == null || sessionPoint == null) {
+            throw new IllegalArgumentException("The user and the session point are needed");
+        }
+        sessionId = kind + "-" + UUID.randomUUID();
+        User snapshot = new User();
+        snapshot.setId(user.getId());
+        snapshot.setUuid(user.getUuid());
+        snapshot.setLogin(user.getLogin());
+        snapshot.setFullName(user.getFullName());
+        snapshot.setAdmin(user.isAdmin());
+        sessionAttributes.put(USER_TARGET_NAME, snapshot);
+        sessionAttributes.put(SESSION_POINT_TARGET_NAME, sessionPoint);
+    }
+
+    /**
+     * The session point of this context.
+     */
+    public SessionPoint getSessionPoint() {
+        return (SessionPoint) sessionAttributes.get(SESSION_POINT_TARGET_NAME);
+    }
+
+    /**
+     * Runs the destruction callbacks of the beans of the session (those that have any), when the work ends. The user and the session
+     * point stay: work that is still in the air (the counting of the tokens of the last request is asynchronous) resolves them after
+     * the work is over, and an empty user would own what it saves.
+     */
+    @Override
+    public void close() {
+        run(requestCallbacks);
+        run(sessionCallbacks);
+        requestAttributes.clear();
+        sessionAttributes.keySet().removeIf(name -> !name.equals(USER_TARGET_NAME) && !name.equals(SESSION_POINT_TARGET_NAME));
+    }
+
+    private static void run(Map<String, Runnable> callbacks) {
+        callbacks.values().forEach(Runnable::run);
+        callbacks.clear();
+    }
+
+    private Map<String, Object> attributes(int scope) {
+        return scope == SCOPE_SESSION ? sessionAttributes : requestAttributes;
+    }
+
+    @Override
+    public Object getAttribute(String name, int scope) {
+        return attributes(scope).get(name);
+    }
+
+    @Override
+    public void setAttribute(String name, Object value, int scope) {
+        attributes(scope).put(name, value);
+    }
+
+    @Override
+    public void removeAttribute(String name, int scope) {
+        attributes(scope).remove(name);
+        (scope == SCOPE_SESSION ? sessionCallbacks : requestCallbacks).remove(name);
+    }
+
+    @Override
+    public String[] getAttributeNames(int scope) {
+        return attributes(scope).keySet().toArray(new String[0]);
+    }
+
+    @Override
+    public void registerDestructionCallback(String name, Runnable callback, int scope) {
+        (scope == SCOPE_SESSION ? sessionCallbacks : requestCallbacks).put(name, callback);
+    }
+
+    @Override
+    public Object resolveReference(String key) {
+        return null;
+    }
+
+    @Override
+    public String getSessionId() {
+        return sessionId;
+    }
+
+    @Override
+    public Object getSessionMutex() {
+        return mutex;
+    }
+}

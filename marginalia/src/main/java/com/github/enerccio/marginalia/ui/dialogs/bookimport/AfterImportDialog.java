@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.Agent;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.dialogs.agent.AgentConsoleDialog;
@@ -50,25 +51,25 @@ public class AfterImportDialog extends Dialog {
     }
 
     private void build() {
-        setHeaderTitle(loc.getValue(L.LABEL_IMPORT_FINISHED));
+        setHeaderTitle(loc.getValue(M_L.LABEL_IMPORT_FINISHED));
         setWidth("520px");
         setMaxWidth("100vw");
 
-        Span help = new Span(loc.getValue(L.HELP_AFTER_IMPORT));
+        Span help = new Span(loc.getValue(M_L.HELP_AFTER_IMPORT));
         help.addClassName(CssStyles.HINT_TEXT);
 
-        Button summaries = new Button(loc.getValue(L.LABEL_CREATE_SUMMARIES) + "...",
+        Button summaries = new Button(loc.getValue(M_L.LABEL_CREATE_SUMMARIES) + "...",
                 _ -> new CreateSummariesDialog(manuscript, onChanged).show());
         summaries.setWidthFull();
         // the window goes when the agent is started, not when the question is asked: the author may say no
-        Button notes = new Button(loc.getValue(L.LABEL_TAKE_LORE_NOTES) + "...", _ -> startLoreNotes(manuscript, this::close));
+        Button notes = new Button(loc.getValue(M_L.LABEL_TAKE_LORE_NOTES) + "...", _ -> startLoreNotes(manuscript, this::close));
         notes.setWidthFull();
 
         VerticalLayout layout = new VerticalLayout(help, summaries, notes);
         layout.setPadding(false);
         add(layout);
 
-        Button notNow = new Button(loc.getValue(L.LABEL_NOT_NOW), _ -> close());
+        Button notNow = new Button(loc.getValue(M_L.LABEL_NOT_NOW), _ -> close());
         notNow.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         getFooter().add(notNow);
         UIUtils.fitPhone(this, true);
@@ -102,13 +103,13 @@ public class AfterImportDialog extends Dialog {
                 LoreNotesAgent.Problem problem = agent.check(manuscript);
                 if (problem != null) {
                     Notification.warning(switch (problem) {
-                        case NOT_ALLOWED -> loc.getValue(L.MSG_LORE_NOTES_NOT_ALLOWED);
-                        case NO_MODEL -> loc.getValue(L.MSG_LORE_NOTES_NO_MODEL);
-                        case HAS_AGENT -> String.format(loc.getValue(L.MSG_LORE_NOTES_HAS_AGENT), agentName(manuscript));
+                        case NOT_ALLOWED -> loc.getValue(M_L.MSG_LORE_NOTES_NOT_ALLOWED);
+                        case NO_MODEL -> loc.getValue(M_L.MSG_LORE_NOTES_NO_MODEL);
+                        case HAS_AGENT -> String.format(loc.getValue(M_L.MSG_LORE_NOTES_HAS_AGENT), agentName(manuscript));
                     });
                     return;
                 }
-                ConfirmDialog.show(loc.getValue(L.MSG_LORE_NOTES_CONFIRM), () -> start(manuscript, onStarted));
+                ConfirmDialog.show(loc.getValue(M_L.MSG_LORE_NOTES_CONFIRM), () -> start(manuscript, onStarted));
             } catch (Exception e) {
                 UIUtils.internalServerError(loc, e);
             }
@@ -121,7 +122,7 @@ public class AfterImportDialog extends Dialog {
         private void start(Manuscript manuscript, Runnable onStarted) {
             try {
                 Agent started = agent.start(manuscript);
-                Notification.success(loc.getValue(L.MSG_LORE_NOTES_STARTED));
+                Notification.success(loc.getValue(M_L.MSG_LORE_NOTES_STARTED));
                 AgentConsoleDialog console = new AgentConsoleDialog(started);
                 console.create();
                 console.open();

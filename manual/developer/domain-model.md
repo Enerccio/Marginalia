@@ -1,14 +1,14 @@
 ---
 label: Domain model
 order: 960
-verified: d3fd95f7f
+verified: 9860afee8
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/model
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/traits
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/listener
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/security/model
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/SummaryServiceImpl.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/CleanupServiceImpl.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/impl/CleanupServiceImpl.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/BackupServiceImpl.java
 ---
 
@@ -78,7 +78,7 @@ erDiagram
     TagRelation }o--|| Folder : "objectId + clazz"
 ```
 
-Every entity except `User` has an owner (the [job log](#the-job-log-job-jobcall) is the one place where it can be empty), so each user has a separate set of books, lorebooks, providers, protocols
+Every entity except `User` and the [GPUs](#gpus-gpu-gpulock-gpustep) of the installation has an owner (the [job log](#the-job-log-job-jobcall) is the one place where it can be empty), so each user has a separate set of books, lorebooks, providers, protocols
 and settings. The relationships between them never cross users: a book can only use the owner's provider, protocol
 and lorebook.
 
@@ -291,6 +291,7 @@ joins on is a real column: relations, `name`, `enabled`, `ordinal`, `published`,
 | `showBookStyles` | JSON | Legacy story display option (the Book style on or off). Read only while `partStyle` is not set, never written any more. |
 | `partStyle` | JSON | The id of the text style the author chose for this book (a built in style or one of the user, see [Text styles](ui.md#text-styles)); empty follows the default style of the user. |
 | `autoAnnotate`, `autoAnnotateInstructions`, `autoAnnotateModel`, `autoAnnotateProtocol`, `autoAnnotateAccept`, `autoAnnotateRedraft`, `autoAnnotateAcceptRedraft` | JSON | The automatic annotation of a generated part (Tools menu of the story, `AutoAnnotateDialog`; run by `AutoAnnotate`). The getters of the flags return `false` when unset. The model and the protocol are the **uuids** of an AI and a protocol, not ids (a restored backup can't point at somebody else's model: they are looked up among the ones the user can use, `AutoAnnotate.byUuid`, and an unknown or deleted one means the model of the book). |
+| `watchedPhrases`, `phraseWatch` | JSON | The book's own [phrase watch list](services.md) (`List<WatchedPhrase>`, `domain.model`: `phrase`, `regex`, `template` (uuid of an `AnnotationTemplate` of the user settings, null is the built-in note), `disabled`; a list is stored as one JSON value) and whether the parts generated in it are scanned (`getPhraseWatch()` is `false` when unset). The same list is on `Folder` and `UserSetting`; `PhraseWatchService.resolve` adds them up. |
 | `showImagesToReaders` | Boolean | Whether the readers of the published book see the images of its parts (the owner always does); not set means yes. The check box *Show the images to readers* of the *About* tab. |
 | `backupStrategy`, `backupStrategyValue`, `backupStrategyCurrentValue` | JSON | Per-book backup override and its progress counter. |
 
@@ -310,7 +311,7 @@ when the book is saved, so changes go through `PlannerService`, which reads the 
 
 ### `Folder`
 
-A group of books, nested through `parent` (a column, `OWNED_BY` for the cleanup), with a `name` (column), a `description` and the same thirteen text settings and the language as a book, all extended attributes where null means inherit; tags like a book. Described in [Folders](folders.md). Migration V21.
+A group of books, nested through `parent` (a column, `OWNED_BY` for the cleanup), with a `name` (column), a `description` and the same thirteen text settings and the language as a book, all extended attributes where null means inherit; tags like a book. Its `watchedPhrases` (the phrase watch list of the books below it) are added to the user's and the book's, not inherited like a text; the folder backup carries them (`BackupFolders.PHRASES`). Described in [Folders](folders.md). Migration V21.
 
 ### `ChatMessage` (part) and the story tree
 
@@ -464,7 +465,7 @@ part without loading the lazy proxy.
 |---|---|
 | `part`, `partId` | The part (of `AnchoredPassage`). Moved by a merge (`AnnotationService.moveToPrevious`) and copied by a branch (`copyForBranch`). |
 | `status` | `AnnotationStatus`: `OPEN`, `RESOLVED`, `DISMISSED`, `ORPHANED`. Only `OPEN` is marked in the text (`isMarked`); `ORPHANED` is set by the text (the author can not choose it, `setStatus` refuses it). |
-| `source` | `AnnotationSource`: `AUTHOR`, `AI`, `AGENT`, `PLUGIN`. |
+| `source` | `AnnotationSource`: `AUTHOR`, `AI`, `AGENT`, `PLUGIN`, `PHRASE` (a hit of the phrase watch list, `PhraseWatchService`; the label is the entry of the list). |
 | `start`, `end` | Columns `startOffset`, `endOffset`: the passage as offsets in the **source** text of the part (`ChatMessage.response`, markdown included), `end` exclusive. Both null: a note about the whole part (`hasRange()` is false), also an orphaned one. |
 | `text` | The note. |
 | `quote`, `contextBefore`, `contextAfter` | The passage as it was when the range was last set and `AnnotationService.CONTEXT_LENGTH` (60) characters around it: what finds the passage again when the offsets mean nothing. Kept up to date by every move of the range. |
@@ -569,7 +570,9 @@ Both use joined inheritance: a base table with the common fields and one table p
 | `extensionId` | column (`ais_extension`, `ExtensionAI` only) | The extension that provides the AI, the id of its `ExtensionAIFactory`. The settings of the provider are in `getSettings()`, the object under that id in the dynamic attributes (`attributes_<id>`); secrets in it are encrypted with `InferenceServices.protectSecret`. See [Inference providers from a plugin](plugins/ai-providers.md). |
 | `additionalParameters` | JSON (`additionalParameters_*`) | Extra fields added to every request; they win over the protocol's settings. |
 | `maxConcurrentRequests` | JSON | The connections of the AI (the field *Connections*): how many requests of any kind and user may be on the way to it at once, the rest waits in order (`AIGate`, see [Services](services.md)). `getConnections()` is what applies: one when it is not set. |
-| `sendLoreImages`, `loreImagesInSystem` | JSON | *Send lore images*: whether the images in the content of the activated lorebook entries (`![caption](resource:<uuid>)`, see `LoreImages`) go to this model with the lore (the model must take images). `loreImagesInSystem` (*Images in the system message*, used only with the first, OpenAI-compatible only) puts them into the system message itself instead of a user message of their own after it. Both are `false` when never set (stored as nothing), `isSendLoreImages()` / `isLoreImagesInSystem()` read them, `AIServiceImpl` copies them with the AI, and the AI dialog has a checkbox for each. See [Generation pipeline](generation-pipeline.md). |
+| `gpuLock` | JSON | The uuid of the `GpuLock` every request to this AI takes (`GatedInferenceService`, after the connection of `AIGate`): the model runs on a GPU it shares with other AIs or servers. `null` (blank is stored as `null`) or a uuid that names no lock any more: no lock. See [GPU locks](plugins/gpu-locks.md). |
+| `sendLoreImages`, `imagePlacement` (`loreImagesInSystem`) | JSON | *Multimodal (accepts images)*: whether the model takes images, so the application sends it the images of a request; in Marginalia the images in the content of the activated lorebook entries (`![caption](resource:<uuid>)`, see `LoreImages`) go with the lore. `sendLoreImages` keeps its old name, the key of the stored JSON; `isMultimodal()` reads it. *Image placement* (`PromptPlacement`, used only with the first): `SYSTEM` puts the images of the system prompt into the system message itself (OpenAI-compatible only, `PreparePayloadStep`), `BEFORE` puts the images of every message before its text (`PromptPlacements.forRequest` marks the copy that is sent, `LLMChatMessage.imagesFirst`), `AFTER` (stored as nothing) after it. `getImagePlacement()` reads the old checkbox `loreImagesInSystem` (`true` is `SYSTEM`) when the new field was never set; the setter clears it. `AIServiceImpl` copies them with the AI. See [Generation pipeline](generation-pipeline.md). |
+| `functionsPlacement`, `functionRule`, `functionRulePlacement` | JSON | Where the function definitions and a rule about calls go in a request that offers functions (`PromptPlacement`; `SYSTEM` and `AFTER` when never set): `PromptPlacements.forRequest`, applied by `PlacedInferenceService` (see [Services](services.md#models)). The definitions in `SYSTEM` are only the `tools` of the request; `BEFORE` / `AFTER` also write them as JSON text into the latest user message. A blank rule is null. |
 | `requestTimeoutSeconds`, `maxRetries` | JSON | Wait for the API (read timeout) and retries of a request; `null` = the defaults of `OpenAICompatibleInferenceService` (300 s, 2 retries). |
 | `reasoningPassthrough` | JSON (`OpenAICompatible` only) | `ReasoningPassthrough` (`domain.collections`): `NONE` (the default, stored as nothing), `TOOL_CALLS` or `ALWAYS`. Whether the thinking of an answer goes back to the model as `reasoning_content` of its message: with `TOOL_CALLS` only while the tool calls of one answer go on, with `ALWAYS` also with earlier answers that have it. Read by `OpenAICompatibleInferenceService.toAssistantMessage`; cloned with the AI; the AI dialog shows it in the per type tab. |
 
@@ -681,8 +684,13 @@ values are extended attributes.
 | Class | Owner | Contains |
 |---|---|---|
 | `AppSettings` | none (one per installation) | Data versions (`dbVersion`, `appVersion`), the database backup schedule (`backupScheduleEnabled`, `backupSchedule`, `backupKeep`, `lastScheduledBackup`, `backupScheduleChanged`), the writing statistics (`statisticsRecording`, `statisticsKeepMonths`, the instance side of the privacy controls, see [Writing statistics](#writing-statistics-manuscriptstatistic-activityinterval-manuscriptsize); extended attributes), the help assistant (`helpAiUuid`, `helpAdminData` (may it read the data of the Admin page for an administrator), and the prompts `helpPromptAdmin` / `helpPromptUser`, null = the default; the uuid, not the id; written only by `HelpAssistantService.saveSettings`). The switches `userAisAllowed` and `helpEnabled` and the settings `helpApplyLimits` and `helpInteractions` are replaced by the permissions `CREATE_AI` and `HELPER` with the attributes `helperApplyLimits` and `helperInteractions` (V15 / app version 5); the fields stay, deprecated, only for `PermissionsMigration`. |
-| `UserSetting` | each user | Default model and protocol (ids, `@CleanupReference(WEAK)`), default prompts (`masterTemplate`, `defaultPov`, `defaultTense`, `defaultStyle`, `defaultUserPrompt`, `defaultSummaryPrompt`, `defaultMetaSummaryPrompt`, `defaultRedraftSystemPrompt`, `defaultRedraftPrompt`, `defaultRedraftShorter`, `defaultRedraftLonger`, `defaultAnnotateSystemPrompt`, `defaultAnnotatePrompt`, `defaultAnnotateInstructions`, `defaultImpersonatePrompt`), default book backup strategy, how many parts the story and the viewer load at a time (`storyPartsLimit`, empty loads all), the code of the language of the UI (`language`, see [Localization](architecture.md#localization)), the code of the language of the built-in prompts (`promptLanguage`, null is English, see [Templating](templating.md#the-built-in-prompts-and-their-languages)), where the user left the workspace (`workspaceState`, a JSON object written by the workspace autosave, see [User interface](ui.md#remembering-where-the-user-was)), the favorite books (`favoriteBooks`, uuids), the default arrangement of the story tabs (`defaultStoryLayout`) whether the help assistant may look at the books (`helpAssistantBooks`, false by default) and the user's side of the statistics privacy controls (`statisticsRecording`, `statisticsKeepMonths`, extended attributes). |
+| `UserSetting` | each user | Default model and protocol (ids, `@CleanupReference(WEAK)`), default prompts (`masterTemplate`, `defaultPov`, `defaultTense`, `defaultStyle`, `defaultUserPrompt`, `defaultSummaryPrompt`, `defaultMetaSummaryPrompt`, `defaultRedraftSystemPrompt`, `defaultRedraftPrompt`, `defaultRedraftShorter`, `defaultRedraftLonger`, `defaultAnnotateSystemPrompt`, `defaultAnnotatePrompt`, `defaultAnnotateInstructions`, `defaultImpersonatePrompt`), default book backup strategy, how many parts the story and the viewer load at a time (`storyPartsLimit`, empty loads all), the code of the language of the UI (`language`, see [Localization](architecture.md#localization)), the code of the language of the built-in prompts (`promptLanguage`, null is English, see [Templating](templating.md#the-built-in-prompts-and-their-languages)), where the user left the workspace (`workspaceState`, a JSON object written by the workspace autosave, see [User interface](ui.md#remembering-where-the-user-was)), the favorite books (`favoriteBooks`, uuids), the default arrangement of the story tabs (`defaultStoryLayout`), the user's phrase watch list (`watchedPhrases`) and the annotation templates its entries name (`annotationTemplates`, `List<AnnotationTemplate>`: `uuid`, `name`, `text` with `{{match}}` / `{{phrase}}`, `type`, `sendToPrompt`), whether the help assistant may look at the books (`helpAssistantBooks`, false by default) and the user's side of the statistics privacy controls (`statisticsRecording`, `statisticsKeepMonths`, extended attributes). |
 
+The settings the platform reads (`defaultModel`, `defaultProtocol`, `themeMode`, `language`, `promptLanguage`,
+`workspaceState`, `keyBindings`) are declared in `BaseUserSetting`, a `@MappedSuperclass` between `Setting` and
+`UserSetting`; the rest of `UserSetting` is Marginalia's. All are extended attributes in the same row, so a field can move
+between the two without a migration. Platform code (`LanguageSelector`, `ThemeSwitch`, `KeyBindings`, the API) calls
+`SettingService.getUserSetting()`, which returns the class set as `userSettingClass` of the `SettingServiceImpl` bean.
 `SettingService.getOrCreate(UserSetting.class)` returns the current user's settings, creating them on first use;
 `getOrCreateApp(AppSettings.class)` the installation's. A function that only reads uses `findOrBlank(cls, user)` instead (a missing setting is a blank one that is not stored, so a read-only transaction does not write: creating the row there fails with `SQLITE_BUSY` when another connection wrote in between; `find` returns `null`). Extensions keep their settings in the `attributes` of
 `UserSetting` (Reviewer and Side Query profiles do).
@@ -708,6 +716,20 @@ The current user of a session is the session-scoped `user` bean (see [Architectu
 which holds a copy of the logged-in user's id, login and name - load the entity through `UserService` when you need
 more.
 
+### `ApiKey` (a key of the HTTP API)
+
+`ApiKey` (`domain.security.model`; table `api_keys`, V31) extends `ExtendableEntity`: a bearer key of the [HTTP API](api.md), owned by the
+user it acts as (`OwnedEntity.owner`, purged with them). A revoked key is deleted (soft).
+
+| Field | |
+|---|---|
+| `name` | What the user called it. |
+| `keyPrefix` | The public start of the key it is looked up by (unique). |
+| `secretHash` | SHA-256 of the secret: the key itself is shown once and never stored. |
+| `scopes` | Extended attribute: the `ApiScope`s (`domain.security.model`) by name, separated by commas (`getScopes()` / `setScopes(...)` normalize them). |
+| `expires` | Extended attribute: when the key stops working, null for never. |
+| `lastUsed` | Extended attribute: when it was last used, written at most once a minute. |
+
 ### `Permission` (what a user was allowed)
 
 `Permission` (`domain.security.model`, with `PermissionType` in `domain.security.permissions`; table `permissions`, V15) extends `ExtendableEntity`. There is at most one live row per
@@ -715,7 +737,7 @@ holder and `PermissionType`; a user without one does not have the permission.
 
 | Field | |
 |---|---|
-| `permissionType` | `PermissionType`, stored by name (`@Enumerated(STRING)`): `HELPER` (use the help assistant), `CREATE_AI` (create their own AIs), `AGENTS` (create and run agents), `NOTIFICATIONS` (messages of the server to the user's webhook). Never rename a constant. |
+| `permissionType` | `PermissionType`, stored by name (`@Enumerated(STRING)`): `HELPER` (use the help assistant), `CREATE_AI` (create their own AIs), `AGENTS` (create and run agents), `NOTIFICATIONS` (messages of the server to the user's webhook), `VERSION_HISTORY` (the versions kept per part), `API` (keys of the [HTTP API](api.md)). Never rename a constant. |
 | `permissionHolder` | Column `holder_id`, the `User` who has (or has not) the permission. `@CleanupReference(OWNED_BY)`: purged with the user; nullable because the cleanup nulls the reference before it purges the user. |
 | `granted` | Whether it is given; `false` keeps the row as an explicit refusal. |
 | `helperApplyLimits`, `helperInteractions` | Extended attributes of the type `HELPER` (booleans, off by default): do the limits of the user apply to their questions to the help assistant, may the assistant move through the interface for them (they were application settings before). Edited in `PermissionsDialog`. |
@@ -804,6 +826,13 @@ Neither is an `ExtendableEntity` and neither is part of a backup of a book. The 
 `JobService.purge(JobFilter)` deletes the jobs of a filter and their calls for good, and nothing else ever deletes
 them, except the cleanup of a purged user, which takes the user's jobs along (`owner` is `OWNED_BY`).
 
+## GPUs (`Gpu`, `GpuLock`, `GpuStep`)
+
+The GPUs of the installation and the ways to use them, set up by the administrator (*Admin → GPUs*) and picked by every user for an AI
+(`AI.gpuLock`) or a backend of an extension. All three are `BaseEntity`, not owned by a user and not part of a backup (migrations V29, V30):
+`Gpu` (a name, `usedOutside`), `GpuStep` (an HTTP request with encrypted headers) and `GpuLock` (a GPU, `maxConcurrent`, the ordered acquire
+and release steps). Deletes are hard. The fields and the turns are described in [GPU locks](plugins/gpu-locks.md#the-model).
+
 ## Resources
 
 `Resource` (`resources`, an `OwnedEntity`) is an uploaded file: the images attached to parts
@@ -815,7 +844,7 @@ carries the uuids of both and the export packs the files, see *Resources in back
 | `path` | File name in the user's `images` folder (images) or `resources` folder (other files) of the data folder. The files are stored by content: uploading the same bytes again reuses the file. |
 | `hash` | Hash of the content; with the owner it is the key for that deduplication (`ix_resources_user_hash`). |
 | `mimeType`, `originalName` | Detected content type and the name the file was uploaded with. |
-| `objectId`, `clazz` | Loose link to the object that uses the file (class name and id, like `TagRelation`). Bookkeeping for the Resources tab (which groups the files by it) - not a cleanup reference, the object may be gone. |
+| `objectId`, `clazz` | Loose link to the object that uses the file (class name and id, like `TagRelation`). Bookkeeping for the Resources tab (which groups the files by it) - not a cleanup reference, the object may be gone. The cleanup uses it for *unused resources* (see [Cleanup references](#cleanup-references)). |
 | `servedFrom` | Not stored. Set by `ResourceService` on a file it gives to a reader of somebody else's published book: the owner, whose folder holds the file (`findImageForReader`, `readForReader`). |
 
 Deleting a resource is a soft delete like any other; files are never deleted from disk.
@@ -838,6 +867,19 @@ pointing to other entities ("soft references", including extended attributes) ar
 `target = SomeEntity.class` or, for polymorphic ones, `targetClassField = "clazz"`. On an entity class,
 `field = "..."` sets the policy of an inherited field (`OwnedEntity` makes `owner` `OWNED_BY`, so a deleted user
 is purged together with everything they own).
+
+### Unused resources
+
+A `Resource` that is not deleted is purged too when nothing uses it any more (`CleanupServiceImpl.unusedResources`, after the
+plan of the deleted rows is made): its loose link (`clazz`, `objectId`) names an entity that is no longer in the database or
+that the plan purges, and no other row names its uuid. The rows are read in chunks: every `String` and `byte[]` column of every
+entity (the `extendedContent` unzipped, where the `imageAttachments` of a part and the `attributes` of extensions are; not `uuid`
+and `_fulltext`, not the resources themselves), the uuids found by `BackupResources.uuidsIn`, case ignored. Rows in the trash
+count (restoring them keeps their files), rows the plan purges do not. A branch made from a part has the same pictures and clips,
+a lorebook entry names its images, so the link alone is never enough. A resource linked to nothing or to a class that is not an
+entity stays. Contributors can keep one (`collectReferences`, the candidates are `EntityKey(Resource.class, id)`); it is then
+left out without being listed as blocked. The purged resources count in *To purge* of `Resource` (`EntityStats.purgeable`), not
+in *Deleted*. The files stay on disk, as for a deleted resource, until *Resource Files* removes them.
 
 ### Trash
 
@@ -864,11 +906,11 @@ comes back as well. A restored `ChatMessage` deleted by `deleteNodeAndMigrateChi
 they were moved to its parent when it was deleted.
 
 `TrashService.deletePermanently` removes deleted rows for good, for the *Delete Permanently* button of `TrashGrid`. It is
-limited to `getPermanentlyDeletableTypes()` (`ChatMessage`, `LorebookEntry`; anything else raises
-`IllegalArgumentException`) so a user can't purge a whole book, and checks ownership like `restore`. It runs the purge of
+limited to `getPermanentlyDeletableTypes()` (`ChatMessage`, `LorebookEntry`, given by the application's `TrashPolicy` bean
+`BookTrashPolicy`; anything else raises `IllegalArgumentException`) so a user can't purge a whole book, and checks ownership like `restore`. It runs the purge of
 the cleanup (`executePurge`) on the selection: the rows that go with it are only `Summary` and `TagRelation` rows, a
 summary something else uses stays, and a block by a `CleanupContributor` (or any other row that would have to go) makes
-the whole call return `DeleteResult.getBlocked()` and roll back. Before that, `moveChildrenOfMessages` moves the children
+the whole call return `DeleteResult.getBlocked()` and roll back. Before that, `BookTrashPolicy.beforePermanentDelete` moves the children
 of the selected messages - deleted ones too, which the editor's `deleteNodeAndMigrateChildren` never sees - and the
 `activeLeaf` of books to the nearest ancestor that is not selected, with bulk updates, so removing a chain of parts keeps
 the parts below it connected.

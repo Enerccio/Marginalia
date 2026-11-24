@@ -4,6 +4,8 @@ import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.model.impl.Tag;
 import com.github.enerccio.marginalia.domain.service.TagRelationService;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.vaadin.flow.component.combobox.ComboBox;
 import org.apache.commons.lang3.StringUtils;
@@ -24,19 +26,19 @@ public final class LorebookEntryFilter {
      * The status of an entry the list can be limited to.
      */
     public enum Status {
-        ALL(L.LABEL_ALL),
-        ENABLED(L.LABEL_ENABLED),
-        DISABLED(L.LABEL_FILTER_DISABLED),
+        ALL(M_L.LABEL_ALL),
+        ENABLED(M_L.LABEL_ENABLED),
+        DISABLED(M_L.LABEL_FILTER_DISABLED),
         /** Used for every turn: enabled and without a filter. */
-        CONSTANT(L.LABEL_FILTER_CONSTANT);
+        CONSTANT(M_L.LABEL_FILTER_CONSTANT);
 
-        private final L label;
+        private final LocalizationKey label;
 
-        Status(L label) {
+        Status(LocalizationKey label) {
             this.label = label;
         }
 
-        public L label() {
+        public LocalizationKey label() {
             return label;
         }
 
@@ -128,7 +130,7 @@ public final class LorebookEntryFilter {
      */
     public static ComboBox<String> createTagBox(Localization loc) {
         ComboBox<String> box = new ComboBox<>();
-        box.setPlaceholder(loc.getValue(L.LABEL_TAGS));
+        box.setPlaceholder(loc.getValue(M_L.LABEL_TAGS));
         box.setClearButtonVisible(true);
         box.setAllowCustomValue(false);
         return box;

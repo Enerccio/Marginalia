@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.command;
 
+import com.github.enerccio.marginalia.domain.model.WatchedPhrase;
 import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.service.AnnotationService;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
@@ -52,11 +53,16 @@ class GenerationCommandsTest extends GenerationTestBase {
     @Autowired
     private AnnotationService annotationService;
 
+    @Autowired
+    private com.github.enerccio.marginalia.domain.service.PhraseWatchService phraseWatchService;
+
     private Manuscript manuscript;
     private ChatMessage first, second;
     private boolean answer = true;
     // the story the commands are typed into, null for none
     private GenerationView view;
+    // the run of the agent the commands are of, null for the author's
+    private AgentRun agentRun;
 
     @BeforeEach
     void setUp() throws Exception {
@@ -90,7 +96,7 @@ class GenerationCommandsTest extends GenerationTestBase {
 
             @Override
             public AgentRun getRun() {
-                return null;
+                return agentRun;
             }
 
             @Override
@@ -155,6 +161,18 @@ class GenerationCommandsTest extends GenerationTestBase {
         assertThat(result.get("position").getAsInt()).isEqualTo(3);
         assertThat(result.get("model").getAsString()).isEqualTo(ai.getName());
         assertThat(book().getActiveLeaf().getId()).isEqualTo(created.getId());
+    }
+
+    @Test
+    void thePartAnAgentGeneratesIsScannedByThePhraseWatchListAndTheAnswerSaysSo() throws Exception {
+        llm.fallback(com.github.enerccio.marginalia.test.llm.MockLLMResponse.text("The tapestry of fate unfurled."));
+        phraseWatchService.setForBook(book(), List.of(new WatchedPhrase("tapestry of fate", false, null)), true);
+        agentRun = new AgentRun();
+
+        JsonObject result = json("/next \"\" \"\" \"\" \"Go on\"");
+
+        assertThat(result.get("phraseWatchNotes").getAsInt()).isEqualTo(1);
+        assertThat(annotationService.listForPart(book(), part(result))).extracting(Annotation::getQuote).containsExactly("tapestry of fate");
     }
 
     @Test

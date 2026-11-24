@@ -1,7 +1,8 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
 import com.github.enerccio.marginalia.domain.collections.RevisionDetail;
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.utils.LmStudioChats;
 import com.github.enerccio.marginalia.utils.SillyTavernChats;
 
@@ -14,20 +15,20 @@ import java.util.function.BiFunction;
  */
 public enum ChatImportFormat {
 
-    SILLYTAVERN(L.LABEL_IMPORT_FROM_SILLYTAVERN, L.MSG_IMPORT_SILLYTAVERN, L.MSG_INVALID_SILLYTAVERN_CHAT, L.MSG_IMPORTING_SILLYTAVERN,
+    SILLYTAVERN(M_L.LABEL_IMPORT_FROM_SILLYTAVERN, M_L.MSG_IMPORT_SILLYTAVERN, M_L.MSG_INVALID_SILLYTAVERN_CHAT, M_L.MSG_IMPORTING_SILLYTAVERN,
             RevisionDetail.SILLYTAVERN_IMPORT, SillyTavernChats::parse, new String[]{".jsonl", ".json", "application/json", "application/x-ndjson"}),
-    LMSTUDIO(L.LABEL_IMPORT_FROM_LMSTUDIO, L.MSG_IMPORT_LMSTUDIO, L.MSG_INVALID_LMSTUDIO_CHAT, L.MSG_IMPORTING_LMSTUDIO,
+    LMSTUDIO(M_L.LABEL_IMPORT_FROM_LMSTUDIO, M_L.MSG_IMPORT_LMSTUDIO, M_L.MSG_INVALID_LMSTUDIO_CHAT, M_L.MSG_IMPORTING_LMSTUDIO,
             RevisionDetail.LMSTUDIO_IMPORT, LmStudioChats::parse, new String[]{".json", "application/json"});
 
-    private final L title;
-    private final L description;
-    private final L invalid;
-    private final L progress;
+    private final LocalizationKey title;
+    private final LocalizationKey description;
+    private final LocalizationKey invalid;
+    private final LocalizationKey progress;
     private final RevisionDetail source;
     private final BiFunction<String, String, SillyTavernChats.Chat> parser;
     private final String[] fileTypes;
 
-    ChatImportFormat(L title, L description, L invalid, L progress, RevisionDetail source,
+    ChatImportFormat(LocalizationKey title, LocalizationKey description, LocalizationKey invalid, LocalizationKey progress, RevisionDetail source,
                      BiFunction<String, String, SillyTavernChats.Chat> parser, String[] fileTypes) {
         this.title = title;
         this.description = description;
@@ -41,28 +42,28 @@ public enum ChatImportFormat {
     /**
      * @return the label of the menu item and the title of the dialog
      */
-    public L title() {
+    public LocalizationKey title() {
         return title;
     }
 
     /**
      * @return what the user is asked to upload, in the dialog
      */
-    public L description() {
+    public LocalizationKey description() {
         return description;
     }
 
     /**
      * @return the warning for a file that is not a chat of the format, with the name of the file
      */
-    public L invalid() {
+    public LocalizationKey invalid() {
         return invalid;
     }
 
     /**
      * @return the title of the progress dialog of the import
      */
-    public L progress() {
+    public LocalizationKey progress() {
         return progress;
     }
 

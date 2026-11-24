@@ -14,7 +14,10 @@ import com.github.enerccio.marginalia.domain.service.AgentRunner;
 import com.github.enerccio.marginalia.domain.service.AgentService;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Language;
+import com.github.enerccio.marginalia.loc.MarginaliaLocalization;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.LLMInteraction;
@@ -91,17 +94,17 @@ public class AgentPart implements WorkspaceComponent {
      * What the agents are ordered by on the phone, where there are no column headers to press.
      */
     enum Sort {
-        NAME(L.LABEL_NAME), STATUS(L.LABEL_STATUS), LAST_RUN(L.LABEL_LAST_RUN);
+        NAME(L.LABEL_NAME), STATUS(L.LABEL_STATUS), LAST_RUN(M_L.LABEL_LAST_RUN);
 
-        private final L label;
+        private final LocalizationKey label;
 
-        Sort(L label) {
+        Sort(LocalizationKey label) {
             this.label = label;
         }
     }
 
     @Autowired
-    private Localization loc;
+    private MarginaliaLocalization loc;
 
     @Autowired
     private AgentService agentService;
@@ -188,7 +191,7 @@ public class AgentPart implements WorkspaceComponent {
     @PublicAPI(from = "1.4.0",
             returns = @APIReturn(type = String.class))
     public String getName() {
-        return loc.getValue(L.LABEL_AGENTS);
+        return loc.getValue(M_L.LABEL_AGENTS);
     }
 
     @PublicAPI(from = "1.4.0",
@@ -209,10 +212,10 @@ public class AgentPart implements WorkspaceComponent {
         headerLayout.setWidthFull();
         headerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
 
-        Span titleSpan = new Span(loc.getValue(L.LABEL_AGENTS));
+        Span titleSpan = new Span(loc.getValue(M_L.LABEL_AGENTS));
         titleSpan.addClassName(CssStyles.SECTION_TITLE);
 
-        addAgentButton = new Button(loc.getValue(L.LABEL_NEW_AGENT), event -> {
+        addAgentButton = new Button(loc.getValue(M_L.LABEL_NEW_AGENT), event -> {
             AgentDialog dialog = new AgentDialog();
             dialog.setOnSave(this::refreshGrid);
             dialog.create();
@@ -232,7 +235,7 @@ public class AgentPart implements WorkspaceComponent {
         filterLayout.setWrap(true);
         filterLayout.setFlexGrow(1, nameFilter, bookFilter);
         if (phone) {
-            sortBox = new ComboBox<>(loc.getValue(L.LABEL_SORT_BY));
+            sortBox = new ComboBox<>(loc.getValue(M_L.LABEL_SORT_BY));
             sortBox.setItems(Sort.values());
             sortBox.setItemLabelGenerator(sort -> loc.getValue(sort.label));
             sortBox.setAllowCustomValue(false);
@@ -247,17 +250,17 @@ public class AgentPart implements WorkspaceComponent {
         grid.setItems(dataProvider);
         if (phone) {
             grid.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_ROW_STRIPES);
-            grid.addComponentColumn(this::createCard).setHeader(loc.getValue(L.LABEL_AGENTS));
+            grid.addComponentColumn(this::createCard).setHeader(loc.getValue(M_L.LABEL_AGENTS));
         } else {
             Comparator<String> collator = loc.createLocaleComparator();
-            grid.addColumn(Agent::getUuid).setHeader(loc.getValue(L.LABEL_AGENT_ID)).setFlexGrow(2).setResizable(true);
+            grid.addColumn(Agent::getUuid).setHeader(loc.getValue(M_L.LABEL_AGENT_ID)).setFlexGrow(2).setResizable(true);
             grid.addColumn(Agent::getName).setHeader(loc.getValue(L.LABEL_NAME)).setFlexGrow(2)
                     .setComparator(Comparator.comparing(Agent::getName, collator));
             grid.addColumn(this::bookName).setHeader(loc.getValue(L.LABEL_BOOK)).setFlexGrow(2)
                     .setComparator(Comparator.comparing(this::bookName, collator));
             grid.addColumn(this::statusText).setHeader(loc.getValue(L.LABEL_STATUS)).setFlexGrow(1)
                     .setComparator(Comparator.comparing(this::statusText, collator));
-            grid.addColumn(this::lastRunText).setHeader(loc.getValue(L.LABEL_LAST_RUN)).setFlexGrow(1)
+            grid.addColumn(this::lastRunText).setHeader(loc.getValue(M_L.LABEL_LAST_RUN)).setFlexGrow(1)
                     .setComparator(lastRunOrder());
             grid.addComponentColumn(this::createActions).setHeader("").setFlexGrow(0).setWidth("410px");
         }
@@ -340,11 +343,11 @@ public class AgentPart implements WorkspaceComponent {
     String noticeText(Notice notice) {
         String reason = notice.reason() == null ? "" : notice.reason();
         return switch (notice.status()) {
-            case WAITING_APPROVAL -> String.format(loc.getValue(L.MSG_AGENT_NOTICE_APPROVAL), notice.agentName(), reason);
-            case DONE -> String.format(loc.getValue(L.MSG_AGENT_NOTICE_DONE), notice.agentName());
-            case FAILED -> String.format(loc.getValue(L.MSG_AGENT_NOTICE_FAILED), notice.agentName());
-            case PAUSED -> String.format(loc.getValue(L.MSG_AGENT_NOTICE_PAUSED), notice.agentName(), reason);
-            default -> String.format(loc.getValue(L.MSG_AGENT_NOTICE_IDLE), notice.agentName());
+            case WAITING_APPROVAL -> String.format(loc.getValue(M_L.MSG_AGENT_NOTICE_APPROVAL), notice.agentName(), reason);
+            case DONE -> String.format(loc.getValue(M_L.MSG_AGENT_NOTICE_DONE), notice.agentName());
+            case FAILED -> String.format(loc.getValue(M_L.MSG_AGENT_NOTICE_FAILED), notice.agentName());
+            case PAUSED -> String.format(loc.getValue(M_L.MSG_AGENT_NOTICE_PAUSED), notice.agentName(), reason);
+            default -> String.format(loc.getValue(M_L.MSG_AGENT_NOTICE_IDLE), notice.agentName());
         };
     }
 
@@ -386,17 +389,17 @@ public class AgentPart implements WorkspaceComponent {
         if (run != null) {
             return loc.getValue(loc.getAgentRunStatus(run.getStatus()));
         }
-        return loc.getValue(agent.isEnabled() ? L.LABEL_AGENT_NO_RUN : L.LABEL_AGENT_DISABLED);
+        return loc.getValue(agent.isEnabled() ? M_L.LABEL_AGENT_NO_RUN : M_L.LABEL_AGENT_DISABLED);
     }
 
     /**
      * A field that narrows the table to the agents that contain all of the words typed into it.
      */
-    @PublicAPI(from = "1.5.0",
+    @PublicAPI(from = "1.9.0",
             returns = @APIReturn(type = TextField.class),
-            parameters = {@APIParameter(name = "label", type = L.class)},
+            parameters = {@APIParameter(name = "label", type = LocalizationKey.class)},
             locals = {@APILocals(name = "field", type = TextField.class)})
-    private TextField filterField(L label) {
+    private TextField filterField(LocalizationKey label) {
         TextField field = new TextField(loc.getValue(label));
         field.setClearButtonVisible(true);
         field.setPrefixComponent(Solid.MAGNIFYING_GLASS.create());
@@ -551,13 +554,13 @@ public class AgentPart implements WorkspaceComponent {
             MenuBar startBar = new MenuBar();
             startBar.addThemeVariants(MenuBarVariant.LUMO_ICON);
             MenuItem startItem = startBar.addItem(Solid.PLAY.create());
-            startBar.setTooltipText(startItem, loc.getValue(L.LABEL_START));
-            startItem.getSubMenu().addItem(loc.getValue(L.LABEL_START_IMMEDIATELY), event -> startImmediately(agent));
-            startItem.getSubMenu().addItem(loc.getValue(L.LABEL_START_IN_CONSOLE), event -> startInConsole(agent));
+            startBar.setTooltipText(startItem, loc.getValue(M_L.LABEL_START));
+            startItem.getSubMenu().addItem(loc.getValue(M_L.LABEL_START_IMMEDIATELY), event -> startImmediately(agent));
+            startItem.getSubMenu().addItem(loc.getValue(M_L.LABEL_START_IN_CONSOLE), event -> startInConsole(agent));
             lastStartItem = startItem;
             startControl = startBar;
         } else {
-            Button resumeButton = button(Solid.PLAY, L.LABEL_RESUME, () -> {
+            Button resumeButton = button(Solid.PLAY, M_L.LABEL_RESUME, () -> {
                 AgentResumeDialog dialog = new AgentResumeDialog(note -> perform(() -> {
                     agentRunner.run(agentRunService.resume(run, note));
                     return null;
@@ -571,10 +574,10 @@ public class AgentPart implements WorkspaceComponent {
             startControl = resumeButton;
         }
 
-        Button pauseButton = button(Solid.PAUSE, L.LABEL_PAUSE, () -> agentRunService.pause(run));
+        Button pauseButton = button(Solid.PAUSE, M_L.LABEL_PAUSE, () -> agentRunService.pause(run));
         pauseButton.setVisible(status != null && PAUSABLE.contains(status));
 
-        Button pauseNowButton = button(Solid.BOLT, L.LABEL_PAUSE_NOW, () -> agentRunner.pauseNow(run));
+        Button pauseNowButton = button(Solid.BOLT, M_L.LABEL_PAUSE_NOW, () -> agentRunner.pauseNow(run));
         pauseNowButton.setVisible(status != null && PAUSABLE_NOW.contains(status));
 
         Button stopButton = new Button(Solid.STOP.create(), event -> new StopAction(agent, run).run());
@@ -583,12 +586,12 @@ public class AgentPart implements WorkspaceComponent {
 
         // the result of a finished or kept run waits for the user: they take over what they want of it
         Button reviewButton = new Button(Solid.CODE_COMPARE.create(), event -> openReview(agent, run));
-        reviewButton.setTooltipText(loc.getValue(L.LABEL_REVIEW_CHANGES));
+        reviewButton.setTooltipText(loc.getValue(M_L.LABEL_REVIEW_CHANGES));
         reviewButton.setVisible(status != null && REVIEWABLE.contains(status));
         reviewButton.setThemeName("primary");
 
         Button consoleButton = new Button(Solid.TERMINAL.create(), event -> openConsole(agent));
-        consoleButton.setTooltipText(loc.getValue(L.LABEL_AGENT_CONSOLE));
+        consoleButton.setTooltipText(loc.getValue(M_L.LABEL_AGENT_CONSOLE));
         // the agent needs the user: the button stands out
         if (run != null && run.isAttention()) {
             consoleButton.setThemeName("primary");
@@ -601,7 +604,7 @@ public class AgentPart implements WorkspaceComponent {
             dialog.open();
             lastDialog = dialog;
         });
-        editButton.setTooltipText(loc.getValue(L.LABEL_EDIT_AGENT));
+        editButton.setTooltipText(loc.getValue(M_L.LABEL_EDIT_AGENT));
 
         Button cloneButton = new Button(Solid.CLONE.create(), event -> {
             AgentCloneDialog dialog = new AgentCloneDialog(agent);
@@ -610,7 +613,7 @@ public class AgentPart implements WorkspaceComponent {
             dialog.open();
             lastDialog = dialog;
         });
-        cloneButton.setTooltipText(loc.getValue(canCreate ? L.LABEL_CLONE_AGENT : L.MSG_AGENT_LIMIT_REACHED));
+        cloneButton.setTooltipText(loc.getValue(canCreate ? M_L.LABEL_CLONE_AGENT : M_L.MSG_AGENT_LIMIT_REACHED));
         cloneButton.setEnabled(canCreate);
 
         Button deleteButton = new Button(Solid.TRASH.create(), event ->
@@ -678,13 +681,13 @@ public class AgentPart implements WorkspaceComponent {
     /**
      * A button that does something to a run; the answer of the service decides what the table shows next.
      */
-    @PublicAPI(from = "1.4.0",
+    @PublicAPI(from = "1.9.0",
             returns = @APIReturn(type = Button.class),
             parameters = {@APIParameter(name = "icon", type = FontAwesome.Solid.class),
-                    @APIParameter(name = "tooltip", type = L.class),
+                    @APIParameter(name = "tooltip", type = LocalizationKey.class),
                     @APIParameter(name = "action", type = Callable.class)},
             locals = {@APILocals(name = "button", type = Button.class)})
-    private Button button(Solid icon, L tooltip, Callable<?> action) {
+    private Button button(Solid icon, LocalizationKey tooltip, Callable<?> action) {
         Button button = new Button(icon.create(), event -> perform(action));
         button.setTooltipText(loc.getValue(tooltip));
         return button;
@@ -771,7 +774,7 @@ public class AgentPart implements WorkspaceComponent {
             attentionListeners.forEach(listener -> listener.accept(waiting));
             canCreate = agentService.canCreate();
             addAgentButton.setEnabled(canCreate);
-            addAgentButton.setTooltipText(canCreate ? null : loc.getValue(L.MSG_AGENT_LIMIT_REACHED));
+            addAgentButton.setTooltipText(canCreate ? null : loc.getValue(M_L.MSG_AGENT_LIMIT_REACHED));
             bookNames.clear();
             bookNames.putAll(agentService.findBookNames(found));
             agents.clear();

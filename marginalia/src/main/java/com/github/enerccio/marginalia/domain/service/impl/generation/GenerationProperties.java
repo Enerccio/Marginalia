@@ -68,7 +68,7 @@ public final class GenerationProperties {
 
     /**
      * {@code List<LoreImage>} the images in the content of the entries the turn uses, in the order of the entries, set at
-     * {@link Events#AFTER_PROCESS_LOREBOOK} when the AI of the generation is set to take them ({@code AI.isSendLoreImages}), else
+     * {@link Events#AFTER_PROCESS_LOREBOOK} when the AI of the generation is set to take them ({@code AI.isMultimodal}), else
      * empty. Read back by the payload step: the images of the lore block go into a user message of their own right after the
      * system prompt (answered by a short assistant message), the others onto the user's prompt.
      */

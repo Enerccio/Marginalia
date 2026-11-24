@@ -1,7 +1,9 @@
 package com.github.enerccio.marginalia.domain.templates;
 
 import com.github.enerccio.marginalia.domain.traits.LocalizedTemplateDescription;
+import com.github.enerccio.marginalia.domain.traits.MarginaliaTemplateDescription;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 
 /**
  * Variables of the impersonate prompt: the story so far, the turn details the author set for the next turn, what the author
@@ -9,7 +11,7 @@ import com.github.enerccio.marginalia.loc.L;
  */
 public class ImpersonateTemplateData extends TemplateData {
 
-    @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_BACKGROUND_LORE)
+    @MarginaliaTemplateDescription(loc = M_L.DESC_TEMPLATE_BACKGROUND_LORE)
     private String backgroundLore;
     @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_NARRATIVE_POV)
     private String narrativePov;
@@ -23,15 +25,15 @@ public class ImpersonateTemplateData extends TemplateData {
     private String sceneSetting;
     @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_PRESENT_CHARACTERS)
     private String presentCharacters;
-    @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_SUMMARIES)
+    @MarginaliaTemplateDescription(loc = M_L.DESC_TEMPLATE_SUMMARIES)
     private String summaries;
-    @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_PREVIOUS_STORY)
+    @MarginaliaTemplateDescription(loc = M_L.DESC_TEMPLATE_PREVIOUS_STORY)
     private String previousStory;
-    @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_INSTRUCTION_EXAMPLES)
+    @MarginaliaTemplateDescription(loc = M_L.DESC_TEMPLATE_INSTRUCTION_EXAMPLES)
     private String instructionExamples;
-    @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_IMPERSONATE_OUTLINE)
+    @MarginaliaTemplateDescription(loc = M_L.DESC_TEMPLATE_IMPERSONATE_OUTLINE)
     private String outline;
-    @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_IMPERSONATE_INSTRUCTIONS)
+    @MarginaliaTemplateDescription(loc = M_L.DESC_TEMPLATE_IMPERSONATE_INSTRUCTIONS)
     private String impersonateInstructions;
 
     public String getBackgroundLore() {

@@ -1,6 +1,6 @@
 package com.github.enerccio.marginalia.ui.components;
 
-import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.bound.SessionPoint;
 import com.github.enerccio.marginalia.domain.collections.LimitStrategy;
 import com.github.enerccio.marginalia.domain.components.AILimit;
@@ -92,7 +92,7 @@ class HelpAssistantWidgetTest extends MarginaliaTestBase {
     }
 
     private static Component panel(HelpAssistantWidget widget) {
-        return widget.getChildren().filter(c -> c.getElement().getClassList().contains(CssStyles.HELP_PANEL)).findFirst().orElseThrow();
+        return widget.getChildren().filter(c -> c.getElement().getClassList().contains(MarginaliaCssStyles.HELP_PANEL)).findFirst().orElseThrow();
     }
 
     private static List<String> texts(Component root) {
@@ -124,7 +124,7 @@ class HelpAssistantWidgetTest extends MarginaliaTestBase {
 
         assertThat(panel(widget).isVisible()).isTrue();
         assertThat(texts(panel(widget))).anyMatch(t -> t.contains(ai.getName()));
-        assertThat(visible(panel(widget), CssStyles.HELP_WARNING)).isFalse();
+        assertThat(visible(panel(widget), MarginaliaCssStyles.HELP_WARNING)).isFalse();
     }
 
     @Test
@@ -140,7 +140,7 @@ class HelpAssistantWidgetTest extends MarginaliaTestBase {
 
         ((Button) widget.getChildren().findFirst().orElseThrow()).click();
 
-        assertThat(visible(panel(widget), CssStyles.HELP_WARNING)).isTrue();
+        assertThat(visible(panel(widget), MarginaliaCssStyles.HELP_WARNING)).isTrue();
     }
 
     @Test
@@ -155,9 +155,9 @@ class HelpAssistantWidgetTest extends MarginaliaTestBase {
 
         ((Button) widget.getChildren().findFirst().orElseThrow()).click();
 
-        assertThat(descendants(panel(widget)).filter(c -> c.getElement().getClassList().contains(CssStyles.HELP_MESSAGE)).count())
+        assertThat(descendants(panel(widget)).filter(c -> c.getElement().getClassList().contains(MarginaliaCssStyles.HELP_MESSAGE)).count())
                 .isEqualTo(2);
-        assertThat(descendants(panel(widget)).anyMatch(c -> c.getElement().getClassList().contains(CssStyles.HELP_MESSAGE_USER)
+        assertThat(descendants(panel(widget)).anyMatch(c -> c.getElement().getClassList().contains(MarginaliaCssStyles.HELP_MESSAGE_USER)
                 && "How do I back up?".equals(c.getElement().getText()))).isTrue();
         sessionPoint.getHelpChat().clear();
     }

@@ -1,115 +1,117 @@
 ---
-label: Charakter-Tracker
+label: Figurenverwaltung
 order: 19
 ---
 
-# Charakter-Tracker
+# Figurenverwaltung
 
-Die Besetzung deines Buchs in der Seitenleiste: eine Liste von Charakteren mit einem Slogan, einer Notiz, einem Symbol und einer Farbe, die Beziehungen zwischen ihnen und eine Karte dieser Beziehungen.
+Die Figuren deines Buchs in der Seitenleiste: eine Liste von Figuren mit Kurzbeschreibung, Notiz, Symbol und Farbe, die Beziehungen zwischen ihnen und eine Karte dieser Beziehungen.
 
 <a id="the-characters-tab"></a>
 
-## Der Reiter Charaktere
+## Der Tab Characters
 
-Die linke Seitenleiste des [Geschichteneditors](../books/story-editor.md) erhält neben *Gliederung* einen Reiter **Charaktere**. Über der Liste steht eine Zeile mit Schaltflächen: **Hinzufügen** (ein neuer Charakter), ein Menü mit dem Import von Lore-Einträgen, die **Beziehungskarte** und eine Sprechblasen-Schaltfläche für den Prompt (Namen beim Darüberfahren).
+Die linke Seitenleiste des [Story-Editors](../books/story-editor.md) erhält einen Tab **Characters** neben *Outline*. Über der Liste steht eine Zeile mit Schaltflächen: **Add** (eine neue Figur), ein Menü zum Import von Lore-Einträgen, die **Relationship map** und eine Sprechblasen-Schaltfläche für den Prompt (beim Darüberfahren erscheinen die Namen).
 
-Die Sprechblasen-Schaltfläche öffnet ein Popover mit **Im Prompt**, **Tiefe** und einer Rolle, ähnlich wie bei der [Autorennotiz](authors-note.md); die Schaltfläche ist grün, solange die Charaktere im Prompt enthalten sind. Ist *Im Prompt* aktiviert, erhält jede Generierung die Charaktere als Nachricht: eine Zeile mit Name, Slogan in Klammern und Notiz je Charakter sowie eine Liste der Beziehungen (`Mara -> Tomas: employs`, `<->`, wenn sie in beide Richtungen gilt). *Tiefe* ist die Anzahl der Nachrichten nach ihr (`0` ganz am Ende, nach deinen Anweisungen, `1` direkt davor), und die Rolle ist *System*, *Assistent* oder *Benutzer*. Der Text beansprucht seine Tokens aus dem Kontingent für die Geschichte. Solange das Buch keine Charaktere hat, wird nichts eingefügt. Die Einstellungen werden zusammen mit dem Buch gespeichert.
+Die Sprechblasen-Schaltfläche öffnet ein Popover mit **In prompt**, **Depth** und einer Rolle, ähnlich wie beim [Author's Note](authors-note.md). Die Schaltfläche ist grün, solange die Figuren im Prompt sind. Ist *In prompt* aktiviert, erhalten alle Generierungen die Figuren als Nachricht: eine Zeile mit Name, Kurzbeschreibung in Klammern und Notiz jeder Figur sowie eine Liste der Beziehungen (`Mara -> Tomas: employs`, `<->`, wenn sie in beide Richtungen gelten). *Depth* gibt an, nach wie vielen Nachrichten sie eingefügt wird (`0` ganz ans Ende, nach deinen Anweisungen, `1` direkt davor). Die Rolle ist *System*, *Assistant* oder *User*. Der Text beansprucht Tokens aus dem Kontingent für die Geschichte. Solange das Buch keine Figuren hat, wird nichts eingefügt. Die Einstellungen werden mit dem Buch gespeichert.
 
-Die Zauberstab-Schaltfläche dazwischen hat den Menüpunkt **Lore-Einträge als Charaktere importieren**, siehe [unten](#importing-characters-from-the-lorebook).
+Der Zauberstab-Button zwischen beiden enthält den Menüpunkt **Import lore entries as characters**, siehe [unten](#importing-characters-from-the-lorebook).
 
-Die Liste ist nach Namen sortiert. Jeder Charakter hat seine eigene Farbe und zeigt seinen **Namen** mit dem **Slogan** darunter in kleinerer Schrift (höchstens zwei Zeilen). Die Schaltflächen eines Charakters:
+Die Liste ist nach Namen sortiert. Jede Figur hat ihre eigene Farbe und zeigt ihren **Namen** mit der **Kurzbeschreibung** darunter in kleinerer Schrift (höchstens zwei Zeilen). Die Schaltflächen einer Figur:
 
 | Schaltfläche | |
 |---|---|
-| Pfeil nach unten | Klappt den Charakter auf, um sein **Symbol** und seine **Notiz** zu zeigen. |
-| Stift | Öffnet den Charakter im Dialog. |
-| Papierkorb | Löscht den Charakter und alle seine Beziehungen, nach einer Bestätigung. |
+| Winkel | Klappt die Figur auf, um ihr **Symbol** und ihre **Notiz** zu zeigen. |
+| Stift | Öffnet die Figur im Dialog. |
+| Papierkorb | Löscht die Figur und alle ihre Beziehungen, nach einer Bestätigung. |
 
-Charaktere werden mit dem Buch gespeichert, sobald du sie änderst, und sind daher in seinen Sicherungen enthalten.
+Figuren werden mit dem Buch gespeichert, sobald du sie änderst, und sind daher in seinen Sicherungen enthalten.
 
-![Der Reiter Charaktere](../../images/plugin-charactertracker-tab.png)
+![Der Tab Characters](../../images/plugin-charactertracker-tab.png)
 
 <a id="picking-characters-for-a-turn"></a>
 
-## Charaktere für einen Zug auswählen
+## Figuren für einen Zug auswählen
 
-Das Formular für den [neuen Zug](../books/story-editor.md) enthält die Felder **POV-Charakter** und **Anwesende Charaktere**. Sie bleiben Freitext, aber jedes hat am Ende eine Schaltfläche mit einem Personensymbol, die die Charaktere des Buchs nach Namen sortiert auflistet. Ein in der Liste des **POV-Charakters** gewählter Name ersetzt den Inhalt des Feldes; ein in der Liste **Anwesende Charaktere** gewählter Name wird nach einem Komma am Ende angehängt, sofern er dort nicht schon steht. Die Liste wird beim Öffnen gelesen, daher ist ein Charakter, den du soeben angelegt hast, bereits enthalten. Du kannst weiterhin jeden beliebigen Namen eintippen; ein Name im Feld muss kein Charakter des Buchs sein.
+Das Formular für den [neuen Zug](../books/story-editor.md) hat die Felder **POV character** und **Present characters**. Sie bleiben Freitextfelder, aber jedes hat am Ende eine Schaltfläche mit einem Personensymbol, die die Figuren des Buchs nach Namen sortiert auflistet. Ein in der Liste von **POV character** gewählter Name ersetzt den Inhalt des Feldes. Ein in der Liste von **Present characters** gewählter Name wird nach einem Komma am Ende angefügt, sofern er dort noch nicht steht. Die Liste wird beim Öffnen gelesen, daher erscheint auch eine Figur, die du gerade eben angelegt hast. Du kannst weiterhin einen beliebigen Namen eintippen; ein Name im Feld muss keine Figur des Buchs sein.
 
 <a id="the-character-dialog"></a>
 
-## Der Charakter-Dialog
+## Der Figurendialog
 
-**Hinzufügen** (die Schaltfläche mit dem Plus; der Tooltip lautet *Neuen Charakter hinzufügen*) und der Stift öffnen denselben Dialog:
+**Add** (die Schaltfläche mit dem Plus; der Tooltip lautet *Add new character*) und der Stift öffnen denselben Dialog:
 
 | Feld | |
 |---|---|
 | **Name** | Pflichtfeld. |
-| **Slogan** | Einige Worte über den Charakter, angezeigt in der Liste und auf der Karte. |
-| **Notiz** | Alles, was du dir merken möchtest. |
-| **Symbol** | Lade ein PNG, JPEG oder GIF hoch. Es wird auf höchstens 200 x 200 Pixel verkleinert, die Proportionen bleiben erhalten. |
-| **Farbe** | Hintergrund des Charakters in der Liste und auf der Karte. |
+| **Tagline** | Ein paar Worte über die Figur, angezeigt in der Liste und auf der Karte. |
+| **Note** | Alles, was du dir merken willst. |
+| **Icon** | Lade ein PNG, JPEG oder GIF hoch. Es wird auf höchstens 200 x 200 Pixel verkleinert, die Proportionen bleiben erhalten. |
+| **Color** | Hintergrundfarbe der Figur in der Liste und auf der Karte. |
 
-Die Felder werden mit **Speichern** übernommen.
+Die Felder werden mit **Save** übernommen.
 
-![Ein Charakter mit seinen Beziehungen](../../images/plugin-charactertracker-dialog.png)
+![Eine Figur mit ihren Beziehungen](../../images/plugin-charactertracker-dialog.png)
 
-Wenn du **Abbrechen** (oder Esc) drückst, während ungespeicherte Änderungen vorliegen – einschließlich einer Beziehung, die du ausgefüllt, aber noch nicht hinzugefügt hast –, wirst du gefragt, ob sie verworfen werden sollen.
+Drückst du **Cancel** (oder Esc), während ungespeicherte Änderungen vorliegen, auch eine Beziehung, die du ausgefüllt, aber noch nicht hinzugefügt hast, wirst du gefragt, ob sie verworfen werden sollen.
 
-![Die Rückfrage beim Abbrechen eines Charakters mit ungespeicherten Änderungen](../../images/plugin-charactertracker-unsaved.png)
+![Die Rückfrage beim Abbrechen einer Figur mit ungespeicherten Änderungen](../../images/plugin-charactertracker-unsaved.png)
 
 <a id="relationships"></a>
 
 ### Beziehungen
 
-Wenn du einen vorhandenen Charakter öffnest, listet der Dialog auch seine Beziehungen auf: jene, auf die der Charakter zeigt (`→`), jene, die auf ihn zeigen (`←`), und die einseitigen (`↔`), jeweils mit Name und Slogan. Die Papierkorb-Schaltfläche löscht eine Beziehung.
+Öffnest du eine bestehende Figur, listet der Dialog zusätzlich ihre Beziehungen auf: jene, auf die die Figur zeigt (`→`), jene, die auf sie zeigen (`←`), und die einseitigen (`↔`), jeweils mit Name und Kurzbeschreibung. Die Papierkorb-Schaltfläche löscht eine Beziehung.
 
-Um eine hinzuzufügen, suche den anderen Charakter, wähle die **Richtung** (*dieser Charakter → anderer*, *anderer → dieser Charakter* oder *in beide Richtungen*), gib einen **Namen** ein (z. B. *employs*, *friends*) und optional einen **Slogan**, und drücke **Beziehung hinzufügen** (die Schaltfläche steht über diesen Feldern). Beziehungen werden sofort gespeichert. Ein neuer Charakter kann Beziehungen erhalten, sobald er gespeichert wurde.
+Um eine hinzuzufügen, suche die andere Figur, wähle die **Direction** (*this character → other*, *other → this character* oder *both ways*), gib einen **Name** ein (z. B. *employs*, *friends*) und optional eine **Tagline**, und drücke **Add relationship** (die Schaltfläche steht über diesen Feldern). Beziehungen werden sofort gespeichert. Eine neue Figur kann Beziehungen erst erhalten, nachdem sie gespeichert wurde.
 
 <a id="importing-characters-from-the-lorebook"></a>
 
-## Charaktere aus dem Lorebook importieren
+## Figuren aus dem Lorebook importieren
 
-Sind deine Charaktere bereits im Lorebook, erstellt sie das Zauberstab-Menü für dich. **Lore-Einträge als Charaktere importieren** öffnet einen Dialog mit den Einträgen des Lorebooks des Buchs und all seiner Unter-Lorebooks, sortiert nach ihrer *Reihenfolge*. Jeder zeigt seinen Namen und ein Kontrollkästchen sowie ein **i**-Symbol, das den Inhalt des Eintrags in einem Popover zeigt, damit du ihn dir vor der Entscheidung kurz ansehen kannst; das Kontrollkästchen im Kopf der Liste markiert oder entfernt alle Einträge. **Importieren** erstellt je angekreuztem Eintrag einen Charakter mit dessen Namen (Slogan, Notiz, Symbol und Farbe bleiben leer, damit du sie ausfüllen kannst), **Schließen** verlässt den Dialog ohne Import.
+Stehen deine Figuren bereits im Lorebook, legt das Zauberstab-Menü sie für dich an. **Import lore entries as characters** öffnet einen Dialog mit den Einträgen des Lorebooks des Buchs und aller seiner Unter-Lorebooks, sortiert nach ihrer *order*. Jeder Eintrag zeigt seinen Namen und ein Kontrollkästchen sowie ein **i**-Symbol, das den Inhalt des Eintrags in einem Popover zeigt, damit du vor der Entscheidung kurz hineinschauen kannst. Das Kontrollkästchen im Kopf der Liste wählt alle aus oder hebt die Auswahl auf. **Import** legt für jeden markierten Eintrag eine Figur mit dessen Namen an (Kurzbeschreibung, Notiz, Symbol und Farbe bleiben leer, damit du sie selbst ausfüllst). **Close** schließt den Dialog, ohne zu importieren.
 
-Einträge werden nicht mit den Charakteren verglichen, die du bereits hast: Wer denselben Eintrag zweimal importiert, erhält zwei Charaktere.
+Einträge werden nicht mit den bereits vorhandenen Figuren verglichen: Importierst du denselben Eintrag zweimal, entstehen zwei Figuren.
 
-![Charaktere aus dem Lorebook importieren](../../images/plugin-charactertracker-import.png)
+![Import von Figuren aus dem Lorebook](../../images/plugin-charactertracker-import.png)
 
 <a id="the-relationship-map"></a>
 
 ## Die Beziehungskarte
 
-**Beziehungskarte** zeigt alle Beziehungen des Buchs als Graph. Jeder Charakter mit einer Beziehung ist ein Kreis mit seinem Symbol (oder einem Kästchen ohne Symbol) auf seiner Farbe, mit Name und Slogan; jede Beziehung ist ein Pfeil zwischen zwei Charakteren mit Name und Slogan. Ein Pfeil zeigt auf das Ziel; eine einseitige Beziehung hat an beiden Enden einen Pfeil. Charaktere ohne Beziehungen sind nicht auf der Karte.
+**Relationship map** zeigt alle Beziehungen des Buchs als Graph. Jede Figur mit einer Beziehung ist ein Kreis mit ihrem Symbol (oder ein Kasten ohne Symbol) auf ihrer Farbe, mit Name und Kurzbeschreibung. Jede Beziehung ist ein Pfeil zwischen zwei Figuren, mit ihrem Namen und ihrer Kurzbeschreibung. Ein Pfeil zeigt auf das Ziel; eine einseitige Beziehung hat Pfeilspitzen an beiden Enden. Figuren ohne Beziehungen sind nicht auf der Karte.
 
 ![Die Beziehungskarte](../../images/plugin-charactertracker-map.png)
 
-Die Charaktere sind in Ringen um einen Charakter angeordnet – zunächst um denjenigen mit den meisten Beziehungen: Die Charaktere, mit denen er verbunden ist, liegen auf dem ersten Ring, deren Verbindungen auf dem zweiten, und so weiter. **Doppelklicke auf einen Charakter**, um die Karte um ihn herum anzuordnen. Außerdem kannst du die Charaktere ziehen, die Karte verschieben und mit dem Mausrad zoomen.
+Die Figuren liegen in Ringen um eine Figur angeordnet – zunächst um jene mit den meisten Beziehungen: Die Figuren, mit denen sie verbunden ist, liegen auf dem ersten Ring, deren Verbindungen auf dem zweiten, und so weiter. **Doppelklicke auf eine Figur**, um die Karte um sie herum anzuordnen. Du kannst die Figuren außerdem ziehen, die Karte verschieben und mit dem Mausrad zoomen.
 
 <a id="commands"></a>
 
 ## Befehle
 
-Die Charaktere sind auch [Befehle](../commands/index.md), für die Befehlszeile und für [Agenten](../agents.md). Sie wirken auf das geöffnete Buch (bei einem Agenten: auf seine Arbeitskopie), und ein geöffneter Reiter Charaktere zeigt die Änderung sofort an. Ein Charakter wird über seinen **Namen** angegeben (Groß- und Kleinschreibung spielen keine Rolle) oder über seine **Nummer** in `/list-characters` (die Reihenfolge der Namen), wenn zwei Charaktere denselben Namen haben. Eine Beziehung wird über ihre Nummer in `/list-character-relations` angegeben. Ein Befehl, der einen Charakter ändert, übernimmt nur die Felder, die du angibst; ein leerer Text löscht einen Slogan oder eine Notiz. Das Symbol kann nur im Dialog gesetzt werden.
+Die Figuren sind auch [Befehle](../commands/index.md) für die Kommandozeile und für [Agenten](../agents.md). Sie arbeiten mit dem geöffneten Buch (bei einem Agenten mit dessen Arbeitskopie), und ein geöffneter Tab Characters zeigt die Änderung sofort an. Eine Figur wird über ihren **Namen** angegeben (Groß- und Kleinschreibung spielen keine Rolle) oder über ihre **Nummer** in `/list-characters` (der Reihenfolge der Namen), wenn zwei Figuren denselben Namen haben. Eine Beziehung wird über ihre Nummer in `/list-character-relations` angegeben. Ein Befehl, der eine Figur ändert, übernimmt nur die Felder, die du angibst; ein leerer Text löscht eine Kurzbeschreibung oder eine Notiz. Das Symbol lässt sich nur im Dialog setzen.
 
 | Befehl | Was er tut |
 |---|---|
-| `/list-characters` | Die Charaktere nach Namen sortiert: Slogan, Farbe, ob es eine Notiz gibt, Anzahl der Beziehungen. Liest nur. |
-| `/get-character character` | Ein Charakter mit seiner Notiz und seinen Beziehungen. Liest nur. |
-| `/create-character name [tagline [note [color]]]` | Fügt einen Charakter hinzu. `color` ist `#rrggbb`. |
-| `/update-character character [name [tagline [note [color]]]]` | Ändert einen Charakter. |
-| `/delete-character character` | Löscht einen Charakter mit seinen Beziehungen, nach einer Bestätigung. |
-| `/list-character-relations [character]` | Die Beziehungen oder die eines Charakters. Liest nur. |
-| `/add-character-relation source target name [tagline [bidirectional]]` | Fügt eine Beziehung von `source` zu `target` hinzu (*employs*), oder mit `bidirectional` `true` eine, in der beide gleichberechtigt sind (*friends*). |
-| `/update-character-relation relationship [name [tagline]]` | Ändert den Namen oder den Slogan einer Beziehung. |
+| `/list-characters` | Die Figuren nach Namen sortiert: Kurzbeschreibung, Farbe, ob eine Notiz vorhanden ist, Anzahl der Beziehungen. Nur lesend. |
+| `/get-character character` | Eine Figur mit ihrer Notiz und ihren Beziehungen. Nur lesend. |
+| `/create-character name [tagline [note [color]]]` | Fügt eine Figur hinzu. `color` ist `#rrggbb`. |
+| `/update-character character [name [tagline [note [color]]]]` | Ändert eine Figur. |
+| `/delete-character character` | Löscht eine Figur mit ihren Beziehungen, nach einer Bestätigung. |
+| `/list-character-relations [character]` | Die Beziehungen oder jene einer Figur. Nur lesend. |
+| `/add-character-relation source target name [tagline [bidirectional]]` | Fügt eine Beziehung von `source` zu `target` hinzu (*employs*) oder mit `bidirectional` `true` eine, bei der beide gleichberechtigt sind (*friends*). |
+| `/update-character-relation relationship [name [tagline]]` | Ändert den Namen oder die Kurzbeschreibung einer Beziehung. |
 | `/delete-character-relation relationship` | Löscht eine Beziehung, nach einer Bestätigung. |
-| `/character-tracker-map` | Die Charaktere und ihre Beziehungen als Text, den der Prompt erhält. Liest nur. |
+| `/character-tracker-map` | Die Figuren und ihre Beziehungen als Text, den der Prompt erhält. Nur lesend. |
 
-`character-tracker-map` ist für das [Makro {%{`{{command::character-tracker-map}}`}%}](../templates/macros.md#commands) gedacht: Füge es in die Hauptvorlage, den Benutzer-Prompt oder einen Lorebook-Eintrag ein, um die Charaktere dort im Prompt zu platzieren, wo du sie haben möchtest – anstelle (oder zusätzlich zu) der automatischen Einfügung durch den Reiter Charaktere. Es zeigt immer den aktuellen Stand der Charaktere, unabhängig davon, ob die automatische Einfügung eingeschaltet ist.
+`character-tracker-map` ist für das [Makro {%{`{{command::character-tracker-map}}`}%}](../templates/macros.md#commands) gedacht: Füge es in die Hauptvorlage, den Benutzer-Prompt oder einen Lorebook-Eintrag ein, um die Figuren dort im Prompt zu platzieren, wo du sie haben willst, anstelle (oder zusätzlich zu) der automatischen Einfügung des Tabs Characters. Es zeigt immer den aktuellen Stand der Figuren, unabhängig davon, ob die automatische Einfügung eingeschaltet ist.
 
-Hinzufügen und Ändern sind nicht destruktiv; nur die `delete`-Befehle sind es, und ein Agent kann so eingestellt sein, dass er dich vorher fragt.
+Hinzufügen und Ändern sind nicht destruktiv; nur die `delete`-Befehle sind es. Ein Agent kann so eingestellt werden, dass er dich vor ihrer Ausführung fragt.
+
+Der [Handlungsassistent](arc-outline.md) der Arc Outline nutzt dieselben Befehle, wenn du seine Werkzeuge für **Characters** ankreuzt. So kannst du das Figurenensemble weiterentwickeln, während du über die Handlung sprichst.
 
 <a id="phone"></a>
 
 ## Telefon
 
-Der Reiter befindet sich in der Schublade der Geschichte, neben der Gliederung, wie die [Autorennotiz](authors-note.md). Die Schaltflächen für die POV- und anwesenden Charaktere sind auch im Formular für den neuen Zug auf dem Telefon vorhanden.
+Der Tab befindet sich im Menü der Geschichte neben der Gliederung, ebenso wie der [Author's Note](authors-note.md). Die Schaltflächen für die POV- und die anwesenden Figuren gibt es auch im Formular für den neuen Zug auf dem Telefon.

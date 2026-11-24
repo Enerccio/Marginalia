@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.extensions.knowledgetracker;
 import com.github.enerccio.marginalia.extensions.PluginLocalizationBundle;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.*;
 import com.github.enerccio.marginalia.loc.Language;
+import com.github.enerccio.marginalia.loc.L;
 
 import java.util.Map;
 
@@ -138,9 +139,6 @@ public class KnowledgeTrackerLocalization extends PluginLocalizationBundle {
     public static final String PART_N = "Part %d";
     public static final String ADDED_TO = "Added to %s";
     public static final String RETRACTED_FROM = "Retracted from %s";
-    public static final String REVERTED = "Reverted";
-    public static final String REVERT_THIS_CHANGE = "Revert this change";
-    public static final String APPLIED_AUTOMATICALLY = "Applied automatically (%d)";
     public static final String THE_ITEM_HAS_BEEN_CHANGED_SINCE = "The item has been changed since, it was not touched";
     public static final String PROCESSED_N_PARTS = "Processed %d parts";
     public static final String NOTHING_NEW_TO_PROCESS = "Nothing new to process";
@@ -207,6 +205,29 @@ public class KnowledgeTrackerLocalization extends PluginLocalizationBundle {
     public static final String IMPORT_FROM_JSON = "Import from JSON";
     public static final String IMPORTED_SUMMARY = "Imported: %d new character(s), %d updated, %d item(s) added, %d already there";
     public static final String THE_FILE_IS_NOT_A_KNOWLEDGE_EXPORT = "The file is not a Knowledge Tracker export: %s";
+    public static final String IMPORT_FROM_THE_CHARACTER_TRACKER = "Import from the Character Tracker";
+    public static final String RELATIONSHIPS_ARE_MEETINGS = "Their relationships count as meetings";
+    public static final String AN_IMPORTED_CHARACTER_HAS_MET_THE_PEOPLE = "An imported character has met the people it is related to in the Character Tracker";
+    public static final String N_CHARACTERS_NOW_TRACKED = "%d character(s) now tracked, %d meeting(s) recorded";
+    public static final String COPY_SELECTED = "Copy selected (%d)";
+    public static final String COPY_THE_ITEMS_TO_PASTE_THEM = "Copy the items to paste them to another character";
+    public static final String PASTE_N = "Paste (%d)";
+    public static final String ADD_THE_COPIED_ITEMS_TO_THIS_CHARACTER = "Add the copied items to this character";
+    public static final String N_ITEMS_COPIED = "%d item(s) copied";
+    public static final String N_ITEMS_PASTED = "%d item(s) pasted to %s, %d already there";
+    public static final String RETRACTED = "retracted";
+    public static final String DECLINED = "declined";
+    public static final String TIDIED = "tidied";
+    public static final String WHO_HAS_MET_WHOM = "Who has met whom";
+    public static final String TICK_THE_CHARACTERS_THIS_ONE_HAS_MET = "Tick the characters %s has met. A change is saved at once; a meeting you untick that the story shows comes back when the story is read again.";
+    public static final String TRACK_AT_LEAST_TWO_CHARACTERS = "Track at least two characters to set who has met whom";
+    public static final String MUTUAL_BOTH_HAVE_MET_EACH_OTHER = "Mutual: both have met each other";
+
+    public static final String USE_THESE_SETTINGS_FOR_NEW_BOOKS = "Use these settings for new books";
+    public static final String A_BOOK_WHERE_THE_TRACKER_WAS_NEVER_USED_STARTS_WITH_THEM = "A book where the tracker was never used starts with the settings of this book, the model and the reading with it included (the separators stay with this book)";
+    public static final String NEW_BOOKS_START_WITH_THESE_SETTINGS = "New books start with these settings";
+    public static final String FORGET_THE_SETTINGS_FOR_NEW_BOOKS = "Forget the settings for new books";
+    public static final String NEW_BOOKS_START_WITH_THE_BUILT_IN_SETTINGS = "New books start with the built-in settings";
 
     @Override
     protected void loadKeys() {
@@ -767,27 +788,6 @@ public class KnowledgeTrackerLocalization extends PluginLocalizationBundle {
         de(RETRACTED_FROM, "Zurückgezogen von %s");
         ko(RETRACTED_FROM, "%s에서 철회됨");
         it(RETRACTED_FROM, "Ritirato da %s");
-        ja(REVERTED, "元に戻しました");
-        zh(REVERTED, "已撤销");
-        fr(REVERTED, "Annulé");
-        es(REVERTED, "Revertido");
-        de(REVERTED, "Rückgängig gemacht");
-        ko(REVERTED, "되돌려짐");
-        it(REVERTED, "Annullato");
-        ja(REVERT_THIS_CHANGE, "この変更を元に戻す");
-        zh(REVERT_THIS_CHANGE, "撤销此更改");
-        fr(REVERT_THIS_CHANGE, "Annuler cette modification");
-        es(REVERT_THIS_CHANGE, "Revertir este cambio");
-        de(REVERT_THIS_CHANGE, "Diese Änderung rückgängig machen");
-        ko(REVERT_THIS_CHANGE, "이 변경 되돌리기");
-        it(REVERT_THIS_CHANGE, "Annulla questa modifica");
-        ja(APPLIED_AUTOMATICALLY, "自動で適用された変更 (%d)");
-        zh(APPLIED_AUTOMATICALLY, "自动应用的更改 (%d)");
-        fr(APPLIED_AUTOMATICALLY, "Appliqué automatiquement (%d)");
-        es(APPLIED_AUTOMATICALLY, "Aplicados automáticamente (%d)");
-        de(APPLIED_AUTOMATICALLY, "Automatisch angewendet (%d)");
-        ko(APPLIED_AUTOMATICALLY, "자동 적용됨 (%d)");
-        it(APPLIED_AUTOMATICALLY, "Applicato automaticamente (%d)");
         ja(THE_ITEM_HAS_BEEN_CHANGED_SINCE, "項目はその後変更されたため、そのままにしました");
         zh(THE_ITEM_HAS_BEEN_CHANGED_SINCE, "该项此后已被更改，未做任何改动");
         fr(THE_ITEM_HAS_BEEN_CHANGED_SINCE, "L'élément a été modifié depuis, il n'a pas été touché");
@@ -1632,5 +1632,175 @@ public class KnowledgeTrackerLocalization extends PluginLocalizationBundle {
         ko(THE_FILE_IS_NOT_A_KNOWLEDGE_EXPORT, "지식 추적기 내보내기 파일이 아닙니다: %s");
         it(THE_FILE_IS_NOT_A_KNOWLEDGE_EXPORT, "Il file non è un'esportazione del Tracciatore della conoscenza: %s");
 
+        ja(IMPORT_FROM_THE_CHARACTER_TRACKER, "キャラクタートラッカーからインポート");
+        zh(IMPORT_FROM_THE_CHARACTER_TRACKER, "从角色追踪器导入");
+        fr(IMPORT_FROM_THE_CHARACTER_TRACKER, "Importer depuis le suivi des personnages");
+        es(IMPORT_FROM_THE_CHARACTER_TRACKER, "Importar desde el Seguimiento de personajes");
+        de(IMPORT_FROM_THE_CHARACTER_TRACKER, "Aus dem Figuren-Tracker importieren");
+        ko(IMPORT_FROM_THE_CHARACTER_TRACKER, "캐릭터 추적기에서 가져오기");
+        it(IMPORT_FROM_THE_CHARACTER_TRACKER, "Importa dal Tracciatore dei personaggi");
+
+        ja(RELATIONSHIPS_ARE_MEETINGS, "関係を出会いとして扱う");
+        zh(RELATIONSHIPS_ARE_MEETINGS, "将关系视为见过面");
+        fr(RELATIONSHIPS_ARE_MEETINGS, "Leurs relations comptent comme des rencontres");
+        es(RELATIONSHIPS_ARE_MEETINGS, "Sus relaciones cuentan como encuentros");
+        de(RELATIONSHIPS_ARE_MEETINGS, "Ihre Beziehungen gelten als Begegnungen");
+        ko(RELATIONSHIPS_ARE_MEETINGS, "관계를 만남으로 간주");
+        it(RELATIONSHIPS_ARE_MEETINGS, "Le loro relazioni contano come incontri");
+
+        ja(AN_IMPORTED_CHARACTER_HAS_MET_THE_PEOPLE, "インポートしたキャラクターは、キャラクタートラッカーで関係のある人物に会ったことになります");
+        zh(AN_IMPORTED_CHARACTER_HAS_MET_THE_PEOPLE, "导入的角色视为见过其在角色追踪器中有关系的人");
+        fr(AN_IMPORTED_CHARACTER_HAS_MET_THE_PEOPLE, "Un personnage importé a rencontré les personnes avec qui il a une relation dans le suivi des personnages");
+        es(AN_IMPORTED_CHARACTER_HAS_MET_THE_PEOPLE, "Un personaje importado ha conocido a las personas con las que tiene una relación en el Seguimiento de personajes");
+        de(AN_IMPORTED_CHARACTER_HAS_MET_THE_PEOPLE, "Eine importierte Figur ist den Personen begegnet, mit denen sie im Figuren-Tracker eine Beziehung hat");
+        ko(AN_IMPORTED_CHARACTER_HAS_MET_THE_PEOPLE, "가져온 캐릭터는 캐릭터 추적기에서 관계가 있는 사람들을 만난 것으로 기록됩니다");
+        it(AN_IMPORTED_CHARACTER_HAS_MET_THE_PEOPLE, "Un personaggio importato ha incontrato le persone con cui ha una relazione nel Tracciatore dei personaggi");
+
+        ja(N_CHARACTERS_NOW_TRACKED, "%d 人のキャラクターを追跡開始、出会い %d 件を記録");
+        zh(N_CHARACTERS_NOW_TRACKED, "已开始追踪 %d 个角色，记录了 %d 次见面");
+        fr(N_CHARACTERS_NOW_TRACKED, "%d personnage(s) désormais suivi(s), %d rencontre(s) enregistrée(s)");
+        es(N_CHARACTERS_NOW_TRACKED, "%d personaje(s) ahora seguido(s), %d encuentro(s) registrado(s)");
+        de(N_CHARACTERS_NOW_TRACKED, "%d Figur(en) werden jetzt verfolgt, %d Begegnung(en) erfasst");
+        ko(N_CHARACTERS_NOW_TRACKED, "%d명의 캐릭터를 추적합니다, 만남 %d건 기록");
+        it(N_CHARACTERS_NOW_TRACKED, "%d personaggio/i ora tracciato/i, %d incontro/i registrato/i");
+
+        ja(COPY_SELECTED, "選択をコピー (%d)");
+        zh(COPY_SELECTED, "复制所选 (%d)");
+        fr(COPY_SELECTED, "Copier la sélection (%d)");
+        es(COPY_SELECTED, "Copiar selección (%d)");
+        de(COPY_SELECTED, "Auswahl kopieren (%d)");
+        ko(COPY_SELECTED, "선택 항목 복사 (%d)");
+        it(COPY_SELECTED, "Copia selezionati (%d)");
+
+        ja(COPY_THE_ITEMS_TO_PASTE_THEM, "項目をコピーして別のキャラクターに貼り付けます");
+        zh(COPY_THE_ITEMS_TO_PASTE_THEM, "复制条目以粘贴到另一个角色");
+        fr(COPY_THE_ITEMS_TO_PASTE_THEM, "Copier les éléments pour les coller à un autre personnage");
+        es(COPY_THE_ITEMS_TO_PASTE_THEM, "Copiar los elementos para pegarlos en otro personaje");
+        de(COPY_THE_ITEMS_TO_PASTE_THEM, "Die Elemente kopieren, um sie bei einer anderen Figur einzufügen");
+        ko(COPY_THE_ITEMS_TO_PASTE_THEM, "항목을 복사해 다른 캐릭터에 붙여넣기");
+        it(COPY_THE_ITEMS_TO_PASTE_THEM, "Copia gli elementi per incollarli a un altro personaggio");
+
+        ja(PASTE_N, "貼り付け (%d)");
+        zh(PASTE_N, "粘贴 (%d)");
+        fr(PASTE_N, "Coller (%d)");
+        es(PASTE_N, "Pegar (%d)");
+        de(PASTE_N, "Einfügen (%d)");
+        ko(PASTE_N, "붙여넣기 (%d)");
+        it(PASTE_N, "Incolla (%d)");
+
+        ja(ADD_THE_COPIED_ITEMS_TO_THIS_CHARACTER, "コピーした項目をこのキャラクターに追加");
+        zh(ADD_THE_COPIED_ITEMS_TO_THIS_CHARACTER, "将复制的条目添加到此角色");
+        fr(ADD_THE_COPIED_ITEMS_TO_THIS_CHARACTER, "Ajouter les éléments copiés à ce personnage");
+        es(ADD_THE_COPIED_ITEMS_TO_THIS_CHARACTER, "Añadir los elementos copiados a este personaje");
+        de(ADD_THE_COPIED_ITEMS_TO_THIS_CHARACTER, "Die kopierten Elemente dieser Figur hinzufügen");
+        ko(ADD_THE_COPIED_ITEMS_TO_THIS_CHARACTER, "복사한 항목을 이 캐릭터에 추가");
+        it(ADD_THE_COPIED_ITEMS_TO_THIS_CHARACTER, "Aggiungi gli elementi copiati a questo personaggio");
+
+        ja(N_ITEMS_COPIED, "%d 件の項目をコピーしました");
+        zh(N_ITEMS_COPIED, "已复制 %d 个条目");
+        fr(N_ITEMS_COPIED, "%d élément(s) copié(s)");
+        es(N_ITEMS_COPIED, "%d elemento(s) copiado(s)");
+        de(N_ITEMS_COPIED, "%d Element(e) kopiert");
+        ko(N_ITEMS_COPIED, "항목 %d개 복사됨");
+        it(N_ITEMS_COPIED, "%d elemento/i copiato/i");
+
+        ja(N_ITEMS_PASTED, "%d 件の項目を %s に貼り付けました、既存 %d");
+        zh(N_ITEMS_PASTED, "已将 %d 个条目粘贴到 %s，已存在 %d 个");
+        fr(N_ITEMS_PASTED, "%d élément(s) collé(s) à %s, %d déjà présents");
+        es(N_ITEMS_PASTED, "%d elemento(s) pegado(s) en %s, %d ya estaban");
+        de(N_ITEMS_PASTED, "%d Element(e) bei %s eingefügt, %d bereits vorhanden");
+        ko(N_ITEMS_PASTED, "항목 %d개를 %s에 붙여넣음, 이미 있던 항목 %d개");
+        it(N_ITEMS_PASTED, "%d elemento/i incollato/i a %s, %d già presenti");
+
+        ja(RETRACTED, "撤回");
+        zh(RETRACTED, "已撤回");
+        fr(RETRACTED, "retiré");
+        es(RETRACTED, "retirado");
+        de(RETRACTED, "zurückgezogen");
+        ko(RETRACTED, "철회됨");
+        it(RETRACTED, "ritirato");
+
+        ja(DECLINED, "却下");
+        zh(DECLINED, "已拒绝");
+        fr(DECLINED, "refusé");
+        es(DECLINED, "rechazado");
+        de(DECLINED, "abgelehnt");
+        ko(DECLINED, "거부됨");
+        it(DECLINED, "rifiutato");
+
+        ja(TIDIED, "整理済み");
+        zh(TIDIED, "已整理");
+        fr(TIDIED, "rangé");
+        es(TIDIED, "ordenado");
+        de(TIDIED, "aufgeräumt");
+        ko(TIDIED, "정리됨");
+        it(TIDIED, "riordinato");
+
+        ja(WHO_HAS_MET_WHOM, "誰が誰に会ったか");
+        zh(WHO_HAS_MET_WHOM, "谁见过谁");
+        fr(WHO_HAS_MET_WHOM, "Qui a rencontré qui");
+        es(WHO_HAS_MET_WHOM, "Quién ha conocido a quién");
+        de(WHO_HAS_MET_WHOM, "Wer ist wem begegnet");
+        ko(WHO_HAS_MET_WHOM, "누가 누구를 만났는지");
+        it(WHO_HAS_MET_WHOM, "Chi ha incontrato chi");
+
+        ja(TICK_THE_CHARACTERS_THIS_ONE_HAS_MET, "%sが会ったことのあるキャラクターにチェックを入れます。変更はすぐに保存されます。ストーリーに描かれた出会いのチェックを外しても、ストーリーを再度読み込むと戻ります。");
+        zh(TICK_THE_CHARACTERS_THIS_ONE_HAS_MET, "勾选%s见过的角色。更改会立即保存；取消勾选故事中出现过的相遇后，重新读取故事时它会再出现。");
+        fr(TICK_THE_CHARACTERS_THIS_ONE_HAS_MET, "Cochez les personnages que %s a rencontrés. Un changement est enregistré aussitôt ; une rencontre que l'histoire montre et que vous décochez revient si l'histoire est relue.");
+        es(TICK_THE_CHARACTERS_THIS_ONE_HAS_MET, "Marca los personajes que %s ha conocido. Cada cambio se guarda al momento; un encuentro que la historia muestra y que desmarcas vuelve si se vuelve a leer la historia.");
+        de(TICK_THE_CHARACTERS_THIS_ONE_HAS_MET, "Hake die Figuren an, denen %s begegnet ist. Eine Änderung wird sofort gespeichert; eine Begegnung aus der Geschichte, deren Haken du entfernst, kommt zurück, wenn die Geschichte erneut gelesen wird.");
+        ko(TICK_THE_CHARACTERS_THIS_ONE_HAS_MET, "%s이(가) 만난 캐릭터에 체크하세요. 변경은 바로 저장됩니다. 이야기에 나온 만남의 체크를 해제해도 이야기를 다시 읽으면 돌아옵니다.");
+        it(TICK_THE_CHARACTERS_THIS_ONE_HAS_MET, "Spunta i personaggi che %s ha incontrato. Ogni modifica è salvata subito; un incontro mostrato dalla storia che togli torna se la storia viene riletta.");
+
+        ja(TRACK_AT_LEAST_TWO_CHARACTERS, "誰が誰に会ったかを設定するには、2人以上のキャラクターを追跡してください");
+        zh(TRACK_AT_LEAST_TWO_CHARACTERS, "至少追踪两个角色才能设置谁见过谁");
+        fr(TRACK_AT_LEAST_TWO_CHARACTERS, "Suivez au moins deux personnages pour indiquer qui a rencontré qui");
+        es(TRACK_AT_LEAST_TWO_CHARACTERS, "Sigue al menos dos personajes para indicar quién ha conocido a quién");
+        de(TRACK_AT_LEAST_TWO_CHARACTERS, "Verfolge mindestens zwei Figuren, um festzulegen, wer wem begegnet ist");
+        ko(TRACK_AT_LEAST_TWO_CHARACTERS, "누가 누구를 만났는지 정하려면 캐릭터를 두 명 이상 추적하세요");
+        it(TRACK_AT_LEAST_TWO_CHARACTERS, "Traccia almeno due personaggi per indicare chi ha incontrato chi");
+        ja(MUTUAL_BOTH_HAVE_MET_EACH_OTHER, "相互: 二人とも互いに会っている");
+        zh(MUTUAL_BOTH_HAVE_MET_EACH_OTHER, "双向：双方互相见过");
+        fr(MUTUAL_BOTH_HAVE_MET_EACH_OTHER, "Réciproque : ils se sont rencontrés l'un l'autre");
+        es(MUTUAL_BOTH_HAVE_MET_EACH_OTHER, "Mutuo: ambos se han conocido");
+        de(MUTUAL_BOTH_HAVE_MET_EACH_OTHER, "Gegenseitig: beide sind sich begegnet");
+        ko(MUTUAL_BOTH_HAVE_MET_EACH_OTHER, "상호: 서로 만났음");
+        it(MUTUAL_BOTH_HAVE_MET_EACH_OTHER, "Reciproco: si sono incontrati a vicenda");
+
+        ja(USE_THESE_SETTINGS_FOR_NEW_BOOKS, "これらの設定を新しい本に使う");
+        zh(USE_THESE_SETTINGS_FOR_NEW_BOOKS, "将这些设置用于新书");
+        fr(USE_THESE_SETTINGS_FOR_NEW_BOOKS, "Utiliser ces réglages pour les nouveaux livres");
+        es(USE_THESE_SETTINGS_FOR_NEW_BOOKS, "Usar estos ajustes para los libros nuevos");
+        de(USE_THESE_SETTINGS_FOR_NEW_BOOKS, "Diese Einstellungen für neue Bücher verwenden");
+        ko(USE_THESE_SETTINGS_FOR_NEW_BOOKS, "이 설정을 새 책에 사용");
+        it(USE_THESE_SETTINGS_FOR_NEW_BOOKS, "Usa queste impostazioni per i nuovi libri");
+        ja(A_BOOK_WHERE_THE_TRACKER_WAS_NEVER_USED_STARTS_WITH_THEM, "トラッカーを一度も使っていない本は、この本の設定（モデルとモデルでの読み取りを含む）で始まります（区切り文字はこの本に残ります）");
+        zh(A_BOOK_WHERE_THE_TRACKER_WAS_NEVER_USED_STARTS_WITH_THEM, "从未使用过追踪器的书将以本书的设置开始，包括模型和用模型读取（分隔符留在本书）");
+        fr(A_BOOK_WHERE_THE_TRACKER_WAS_NEVER_USED_STARTS_WITH_THEM, "Un livre où le suivi n'a jamais servi commence avec les réglages de ce livre, le modèle et la lecture avec lui compris (les séparateurs restent avec ce livre)");
+        es(A_BOOK_WHERE_THE_TRACKER_WAS_NEVER_USED_STARTS_WITH_THEM, "Un libro en el que nunca se usó el seguimiento empieza con los ajustes de este libro, incluidos el modelo y la lectura con él (los separadores se quedan en este libro)");
+        de(A_BOOK_WHERE_THE_TRACKER_WAS_NEVER_USED_STARTS_WITH_THEM, "Ein Buch, in dem der Tracker nie benutzt wurde, beginnt mit den Einstellungen dieses Buchs, samt Modell und Lesen mit ihm (die Trennzeichen bleiben bei diesem Buch)");
+        ko(A_BOOK_WHERE_THE_TRACKER_WAS_NEVER_USED_STARTS_WITH_THEM, "추적기를 한 번도 쓰지 않은 책은 모델과 모델로 읽기를 포함한 이 책의 설정으로 시작합니다(구분 기호는 이 책에 남습니다)");
+        it(A_BOOK_WHERE_THE_TRACKER_WAS_NEVER_USED_STARTS_WITH_THEM, "Un libro in cui il tracciatore non è mai stato usato parte con le impostazioni di questo libro, compresi il modello e la lettura con esso (i separatori restano a questo libro)");
+        ja(NEW_BOOKS_START_WITH_THESE_SETTINGS, "新しい本はこれらの設定で始まります");
+        zh(NEW_BOOKS_START_WITH_THESE_SETTINGS, "新书将以这些设置开始");
+        fr(NEW_BOOKS_START_WITH_THESE_SETTINGS, "Les nouveaux livres commencent avec ces réglages");
+        es(NEW_BOOKS_START_WITH_THESE_SETTINGS, "Los libros nuevos empiezan con estos ajustes");
+        de(NEW_BOOKS_START_WITH_THESE_SETTINGS, "Neue Bücher beginnen mit diesen Einstellungen");
+        ko(NEW_BOOKS_START_WITH_THESE_SETTINGS, "새 책은 이 설정으로 시작합니다");
+        it(NEW_BOOKS_START_WITH_THESE_SETTINGS, "I nuovi libri partono con queste impostazioni");
+        ja(FORGET_THE_SETTINGS_FOR_NEW_BOOKS, "新しい本用の設定を消去");
+        zh(FORGET_THE_SETTINGS_FOR_NEW_BOOKS, "清除新书的设置");
+        fr(FORGET_THE_SETTINGS_FOR_NEW_BOOKS, "Oublier les réglages des nouveaux livres");
+        es(FORGET_THE_SETTINGS_FOR_NEW_BOOKS, "Olvidar los ajustes de los libros nuevos");
+        de(FORGET_THE_SETTINGS_FOR_NEW_BOOKS, "Einstellungen für neue Bücher vergessen");
+        ko(FORGET_THE_SETTINGS_FOR_NEW_BOOKS, "새 책용 설정 지우기");
+        it(FORGET_THE_SETTINGS_FOR_NEW_BOOKS, "Dimentica le impostazioni per i nuovi libri");
+        ja(NEW_BOOKS_START_WITH_THE_BUILT_IN_SETTINGS, "新しい本は組み込みの設定で始まります");
+        zh(NEW_BOOKS_START_WITH_THE_BUILT_IN_SETTINGS, "新书将以内置设置开始");
+        fr(NEW_BOOKS_START_WITH_THE_BUILT_IN_SETTINGS, "Les nouveaux livres commencent avec les réglages intégrés");
+        es(NEW_BOOKS_START_WITH_THE_BUILT_IN_SETTINGS, "Los libros nuevos empiezan con los ajustes integrados");
+        de(NEW_BOOKS_START_WITH_THE_BUILT_IN_SETTINGS, "Neue Bücher beginnen mit den eingebauten Einstellungen");
+        ko(NEW_BOOKS_START_WITH_THE_BUILT_IN_SETTINGS, "새 책은 기본 제공 설정으로 시작합니다");
+        it(NEW_BOOKS_START_WITH_THE_BUILT_IN_SETTINGS, "I nuovi libri partono con le impostazioni predefinite");
     }
 }

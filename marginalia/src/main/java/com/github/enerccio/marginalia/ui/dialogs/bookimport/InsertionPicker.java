@@ -3,7 +3,8 @@ package com.github.enerccio.marginalia.ui.dialogs.bookimport;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.service.ArchiveImportService.Insertion;
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.html.Span;
@@ -22,11 +23,11 @@ import java.util.stream.IntStream;
 final class InsertionPicker extends VerticalLayout {
 
     private enum Place {
-        END(L.LABEL_AT_THE_END_OF_THE_STORY), BEFORE(L.LABEL_BEFORE_A_PART), AFTER(L.LABEL_AFTER_A_PART);
+        END(M_L.LABEL_AT_THE_END_OF_THE_STORY), BEFORE(M_L.LABEL_BEFORE_A_PART), AFTER(M_L.LABEL_AFTER_A_PART);
 
-        private final L label;
+        private final LocalizationKey label;
 
-        Place(L label) {
+        Place(LocalizationKey label) {
             this.label = label;
         }
     }
@@ -45,7 +46,7 @@ final class InsertionPicker extends VerticalLayout {
         this.loc = loc;
         this.branch = List.copyOf(branch);
 
-        place.setLabel(loc.getValue(L.LABEL_IMPORT_PLACE));
+        place.setLabel(loc.getValue(M_L.LABEL_IMPORT_PLACE));
         place.addThemeVariants(RadioGroupVariant.LUMO_VERTICAL);
         place.setItems(Place.values());
         place.setItemLabelGenerator(item -> loc.getValue(item.label));
@@ -55,7 +56,7 @@ final class InsertionPicker extends VerticalLayout {
             onChange.run();
         });
 
-        part.setLabel(loc.getValue(L.LABEL_PART));
+        part.setLabel(loc.getValue(M_L.LABEL_PART));
         part.setItems(IntStream.range(0, this.branch.size()).boxed().toList());
         part.setItemLabelGenerator(this::partLabel);
         part.setAllowCustomValue(false);
@@ -63,7 +64,7 @@ final class InsertionPicker extends VerticalLayout {
         part.setVisible(false);
         part.addValueChangeListener(_ -> onChange.run());
 
-        Span help = new Span(loc.getValue(L.HELP_IMPORT_PLACE));
+        Span help = new Span(loc.getValue(M_L.HELP_IMPORT_PLACE));
         help.addClassName(CssStyles.HINT_TEXT);
 
         add(place, part, help);
@@ -73,7 +74,7 @@ final class InsertionPicker extends VerticalLayout {
     }
 
     private String partLabel(Integer index) {
-        String number = String.format(loc.getValue(L.LABEL_ANNOTATION_PART_NUMBER), index + 1);
+        String number = String.format(loc.getValue(M_L.LABEL_ANNOTATION_PART_NUMBER), index + 1);
         String text = StringUtils.abbreviate(StringUtils.normalizeSpace(branch.get(index).getResponse()), 60);
         return text.isEmpty() ? number : number + ": " + text;
     }

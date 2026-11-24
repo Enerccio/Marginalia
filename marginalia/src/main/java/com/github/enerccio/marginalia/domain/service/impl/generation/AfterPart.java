@@ -54,7 +54,10 @@ public final class AfterPart {
     public enum Mode {
         /** Alone, in the order of the bindings; for a step that changes the text of the part or needs the one before it. */
         SEQUENTIAL,
-        /** Beside the other parallel steps of the stage, after its sequential ones; it must not change the text of the part. */
+        /**
+         * Beside the other parallel steps of the stage, after its sequential ones; it must not change the text of the part (a change
+         * through {@code ChatMessageService} on its thread is refused with an {@link IllegalStateException}, which fails the step).
+         */
         PARALLEL
     }
 

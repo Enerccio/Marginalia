@@ -7,11 +7,15 @@ import com.github.enerccio.marginalia.extensions.knowledgetracker.block.Knowledg
 import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.Change;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.ChangeApplier;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.model.*;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.process.BranchProcessor.Report;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.scene.PresentCharacters;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.service.*;
+import com.github.enerccio.marginalia.extensions.knowledgetracker.service.ExtractionService;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.service.ExtractionService.Proposal;
+import com.github.enerccio.marginalia.extensions.knowledgetracker.service.KnowledgeProcessService;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.service.KnowledgeProcessService.Status;
+import com.github.enerccio.marginalia.extensions.knowledgetracker.service.KnowledgeStateService;
+import com.github.enerccio.marginalia.extensions.knowledgetracker.service.StaleProposalException;
+import com.github.enerccio.marginalia.extensions.storytracker.process.BranchProcessor.Report;
+import com.github.enerccio.marginalia.extensions.storytracker.run.TrackerRuns;
+import com.github.enerccio.marginalia.extensions.storytracker.scene.PresentCharacters;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
@@ -135,10 +139,10 @@ public class KnowledgeTrackerCommands extends ManuscriptReadSupport {
     private final KnowledgeStateService service;
     private final KnowledgeProcessService processService;
     private final ExtractionService extraction;
-    private final ExtractionRuns runs;
+    private final TrackerRuns<Proposal> runs;
 
     public KnowledgeTrackerCommands(KnowledgeStateService service, KnowledgeProcessService processService,
-                                    ExtractionService extraction, ExtractionRuns runs) {
+                                    ExtractionService extraction, TrackerRuns<Proposal> runs) {
         this.service = service;
         this.processService = processService;
         this.extraction = extraction;
@@ -469,7 +473,8 @@ public class KnowledgeTrackerCommands extends ManuscriptReadSupport {
             answer(context, proposalRow(proposal));
             return;
         }
-        answer(context, commitRow(proposal, extraction.commit(book.manuscript, proposal)));
+        // applied without a review: logged, so that the tab can take it back (as the State Tracker's command does)
+        answer(context, commitRow(proposal, extraction.commit(book.manuscript, proposal, true)));
     }
 
     @Command(commandName = TIDY, linkedCommand = STATUS, humanNameText = "Tidy the knowledge", async = true,

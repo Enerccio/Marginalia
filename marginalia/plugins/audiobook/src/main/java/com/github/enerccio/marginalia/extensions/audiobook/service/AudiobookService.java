@@ -21,7 +21,7 @@ import com.github.enerccio.marginalia.extensions.audiobook.script.*;
 import com.github.enerccio.marginalia.extensions.audiobook.studio.StudioScript;
 import com.github.enerccio.marginalia.extensions.audiobook.studio.StudioStore;
 import com.github.enerccio.marginalia.extensions.httphooks.BackendException;
-import com.github.enerccio.marginalia.extensions.httphooks.GpuGate;
+import com.github.enerccio.marginalia.extensions.httphooks.HookKeys;
 import com.github.enerccio.marginalia.extensions.httphooks.HookRunner;
 import com.github.enerccio.marginalia.extensions.httphooks.HttpHook;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
@@ -46,6 +46,9 @@ import static com.github.enerccio.marginalia.extensions.audiobook.AudiobookLocal
 /** What the audiobook plugin does with the data of the user: keeps the backends in the user settings, protects the secrets. */
 @Configurable
 public class AudiobookService {
+
+    @Autowired
+    private GpuService gpuService;
 
     @Autowired
     private SettingService settingService;
@@ -221,7 +224,9 @@ public class AudiobookService {
     public List<com.github.enerccio.marginalia.domain.security.model.User> usersToShareWith() {
         try {
             adminGuard.requireAdmin();
-            return userService.findAll();
+            List<com.github.enerccio.marginalia.domain.security.model.User> users = new ArrayList<>(userService.findAll());
+            users.sort(Comparator.comparing(u -> u.getLogin() == null ? "" : u.getLogin(), String.CASE_INSENSITIVE_ORDER));
+            return users;
         } catch (Exception e) {
             throw new IllegalStateException(e.getMessage(), e);
         }
@@ -252,7 +257,7 @@ public class AudiobookService {
         if (shared.isUsersMayAddOwn()) {
             available.addAll(getSettings().getBackends());
         }
-        return available;
+        return BackendConfig.byName(available);
     }
 
     /** The backend of the id among {@link #backends()}, null when there is none or it is not for the user. */
@@ -376,28 +381,499 @@ public class AudiobookService {
         writeBook(manuscript, "spoken", spoken);
     }
 
-    /** A reference clip the user can give a character: an audio resource of theirs, not the audio this plugin made. */
-    public record Clip(String uuid, String name) {
+    /**
+     * A reference clip the user can give a character: an audio resource of theirs, not the audio this plugin made, with what the plugin keeps of it.
+     *
+     * @param name     the name the user gave it, else the file name
+     * @param fileName the file name of the resource (the kind of audio)
+     * @param folder   the folder of its original, null for none
+     * @param parent   the clip it was made from (a version), null for an original
+     * @param madeWith how it was made from the parent, null when uploaded
+     * @param label    what a picker shows: {@code folder / original › name}
+     */
+    public record Clip(String uuid, String name, String fileName, String folder, String parent, String madeWith, String label) {
+
+        public Clip(String uuid, String name) {
+            this(uuid, name, name, null, null, null, name);
+        }
+
+        /** The order of the pickers: by folder (the clips without one last), then by label. */
+        public static java.util.Comparator<Clip> order() {
+            java.text.Collator collator = AudiobookSettings.collator();
+            return java.util.Comparator.comparing((Clip c) -> c.folder() == null)
+                    .thenComparing(c -> c.folder() == null ? "" : c.folder(), collator)
+                    .thenComparing(Clip::label, collator);
+        }
     }
 
-    /** The audio resources of the user that are not the plugin's own pieces. */
+    /** The audio resources of the user that are not the plugin's own pieces, by folder and name. */
     public List<Clip> clips() {
         try {
-            List<Clip> clips = new ArrayList<>();
+            AudiobookSettings settings = getSettings();
+            Map<String, String> files = new LinkedHashMap<>();
             for (com.github.enerccio.marginalia.domain.model.impl.Resource resource : resourceService.findAllForUser()) {
                 String name = resource.getOriginalName() == null ? "" : resource.getOriginalName();
                 String lower = name.toLowerCase(java.util.Locale.ROOT);
                 boolean audio = (resource.getMimeType() != null && resource.getMimeType().startsWith("audio/")) || lower.endsWith(".wav")
                         || lower.endsWith(".mp3");
-                if (audio && !name.startsWith(ResourceAudioStore.FILE_PREFIX)) {
-                    clips.add(new Clip(resource.getUuid(), name));
+                // the shifted copies made for unnamed speakers are not clips to pick
+                if (audio && !name.startsWith(ResourceAudioStore.FILE_PREFIX) && !settings.isShifted(resource.getUuid())) {
+                    files.put(resource.getUuid(), name);
                 }
             }
-            clips.sort(java.util.Comparator.comparing(Clip::name, String.CASE_INSENSITIVE_ORDER));
+            List<Clip> clips = new ArrayList<>();
+            for (var file : files.entrySet()) {
+                String uuid = file.getKey();
+                ClipInfo info = settings.clipInfo(uuid);
+                String name = info == null || info.getName() == null ? file.getValue() : info.getName();
+                // a version of a clip that is gone is shown as an original
+                String parent = info == null || info.getParent() == null || !files.containsKey(info.getParent()) ? null : info.getParent();
+                String folder = settings.folderOf(uuid);
+                String label = name;
+                if (parent != null) {
+                    String root = settings.rootOf(uuid);
+                    ClipInfo rootInfo = settings.clipInfo(root);
+                    String rootName = rootInfo == null || rootInfo.getName() == null ? files.getOrDefault(root, "?") : rootInfo.getName();
+                    label = rootName + " › " + name;
+                }
+                if (folder != null) {
+                    label = folder + " / " + label;
+                }
+                clips.add(new Clip(uuid, name, file.getValue(), folder, parent, info == null ? null : info.getMadeWith(), label));
+            }
+            clips.sort(Clip.order());
             return clips;
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    /** Changes the settings of the user at once (the clips, the layout of a window: what a window keeps apart from the settings form). */
+    private void changeSettings(java.util.function.Consumer<AudiobookSettings> change) {
+        try {
+            UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
+            AudiobookSettings settings = getSettings();
+            change.accept(settings);
+            saveSettings(settings, userSetting);
+            settingService.save(userSetting);
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    /** Gives the clip a name (blank: the file name again). */
+    public void renameClip(String uuid, String name) {
+        changeSettings(settings -> settings.renameClip(uuid, name));
+    }
+
+    /** Puts the clip, its original and every version into the folder (blank: none). */
+    public void moveClip(String uuid, String folder) {
+        changeSettings(settings -> settings.moveClip(uuid, folder));
+    }
+
+    /** The folders of the user's clips, by name. */
+    public List<String> clipFolders() {
+        return getSettings().folders();
+    }
+
+    /** Keeps how the tabs of Voices and clips are arranged. */
+    public void saveVoicesLayout(com.google.gson.JsonObject layout) {
+        changeSettings(settings -> settings.setVoicesLayout(layout));
+    }
+
+    // --- the speech recognition ---
+
+    /**
+     * Runs the work with the speech recognition of the user while its GPU lock is held (the lock's steps make room for it, for example by restarting a
+     * ComfyUI that still holds the speech model).
+     *
+     * @return false when the user has no speech recognition
+     */
+    public boolean withRecognizer(java.util.function.BooleanSupplier cancelled, ConversionQueue.WordChecker.Work work) throws BackendException {
+        com.github.enerccio.marginalia.extensions.audiobook.model.RecognizerConfig config = getSettings().recognizer();
+        if (config == null) {
+            return false;
+        }
+        com.github.enerccio.marginalia.extensions.audiobook.recognize.SpeechRecognizer recognizer =
+                com.github.enerccio.marginalia.extensions.audiobook.recognize.SpeechRecognizer.of(config,
+                        config.getProtectedApiKey() == null ? null : reveal(config.getProtectedApiKey()));
+        try (SpeechBatch.Lease _ = takeGpu(config.getGpuLock(), config.getModel(), cancelled)) {
+            work.run(recognizer);
+        }
+        return true;
+    }
+
+    /**
+     * Recognises the words spoken in a clip with the speech recognition of the user, from a thread of its own.
+     *
+     * @param done called with the text, or with the message of what failed
+     */
+    public void recognizeClip(String clipUuid, java.util.function.BiConsumer<String, String> done) {
+        inBackground("audiobook-recognize", () -> {
+            // one job of the live list (/jobs) and the log, the wait for the GPU included
+            try (com.github.enerccio.marginalia.domain.service.job.Jobs.Handle logged = com.github.enerccio.marginalia.domain.service.job.Jobs.open(
+                    "audiobook", "Recognition of a clip", com.github.enerccio.marginalia.domain.service.job.JobCallType.AUDIO)) {
+                recognizeClipJob(clipUuid, done, logged);
+            }
+        });
+    }
+
+    private void recognizeClipJob(String clipUuid, java.util.function.BiConsumer<String, String> done,
+                                  com.github.enerccio.marginalia.domain.service.job.Jobs.Handle logged) {
+        try {
+            byte[] bytes = clipBytes(clipUuid);
+            if (bytes == null) {
+                logged.fail();
+                done.accept(null, "The clip is gone");
+                return;
+            }
+            String ext = AudioKind.of(bytes).extension();
+            String[] text = new String[1];
+            boolean ran = withRecognizer(() -> false, recognizer -> text[0] = recognizer.transcribe(bytes, ext, null, () -> false));
+            if (!ran) {
+                logged.fail();
+                done.accept(null, T.localized(NO_SPEECH_RECOGNITION));
+                return;
+            }
+            done.accept(text[0], null);
+        } catch (BackendException | RuntimeException e) {
+            logged.fail();
+            AudiobookLog.get().warn("Recognising a clip failed: {}", e.getMessage(), e);
+            done.accept(null, com.github.enerccio.marginalia.extensions.httphooks.Http.describe(e));
+        }
+    }
+
+    /**
+     * Tries the speech recognition as it is in the form (under its GPU lock), from a thread of its own.
+     *
+     * @param done called with null when it works, else with the message of what failed
+     */
+    public void testRecognizer(com.github.enerccio.marginalia.extensions.audiobook.model.RecognizerConfig config, java.util.function.Consumer<String> done) {
+        inBackground("audiobook-recognizer-test", () -> {
+            try (SpeechBatch.Lease _ = takeGpu(config.getGpuLock(), config.getModel(), null)) {
+                com.github.enerccio.marginalia.extensions.audiobook.recognize.SpeechRecognizer.of(config,
+                        config.getProtectedApiKey() == null ? null : reveal(config.getProtectedApiKey())).test();
+                done.accept(null);
+            } catch (BackendException | RuntimeException e) {
+                AudiobookLog.get().warn("Testing the speech recognition failed: {}", e.getMessage(), e);
+                done.accept(com.github.enerccio.marginalia.extensions.httphooks.Http.describe(e));
+            }
+        });
+    }
+
+    /** The words spoken in the clip, null when they are not known. */
+    public String clipText(String clipUuid) {
+        return getSettings().clipText(clipUuid);
+    }
+
+    /** Stores (or with a blank text removes) the words spoken in the clip, at once. */
+    public void saveClipText(String clipUuid, String text) {
+        changeSettings(settings -> settings.setClipText(clipUuid, text));
+    }
+
+    /** The bytes of a clip of the user, null when it is gone. */
+    public byte[] clipBytes(String uuid) {
+        try {
+            var resource = resourceService.findForUser(uuid);
+            return resource == null ? null : resourceService.getResourceData(resource);
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    /** The samples of a clip to draw; null when it is gone or can't be read here (an mp3 without ffmpeg). */
+    public com.github.enerccio.marginalia.extensions.audiobook.audio.Waveform clipWaveform(String uuid) {
+        byte[] bytes = clipBytes(uuid);
+        try {
+            return bytes == null ? null : com.github.enerccio.marginalia.extensions.audiobook.audio.Waveform.of(bytes);
+        } catch (BackendException e) {
+            AudiobookLog.get().warn("The waveform of the clip {} could not be read: {}", uuid, e.getMessage());
+            return null;
+        }
+    }
+
+    /** How fit the clip is to be a reference voice; null when it can't be measured here (an mp3 without ffmpeg) or is gone. */
+    public com.github.enerccio.marginalia.extensions.audiobook.audio.ClipQuality.Result measureClip(String uuid) {
+        byte[] bytes = clipBytes(uuid);
+        if (bytes == null) {
+            return null;
+        }
+        try {
+            return com.github.enerccio.marginalia.extensions.audiobook.audio.ClipQuality.measure(bytes);
+        } catch (BackendException e) {
+            AudiobookLog.get().warn("The clip {} could not be measured: {}", uuid, e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * A cleaned copy of the clip as a new version of it (named "ffmpeg"), made with ffmpeg ({@code Ffmpeg.cleanVoice}); the clip itself is left as it is,
+     * so the version can be heard before it replaces it.
+     */
+    public Clip cleanClip(String uuid) throws BackendException {
+        byte[] bytes = clipBytes(uuid);
+        if (bytes == null) {
+            throw new BackendException("The clip is gone");
+        }
+        var quality = com.github.enerccio.marginalia.extensions.audiobook.audio.ClipQuality.measure(bytes);
+        if (quality == null) {
+            throw new BackendException("The clip can't be read without ffmpeg");
+        }
+        byte[] cleaned = com.github.enerccio.marginalia.extensions.audiobook.audio.Ffmpeg.cleanVoice(bytes, quality.floorDb());
+        return storeVersion(uuid, cleaned, "wav", "ffmpeg", "ffmpeg");
+    }
+
+    /** Puts the audio among the resources as a version of the clip and returns it as the pickers show it. */
+    private Clip storeVersion(String parentUuid, byte[] audio, String extension, String name, String madeWith) {
+        String file = clips().stream().filter(c -> c.uuid().equals(parentUuid)).map(Clip::fileName).findFirst().orElse("clip");
+        String base = file.replaceFirst("(?i)\\.(wav|mp3)$", "");
+        Clip copy = uploadClip(base + " (" + name.replaceAll("[^\\p{L}\\p{N} _-]", "") + ")." + extension, audio,
+                "mp3".equals(extension) ? "audio/mpeg" : "audio/wav");
+        changeSettings(settings -> settings.addVersion(parentUuid, copy.uuid(), name, madeWith));
+        return clips().stream().filter(c -> c.uuid().equals(copy.uuid())).findFirst().orElse(copy);
+    }
+
+    /**
+     * Cleans the clip with a preset of the cleanup of the user under its GPU lock, from a thread of its own; the result is a new version of the clip.
+     *
+     * @param done called with the version, or with the message of what failed
+     */
+    public void cleanClipWith(String uuid, String presetName, java.util.function.BiConsumer<Clip, String> done) {
+        inBackground("audiobook-clean", () -> {
+            // one job of the live list (/jobs) and the log, for the user of the page, the wait for the GPU included; the cleanup on ComfyUI is its call
+            try (com.github.enerccio.marginalia.domain.service.job.Jobs.Handle logged = com.github.enerccio.marginalia.domain.service.job.Jobs.open(
+                    "audiobook", "Cleanup of a clip (" + presetName + ")", com.github.enerccio.marginalia.domain.service.job.JobCallType.AUDIO)) {
+                try {
+                    com.github.enerccio.marginalia.extensions.audiobook.model.CleanupConfig config = getSettings().cleanup();
+                    if (config == null) {
+                        logged.fail();
+                        done.accept(null, T.localized(NO_CLEANUP));
+                        return;
+                    }
+                    com.github.enerccio.marginalia.extensions.audiobook.model.CleanupPreset preset = config.preset(presetName);
+                    byte[] bytes = clipBytes(uuid);
+                    if (preset == null || bytes == null) {
+                        logged.fail();
+                        done.accept(null, preset == null ? "No cleanup " + presetName : "The clip is gone");
+                        return;
+                    }
+                    com.github.enerccio.marginalia.extensions.audiobook.clean.ComfyCleaner.Result result;
+                    // its own lock: the cleanup models must not be loaded next to the speech or the recognition models
+                    // a preset of ffmpeg steps only needs no GPU (taking the lock could restart ComfyUI for nothing)
+                    try (SpeechBatch.Lease _ = takeGpu(preset.usesComfy() ? config.getGpuLock() : null, null, null)) {
+                        result = new com.github.enerccio.marginalia.extensions.audiobook.clean.ComfyCleaner(config,
+                                config.getProtectedApiKey() == null ? null : reveal(config.getProtectedApiKey()))
+                                .clean(bytes, AudioKind.of(bytes).extension(), preset, null);
+                    }
+                    done.accept(storeVersion(uuid, result.audio(), result.extension(), preset.getName(), preset.describe()), null);
+                } catch (BackendException | RuntimeException e) {
+                    logged.fail();
+                    AudiobookLog.get().warn("Cleaning a clip failed: {}", e.getMessage(), e);
+                    done.accept(null, com.github.enerccio.marginalia.extensions.httphooks.Http.describe(e));
+                }
+            }
+        });
+    }
+
+    /**
+     * Tries the cleanup as it is in the form (under its GPU lock: reading the nodes may start the server), from a thread of its own.
+     *
+     * @param done called with the separation models ComfyUI offers when it works, else with the message of what failed
+     */
+    public void testCleanup(com.github.enerccio.marginalia.extensions.audiobook.model.CleanupConfig config,
+                            java.util.function.BiConsumer<List<String>, String> done) {
+        inBackground("audiobook-cleanup-test", () -> {
+            try (SpeechBatch.Lease _ = takeGpu(config.getGpuLock(), null, null)) {
+                var cleaner = new com.github.enerccio.marginalia.extensions.audiobook.clean.ComfyCleaner(config,
+                        config.getProtectedApiKey() == null ? null : reveal(config.getProtectedApiKey()));
+                cleaner.test();
+                done.accept(cleaner.separationModels(), null);
+            } catch (BackendException | RuntimeException e) {
+                AudiobookLog.get().warn("Testing the cleanup failed: {}", e.getMessage(), e);
+                done.accept(null, com.github.enerccio.marginalia.extensions.httphooks.Http.describe(e));
+            }
+        });
+    }
+
+    /**
+     * A version of the clip with only the range kept, or with the range cut out ({@code ClipTrim}).
+     *
+     * @param from the start of the range in seconds
+     * @param to   the end of the range in seconds
+     */
+    public Clip trimClip(String uuid, double from, double to, boolean keep) throws BackendException {
+        byte[] bytes = clipBytes(uuid);
+        if (bytes == null) {
+            throw new BackendException("The clip is gone");
+        }
+        byte[] trimmed = com.github.enerccio.marginalia.extensions.audiobook.audio.ClipTrim.trim(bytes, from, to, keep);
+        String range = String.format(java.util.Locale.ROOT, "%.1f-%.1f s", from, to);
+        String name = (keep ? T.localized(VERSION_PART) : T.localized(VERSION_WITHOUT)).formatted(range);
+        return storeVersion(uuid, trimmed, "wav", name, (keep ? "trim " : "cut ") + range);
+    }
+
+    /** Puts the version wherever its parent is used (see {@link #replaceClip}); 0 for an original. */
+    public int useVersion(String versionUuid) {
+        String parent = clips().stream().filter(c -> c.uuid().equals(versionUuid)).map(Clip::parent).findFirst().orElse(null);
+        return parent == null ? 0 : replaceClip(parent, versionUuid);
+    }
+
+    /** The places of the actors and own backends that use the clip. */
+    public List<AudiobookSettings.VoiceUse> clipUses(String uuid) {
+        return getSettings().usesOf("clip:" + uuid);
+    }
+
+    /**
+     * Puts the clip {@code to} wherever the clip {@code from} is used (actors with their mood and language voices, own backends), at once. The old clip
+     * stays among the resources.
+     *
+     * @return how many places changed
+     */
+    public int replaceClip(String from, String to) {
+        try {
+            UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
+            AudiobookSettings settings = getSettings();
+            int changed = settings.replaceVoice("clip:" + from, "clip:" + to);
+            boolean hadText = settings.clipText(to) == null && settings.clipText(from) != null;
+            // the replacement says the same words (a cleaned copy) unless it has a text of its own
+            settings.moveClipText(from, to);
+            if (changed > 0 || hadText) {
+                saveSettings(settings, userSetting);
+                settingService.save(userSetting);
+            }
+            return changed;
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    /**
+     * Deletes a clip nobody uses (soft: the cleanup of the resources removes the file later).
+     *
+     * @return false when an actor or a backend still uses it (nothing is deleted)
+     */
+    public boolean deleteClip(String uuid) {
+        if (!clipUses(uuid).isEmpty()) {
+            return false;
+        }
+        try {
+            List<String> doomed = new ArrayList<>(List.of(uuid));
+            // its shifted copies (unnamed speakers) go with it; they are made again from another clip when needed
+            doomed.addAll(getSettings().shiftedOf(uuid));
+            boolean deleted = resourceService.softDelete(doomed) > 0;
+            if (deleted) {
+                // its versions move up to its parent, its name and words go
+                changeSettings(settings -> settings.forgetClip(uuid));
+            }
+            return deleted;
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    /**
+     * A new clip (an original, not a version) of the clips one after the other ({@code ClipMerge}). It is named after them and goes into their folder
+     * when they share one; its words are theirs when every clip has them. The clips themselves stay.
+     *
+     * @param uuids the clips in the order they are joined
+     */
+    public Clip mergeClips(List<String> uuids) throws BackendException {
+        List<Clip> known = clips();
+        List<Clip> parts = new ArrayList<>();
+        List<byte[]> audio = new ArrayList<>();
+        for (String uuid : uuids) {
+            Clip clip = known.stream().filter(c -> c.uuid().equals(uuid)).findFirst().orElse(null);
+            byte[] bytes = clip == null ? null : clipBytes(uuid);
+            if (bytes == null) {
+                throw new BackendException("A clip is gone");
+            }
+            parts.add(clip);
+            audio.add(bytes);
+        }
+        byte[] merged = com.github.enerccio.marginalia.extensions.audiobook.audio.ClipMerge.merge(audio);
+        String name = parts.stream().map(Clip::name).collect(java.util.stream.Collectors.joining(" + "));
+        if (name.length() > 120) {
+            name = name.substring(0, 119) + "…";
+        }
+        String file = name.replaceAll("[\\\\/:*?\"<>|\\p{Cntrl}]", "_").replaceAll("(?i)\\.(wav|mp3)", "");
+        Clip copy = uploadClip(file + ".wav", merged, "audio/wav");
+        String folder = parts.stream().map(Clip::folder).distinct().count() == 1 ? parts.getFirst().folder() : null;
+        List<String> texts = parts.stream().map(c -> clipText(c.uuid())).toList();
+        String text = texts.stream().anyMatch(Objects::isNull) ? null : String.join(" ", texts);
+        String clipName = name;
+        changeSettings(settings -> {
+            settings.renameClip(copy.uuid(), clipName);
+            if (folder != null) {
+                settings.moveClip(copy.uuid(), folder);
+            }
+            if (text != null) {
+                settings.setClipText(copy.uuid(), text);
+            }
+        });
+        return clips().stream().filter(c -> c.uuid().equals(copy.uuid())).findFirst().orElse(copy);
+    }
+
+    /**
+     * Deletes the clips nobody uses ({@link #deleteClip}).
+     *
+     * @return the clips that were left because an actor or a backend uses them
+     */
+    public List<Clip> deleteClips(List<String> uuids) {
+        List<Clip> known = clips();
+        List<Clip> used = new ArrayList<>();
+        for (String uuid : uuids) {
+            Clip clip = known.stream().filter(c -> c.uuid().equals(uuid)).findFirst().orElse(null);
+            if (clip != null && !deleteClip(uuid) && !clipUses(uuid).isEmpty()) {
+                used.add(clip);
+            }
+        }
+        return used;
+    }
+
+    /** Whether this installation can make shifted clips (ffmpeg with the {@code rubberband} filter). */
+    public static boolean canMakeShiftedClips() {
+        return Ffmpeg.hasFilter("rubberband");
+    }
+
+    /**
+     * Which voices a script may use shifted (an unnamed speaker): any when shifted clips can be made here, else only those whose shifted copy is
+     * stored (made on a machine with ffmpeg; the others are the base clip, and their cache key says so, so ffmpeg later makes them again).
+     */
+    public java.util.function.Predicate<VoiceRef> shiftable() {
+        if (canMakeShiftedClips()) {
+            return v -> true;
+        }
+        AudiobookSettings settings = getSettings();
+        return v -> v.shift() == null || settings.shiftedClip(v.id(), v.shift().spec()) != null;
+    }
+
+    /** The shifted copies of the clips of the user: hidden versions of the base clip, made with ffmpeg when first needed. */
+    ClipVoices.ShiftedClips shiftedClips() {
+        return new ClipVoices.ShiftedClips() {
+            @Override
+            public String find(String baseUuid, VoiceShift shift) {
+                return getSettings().shiftedClip(baseUuid, shift.spec());
+            }
+
+            @Override
+            public boolean canMake() {
+                return canMakeShiftedClips();
+            }
+
+            @Override
+            public byte[] make(byte[] base, VoiceShift shift) throws BackendException {
+                return Ffmpeg.filter(base, shift.filter());
+            }
+
+            @Override
+            public String store(String baseUuid, VoiceShift shift, byte[] audio, String baseFileName) {
+                String stem = (baseFileName == null ? "clip" : baseFileName).replaceFirst("(?i)\\.(wav|mp3)$", "");
+                Clip copy = uploadClip(stem + " (" + shift.spec() + ").wav", audio, "audio/wav");
+                changeSettings(settings -> settings.addShifted(baseUuid, shift.spec(), copy.uuid(), "shift " + shift.describe()));
+                AudiobookLog.get().info("Made the clip {} shifted {} (for an unnamed speaker) as {}", baseUuid, shift.spec(), copy.uuid());
+                return copy.uuid();
+            }
+        };
     }
 
     /** Puts a clip among the resources of the user; the result is what a voice names ({@code clip:<uuid>}). */
@@ -414,34 +890,87 @@ public class AudiobookService {
 
     /** The backend for the settings of a server; its key is opened here. */
     public SpeechBackend createBackend(BackendConfig config) {
-        return new ChatterboxBackend(config, config.getProtectedApiKey() == null ? null : reveal(config.getProtectedApiKey()));
+        String key = config.getProtectedApiKey() == null ? null : reveal(config.getProtectedApiKey());
+        return config.isHiggs() ? new HiggsComfyBackend(config, key) : new ChatterboxBackend(config, key);
     }
 
     /**
      * Runs a batch of pieces on the server of the backend: the requests before it, the work, the requests after it. Batches on one server
-     * address (or GPU name, whatever extension) go through one {@link GpuGate}, whoever's they are.
+     * GPU take turns through the GPU lock of the backend (see {@code GpuService}), whoever's and whatever extension's they are.
      */
     public <T> SpeechBatch.Outcome<T> runBatch(BackendConfig config, BooleanSupplier cancelled, SpeechBatch.Work<T> work) throws BackendException {
-        SpeechBackend backend = new RecoveringBackend(createBackend(config), () -> restart(config), config.getRestartEveryPieces());
-        return SpeechBatch.run(backend, config.gate(), config.gateMode(), before(config), after(config), cancelled, work);
+        // the lease of the batch, for a restart in the middle of it (the steps of the GPU lock stop and start the server)
+        java.util.concurrent.atomic.AtomicReference<SpeechBatch.Lease> held = new java.util.concurrent.atomic.AtomicReference<>();
+        SpeechBatch.Gpu gpu = gpu(config);
+        SpeechBatch.Gpu remembering = c -> {
+            SpeechBatch.Lease lease = gpu.take(c);
+            held.set(lease);
+            return lease;
+        };
+        SpeechBackend backend = new RecoveringBackend(createBackend(config), () -> restart(config, held.get()), config.getRestartEveryPieces());
+        return SpeechBatch.run(backend, remembering, before(config), after(config), cancelled, work);
+    }
+
+    /** The GPU lock of the backend, taken for a batch (or a test). */
+    private SpeechBatch.Gpu gpu(BackendConfig config) {
+        return gpu(config.getGpuLock(), config.getModel());
+    }
+
+    /** Takes the GPU lock (blank or null: none), blocking; {@code model} is {{model}} of its steps (null: none). */
+    private SpeechBatch.Lease takeGpu(String lock, String model, java.util.function.BooleanSupplier cancelled) throws BackendException {
+        return gpu(lock, model).take(cancelled);
+    }
+
+    /** The GPU lock of the uuid, taken for a batch, a test or a recognition; {@code model} fills {{model}} of the steps. */
+    private SpeechBatch.Gpu gpu(String lock, String model) {
+        if (gpuService == null || lock == null || lock.isBlank()) {
+            return SpeechBatch.NO_GPU;
+        }
+        return cancelled -> {
+            com.github.enerccio.marginalia.domain.service.gpu.GpuLease lease;
+            try {
+                lease = gpuService.acquire(lock, com.github.enerccio.marginalia.domain.service.GpuService.model(model), cancelled);
+            } catch (com.github.enerccio.marginalia.domain.service.gpu.GpuException e) {
+                throw new BackendException(e.getMessage(), e);
+            }
+            return new SpeechBatch.Lease() {
+                @Override
+                public void close() {
+                    lease.close();
+                }
+
+                @Override
+                public void reload() throws BackendException {
+                    try {
+                        lease.reload();
+                    } catch (com.github.enerccio.marginalia.domain.service.gpu.GpuException e) {
+                        throw new BackendException(e.getMessage(), e);
+                    }
+                }
+            };
+        };
     }
 
     /**
      * Stops the server and starts it again in the middle of a batch (the batch keeps its place on the GPU): the requests after a batch, all of
-     * them and whatever they answer (a dead server answers nothing), then the requests before it, the first failure of which fails the restart.
+     * them and whatever they answer (a dead server answers nothing), the release and acquire steps of the GPU lock (which stop and start the
+     * server), then the requests before it; a failure of the acquire steps or of the requests before fails the restart.
      */
-    private void restart(BackendConfig config) throws BackendException {
+    private void restart(BackendConfig config, SpeechBatch.Lease lease) throws BackendException {
         AudiobookLog.get().info("Restarting the speech server in the middle of a batch");
         try {
             after(config).run();
         } catch (BackendException e) {
             AudiobookLog.get().warn("The request after the batch failed, the server is started anyway: {}", e.getMessage());
         }
+        if (lease != null) {
+            lease.reload();
+        }
         before(config).run();
     }
 
     /** The requests before a batch: in order, the first failure stops the batch. */
-    private GpuGate.Step before(BackendConfig config) {
+    private SpeechBatch.Hooks before(BackendConfig config) {
         return () -> {
             String error = runHooks("before a batch", withKey(config.getBeforeHooks(), config), config.isLocal(), true);
             if (error != null) {
@@ -451,7 +980,7 @@ public class AudiobookService {
     }
 
     /** The requests after a batch: every request is made, also when one failed (every container must be stopped); the first failure is reported. */
-    private GpuGate.Step after(BackendConfig config) {
+    private SpeechBatch.Hooks after(BackendConfig config) {
         return () -> {
             String error = runHooks("after a batch", withKey(config.getAfterHooks(), config), config.isLocal(), false);
             if (error != null) {
@@ -497,35 +1026,16 @@ public class AudiobookService {
      */
     private List<HttpHook> withKey(List<HttpHook> hooks, BackendConfig config) {
         String protectedKey = config.getProtectedHooksKey() != null && !config.getProtectedHooksKey().isBlank() ? config.getProtectedHooksKey() : config.getProtectedApiKey();
-        String key = protectedKey == null ? null : reveal(protectedKey);
-        if (hooks == null || key == null || key.isBlank()) {
-            return hooks;
-        }
-        List<HttpHook> copies = new ArrayList<>();
-        for (HttpHook hook : hooks) {
-            if (hook == null || hook.isEmpty()) {
-                continue;
-            }
-            String headers = hook.headersText(this::reveal);
-            if (headers != null && headers.lines().anyMatch(line -> line.strip().toLowerCase(java.util.Locale.ROOT).startsWith("authorization:"))) {
-                copies.add(hook);
-                continue;
-            }
-            HttpHook copy = new HttpHook();
-            copy.setUrl(hook.getUrl());
-            copy.setMethod(hook.getMethod());
-            copy.setBody(hook.getBody());
-            copy.setTimeoutSeconds(hook.getTimeoutSeconds());
-            copy.setWaitSeconds(hook.getWaitSeconds());
-            copy.setHeaders((headers == null || headers.isBlank() ? "" : headers + "\n") + "Authorization: Bearer " + key.strip());
-            copies.add(copy);
-        }
-        return copies;
+        return HookKeys.withBearer(hooks, protectedKey == null ? null : reveal(protectedKey), this::reveal);
     }
 
     /** Runs {@code work} on a thread of its own in the request context of the caller (the services work for the user who asked). */
     private void inBackground(String name, Runnable work) {
-        RequestAttributes scope = ThreadCopyRequestAttributes.create();
+        inScope(ThreadCopyRequestAttributes.create(), name, work);
+    }
+
+    /** Runs the work on a thread of its own in the request scope given (taken earlier from a page). */
+    private static void inScope(RequestAttributes scope, String name, Runnable work) {
         Thread.ofVirtual().name(name).start(() -> {
             try (ThreadCopyRequestAttributes.InRequestScope ignored = new ThreadCopyRequestAttributes.InRequestScope(scope)) {
                 work.run();
@@ -543,13 +1053,17 @@ public class AudiobookService {
         inBackground("audiobook-test", () -> {
             ServerCheck.Result result = null;
             String error = null;
-            GpuGate gate = config.gate();
-            try {
-                gate.acquire(config.gateMode(), null, before(config));
+            try (SpeechBatch.Lease _ = gpu(config).take(null)) {
+                before(config).run();
                 try {
-                    result = gate.exclusive(null, () -> ServerCheck.check(config, this::reveal));
+                    result = ServerCheck.check(config, this::reveal);
                 } finally {
-                    String afterError = gate.release(after(config));
+                    String afterError = null;
+                    try {
+                        after(config).run();
+                    } catch (BackendException e) {
+                        afterError = e.getMessage();
+                    }
                     if (afterError != null) {
                         AudiobookLog.get().warn("The request after the test failed: {}", afterError);
                         if (result != null) {
@@ -558,12 +1072,13 @@ public class AudiobookService {
                     }
                 }
             } catch (BackendException e) {
+                AudiobookLog.get().warn("Testing the connection failed: {}", e.getMessage(), e);
                 result = null;
-                error = e.getMessage();
+                error = com.github.enerccio.marginalia.extensions.httphooks.Http.describe(e);
             } catch (RuntimeException e) {
                 AudiobookLog.get().warn("Testing the connection failed: {}", e.getMessage(), e);
                 result = null;
-                error = String.valueOf(e.getMessage());
+                error = com.github.enerccio.marginalia.extensions.httphooks.Http.describe(e);
             }
             done.accept(result, error);
         });
@@ -578,29 +1093,74 @@ public class AudiobookService {
             "he", "שלום, אני הקול של הספר הזה. ככה אני מדבר.",
             "ar", "مرحبًا، أنا صوت هذا الكتاب. هكذا أتحدث.",
             "hi", "नमस्ते, मैं इस किताब की आवाज़ हूँ। मैं ऐसे बोलता हूँ।");
-    private static final String SAMPLE = "Hello, I am a voice of this book. This is how I sound when I read to you.";
+    /** The sample of the language of the book: long enough to hear the voice settle, with a question and a pause. */
+    static final String SAMPLE = "Hello, I am a voice of this book. This is how I sound when I read to you: the quiet parts, the questions, and the "
+            + "moments when something unexpected happens. Shall we begin? The story is waiting, and I would very much like to hear how it ends.";
+    /** The sample with sounds: the tags are voiced by the models that can ({@link Tags#forModel}), left out for the others. */
+    static final String SAMPLE_WITH_SOUNDS = "[sigh] What a long day it has been. And then she told me the whole story, from the very beginning, and I "
+            + "simply could not keep a straight face. [laugh] Can you believe it? [gasp] Wait... did you hear that? [chuckle] Never mind. It was only the wind.";
+    /** How strongly a mood of a sample is voiced (Higgs): strong enough to be heard. */
+    static final double SAMPLE_MOOD_INTENSITY = 0.8;
 
     /**
-     * Speaks a short sentence with a voice so the user can hear it before using it (the requests around a batch start and stop the server, so it
-     * takes a while when the server is stopped). A voice for a language speaks a sentence in it, with the multilingual backend when there is one.
+     * What a sample says.
+     *
+     * @param model  the speech model of the backend
+     * @param code   the language of a voice of another language (its own short sentence, read plainly), null for the language of the book
+     * @param sounds with sounds (laugh, sigh, gasp, chuckle) where the model voices them
+     * @param mood   how it is said (Higgs Audio v3 only), null or neutral for plainly
+     */
+    static String sampleText(String model, String code, boolean sounds, Delivery mood) {
+        if (code != null) {
+            return SAMPLES.getOrDefault(code, SAMPLE);
+        }
+        String text = sounds ? SAMPLE_WITH_SOUNDS : SAMPLE;
+        if (BackendConfig.MODEL_HIGGS.equals(model)) {
+            return HiggsText.render(text, true, mood == null ? Delivery.NEUTRAL : mood, SAMPLE_MOOD_INTENSITY);
+        }
+        return Tags.forModel(model).isEmpty() ? Tags.strip(text) : text;
+    }
+
+    /** The backend a sample of a voice of the language is made with: the multilingual one for another language when there is one, else the selected one. */
+    private BackendConfig sampleBackend(String language) {
+        BackendConfig multilingual = language == null ? null : backendForModel(BackendConfig.MODEL_MULTILINGUAL);
+        return multilingual != null ? multilingual : selectedBackend();
+    }
+
+    /** The speech model a sample of a voice of the language is made with (what the choices of the sample depend on), null without a backend. */
+    public String sampleModel(String language) {
+        BackendConfig backend = sampleBackend(language);
+        return backend == null ? null : backend.getModel();
+    }
+
+    /** {@link #preview(String, String, boolean, Delivery, BiConsumer)} read plainly. */
+    public void preview(String voice, String language, BiConsumer<byte[], String> done) {
+        preview(voice, language, false, null, done);
+    }
+
+    /**
+     * Speaks a sample with a voice so the user can hear it before using it. Each sample is a batch: when the GPU holds something else, the
+     * steps of the GPU lock load the speech server first, so the first sample takes a while and the next ones (the GPU stays loaded) do not. A voice for a language speaks a sentence in it, with
+     * the multilingual backend when there is one.
      *
      * @param voice    {@code clip:<uuid>} or {@code predefined:<file>}
      * @param language the code, null for the language of the book
+     * @param sounds   the sample with sounds the model can voice
+     * @param mood     how it is said (Higgs Audio v3), null for plainly
      * @param done     called from a thread of its own with the mp3, or with the message of what failed
      */
-    public void preview(String voice, String language, BiConsumer<byte[], String> done) {
+    public void preview(String voice, String language, boolean sounds, Delivery mood, BiConsumer<byte[], String> done) {
         inBackground("audiobook-preview", () -> {
             try {
-                BackendConfig multilingual = language == null ? null : backendForModel(BackendConfig.MODEL_MULTILINGUAL);
-                BackendConfig backend = multilingual != null ? multilingual : selectedBackend();
-                String code = multilingual != null ? language : null;
+                BackendConfig backend = sampleBackend(language);
+                String code = backend != null && language != null && BackendConfig.MODEL_MULTILINGUAL.equals(backend.getModel()) ? language : null;
                 if (backend == null) {
                     done.accept(null, T.localized(NO_BACKEND_YET));
                     return;
                 }
                 VoiceRef ref = VoiceRef.parse(voice);
-                String sentence = code == null ? SAMPLE : SAMPLES.getOrDefault(code, SAMPLE);
-                ClipVoices clips = new ClipVoices(resourceService);
+                String sentence = sampleText(backend.getModel(), code, sounds, mood);
+                ClipVoices clips = new ClipVoices(resourceService, uuid -> null, shiftedClips());
                 byte[] audio = runBatch(backend, null, speaker -> {
                     Voices.Resolved resolved = clips.resolve(speaker, ref);
                     SpeechRequest request = new SpeechRequest(sentence, resolved.mode(), resolved.name(), code, 0.5, backend.getCfgWeight(),
@@ -613,6 +1173,73 @@ public class AudiobookService {
             } catch (RuntimeException e) {
                 AudiobookLog.get().warn("A voice could not be heard: {}", e.getMessage(), e);
                 done.accept(null, String.valueOf(e.getMessage()));
+            }
+        });
+    }
+
+    /**
+     * Speaks a text with a voice as it is typed, for a test: no labelling, no sound cues, no splitting (the tags of the model, such as Higgs'
+     * {@code <|...|>}, reach it as they are). The backend in use speaks it under its GPU lock, as a job of its own; the words of a clip go with it when
+     * the backend sends them.
+     *
+     * @param seed null: the seed of the conversions (the same take as a part would get)
+     * @param done called with the audio and its extension, or with the message of what failed
+     */
+    public void speakTest(String voice, String text, Integer seed, java.util.function.BiConsumer<byte[], String> done) {
+        inBackground("audiobook-try", () -> {
+            try (com.github.enerccio.marginalia.domain.service.job.Jobs.Handle logged = com.github.enerccio.marginalia.domain.service.job.Jobs.open(
+                    "audiobook", "Test of a voice", com.github.enerccio.marginalia.domain.service.job.JobCallType.AUDIO)) {
+                try {
+                    BackendConfig backend = selectedBackend();
+                    if (backend == null) {
+                        logged.fail();
+                        done.accept(null, T.localized(NO_BACKEND_YET));
+                        return;
+                    }
+                    if (text == null || text.isBlank()) {
+                        logged.fail();
+                        done.accept(null, T.localized(TYPE_A_TEXT));
+                        return;
+                    }
+                    VoiceRef ref = VoiceRef.parse(voice);
+                    ClipVoices clips = new ClipVoices(resourceService, uuid -> getSettings().clipText(uuid), shiftedClips());
+                    byte[] audio = runBatch(backend, null, speaker -> {
+                        Voices.Resolved resolved = clips.resolve(speaker, ref);
+                        SpeechRequest request = new SpeechRequest(text.strip(), resolved.mode(), resolved.name(), null, 0.5, backend.getCfgWeight(),
+                                backend.getTemperature(), backend.getSpeed(), seed == null ? SEED : seed, "mp3", backend.getChunkSize());
+                        if (backend.isSendClipText() && resolved.text() != null) {
+                            request = request.withReferenceText(resolved.text());
+                        }
+                        return speaker.synthesize(request, () -> false);
+                    }).value();
+                    done.accept(audio, null);
+                } catch (IllegalArgumentException | BackendException e) {
+                    logged.fail();
+                    done.accept(null, e.getMessage());
+                } catch (RuntimeException e) {
+                    logged.fail();
+                    AudiobookLog.get().warn("A test of a voice failed: {}", e.getMessage(), e);
+                    done.accept(null, String.valueOf(e.getMessage()));
+                }
+            }
+        });
+    }
+
+    /**
+     * Loads the speech server of the selected backend on its GPU now (a window of samples opens), so the first sample does not wait for it: the GPU
+     * lock of the backend is taken and given back at once. The GPU stays loaded until a job of another lock needs it. Call from the page (it
+     * reads the user); the work runs on a thread of its own.
+     */
+    public void warmUp() {
+        RequestAttributes scope = ThreadCopyRequestAttributes.create();
+        inScope(scope, "audiobook-warm-up", () -> {
+            try {
+                BackendConfig backend = selectedBackend();
+                if (backend != null) {
+                    gpu(backend).take(null).close();
+                }
+            } catch (BackendException | RuntimeException e) {
+                AudiobookLog.get().warn("The speech server could not be loaded for the samples: {}", e.getMessage());
             }
         });
     }
@@ -654,8 +1281,8 @@ public class AudiobookService {
                 return thread;
             });
             ConversionQueue queue = new ConversionQueue(new ConversionQueue.Environment(new ResourceAudioStore(resourceService, chatMessageService),
-                    new ClipVoices(resourceService), this::backendForModel, this::runBatch, () -> tracker != null && tracker.isRunning(id), 1000,
-                    this::loudnessTarget), worker);
+                    new ClipVoices(resourceService, uuid -> getSettings().clipText(uuid), shiftedClips()), this::backendForModel, this::runBatch,
+                    () -> tracker != null && tracker.isRunning(id), 1000, this::loudnessTarget, Ffmpeg::normalizeLoudness, this::withRecognizer), worker);
             queue.setRunWatch((titles, stop) -> watchRun(id, titles, stop));
             return queue;
         });
@@ -967,7 +1594,35 @@ public class AudiobookService {
     public VoiceRef voiceFor(Manuscript manuscript, BackendConfig backend, String speaker, String delivery, String language) {
         AudiobookSettings settings = getSettings();
         VoiceRef own = backend == null || backend.getNarratorVoice().isBlank() ? null : VoiceRef.parse(backend.getNarratorVoice().strip());
-        return castOf(manuscript).voice(speaker, delivery, language, settings::findActor, own);
+        // an unnamed speaker keeps the gender and the age the cast remembers of them
+        return castOf(manuscript).voice(speaker, delivery, language, null, null, manuscript.getUuid(), settings::findActor, own, shiftable());
+    }
+
+    /** The voice an unnamed speaker of the cast gets (for the cast window: hearing the speaker), null when no actor has a voice for them. */
+    public VoiceRef extraVoice(Manuscript manuscript, Cast cast, CastExtra extra) {
+        return cast.voice(extra.getName(), Delivery.NEUTRAL.name(), null, extra.getGender(), extra.getAge(), manuscript.getUuid(),
+                getSettings()::findActor, null, shiftable());
+    }
+
+    /** What the labelling model said about the part, every run that was kept, oldest first. */
+    public List<PartReasoningStore.Run> reasoning(String partUuid) {
+        return new PartReasoningStore(resourceService, chatMessageService).find(partUuid);
+    }
+
+    /** True when the part has stored reasoning (only the part is read, not the file). */
+    public boolean hasReasoning(String partUuid) {
+        try {
+            return PartReasoningStore.has(chatMessageService.findForUser(partUuid));
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new IllegalStateException(e.getMessage(), e);
+        }
+    }
+
+    /** Deletes the stored reasoning of the part. @return whether there was one */
+    public boolean clearReasoning(String partUuid) {
+        return new PartReasoningStore(resourceService, chatMessageService).clear(partUuid);
     }
 
     private StudioStore studioStore() {
@@ -1123,7 +1778,7 @@ public class AudiobookService {
                 clip ? clipName.apply(entry.voice().id()) : entry.voice().id(), entry.language(), entry.exaggeration(), entry.cfgWeight(),
                 entry.temperature(), entry.speed(), entry.seed(), entry.format(), entry.chunkSize());
         return new com.google.gson.GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create().toJson(com.google.gson.JsonParser.parseString(
-                ChatterboxBackend.bodyOf(request, entry.model())));
+                BackendConfig.MODEL_HIGGS.equals(entry.model()) ? HiggsComfyBackend.workflowOf(request) : ChatterboxBackend.bodyOf(request, entry.model())));
     }
 
     /** The names of the characters the book tells: the point of view and the present characters of its parts. */
@@ -1163,12 +1818,33 @@ public class AudiobookService {
 
     /**
      * The labelling instruction for a book: its own setting, else the nearest folder's, else the user's, else the built-in one
-     * ({@link LabelPrompt#SETTING}), with the characters filled in.
+     * ({@link LabelPrompt#SETTING}), with the characters and the sound tags of the speech model filled in.
      */
-    private String labelPrompt(String bookId, List<String> characters) throws Exception {
+    private String labelPrompt(String bookId, List<String> characters, String model) throws Exception {
         Manuscript book = manuscriptService.findForUser(bookId);
         String template = book == null ? null : manuscriptService.resolveExtension(book, LabelPrompt.SETTING).value();
-        return LabelPrompt.system(templateService, template, characters);
+        // the gender and the age of unnamed speakers are asked only for a cast that uses them (the labels are cached by this text)
+        boolean extras = book != null && castOf(book).usesExtras();
+        return LabelPrompt.system(templateService, template, characters, model, extras);
+    }
+
+    /**
+     * Keeps the unnamed speakers a script met in the cast of the book (the gender and the age they got first), so a later part does not give them
+     * another voice and the cast window lists them. The cast is read again: the user may have changed it while the job ran.
+     */
+    private void keepExtras(String bookId, Cast learned) throws Exception {
+        Manuscript book = manuscriptService.findForUser(bookId);
+        if (book == null) {
+            return;
+        }
+        Cast current = castOf(book);
+        boolean changed = false;
+        for (CastExtra extra : learned.getExtras()) {
+            changed |= current.learnExtra(extra.getName(), extra.getGender(), extra.getAge());
+        }
+        if (changed) {
+            saveCast(book, current);
+        }
     }
 
     /** The cast of the book as it is when a job runs. */
@@ -1214,7 +1890,7 @@ public class AudiobookService {
             kept = labelStore.findForText(partUuid, text);
             if (kept == null) {
                 // labels stored before the text was remembered with them: found by the key they were made under, when nothing changed since
-                kept = labelStore.find(partUuid, LabelService.cacheKey(text, labelPrompt(bookId, characters)));
+                kept = labelStore.find(partUuid, LabelService.cacheKey(text, labelPrompt(bookId, characters, backend.getModel())));
             }
         }
         if (pieces.isEmpty() || (options == null && kept == null)) {
@@ -1225,7 +1901,7 @@ public class AudiobookService {
                 AudiobookLog.get().info("Labels of part {}: the stored ones are read, the model is not asked ({} pieces)", partUuid, pieces.size());
                 kept.forEach(l -> labels.putIfAbsent(l.id(), l));
             } else {
-                String system = labelPrompt(bookId, characters);
+                String system = labelPrompt(bookId, characters, backend.getModel());
                 LabelService.Result asked = LabelService.labels(partUuid, text, pieces, system,
                         new LlmLabelModel(inferenceServices.forAIOrThrow(options.ai()), options.protocol()), new PartLabelStore(chatMessageService));
                 AudiobookLog.get().info("Labels of part {}: {} ({} pieces)", partUuid, asked.fromStore() ? "from the store"
@@ -1236,8 +1912,29 @@ public class AudiobookService {
                 labels.putAll(asked.labels());
             }
             Set<String> models = backends().stream().map(BackendConfig::getModel).collect(Collectors.toSet());
-            fresh = ScriptFromLabels.studio(text, pieces, labels, backend,
-                    (speaker, delivery, language) -> cast.voice(speaker, delivery.name(), language, actors, narrator), models, SEED, form);
+            java.util.function.Predicate<VoiceRef> shiftable = shiftable();
+            boolean[] learned = {false};
+            ScriptFromLabels.VoiceChooser chooser = new ScriptFromLabels.VoiceChooser() {
+                @Override
+                public VoiceRef choose(String speaker, Delivery delivery, String language) {
+                    return choose(speaker, delivery, language, null);
+                }
+
+                @Override
+                public VoiceRef choose(String speaker, Delivery delivery, String language, PieceLabel label) {
+                    Gender gender = label == null ? null : label.gender();
+                    Age age = label == null ? null : label.age();
+                    // an unnamed speaker keeps what the first label said of them (also within this part)
+                    if (cast.usesExtras() && cast.learnExtra(speaker, gender, age)) {
+                        learned[0] = true;
+                    }
+                    return cast.voice(speaker, delivery.name(), language, gender, age, bookId, actors, narrator, shiftable);
+                }
+            };
+            fresh = ScriptFromLabels.studio(text, pieces, labels, backend, chooser, models, SEED, form);
+            if (learned[0]) {
+                keepExtras(bookId, cast);
+            }
         }
         StudioScript merged = StudioScript.merge(stored, fresh);
         store.put(partUuid, merged);

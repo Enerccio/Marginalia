@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.utils;
 
 import com.github.enerccio.marginalia.bound.AgenticSessionPoint;
+import com.github.enerccio.marginalia.bound.MarginaliaSessionPoint;
 import com.github.enerccio.marginalia.bound.SessionPoint;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
@@ -49,17 +50,17 @@ public final class CommandUtils {
      * bean of the servlet session; for any other request attributes (the run of an agent) the
      * {@link AgenticSessionPoint} they hold.
      */
-    public static SessionPoint getSessionPoint() {
+    public static MarginaliaSessionPoint getSessionPoint() {
         RequestAttributes attributes = RequestContextHolder.getRequestAttributes();
         if (attributes instanceof ServletRequestAttributes servlet) {
             // a worker thread's copy keeps the context: its request is over and recycled by the container, asking it would fail
             ServletContext servletContext = servlet instanceof ThreadCopyRequestAttributes copy ? copy.getServletContext()
                     : servlet.getRequest().getServletContext();
             WebApplicationContext context = WebApplicationContextUtils.getWebApplicationContext(servletContext);
-            return context == null ? null : context.getBean(SessionPoint.class);
+            return context == null ? null : context.getBean(MarginaliaSessionPoint.class);
         }
         if (attributes != null && attributes.getAttribute(AgenticSessionPoint.SCOPED_TARGET_NAME,
-                RequestAttributes.SCOPE_SESSION) instanceof SessionPoint sessionPoint) {
+                RequestAttributes.SCOPE_SESSION) instanceof MarginaliaSessionPoint sessionPoint) {
             return sessionPoint;
         }
         return null;
@@ -69,7 +70,7 @@ public final class CommandUtils {
      * The workspace the user is working in.
      */
     public static Workspace getWorkspace() {
-        SessionPoint sessionPoint = getSessionPoint();
+        MarginaliaSessionPoint sessionPoint = getSessionPoint();
         return sessionPoint == null ? null : sessionPoint.getWorkspace();
     }
 
@@ -77,7 +78,7 @@ public final class CommandUtils {
      * The book list of the workspace.
      */
     public static ManuscriptSection getManuscriptSection() {
-        SessionPoint sessionPoint = getSessionPoint();
+        MarginaliaSessionPoint sessionPoint = getSessionPoint();
         return sessionPoint == null ? null : sessionPoint.getManuscriptSection();
     }
 
@@ -86,7 +87,7 @@ public final class CommandUtils {
      * session without windows.
      */
     public static ManuscriptWindow getManuscriptWindow() {
-        SessionPoint sessionPoint = getSessionPoint();
+        MarginaliaSessionPoint sessionPoint = getSessionPoint();
         return sessionPoint == null ? null : sessionPoint.getManuscriptWindow();
     }
 
@@ -95,7 +96,7 @@ public final class CommandUtils {
      * {@link ManuscriptWindow#getManuscript()}), or the book of the agent's session.
      */
     public static Manuscript getCurrentManuscript() {
-        SessionPoint sessionPoint = getSessionPoint();
+        MarginaliaSessionPoint sessionPoint = getSessionPoint();
         return sessionPoint == null ? null : sessionPoint.getCurrentManuscript();
     }
 
@@ -103,7 +104,7 @@ public final class CommandUtils {
      * The model of the book; null when there is no book or the book has no model.
      */
     public static AI getCurrentAI() {
-        SessionPoint sessionPoint = getSessionPoint();
+        MarginaliaSessionPoint sessionPoint = getSessionPoint();
         return sessionPoint == null ? null : sessionPoint.getCurrentAI();
     }
 

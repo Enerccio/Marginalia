@@ -129,8 +129,8 @@ with the arrangement.
 - Drop it on the tab header or on the body of another panel to **join** that panel (dropping on a tab puts it before that
   tab, dropping on the body puts it last). A panel that loses its last tab disappears, and so does a column without panels.
 
-The arrangement and the sizes are saved with the book, so it is the same the next time you open it and in every browser; the tab each
-panel shows is remembered with the rest of your workspace. A tab of an extension that is not loaded keeps its place for when
+The arrangement and the sizes are saved with the book, so it is the same the next time you open it and in every browser, and so is the tab each
+panel shows. A tab of an extension that is not loaded keeps its place for when
 the extension is back.
 
 The story is always somewhere: its tab can't be closed, and a tab that lives in a panel together with other tabs is hidden
@@ -259,7 +259,7 @@ The settings menu (⚙) in the bottom bar groups what acts on the whole story. *
 | Sub menu | Items |
 |---|---|
 | **Appearance** | **Change Styles For Text**, **Highlight Generated Text** and **Annotations in the margin** (desktop only, the last one) |
-| **Analysis** | **Annotate a range of parts with AI**, **Create summaries**, **Take lore notes with an agent**, **Automatic annotation**, **Branch Tokens**, **Lore Usage**, **Statistics** |
+| **Analysis** | **Annotate a range of parts with AI**, **Create summaries**, **Take lore notes with an agent**, **Automatic annotation**, **Phrase watch list**, **Branch Tokens**, **Lore Usage**, **Statistics** |
 | **Import & export** | **Import**, **Export story** (and the items of extensions that import or export, such as **Export instructions**) |
 | **Cleanup** | **Clear history of the book**, **Empty trash of the history**, **Mass delete** |
 | **Layout** (desktop only) | **Save layout as my default**, **Restore default layout** |
@@ -452,10 +452,12 @@ two translators never work on one part at once: the second one says that the par
 Everything that works on your books with a model right now is listed at the bottom left of every page: a generation, a
 redraft or an annotation, a translation by the [Real Language](../extensions/real-language-translator.md) or
 [Conlang](../extensions/conlang-translator.md) translator, a rewrite of the summaries, the Knowledge Tracker reading the story, an [Audiobook](../extensions/audiobook.md) conversion, a command of
-the command bar that takes a while (*Draft instructions*, a summary...: its window stands at the side and folds like the others). The
+the command bar that takes a while (*Draft instructions*, a summary...: its window stands at the side and folds like the others), an
+[agent](../agents.md) at work. The
 windows in which you wait for an answer are listed too while the model answers: **Impersonate**, the help assistant, a quick
-translation, the Conlang designer, a chat of Side Query, Beta Readers or the plot wizard. It lists your runs from **all your open
-pages** (another tab, the phone), not only the ones started on this page. Nothing running, nothing shown.
+translation, the Conlang designer, a chat of Side Query (and its naming of the tab), Beta Readers or the plot wizard. It lists your
+runs from **all your open pages** (another tab, the phone), not only the ones started on this page. Nothing running, nothing shown.
+The window of the Knowledge and State Trackers is an entry of the panel too: closed while the model works, it folds into it.
 
 ![The panel of the runs opened: the redraft folded into it, with the end of the model's text, Open and Stop](../../images/runs-panel.png)
 
@@ -470,7 +472,10 @@ pages** (another tab, the phone), not only the ones started on this page. Nothin
 - **Stop** stops the run, wherever it was started. **Open**, or a click on the entry, shows a folded window again (only on the
   page it was opened on) or the run itself; it is **Review** when the run waits for you. A run of the Knowledge Tracker opens its
   book on this page (when no other book is open here; otherwise you are asked to close that one first), switches to the Knowledge tab
-  and shows the review. **Close** closes a window for good (and stops its model).
+  and shows the review. The **Stop** of an agent pauses it. **Close** closes a window for good (and stops its model).
+- **What ended** stays in the list for two hours, below what runs, with how it went (*Completed*, *Failed*) and how long it took: a
+  translation, summaries, what followed a part, an agent's session, an import, work that went on after you left its page. **Close**
+  takes it out of the list. A generation of the story and the runs you stopped are not kept.
 - On a computer you can move the panel by its grip (⋮ at its left); it stays where you leave it in this browser. In the lower half of
   the page it grows upwards when you open it, as in its corner, and it is always kept inside the page. When it stands where the round
   button of the [help assistant](../administration/help-assistant.md) is (over a book both are in the bottom left corner), the button moves aside
@@ -478,6 +483,12 @@ pages** (another tab, the phone), not only the ones started on this page. Nothin
 
 When a run you started ends after its page was closed, another open page of yours sends its [notification](../account.md#notifications)
 (for the runs that have one, such as the rewrite of the summaries).
+
+**What is refused while something runs.** The next part is not generated while a [redraft](#redrafting-a-part) window of the book is
+open (close it, or apply it, first) or while a command of the command bar is about to generate. A part is not merged into the part
+before while a window or a translation works on that one, and search and replace leaves out the part a generation is writing (it is
+counted as skipped). An [agent](../agents.md) does not start on a book that is open in a window or that anything else works on. When
+several runs wait for one model, your next generation goes before the annotation, translation or audio of the part before it.
 
 ### Redrafting only a passage
 
@@ -497,10 +508,11 @@ and you select it again. While the part is edited the selection in the editor is
 When a part you generated (from the page or the command bar) is complete, the book may do more with it by itself, in this order:
 
 1. **Annotate**: the [automatic annotation](annotations.md#annotating-every-new-part-automatically) reviews the part.
-2. **Redraft**: the part is written again to address the notes.
-3. **Translate**: the [Real language](../extensions/real-language-translator.md) and [Conlang](../extensions/conlang-translator.md) translators translate its speeches.
-4. **Knowledge**: the [Knowledge Tracker](../extensions/knowledge-tracker.md) reads it.
-5. **Audio**: the [Audiobook](../extensions/audiobook.md) makes it into audio.
+2. **Mark phrases**: the [phrase watch list](annotations.md#watching-for-phrases) annotates the phrases it finds (no model).
+3. **Redraft**: the part is written again to address the notes.
+4. **Translate**: the [Real language](../extensions/real-language-translator.md) and [Conlang](../extensions/conlang-translator.md) translators translate its speeches.
+5. **Knowledge**: the [Knowledge Tracker](../extensions/knowledge-tracker.md) reads it.
+6. **Audio**: the [Audiobook](../extensions/audiobook.md) makes it into audio.
 
 Only the steps the book has switched on run. They run on the server, so the page can be closed, and they are one entry in the
 [panel of the runs](#the-panel-of-the-runs): *After part 14: Annotate ✓ · Redraft … · Translate*, with the model's text and one

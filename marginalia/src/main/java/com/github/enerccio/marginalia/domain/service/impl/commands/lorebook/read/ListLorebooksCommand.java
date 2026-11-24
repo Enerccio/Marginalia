@@ -1,13 +1,14 @@
 package com.github.enerccio.marginalia.domain.service.impl.commands.lorebook.read;
 
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.traits.Command;
+import com.github.enerccio.marginalia.domain.traits.MarginaliaCommandTexts;
 import com.github.enerccio.marginalia.domain.traits.CommandDataSeverity;
 import com.github.enerccio.marginalia.domain.traits.CommandParameterSignature;
 import com.github.enerccio.marginalia.domain.traits.CommandReturn;
-import com.github.enerccio.marginalia.loc.L;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
@@ -19,11 +20,14 @@ public class ListLorebooksCommand extends LorebookReadSupport {
 
     static final String NAME = "list-lorebooks";
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_LIST_LOREBOOKS,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_LIST_LOREBOOKS, llmDescription = L.DESC_COMMAND_LIST_LOREBOOKS_LLM,
             signature = @CommandParameterSignature,
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_LIST_LOREBOOKS_RETURN))
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_LIST_LOREBOOKS,
+            description = M_L.DESC_COMMAND_LIST_LOREBOOKS,
+            llmDescription = M_L.DESC_COMMAND_LIST_LOREBOOKS_LLM,
+            returns = M_L.DESC_COMMAND_LIST_LOREBOOKS_RETURN)
     public void listLorebooks(CommandContext context) throws Exception {
         Lore lore = new Lore(new Book(context));
         JsonArray books = new JsonArray();

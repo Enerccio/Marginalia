@@ -5,8 +5,8 @@ import com.github.enerccio.marginalia.domain.traits.APIParameter;
 import com.github.enerccio.marginalia.domain.traits.APIReturn;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.domain.traits.PublicAPI;
-import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -40,10 +40,10 @@ public class HelperPermissionComponent implements PermissionUIComponent {
         if (layout != null) {
             return;
         }
-        applyLimits = new Checkbox(loc.getValue(L.LABEL_APPLY_LIMITS));
-        applyLimits.setHelperText(loc.getValue(L.HELP_ASSISTANT_APPLY_LIMITS));
-        interactions = new Checkbox(loc.getValue(L.LABEL_HELP_INTERACTIONS));
-        interactions.setHelperText(loc.getValue(L.HELP_ASSISTANT_INTERACTIONS));
+        applyLimits = new Checkbox(loc.getValue(M_L.LABEL_APPLY_LIMITS));
+        applyLimits.setHelperText(loc.getValue(M_L.HELP_ASSISTANT_APPLY_LIMITS));
+        interactions = new Checkbox(loc.getValue(M_L.LABEL_HELP_INTERACTIONS));
+        interactions.setHelperText(loc.getValue(M_L.HELP_ASSISTANT_INTERACTIONS));
         applyLimits.addValueChangeListener(e -> changed());
         interactions.addValueChangeListener(e -> changed());
         layout = new VerticalLayout(applyLimits, interactions);

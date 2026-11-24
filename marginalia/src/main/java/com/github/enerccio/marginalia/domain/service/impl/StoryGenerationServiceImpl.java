@@ -17,8 +17,8 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChat
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.PrePromptData;
 import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.domain.traits.NoTx;
-import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
 import com.vaadin.flow.component.UI;
@@ -115,11 +115,16 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
         }
         endAfterPart(manuscript, generationRequest);
         // one generation of a book at a time, from any page, command or plugin; the run is given back when the cleanup starts
-        Runs.Builder builder = Runs.run(Runs.GENERATION, () -> loc.getValue(L.MSG_COMMAND_GENERATING))
+        Runs.Builder builder = Runs.run(Runs.GENERATION, () -> loc.getValue(M_L.MSG_COMMAND_GENERATING))
                 .book(manuscript).hold(manuscript, Runs.Mode.READ).stage(Runs.Stage.PREPARE).quiet().onStop(token::cancel);
         // the page that shows it: the caller's, or the one a command started it for
         Runs.Run run = (options.page() != null ? builder.page(options.page()) : builder.currentPage())
                 .startUnless(manuscript, Runs.Operation.GENERATE);
+        Runs.Run command = Runs.current();
+        if (command != null && Runs.GENERATION_COMMAND.equals(command.getSource()) && Objects.equals(command.getBookId(), run.getBookId())) {
+            // the generation holds the book from here on
+            command.end();
+        }
         GenerationEngine generationEngine = new GenerationEngine();
         generationEngine.run = run;
         generationEngine.setManuscript(manuscript);
@@ -346,7 +351,7 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
                 }
 
                 if (Thread.interrupted()) {
-                    getUIListener().onSimpleError(loc.getValue(L.MSG_INTERRUPTED));
+                    getUIListener().onSimpleError(loc.getValue(M_L.MSG_INTERRUPTED));
                     try {
                         wrapper.run(() -> jumpTo(GenerationStepType.CLEANUP));
                     } catch (Throwable e) {
@@ -455,14 +460,15 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
                 public void next() {
                     AsyncRunnableWrapper wrapper = new AsyncRunnableWrapper(configuration);
                     taskExecutor.submit(() -> {
-                        try (InRequestScope _ = new InRequestScope(getRequestAttributes())) {
+                        // the listeners of an event work for the generation (an extension that changes the part on an event)
+                        try (InRequestScope _ = new InRequestScope(getRequestAttributes()); Runs.Binding _ = run == null ? null : run.bind()) {
                             if (cancellationToken.isCancelled() && !event.isTerminal()) {
                                 invokeContinuation(continueAfterEventHandling);
                                 return;
                             }
 
                             if (!event.isTerminal() && Thread.interrupted()) {
-                                getUIListener().onSimpleError(loc.getValue(L.MSG_INTERRUPTED));
+                                getUIListener().onSimpleError(loc.getValue(M_L.MSG_INTERRUPTED));
                                 try {
                                     wrapper.run(() -> jumpTo(GenerationStepType.CLEANUP));
                                 } catch (Throwable e) {
@@ -525,7 +531,8 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
             if (continuation != null) {
                 AsyncRunnableWrapper wrapper = new AsyncRunnableWrapper(configuration);
                 taskExecutor.submit(() -> {
-                    try (InRequestScope _ = new InRequestScope(getRequestAttributes())) {
+                    // the work after an event is the generation's own: its saves of the part and its requests are the run's
+                    try (InRequestScope _ = new InRequestScope(getRequestAttributes()); Runs.Binding _ = run == null ? null : run.bind()) {
                         wrapper.run(continuation::returnFromEvent);
                     } catch (Throwable e) {
                         log.error("Failed continuation after event emission", e);

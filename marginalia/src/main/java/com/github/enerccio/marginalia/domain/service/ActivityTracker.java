@@ -19,7 +19,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
  * The book of an agent's hidden working copy is resolved to the original, on the agents' side, the way
  * {@link ManuscriptStatisticService#count} does it. Never throws.
  */
-public interface ActivityTracker {
+public interface ActivityTracker extends RequestActivity {
 
     /**
      * The author is typing when the last key was no longer ago than this: after it the editing time stops, and the browser says
@@ -44,6 +44,7 @@ public interface ActivityTracker {
      *
      * @param bookId the id of the book as {@link UsageContext} has it, null registers nothing
      */
+    @Override
     Registration generate(Long bookId);
 
     /**
@@ -51,21 +52,6 @@ public interface ActivityTracker {
      * change and on every tick). For the end of a work that needs the rows, the shutdown and tests.
      */
     void flush();
-
-    /**
-     * A registration of nothing, for what has no book or is not counted.
-     */
-    Registration NONE = () -> {
-    };
-
-    /**
-     * What something has that is going on. Closing it again does nothing.
-     */
-    interface Registration extends AutoCloseable {
-
-        @Override
-        void close();
-    }
 
     /**
      * The registration of an open book window.

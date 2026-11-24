@@ -1,0 +1,260 @@
+package com.github.enerccio.marginalia.extensions.statetracker.service;
+
+import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
+import com.github.enerccio.marginalia.domain.security.model.User;
+import com.github.enerccio.marginalia.domain.service.ManuscriptService;
+import com.github.enerccio.marginalia.domain.service.SettingService;
+import com.github.enerccio.marginalia.extensions.statetracker.model.BookSettings;
+import com.github.enerccio.marginalia.extensions.statetracker.model.Category;
+import com.github.enerccio.marginalia.extensions.statetracker.model.CategoryCatalog;
+import com.github.enerccio.marginalia.extensions.statetracker.model.CategoryKind;
+import com.github.enerccio.marginalia.extensions.statetracker.model.StateBook;
+import com.github.enerccio.marginalia.extensions.storytracker.characters.CharacterTrackerCharacters;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Configurable;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
+
+import static com.github.enerccio.marginalia.extensions.statetracker.StateTrackerLocalization.*;
+
+/**
+ * Reads and saves the state of a book (in the book's attributes) and the user's categories and prompts (in the user settings).
+ */
+@Configurable
+public class StateService {
+
+    /** Key of the settings new books start with in the attributes of the user settings, see {@link #getBookDefaults}. */
+    static final String BOOK_DEFAULTS_KEY = StateBook.KEY + ".bookDefaults";
+
+    @Autowired
+    private ManuscriptService manuscriptService;
+
+    @Autowired
+    private SettingService settingService;
+
+    @Autowired
+    private User currentUser;
+
+    private final Gson gson = new Gson();
+
+    /** Views that are open, by the uuid of the book, to tell them that someone else stored the state. */
+    private final Map<String, Set<Runnable>> changeListeners = new ConcurrentHashMap<>();
+
+    /**
+     * The built-in categories, in the language of the user. Their ids are fixed, so a book that copied one stays linked to it
+     * after the user stores the catalog.
+     */
+    public static List<Category> builtInCategories() {
+        Category wearing = new Category("default-wearing", T.localized(WEARING), CategoryKind.DESCRIPTION, T.localized(WEARING_INSTRUCTION));
+        Category weapon = new Category("default-weapon", T.localized(WEAPON_AT_HAND), CategoryKind.SINGLE, T.localized(WEAPON_INSTRUCTION));
+        weapon.setShowWhenEmpty(true);
+        Category carrying = new Category("default-carrying", T.localized(CARRYING), CategoryKind.LIST, T.localized(CARRYING_INSTRUCTION));
+        Category injuries = new Category("default-injuries", T.localized(INJURIES), CategoryKind.LIST, T.localized(INJURIES_INSTRUCTION));
+        Category mood = new Category("default-mood", T.localized(MOOD), CategoryKind.DESCRIPTION, T.localized(MOOD_INSTRUCTION));
+        mood.setStrict(false);
+        return List.of(wearing, weapon, carrying, injuries, mood);
+    }
+
+    /**
+     * Calls {@code listener} when {@link #changed} says the state of the book was stored by someone else than the view.
+     *
+     * @return what removes the listener
+     */
+    public Runnable onChange(Manuscript manuscript, Runnable listener) {
+        String key = manuscript.getUuid();
+        changeListeners.computeIfAbsent(key, _ -> new CopyOnWriteArraySet<>()).add(listener);
+        return () -> changeListeners.computeIfPresent(key, (_, set) -> {
+            set.remove(listener);
+            return set.isEmpty() ? null : set;
+        });
+    }
+
+    /** Tells the views of the book that its state was stored by someone else (a command). */
+    public void changed(Manuscript manuscript) {
+        Set<Runnable> listeners = changeListeners.get(manuscript.getUuid());
+        if (listeners != null) {
+            listeners.forEach(Runnable::run);
+        }
+    }
+
+    /**
+     * The state stored in {@code manuscript} as it is held, a new empty one when there is none (with the user's settings for new books,
+     * see {@link #getBookDefaults}).
+     */
+    public StateBook read(Manuscript manuscript) {
+        JsonObject attrs = manuscript.getAttributes();
+        StateBook state = null;
+        if (attrs != null && attrs.has(StateBook.KEY)) {
+            state = gson.fromJson(attrs.get(StateBook.KEY), StateBook.class);
+        }
+        if (state == null) {
+            state = new StateBook();
+            BookSettings defaults = getBookDefaults();
+            if (defaults != null) {
+                state.setSettings(defaults);
+            }
+        }
+        return state;
+    }
+
+    /**
+     * The settings a book starts with where this tracker was never used: what the user saved with {@link #saveBookDefaults}, {@code null}
+     * when they saved none (the built-in ones apply). It never stores anything and never throws: a book with no state is read from the
+     * prompt builders and the generation too, and it reads as it did when the user settings can't be read.
+     */
+    public BookSettings getBookDefaults() {
+        try {
+            UserSetting userSetting = settingService.find(UserSetting.class, currentUser);
+            JsonObject attrs = userSetting == null ? null : userSetting.getAttributes();
+            if (attrs == null || !attrs.has(BOOK_DEFAULTS_KEY) || !attrs.get(BOOK_DEFAULTS_KEY).isJsonObject()) {
+                return null;
+            }
+            return gson.fromJson(attrs.get(BOOK_DEFAULTS_KEY), BookSettings.class);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /** Stores a copy of the settings as the ones new books start with; the separators stay with their book. */
+    public void saveBookDefaults(BookSettings settings) throws Exception {
+        JsonObject copy = gson.toJsonTree(settings).getAsJsonObject();
+        copy.remove("separators");
+        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
+        JsonObject attrs = userSetting.getAttributes();
+        if (attrs == null) {
+            attrs = new JsonObject();
+            userSetting.setAttributes(attrs);
+        }
+        attrs.add(BOOK_DEFAULTS_KEY, copy);
+        settingService.save(userSetting);
+    }
+
+    /** New books start with the built-in settings again. */
+    public void clearBookDefaults() throws Exception {
+        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
+        if (userSetting.getAttributes() != null && userSetting.getAttributes().remove(BOOK_DEFAULTS_KEY) != null) {
+            settingService.save(userSetting);
+        }
+    }
+
+
+    /** The state of the book as it is stored now (a running generation holds the book it was started with). */
+    public StateBook load(Manuscript manuscript) throws Exception {
+        Manuscript current = manuscriptService.find(manuscript);
+        return read(current != null ? current : manuscript);
+    }
+
+    /** The characters the Character Tracker plugin keeps in the book as it is stored now, see {@link CharacterTrackerCharacters}. */
+    public List<CharacterTrackerCharacters.Candidate> characterTrackerCharacters(Manuscript manuscript) throws Exception {
+        Manuscript current = manuscriptService.find(manuscript);
+        return CharacterTrackerCharacters.read((current != null ? current : manuscript).getAttributes());
+    }
+
+    /** The state as it is stored in the book, for a checkpoint. */
+    public JsonElement toJson(StateBook state) {
+        return gson.toJsonTree(state);
+    }
+
+    /** A state stored by {@link #toJson}, a new empty one for nothing. */
+    public StateBook fromJson(JsonElement json) {
+        StateBook state = json == null || json.isJsonNull() ? null : gson.fromJson(json, StateBook.class);
+        return state != null ? state : new StateBook();
+    }
+
+    public void save(Manuscript manuscript, StateBook state) throws Exception {
+        manuscriptService.update(manuscript, current -> {
+            JsonObject attrs = current.getAttributes();
+            if (attrs == null) {
+                attrs = new JsonObject();
+                current.setAttributes(attrs);
+            }
+            attrs.add(StateBook.KEY, gson.toJsonTree(state));
+        });
+    }
+
+    /** The user's categories as they are stored now; the built-in ones when the user never stored any. */
+    public List<Category> getUserCategories() throws Exception {
+        return readUserCategories(settingService.getOrCreate(UserSetting.class));
+    }
+
+    /** The categories in {@code userSetting}; the built-in ones when it has none. */
+    public List<Category> readUserCategories(UserSetting userSetting) {
+        return CategoryCatalog.read(userSetting.getAttributes(), StateService::builtInCategories);
+    }
+
+    /**
+     * Puts the categories into {@code userSetting} without storing it (the Settings screen stores it); {@code null} removes them,
+     * the built-in ones apply again.
+     */
+    public void putUserCategories(UserSetting userSetting, List<Category> categories) {
+        JsonObject attrs = userSetting.getAttributes();
+        if (attrs == null) {
+            attrs = new JsonObject();
+            userSetting.setAttributes(attrs);
+        }
+        if (categories == null) {
+            CategoryCatalog.reset(attrs);
+        } else {
+            CategoryCatalog.write(attrs, categories);
+        }
+    }
+
+    /** Adds a category to the user's catalog and stores it at once (from a book: Save to my categories). */
+    public void addUserCategory(Category category) throws Exception {
+        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
+        List<Category> categories = readUserCategories(userSetting);
+        categories.add(category);
+        putUserCategories(userSetting, categories);
+        settingService.save(userSetting);
+    }
+
+    /**
+     * What the user saved as the prompt {@code key} ({@link StateInherited#EXTRACTION_PROMPT}, {@link StateInherited#TIDY_PROMPT}), the
+     * user level of the setting the books and folders inherit. {@code null} for nothing. It never stores anything, so it can be asked
+     * from the suppliers of the registration, inside a read-only transaction too.
+     */
+    public String getUserPrompt(String key) {
+        try {
+            UserSetting userSetting = settingService.find(UserSetting.class, currentUser);
+            return readUserPrompt(userSetting, key);
+        } catch (Exception e) {
+            // asked from suppliers, which cannot throw a checked exception
+            throw new IllegalStateException("The settings of the user can't be read", e);
+        }
+    }
+
+    /** The prompt {@code key} in {@code userSetting}, {@code null} for nothing. */
+    public String readUserPrompt(UserSetting userSetting, String key) {
+        JsonObject attrs = userSetting == null ? null : userSetting.getAttributes();
+        if (attrs != null && attrs.has(key) && attrs.get(key).isJsonPrimitive()) {
+            String text = attrs.get(key).getAsString();
+            return text.isBlank() ? null : text;
+        }
+        return null;
+    }
+
+    /**
+     * Sets the user level of a prompt in {@code userSetting}; blank removes it (the built-in one applies again). Does not store it: the
+     * Settings screen stores the user settings itself.
+     */
+    public void putUserPrompt(UserSetting userSetting, String key, String text) {
+        JsonObject attrs = userSetting.getAttributes();
+        if (attrs == null) {
+            attrs = new JsonObject();
+            userSetting.setAttributes(attrs);
+        }
+        if (text == null || text.isBlank()) {
+            attrs.remove(key);
+        } else {
+            attrs.addProperty(key, text);
+        }
+    }
+}

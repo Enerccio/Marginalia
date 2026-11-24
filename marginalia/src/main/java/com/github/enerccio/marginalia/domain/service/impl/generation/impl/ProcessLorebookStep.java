@@ -83,7 +83,7 @@ public class ProcessLorebookStep extends GenerationStepBase {
                             // what each entry put into the prompt, kept with the prompt of the part (lore usage report)
                             LoreUsage usage = new LoreUsage();
                             // the images of the entries go along only to a model that is set to take them
-                            boolean images = controller.getAi() != null && controller.getAi().isSendLoreImages();
+                            boolean images = controller.getAi() != null && controller.getAi().isMultimodal();
                             List<LoreImage> loreImages = new java.util.ArrayList<>();
                             for (LorebookEntry entry : finalActivatedEntries) {
                                 String payload = activationService.renderPayload(entry, templateData);

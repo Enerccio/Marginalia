@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GPU control</title>
+<style>
+  :root {
+    --bg: #f5f6f8; --panel: #fff; --text: #1d2330; --muted: #6a7385; --line: #dde1e8;
+    --accent: #2f6fed; --ok: #1f9d55; --warn: #c27a00; --bad: #d23b3b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #14171d; --panel: #1d222b; --text: #e6e9ef; --muted: #8e97a8; --line: #2c3340; --accent: #5b8cff; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.4 system-ui, sans-serif; }
+  main { max-width: 860px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 20px; margin: 4px 0 16px; display: flex; align-items: center; gap: 12px; }
+  h1 small { font-weight: normal; color: var(--muted); font-size: 13px; }
+  section { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; margin-bottom: 16px; }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 10px;
+       display: flex; justify-content: space-between; align-items: center; }
+  .row { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-top: 1px solid var(--line); flex-wrap: wrap; }
+  .row:first-of-type { border-top: 0; }
+  .name { font-weight: 600; flex: 1 1 160px; word-break: break-all; }
+  .name small { display: block; font-weight: normal; color: var(--muted); font-size: 12px; }
+  .badge { font-size: 12px; padding: 2px 8px; border-radius: 10px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+  .badge.ok { color: var(--ok); border-color: var(--ok); }
+  .badge.warn { color: var(--warn); border-color: var(--warn); }
+  .badge.bad { color: var(--bad); border-color: var(--bad); }
+  button { font: inherit; font-size: 14px; padding: 5px 12px; border-radius: 6px; border: 1px solid var(--line); background: var(--panel); color: var(--text); cursor: pointer; }
+  button:hover:not(:disabled) { border-color: var(--accent); }
+  button:disabled { opacity: .45; cursor: default; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  button.danger { color: var(--bad); }
+  input { font: inherit; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); color: var(--text); }
+  .bar { height: 10px; border-radius: 5px; background: var(--line); overflow: hidden; flex: 2 1 200px; }
+  .bar > div { height: 100%; background: var(--accent); }
+  .bar > div.high { background: var(--warn); }
+  .muted { color: var(--muted); }
+  #login { display: flex; gap: 8px; }
+  #login input { flex: 1; }
+  #log { font: 12px/1.5 ui-monospace, monospace; max-height: 180px; overflow: auto; white-space: pre-wrap; margin: 0; }
+  #log .err { color: var(--bad); }
+  .offscreen { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <h1>GPU control <small id="refreshed"></small><span style="flex:1"></span><button id="signout" hidden>Sign out</button></h1>
+
+  <section id="loginBox">
+    <h2>Token</h2>
+    <form id="login" method="post" action="/">
+      <!-- a fixed user name, so that a password manager saves and fills the token as an ordinary login of this address -->
+      <input id="user" class="offscreen" type="text" name="username" value="gpu-control" autocomplete="username" tabindex="-1" aria-hidden="true">
+      <input id="token" type="password" name="password" placeholder="GPU_CONTROL_TOKEN" autocomplete="current-password" autofocus>
+      <button class="primary" type="submit">Sign in</button>
+    </form>
+    <p class="muted" id="loginError" hidden></p>
+  </section>
+
+  <div id="app" hidden>
+    <section id="vramBox" hidden>
+      <h2>Video memory</h2>
+      <div id="vram"></div>
+    </section>
+
+    <section>
+      <h2>Containers</h2>
+      <div id="containers"></div>
+    </section>
+
+    <section id="llamaBox">
+      <h2>Models (llama-server)
+        <span><button id="unloadAll" class="danger">Unload all</button></span></h2>
+      <div id="models"></div>
+    </section>
+
+    <section>
+      <h2>Activity</h2>
+      <pre id="log"></pre>
+    </section>
+  </div>
+</main>
+<script>
+(function () {
+  var KEY = 'gpuControlToken';
+  var token = '';
+  try { token = sessionStorage.getItem(KEY) || ''; } catch (e) {}
+  var busy = 0;
+  var timer = null;
+  var $ = function (id) { return document.getElementById(id); };
+
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+
+  function log(message, error) {
+    var line = el('div', error ? 'err' : '', new Date().toLocaleTimeString() + '  ' + message);
+    var box = $('log');
+    box.insertBefore(line, box.firstChild);
+    while (box.childNodes.length > 80) box.removeChild(box.lastChild);
+  }
+
+  async function api(method, path, body) {
+    var options = { method: method, headers: { 'X-Control-Token': token } };
+    if (body !== undefined) {
+      options.body = JSON.stringify(body);
+      options.headers['Content-Type'] = 'application/json';
+    }
+    var response = await fetch(path, options);
+    var data = null;
+    try { data = await response.json(); } catch (e) {}
+    if (response.status === 401) { signOut('The token was refused.'); throw new Error('bad token'); }
+    if (!response.ok) throw new Error((data && data.error) || ('HTTP ' + response.status));
+    return data;
+  }
+
+  function signOut(message) {
+    token = '';
+    $('token').value = '';
+    try { sessionStorage.removeItem(KEY); } catch (e) {}
+    clearInterval(timer);
+    $('app').hidden = true;
+    $('signout').hidden = true;
+    $('loginBox').hidden = false;
+    $('loginError').hidden = !message;
+    $('loginError').textContent = message || '';
+  }
+
+  function gib(bytes) { return (bytes / 1073741824).toFixed(1) + ' GiB'; }
+
+  function badge(text, cls) { return el('span', 'badge ' + (cls || ''), text); }
+
+  // an action that takes a while: all buttons wait, the result goes to the activity log
+  async function act(label, method, path, body) {
+    busy++;
+    setDisabled(true);
+    log(label + ' ...');
+    try {
+      var result = await api(method, path, body);
+      log(label + ': ' + summary(result));
+    } catch (e) {
+      log(label + ': ' + e.message, true);
+    } finally {
+      busy--;
+      setDisabled(busy > 0);
+      refresh();
+    }
+  }
+
+  function summary(r) {
+    if (!r) return 'done';
+    if (r.loaded) return 'loaded ' + (r.loaded.join(', ') || 'nothing (already loaded)');
+    if (r.unloaded) return 'unloaded ' + (r.unloaded.join(', ') || 'nothing');
+    if (r.action) return r.action;
+    return r.status || 'done';
+  }
+
+  function setDisabled(on) {
+    Array.prototype.forEach.call(document.querySelectorAll('#app button'), function (b) { b.disabled = on; });
+  }
+
+  function confirmed(text) { return window.confirm(text); }
+
+  function render(data) {
+    $('refreshed').textContent = 'updated ' + new Date().toLocaleTimeString();
+
+    var vram = $('vram');
+    vram.textContent = '';
+    $('vramBox').hidden = !data.vram.length;
+    data.vram.forEach(function (card) {
+      var row = el('div', 'row');
+      row.appendChild(el('div', 'name', card.card));
+      var bar = el('div', 'bar');
+      var pct = card.total ? Math.round(card.used * 100 / card.total) : 0;
+      var fill = el('div', pct > 90 ? 'high' : '');
+      fill.style.width = pct + '%';
+      bar.appendChild(fill);
+      row.appendChild(bar);
+      row.appendChild(el('span', 'muted', gib(card.used) + ' / ' + gib(card.total) + ' (' + pct + '%)'));
+      vram.appendChild(row);
+    });
+
+    var list = $('containers');
+    list.textContent = '';
+    if (!data.containers.length) list.appendChild(el('p', 'muted', 'No containers configured (GPU_CONTROL_CONTAINERS).'));
+    data.containers.forEach(function (c) {
+      var path = '/' + encodeURIComponent(c.name);
+      var running = c.status === 'running' || (c.status === 'unknown' && c.ready);
+      var row = el('div', 'row');
+      var name = el('div', 'name', c.name);
+      if (c.error) name.appendChild(el('small', '', c.error));
+      row.appendChild(name);
+      row.appendChild(badge(c.status, c.status === 'running' ? 'ok' : c.status === 'error' || c.status === 'missing' ? 'bad' : ''));
+      row.appendChild(badge(c.ready ? 'ready' : 'not ready', c.ready ? 'ok' : running ? 'warn' : ''));
+      var start = el('button', '', 'Start');
+      start.onclick = function () { act('start ' + c.name, 'POST', path + '/start'); };
+      var ensure = el('button', '', 'Ensure');
+      ensure.title = 'Does nothing when the service answers; else starts it, or restarts it when it runs but does not answer';
+      ensure.onclick = function () { act('ensure ' + c.name, 'POST', path + '/ensure'); };
+      var restart = el('button', '', 'Restart');
+      restart.onclick = function () { act('restart ' + c.name, 'POST', path + '/restart'); };
+      var stop = el('button', 'danger', 'Stop');
+      stop.onclick = function () {
+        if (confirmed('Stop ' + c.name + '? Whatever it is doing is cut off.')) act('stop ' + c.name, 'POST', path + '/stop');
+      };
+      row.appendChild(start); row.appendChild(ensure); row.appendChild(restart); row.appendChild(stop);
+      list.appendChild(row);
+    });
+
+    var llama = data.llama;
+    $('llamaBox').hidden = !llama.configured;
+    var models = $('models');
+    models.textContent = '';
+    llama.errors.forEach(function (e) { models.appendChild(el('p', 'badge bad', e)); });
+    var inMemory = 0;
+    llama.models.forEach(function (m) {
+      var held = m.status === 'loaded' || m.status === 'loading' || m.status === 'unloading';
+      if (held) inMemory++;
+      var row = el('div', 'row');
+      var name = el('div', 'name', m.id);
+      name.appendChild(el('small', '', m.server));
+      row.appendChild(name);
+      row.appendChild(badge(m.status, m.status === 'loaded' ? 'ok' : held ? 'warn' : ''));
+      var load = el('button', '', 'Load');
+      load.title = 'Loads the model; nothing is unloaded to make room';
+      load.disabled = held || busy > 0;
+      load.onclick = function () { act('load ' + m.id, 'POST', '/llama/load', { models: [m.id] }); };
+      row.appendChild(load);
+      var unload = el('button', '', 'Unload');
+      unload.disabled = !held || busy > 0;
+      unload.onclick = function () { act('unload ' + m.id, 'POST', '/llama/unload', { only: [m.id] }); };
+      row.appendChild(unload);
+      models.appendChild(row);
+    });
+    if (!llama.models.length && !llama.errors.length) models.appendChild(el('p', 'muted', 'The router lists no models.'));
+    $('unloadAll').disabled = !inMemory || busy > 0;
+  }
+
+  async function refresh() {
+    if (!token) return;
+    try {
+      render(await api('GET', '/overview'));
+    } catch (e) {
+      if (e.message !== 'bad token') $('refreshed').textContent = 'update failed: ' + e.message;
+    }
+  }
+
+  function enter() {
+    $('loginBox').hidden = true;
+    $('app').hidden = false;
+    $('signout').hidden = false;
+    refresh();
+    clearInterval(timer);
+    // the page does not poll while busy (the action refreshes when it is done) or in a hidden tab
+    timer = setInterval(function () { if (!busy && !document.hidden) refresh(); }, 5000);
+  }
+
+  $('login').onsubmit = async function (ev) {
+    ev.preventDefault();
+    token = $('token').value;      // the field keeps its value until the form is hidden: the password manager reads it at the submit
+    try {
+      await api('GET', '/overview');
+      try { sessionStorage.setItem(KEY, token); } catch (e) {}
+      enter();
+    } catch (e) {
+      if (e.message !== 'bad token') signOut('Could not reach the controller: ' + e.message);
+    }
+  };
+  $('signout').onclick = function () { signOut(''); };
+  $('unloadAll').onclick = function () {
+    if (confirmed('Unload every model from the router(s)?')) act('unload all models', 'POST', '/llama/unload');
+  };
+
+  if (token) enter();
+})();
+</script>
+</body>
+</html>

@@ -5,8 +5,8 @@ import com.github.enerccio.marginalia.domain.model.impl.ChatCompletionProtocol;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.OpenAICompatible;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
-import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.test.GenerationRun;
 import com.github.enerccio.marginalia.test.GenerationTestBase;
 import com.github.enerccio.marginalia.test.llm.MockLLMRequest;
@@ -99,7 +99,7 @@ class GenerationRequestTest extends GenerationTestBase {
         GenerationRun run = generate(manuscript(protocol(x -> x.setMaxTokens(null))), "write");
         run.await(TIMEOUT);
 
-        assertThat(run.getSimpleErrors()).containsExactly(loc.getValue(L.ERROR_CONTEXT_INSUFFICIENT));
+        assertThat(run.getSimpleErrors()).containsExactly(loc.getValue(M_L.ERROR_CONTEXT_INSUFFICIENT));
         assertThat(llm.getCompletionRequests()).isEmpty();
     }
 
@@ -113,7 +113,7 @@ class GenerationRequestTest extends GenerationTestBase {
         GenerationRun run = generate(manuscript(protocol(x -> x.setMaxTokens(8000))), "write");
         run.await(TIMEOUT);
 
-        assertThat(run.getSimpleErrors()).containsExactly(loc.getValue(L.ERROR_CONTEXT_INSUFFICIENT));
+        assertThat(run.getSimpleErrors()).containsExactly(loc.getValue(M_L.ERROR_CONTEXT_INSUFFICIENT));
         assertThat(llm.getCompletionRequests()).isEmpty();
     }
 

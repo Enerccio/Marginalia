@@ -110,4 +110,24 @@ class KnowledgeTransferTest {
         assertThrows(IllegalArgumentException.class, () -> KnowledgeTransfer.importInto(state, "{\"version\": 1}"));
         assertEquals(2, state.getCharacters().size());
     }
+
+    @Test
+    void copiedItemsArePastedAsTheUsersOwnAndDuplicatesAreSkipped() {
+        KnowledgeState state = book();
+        TrackedCharacter fiora = state.findByName("Fiora");
+        TrackedCharacter mara = state.findByName("Mara");
+        List<KnowledgeItem> copies = fiora.getItems().stream().map(KnowledgeTransfer::copy).toList();
+        assertTrue(copies.stream().noneMatch(copy -> fiora.getItems().stream().anyMatch(item -> item.getId().equals(copy.getId()))),
+                "a copy is a new item");
+
+        assertEquals(new KnowledgeTransfer.PasteResult(3, 0), KnowledgeTransfer.paste(mara, copies));
+        assertEquals(List.of(ItemOrigin.INITIAL, ItemOrigin.MANUAL, ItemOrigin.MANUAL),
+                mara.getItems().stream().map(KnowledgeItem::getOrigin).toList());
+        assertTrue(mara.getItems().stream().allMatch(item -> item.getSourceMessage() == null), "no part of the book behind a pasted item");
+        assertTrue(mara.getItems().get(1).isLocked());
+        assertEquals(2, mara.activeItems().size(), "an old item stays old");
+
+        assertEquals(new KnowledgeTransfer.PasteResult(0, 3), KnowledgeTransfer.paste(mara, copies));
+        assertEquals(new KnowledgeTransfer.PasteResult(0, 3), KnowledgeTransfer.paste(fiora, copies));
+    }
 }

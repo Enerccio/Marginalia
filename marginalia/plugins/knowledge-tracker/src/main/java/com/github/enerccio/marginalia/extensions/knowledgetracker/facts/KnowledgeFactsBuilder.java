@@ -1,8 +1,8 @@
 package com.github.enerccio.marginalia.extensions.knowledgetracker.facts;
 
 import com.github.enerccio.marginalia.extensions.knowledgetracker.model.*;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.process.Part;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.scene.PresentCharacters;
+import com.github.enerccio.marginalia.extensions.storytracker.process.Part;
+import com.github.enerccio.marginalia.extensions.storytracker.scene.PresentCharacters;
 
 import java.util.*;
 import java.util.regex.Pattern;

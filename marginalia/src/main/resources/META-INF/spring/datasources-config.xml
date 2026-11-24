@@ -31,7 +31,7 @@
     </bean>
 
     <!-- shared with the database restore on start (Configuration.applyPendingRestore) -->
-    <bean id="flywayConfiguration" class="com.github.enerccio.marginalia.DatabaseCheck" factory-method="flywayConfiguration">
+    <bean id="flywayConfiguration" factory-bean="configuration" factory-method="flywayConfiguration">
         <constructor-arg index="0" ref="dataSource"/>
     </bean>
 

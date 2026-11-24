@@ -1,7 +1,7 @@
 package com.github.enerccio.marginalia.ui.widgets;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
-import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentEventListener;
@@ -124,7 +124,7 @@ public class TurnRow extends HorizontalLayout {
             });
 
             Div main = new Div(content);
-            main.addClassName(CssStyles.PLANNER_SCENE_MAIN);
+            main.addClassName(MarginaliaCssStyles.PLANNER_SCENE_MAIN);
             main.setTitle(contentTooltip);
             if (onClick != null) {
                 main.addClickListener(_ -> onClick.run());
@@ -150,12 +150,12 @@ public class TurnRow extends HorizontalLayout {
             row.setAlignItems(FlexComponent.Alignment.START);
             row.setSpacing(false);
             row.expand(main);
-            row.addClassName(CssStyles.PLANNER_SCENE);
+            row.addClassName(MarginaliaCssStyles.PLANNER_SCENE);
             if (done) {
-                row.addClassName(CssStyles.PLANNER_SCENE_DONE);
+                row.addClassName(MarginaliaCssStyles.PLANNER_SCENE_DONE);
             }
             if (current) {
-                row.addClassName(CssStyles.PLANNER_SCENE_CURRENT);
+                row.addClassName(MarginaliaCssStyles.PLANNER_SCENE_CURRENT);
             }
             return row;
         }

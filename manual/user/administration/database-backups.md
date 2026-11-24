@@ -67,7 +67,8 @@ Click **Save Schedule** to apply it. The status line shows when the last schedul
 one is due.
 
 When Marginalia wasn't running at a scheduled time - typical for the desktop app, which runs only while you write - it
-makes the missed backup about 30 seconds after the next start.
+makes the missed backup about 30 seconds after the next start. Turning the schedule off or changing it in those 30
+seconds cancels that backup.
 
 ### Schedule syntax
 

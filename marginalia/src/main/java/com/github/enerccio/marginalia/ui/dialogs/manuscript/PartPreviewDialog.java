@@ -1,9 +1,10 @@
 package com.github.enerccio.marginalia.ui.dialogs.manuscript;
 
-import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.model.ImageAttachment;
 import com.github.enerccio.marginalia.domain.styles.PartStyle;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.components.PartView;
 import com.github.enerccio.marginalia.ui.styles.PartStyleApplier;
@@ -30,25 +31,25 @@ public class PartPreviewDialog extends Dialog {
      * @param style the text style of the book, null for none
      */
     public PartPreviewDialog(String markdown, List<ImageAttachment> images, PartStyle style) {
-        setHeaderTitle(loc.getValue(L.LABEL_STYLE_PREVIEW));
+        setHeaderTitle(loc.getValue(M_L.LABEL_STYLE_PREVIEW));
         setWidth("min(900px, 95vw)");
         setMaxHeight("90vh");
 
         Div frame = new Div(new PartView(markdown, images));
-        frame.addClassName(CssStyles.PART_PREVIEW_FRAME);
+        frame.addClassName(MarginaliaCssStyles.PART_PREVIEW_FRAME);
         if (style != null) {
             PartStyleApplier.apply(frame, style);
         }
 
         RadioButtonGroup<Boolean> width = new RadioButtonGroup<>();
         width.setItems(false, true);
-        width.setItemLabelGenerator(phone -> loc.getValue(phone ? L.LABEL_PREVIEW_NARROW : L.LABEL_PREVIEW_WIDE));
+        width.setItemLabelGenerator(phone -> loc.getValue(phone ? M_L.LABEL_PREVIEW_NARROW : M_L.LABEL_PREVIEW_WIDE));
         width.setValue(false);
         width.addValueChangeListener(e -> {
             if (e.getValue()) {
-                frame.addClassName(CssStyles.PART_PREVIEW_PHONE);
+                frame.addClassName(MarginaliaCssStyles.PART_PREVIEW_PHONE);
             } else {
-                frame.removeClassName(CssStyles.PART_PREVIEW_PHONE);
+                frame.removeClassName(MarginaliaCssStyles.PART_PREVIEW_PHONE);
             }
         });
 

@@ -17,7 +17,7 @@ class LocalizationTest extends MarginaliaTestBase {
     private static final Language CS = Language.of("cs");
 
     @Autowired
-    private Localization loc;
+    private MarginaliaLocalization loc;
 
     @Autowired
     private SessionPoint sessionPoint;
@@ -67,6 +67,52 @@ class LocalizationTest extends MarginaliaTestBase {
         public SimpleDateFormat getDateHourFormat() {
             return new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
         }
+    }
+
+    /** Czech texts of the application with a single text. */
+    private static class PartialTexts extends TextBundleBase<M_L> {
+        PartialTexts() {
+            super(M_L.class);
+        }
+
+        @Override
+        protected void loadMessages() {
+            setValue(M_L.LABEL_ADD_BOOK, "Kniha");
+        }
+
+        @Override
+        public Language getLanguage() {
+            return CS;
+        }
+    }
+
+    @Test
+    void textsOfEveryKeyEnumComeFromTheLanguageOfTheSession() {
+        PartialBundle bundle = new PartialBundle(CS);
+        PartialTexts texts = new PartialTexts();
+        Localization platform = loc;
+        assertEquals("Add Book", platform.getValue(M_L.LABEL_ADD_BOOK));
+        loc.registerBundle(bundle);
+        loc.registerTexts(texts);
+        try {
+            sessionPoint.setLanguage(CS);
+            assertEquals("Kniha", platform.getValue(M_L.LABEL_ADD_BOOK));
+            assertEquals("Ano", platform.getValue(L.LABEL_YES));
+            assertEquals(loc.getValue(Language.EN, M_L.LABEL_LOREBOOK), loc.getValue(M_L.LABEL_LOREBOOK));
+            assertEquals("Kniha", loc.getValue(CS, M_L.LABEL_ADD_BOOK));
+            assertEquals(M_L.LABEL_ADD_BOOK, loc.parseValue("Kniha"));
+            assertThrows(IllegalArgumentException.class, () -> loc.registerTexts(new PartialTexts()));
+        } finally {
+            loc.unregisterTexts(texts);
+            loc.unregisterBundle(bundle);
+            sessionPoint.setLanguage(null);
+        }
+        assertEquals("Add Book", loc.getValue(CS, M_L.LABEL_ADD_BOOK));
+    }
+
+    @Test
+    void platformTextsAreRegisteredOnlyAsALanguage() {
+        assertThrows(IllegalArgumentException.class, () -> loc.registerTexts(new PartialBundle(CS)));
     }
 
     @Test

@@ -25,4 +25,12 @@ public interface GenerationView {
      */
     GenerationListener show(Manuscript book, GenerationRequest request);
 
+    /**
+     * The book the view shows, null when none: the command bar holds it from the start of a command that generates to the start of
+     * its generation, so no other generation of the book starts in between.
+     */
+    default Manuscript getBook() {
+        return null;
+    }
+
 }

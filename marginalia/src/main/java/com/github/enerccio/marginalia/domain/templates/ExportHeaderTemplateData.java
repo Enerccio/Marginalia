@@ -1,7 +1,9 @@
 package com.github.enerccio.marginalia.domain.templates;
 
 import com.github.enerccio.marginalia.domain.traits.LocalizedTemplateDescription;
+import com.github.enerccio.marginalia.domain.traits.MarginaliaTemplateDescription;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 
 /**
  * The values of the title page template of an export.
@@ -10,7 +12,7 @@ public class ExportHeaderTemplateData extends TemplateData {
 
     @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_MANUSCRIPT_NAME)
     private final String title;
-    @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_EXPORT_AUTHOR)
+    @MarginaliaTemplateDescription(loc = M_L.DESC_TEMPLATE_EXPORT_AUTHOR)
     private final String author;
 
     /**

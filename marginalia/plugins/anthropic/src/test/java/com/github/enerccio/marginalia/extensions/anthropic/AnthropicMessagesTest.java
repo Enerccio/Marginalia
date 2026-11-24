@@ -109,6 +109,17 @@ class AnthropicMessagesTest {
     }
 
     @Test
+    void imagesGoBeforeTheTextWhenTheMessageSaysSo() {
+        LLMChatMessage user = message(LLMRole.USER, "look").addAttachment(LLMAttachment.of("image/png", new byte[]{1, 2, 3}));
+        user.setImagesFirst(true);
+
+        List<ContentBlockParam> blocks = AnthropicMessages.prepare(List.of(user)).turns().get(0).content();
+
+        assertTrue(blocks.get(0).isImage());
+        assertTrue(blocks.get(1).isText());
+    }
+
+    @Test
     void pdfAndTextFilesAreDocumentsOtherTypesAreRefused() {
         List<ContentBlockParam> blocks = AnthropicMessages.prepare(List.of(message(LLMRole.USER, "read")
                 .addAttachment(LLMAttachment.of("application/pdf", new byte[]{1}))

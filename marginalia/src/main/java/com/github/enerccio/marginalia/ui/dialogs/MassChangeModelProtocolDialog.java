@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.UIConstants;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Folder;
@@ -11,6 +12,7 @@ import com.github.enerccio.marginalia.domain.service.FolderService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.widgets.BookLabels;
@@ -166,15 +168,15 @@ public class MassChangeModelProtocolDialog extends Dialog implements LLMInteract
         setCloseOnOutsideClick(false);
         UIUtils.fitPhone(this, true);
 
-        subfolders = new Checkbox(loc.getValue(L.LABEL_INCLUDE_SUBFOLDERS));
+        subfolders = new Checkbox(loc.getValue(M_L.LABEL_INCLUDE_SUBFOLDERS));
         subfolders.setVisible(chosen == null);
         subfolders.addValueChangeListener(event -> load());
 
-        Span hint = new Span(loc.getValue(L.HELP_MASS_CHANGE_MODEL_PROTOCOL));
+        Span hint = new Span(loc.getValue(M_L.HELP_MASS_CHANGE_MODEL_PROTOCOL));
         hint.addClassName(CssStyles.HINT_TEXT);
 
         picker = new ModelProtocolPicker();
-        picker.setPlaceholder(loc.getValue(L.LABEL_DO_NOT_REPLACE));
+        picker.setPlaceholder(loc.getValue(M_L.LABEL_DO_NOT_REPLACE));
 
         allBox = new Checkbox();
         allBox.addValueChangeListener(event -> {
@@ -205,7 +207,7 @@ public class MassChangeModelProtocolDialog extends Dialog implements LLMInteract
         HeaderRow filterRow = grid.appendHeaderRow();
         filterRow.getCell(nameColumn).setComponent(nameFilter);
 
-        Button replace = new Button(loc.getValue(L.LABEL_REPLACE_AND_EXIT), event -> replaceAndExit());
+        Button replace = new Button(loc.getValue(M_L.LABEL_REPLACE_AND_EXIT), event -> replaceAndExit());
         replace.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         Button cancel = new Button(loc.getValue(L.LABEL_CANCEL), event -> close());
         HorizontalLayout footer = new HorizontalLayout(replace, cancel);
@@ -231,9 +233,9 @@ public class MassChangeModelProtocolDialog extends Dialog implements LLMInteract
     private String scopeName() {
         try {
             if (chosen != null) {
-                return loc.getValue(L.LABEL_BOOKS) + " (" + chosen.size() + ")";
+                return loc.getValue(M_L.LABEL_BOOKS) + " (" + chosen.size() + ")";
             }
-            return folder == null ? loc.getValue(L.LABEL_TOP_LEVEL) : folderService.getPath(folder);
+            return folder == null ? loc.getValue(M_L.LABEL_TOP_LEVEL) : folderService.getPath(folder);
         } catch (Exception e) {
             return folder.getName();
         }
@@ -357,7 +359,7 @@ public class MassChangeModelProtocolDialog extends Dialog implements LLMInteract
     private Span text(Row row, String value) {
         Span text = new Span(value);
         if (row.locked) {
-            UIUtils.addTooltip(text, loc.getValue(L.LABEL_LOCKED_BY_AGENT));
+            UIUtils.addTooltip(text, loc.getValue(M_L.LABEL_LOCKED_BY_AGENT));
         }
         return dimmed(text, row);
     }
@@ -367,7 +369,7 @@ public class MassChangeModelProtocolDialog extends Dialog implements LLMInteract
      */
     private static <T extends Component> T dimmed(T component, Row row) {
         if (row.locked) {
-            component.addClassName(CssStyles.MULTI_TAG_LOCKED);
+            component.addClassName(MarginaliaCssStyles.MULTI_TAG_LOCKED);
         }
         return component;
     }
@@ -398,12 +400,12 @@ public class MassChangeModelProtocolDialog extends Dialog implements LLMInteract
         AI ai = picker.getAi();
         Protocol protocol = picker.getProtocol();
         if (ai == null && protocol == null) {
-            Notification.warning(loc.getValue(L.MSG_MASS_CHANGE_PICK_FIRST));
+            Notification.warning(loc.getValue(M_L.MSG_MASS_CHANGE_PICK_FIRST));
             return false;
         }
         List<Row> targets = shown.stream().filter(row -> row.checked && !row.locked).toList();
         if (targets.isEmpty()) {
-            Notification.warning(loc.getValue(L.MSG_TAG_CHECK_FIRST));
+            Notification.warning(loc.getValue(M_L.MSG_TAG_CHECK_FIRST));
             return false;
         }
         int changed = 0;
@@ -429,7 +431,7 @@ public class MassChangeModelProtocolDialog extends Dialog implements LLMInteract
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
-        Notification.success(String.format(loc.getValue(L.MSG_MASS_CHANGE_DONE), changed));
+        Notification.success(String.format(loc.getValue(M_L.MSG_MASS_CHANGE_DONE), changed));
         if (changed > 0 && onChange != null) {
             onChange.run();
         }

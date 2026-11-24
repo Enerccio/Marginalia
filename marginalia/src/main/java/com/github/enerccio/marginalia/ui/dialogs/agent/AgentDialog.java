@@ -12,7 +12,10 @@ import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
 import com.github.enerccio.marginalia.loc.Language;
+import com.github.enerccio.marginalia.loc.MarginaliaLocalization;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.widgets.*;
@@ -53,7 +56,7 @@ public class AgentDialog extends Dialog implements LLMInteract {
     static final String MAIN_ROLE = "overseer";
 
     @Autowired
-    private Localization loc;
+    private MarginaliaLocalization loc;
 
     @Autowired
     private AgentService agentService;
@@ -128,7 +131,7 @@ public class AgentDialog extends Dialog implements LLMInteract {
                     @APILocals(name = "cancelButton", type = Button.class),
                     @APILocals(name = "footer", type = HorizontalLayout.class)})
     public void create() {
-        setHeaderTitle(loc.getValue(isEdit() ? L.LABEL_EDIT_AGENT : L.LABEL_NEW_AGENT));
+        setHeaderTitle(loc.getValue(isEdit() ? M_L.LABEL_EDIT_AGENT : M_L.LABEL_NEW_AGENT));
         setWidth("1100px");
         setMaxWidth("96vw");
         setHeight("90%");
@@ -169,7 +172,7 @@ public class AgentDialog extends Dialog implements LLMInteract {
         nameField.setRequiredIndicatorVisible(true);
         nameField.setWidthFull();
 
-        enabledCheckbox = new Checkbox(loc.getValue(L.LABEL_ENABLED), true);
+        enabledCheckbox = new Checkbox(loc.getValue(M_L.LABEL_ENABLED), true);
 
         manuscriptCombo = new ComboBox<>(loc.getValue(L.LABEL_BOOK));
         manuscriptCombo.setRequiredIndicatorVisible(true);
@@ -178,75 +181,75 @@ public class AgentDialog extends Dialog implements LLMInteract {
 
         modelPicker = new ModelProtocolPicker();
 
-        imagesCheckbox = new Checkbox(loc.getValue(L.LABEL_AGENT_SEES_IMAGES));
-        imagesCheckbox.setHelperText(loc.getValue(L.HELP_AGENT_SEES_IMAGES));
+        imagesCheckbox = new Checkbox(loc.getValue(M_L.LABEL_AGENT_SEES_IMAGES));
+        imagesCheckbox.setHelperText(loc.getValue(M_L.HELP_AGENT_SEES_IMAGES));
 
-        useOwnModelCheckbox = new Checkbox(loc.getValue(L.LABEL_AGENT_USE_OWN_MODEL), true);
-        useOwnModelCheckbox.setHelperText(loc.getValue(L.HELP_AGENT_USE_OWN_MODEL));
+        useOwnModelCheckbox = new Checkbox(loc.getValue(M_L.LABEL_AGENT_USE_OWN_MODEL), true);
+        useOwnModelCheckbox.setHelperText(loc.getValue(M_L.HELP_AGENT_USE_OWN_MODEL));
 
-        batchModeCombo = new ComboBox<>(loc.getValue(L.LABEL_AGENT_BATCH_MODE));
+        batchModeCombo = new ComboBox<>(loc.getValue(M_L.LABEL_AGENT_BATCH_MODE));
         batchModeCombo.setItems(AgentBatchMode.values());
         batchModeCombo.setItemLabelGenerator(mode -> loc.getValue(switch (mode) {
-            case BATCHED_IGNORE_POLICIES -> L.ENUM_AGENT_BATCH_IGNORE_POLICIES;
-            case BATCHED -> L.ENUM_AGENT_BATCH_BATCHED;
-            case NOT_BATCHED -> L.ENUM_AGENT_BATCH_NOT_BATCHED;
+            case BATCHED_IGNORE_POLICIES -> M_L.ENUM_AGENT_BATCH_IGNORE_POLICIES;
+            case BATCHED -> M_L.ENUM_AGENT_BATCH_BATCHED;
+            case NOT_BATCHED -> M_L.ENUM_AGENT_BATCH_NOT_BATCHED;
         }));
         batchModeCombo.setAllowCustomValue(false);
         batchModeCombo.setClearButtonVisible(false);
         batchModeCombo.setValue(AgentBatchMode.BATCHED);
-        batchModeCombo.setHelperText(loc.getValue(L.HELP_AGENT_BATCH_MODE));
+        batchModeCombo.setHelperText(loc.getValue(M_L.HELP_AGENT_BATCH_MODE));
         batchModeCombo.setWidthFull();
 
-        languageCombo = new ComboBox<>(loc.getValue(L.LABEL_AGENT_LANGUAGE));
+        languageCombo = new ComboBox<>(loc.getValue(M_L.LABEL_AGENT_LANGUAGE));
         languageCombo.setItems(loc.getAvailableLanguages());
         languageCombo.setItemLabelGenerator(this::languageLabel);
         languageCombo.setAllowCustomValue(false);
         languageCombo.setClearButtonVisible(false);
         languageCombo.setValue(Language.EN);
-        languageCombo.setHelperText(loc.getValue(L.HELP_AGENT_LANGUAGE));
+        languageCombo.setHelperText(loc.getValue(M_L.HELP_AGENT_LANGUAGE));
         languageCombo.setWidthFull();
 
-        destructiveCombo = new ComboBox<>(loc.getValue(L.LABEL_DESTRUCTIVE_COMMANDS));
+        destructiveCombo = new ComboBox<>(loc.getValue(M_L.LABEL_DESTRUCTIVE_COMMANDS));
         destructiveCombo.setItems(DestructiveCommandMode.values());
         destructiveCombo.setItemLabelGenerator(mode -> loc.getValue(loc.getDestructiveCommandMode(mode)));
         destructiveCombo.setAllowCustomValue(false);
         destructiveCombo.setClearButtonVisible(false);
-        destructiveCombo.setHelperText(loc.getValue(L.HELP_AGENT_DESTRUCTIVE));
+        destructiveCombo.setHelperText(loc.getValue(M_L.HELP_AGENT_DESTRUCTIVE));
         destructiveCombo.setWidthFull();
 
-        maxRoundsField = positiveField(L.LABEL_MAX_ROUNDS, L.HELP_AGENT_MAX_ROUNDS);
+        maxRoundsField = positiveField(M_L.LABEL_MAX_ROUNDS, M_L.HELP_AGENT_MAX_ROUNDS);
         // empty or zero is none
-        maxSubagentsField = new IntegerField(loc.getValue(L.LABEL_MAX_SUBAGENTS));
+        maxSubagentsField = new IntegerField(loc.getValue(M_L.LABEL_MAX_SUBAGENTS));
         maxSubagentsField.setMin(0);
         maxSubagentsField.setMax(AgentService.MAX_SUBAGENTS);
         maxSubagentsField.setStepButtonsVisible(true);
-        maxSubagentsField.setHelperText(loc.getValue(L.HELP_AGENT_MAX_SUBAGENTS));
+        maxSubagentsField.setHelperText(loc.getValue(M_L.HELP_AGENT_MAX_SUBAGENTS));
         maxSubagentsField.setWidthFull();
-        tokenBudgetField = positiveField(L.LABEL_RUN_TOKEN_BUDGET, L.HELP_AGENT_TOKEN_BUDGET);
-        contextLimitField = positiveField(L.LABEL_CONTEXT_LIMIT, L.HELP_AGENT_CONTEXT_LIMIT);
+        tokenBudgetField = positiveField(M_L.LABEL_RUN_TOKEN_BUDGET, M_L.HELP_AGENT_TOKEN_BUDGET);
+        contextLimitField = positiveField(M_L.LABEL_CONTEXT_LIMIT, M_L.HELP_AGENT_CONTEXT_LIMIT);
 
         // empty follows the default, zero is never
-        autoCompactField = new IntegerField(loc.getValue(L.LABEL_AGENT_AUTO_COMPACT));
+        autoCompactField = new IntegerField(loc.getValue(M_L.LABEL_AGENT_AUTO_COMPACT));
         autoCompactField.setMin(0);
         autoCompactField.setMax(AgentService.MAX_AUTO_COMPACT_PERCENT);
         autoCompactField.setStepButtonsVisible(false);
         autoCompactField.setPlaceholder(String.valueOf(Defaults.AGENT_AUTO_COMPACT_PERCENT));
-        autoCompactField.setHelperText(String.format(loc.getValue(L.HELP_AGENT_AUTO_COMPACT), Defaults.AGENT_AUTO_COMPACT_PERCENT,
+        autoCompactField.setHelperText(String.format(loc.getValue(M_L.HELP_AGENT_AUTO_COMPACT), Defaults.AGENT_AUTO_COMPACT_PERCENT,
                 AgentService.MIN_AUTO_COMPACT_PERCENT));
         autoCompactField.setWidthFull();
 
-        systemPromptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_AGENT_SYSTEM_PROMPT));
-        systemPromptField.setHelperText(loc.getValue(L.HELP_AGENT_SYSTEM_PROMPT));
+        systemPromptField = new TextAreaPopoverComponent(loc.getValue(M_L.LABEL_AGENT_SYSTEM_PROMPT));
+        systemPromptField.setHelperText(loc.getValue(M_L.HELP_AGENT_SYSTEM_PROMPT));
         systemPromptField.setWidthFull();
         ResizableTextArea.install(loc, systemPromptField, "220px");
 
-        compactionPromptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_AGENT_COMPACTION_PROMPT));
-        compactionPromptField.setHelperText(loc.getValue(L.HELP_AGENT_COMPACTION_PROMPT));
+        compactionPromptField = new TextAreaPopoverComponent(loc.getValue(M_L.LABEL_AGENT_COMPACTION_PROMPT));
+        compactionPromptField.setHelperText(loc.getValue(M_L.HELP_AGENT_COMPACTION_PROMPT));
         compactionPromptField.setWidthFull();
         ResizableTextArea.install(loc, compactionPromptField, "160px");
 
-        instructionsField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_AGENT_INSTRUCTIONS));
-        instructionsField.setHelperText(loc.getValue(L.HELP_AGENT_INSTRUCTIONS));
+        instructionsField = new TextAreaPopoverComponent(loc.getValue(M_L.LABEL_AGENT_INSTRUCTIONS));
+        instructionsField.setHelperText(loc.getValue(M_L.HELP_AGENT_INSTRUCTIONS));
         instructionsField.setMaxLength(AgentService.MAX_INSTRUCTIONS_LENGTH);
         instructionsField.setValueChangeMode(com.vaadin.flow.data.value.ValueChangeMode.LAZY);
         instructionsField.setWidthFull();
@@ -278,18 +281,18 @@ public class AgentDialog extends Dialog implements LLMInteract {
             long prompt = tokenizerService.countTokensApprox(StringUtils.defaultIfBlank(systemPromptField.getValue(), defaultPrompt));
             long instructions = tokenizerService.countTokensApprox(StringUtils.defaultIfBlank(instructionsField.getValue(), defaultInstructions));
             long commands = commandsEditor.getSelectedTokens();
-            sizeLabel.setText(String.format(loc.getValue(L.MSG_AGENT_PROMPT_SIZE), prompt + instructions + commands, prompt, instructions, commands));
+            sizeLabel.setText(String.format(loc.getValue(M_L.MSG_AGENT_PROMPT_SIZE), prompt + instructions + commands, prompt, instructions, commands));
         } catch (Exception e) {
             sizeLabel.setText("");
         }
     }
 
-    @PublicAPI(from = "1.4.0",
+    @PublicAPI(from = "1.9.0",
             returns = @APIReturn(type = IntegerField.class),
-            parameters = {@APIParameter(name = "label", type = L.class),
-                    @APIParameter(name = "help", type = L.class)},
+            parameters = {@APIParameter(name = "label", type = LocalizationKey.class),
+                    @APIParameter(name = "help", type = LocalizationKey.class)},
             locals = {@APILocals(name = "field", type = IntegerField.class)})
-    private IntegerField positiveField(L label, L help) {
+    private IntegerField positiveField(LocalizationKey label, LocalizationKey help) {
         IntegerField field = new IntegerField(loc.getValue(label));
         field.setMin(1);
         field.setStepButtonsVisible(false);
@@ -352,7 +355,7 @@ public class AgentDialog extends Dialog implements LLMInteract {
                 if (books.size() == 1) {
                     manuscriptCombo.setValue(books.getFirst());
                 } else if (books.isEmpty()) {
-                    Notification.warning(loc.getValue(L.MSG_AGENT_NO_FREE_BOOK));
+                    Notification.warning(loc.getValue(M_L.MSG_AGENT_NO_FREE_BOOK));
                 }
                 return;
             }
@@ -412,7 +415,7 @@ public class AgentDialog extends Dialog implements LLMInteract {
             parameters = {@APIParameter(name = "language", type = Language.class)})
     private String languageLabel(Language language) {
         return loc.getAvailableLanguages().contains(language) ? loc.getDisplayName(language)
-                : String.format(loc.getValue(L.MSG_AGENT_LANGUAGE_UNAVAILABLE), language.code());
+                : String.format(loc.getValue(M_L.MSG_AGENT_LANGUAGE_UNAVAILABLE), language.code());
     }
 
     @PublicAPI(from = "1.4.0",

@@ -1,13 +1,13 @@
 package com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.read;
 
 import com.github.enerccio.marginalia.domain.collections.StatisticRange;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.domain.components.SizeSeries;
 import com.github.enerccio.marginalia.domain.components.StatisticFilter;
 import com.github.enerccio.marginalia.domain.components.StatisticReport;
 import com.github.enerccio.marginalia.domain.service.StatisticReportService;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.traits.*;
-import com.github.enerccio.marginalia.loc.L;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,32 +26,44 @@ public class GetBookStatisticsCommand extends ManuscriptReadSupport {
     @Autowired
     private StatisticReportService reportService;
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_GET_BOOK_STATISTICS,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_GET_BOOK_STATISTICS, llmDescription = L.DESC_COMMAND_GET_BOOK_STATISTICS_LLM,
             signature = @CommandParameterSignature,
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_GET_BOOK_STATISTICS_RETURN))
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_GET_BOOK_STATISTICS,
+            description = M_L.DESC_COMMAND_GET_BOOK_STATISTICS,
+            llmDescription = M_L.DESC_COMMAND_GET_BOOK_STATISTICS_LLM,
+            returns = M_L.DESC_COMMAND_GET_BOOK_STATISTICS_RETURN)
     public void getBookStatistics(CommandContext context) throws Exception {
         statistics(context, null, null);
     }
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_GET_BOOK_STATISTICS,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_GET_BOOK_STATISTICS, llmDescription = L.DESC_COMMAND_GET_BOOK_STATISTICS_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "range", type = String.class, description = L.DESC_COMMAND_STATISTICS_RANGE_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_GET_BOOK_STATISTICS_RETURN))
+                    @CommandParameter(name = "range", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_GET_BOOK_STATISTICS,
+            description = M_L.DESC_COMMAND_GET_BOOK_STATISTICS,
+            llmDescription = M_L.DESC_COMMAND_GET_BOOK_STATISTICS_LLM,
+            parameters = @MarginaliaParameterText(name = "range", description = M_L.DESC_COMMAND_STATISTICS_RANGE_PARAM),
+            returns = M_L.DESC_COMMAND_GET_BOOK_STATISTICS_RETURN)
     public void getBookStatisticsRange(CommandContext context) throws Exception {
         statistics(context, ref(context, "range"), null);
     }
 
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_GET_BOOK_STATISTICS,
+    @Command(commandName = NAME,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
-            description = L.DESC_COMMAND_GET_BOOK_STATISTICS, llmDescription = L.DESC_COMMAND_GET_BOOK_STATISTICS_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "range", type = String.class, description = L.DESC_COMMAND_STATISTICS_RANGE_PARAM),
-                    @CommandParameter(name = "side", type = String.class, description = L.DESC_COMMAND_STATISTICS_SIDE_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_GET_BOOK_STATISTICS_RETURN))
+                    @CommandParameter(name = "range", type = String.class),
+                    @CommandParameter(name = "side", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_GET_BOOK_STATISTICS,
+            description = M_L.DESC_COMMAND_GET_BOOK_STATISTICS,
+            llmDescription = M_L.DESC_COMMAND_GET_BOOK_STATISTICS_LLM,
+            parameters = {@MarginaliaParameterText(name = "range", description = M_L.DESC_COMMAND_STATISTICS_RANGE_PARAM),
+                    @MarginaliaParameterText(name = "side", description = M_L.DESC_COMMAND_STATISTICS_SIDE_PARAM)},
+            returns = M_L.DESC_COMMAND_GET_BOOK_STATISTICS_RETURN)
     public void getBookStatisticsSide(CommandContext context) throws Exception {
         statistics(context, ref(context, "range"), ref(context, "side"));
     }

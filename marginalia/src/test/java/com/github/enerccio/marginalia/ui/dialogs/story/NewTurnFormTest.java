@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.dialogs.story;
 
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
 import com.vaadin.flow.component.Component;
@@ -34,7 +35,7 @@ class NewTurnFormTest extends MarginaliaTestBase {
     }
 
     private TextArea instructionsField(VerticalLayout content) {
-        String label = loc.getValue(L.LABEL_INSTRUCTIONS);
+        String label = loc.getValue(M_L.LABEL_INSTRUCTIONS);
         return all(content).filter(TextArea.class::isInstance).map(TextArea.class::cast)
                 .filter(t -> label.equals(t.getLabel())).findFirst().orElseThrow();
     }

@@ -1,5 +1,7 @@
 package com.github.enerccio.marginalia.extensions.knowledgetracker.extract;
 
+import com.github.enerccio.marginalia.extensions.storytracker.process.PartReader;
+
 /**
  * The built-in system messages of the Knowledge Tracker in Chinese (simplified); the JSON and the headings of the user message are
  * the English ones.

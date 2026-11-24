@@ -38,7 +38,7 @@ async function install(page) {
     console.log('  already installed beta-readers');
     return;
   }
-  const jar = path.join(repo, 'marginalia/plugins/beta-readers/target/beta-readers-1.8.0.jar');
+  const jar = path.join(repo, 'marginalia/plugins/beta-readers/target/beta-readers-1.9.0.jar');
   if (!fs.existsSync(jar)) throw new Error('not built: ' + jar);
   await page.locator('vaadin-upload input[type=file]').setInputFiles(jar);
   await idle(page, 4000);
@@ -189,14 +189,25 @@ await main(async ({ page }) => {
   await sleep(800);
   expect(await page.getByText('Parts 1-5 sent', { exact: false }).count() === 1, 'the message says which parts it sent');
   expect(await page.getByText('The tourists are the point.', { exact: false }).count() === 1, 'the last message of the turn is shown');
-  expect(await page.getByText('Reasoning', { exact: true }).count() === 1, 'the reasoning is above the turn');
+  // the story on the right has its own reasoning labels: only the ones in the sidebar (left of the story) count
+  const sidebarReasoning = async () => {
+    const found = [];
+    for (const el of await page.getByText('Reasoning', { exact: true }).all()) {
+      const box = await el.boundingBox();
+      if (box && box.x < 700) found.push(el);
+    }
+    return found;
+  };
+  await sleep(1500);
+  const reasoningCount = (await sidebarReasoning()).length;
+  expect(reasoningCount === 1, `the reasoning is above the turn (${reasoningCount} found)`);
   expect(await page.getByText('Athena starts, ', { exact: false }).count() === 0, 'the reasoning is collapsed');
   expect(await page.getByText('Include the latest parts (none new)').count() === 1, 'nothing is new after the story was sent');
   await snap(page, '_br-chat');
-  await page.getByText('Reasoning', { exact: true }).click();
+  await (await sidebarReasoning())[0].click();
   await sleep(400);
   await snap(page, 'plugin-betareaders-chat');
-  await page.getByText('Reasoning', { exact: true }).click();
+  await (await sidebarReasoning())[0].click();
   await say(second.question);
   await page.getByText('Let him look for the status window', { exact: false }).first().waitFor({ timeout: 30000 });
   await sleep(600);

@@ -2,6 +2,8 @@ package com.github.enerccio.marginalia.ui.widgets;
 
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.utils.TurnDetailsMerge;
 import com.vaadin.flow.component.button.Button;
@@ -42,25 +44,25 @@ public class MergeTurnsDialog extends Dialog {
         setWidth("640px");
         setMaxWidth("95vw");
 
-        Span hint = new Span(loc.getValue(L.MSG_MERGE_TURNS_HINT));
+        Span hint = new Span(loc.getValue(M_L.MSG_MERGE_TURNS_HINT));
         hint.addClassName(CssStyles.HINT_TEXT);
 
         TextField title = null;
         if (first.title() != null) {
-            title = new TextField(loc.getValue(L.LABEL_TITLE));
+            title = new TextField(loc.getValue(M_L.LABEL_TITLE));
             title.setWidthFull();
             title.setMaxLength(maxTitleLength);
             title.setValue(TurnDetailsMerge.title(first.title(), second.title(), maxTitleLength));
         }
-        TextArea setting = area(loc, L.LABEL_SCENE_SETTING, TurnDetailsMerge.text(first.sceneSetting(), second.sceneSetting()));
-        TextArea pov = smallArea(loc, L.LABEL_POV_CHARACTER, TurnDetailsMerge.one(first.povCharacter(), second.povCharacter()));
+        TextArea setting = area(loc, M_L.LABEL_SCENE_SETTING, TurnDetailsMerge.text(first.sceneSetting(), second.sceneSetting()));
+        TextArea pov = smallArea(loc, M_L.LABEL_POV_CHARACTER, TurnDetailsMerge.one(first.povCharacter(), second.povCharacter()));
         String otherPov = StringUtils.trimToEmpty(second.povCharacter());
         if (!otherPov.isEmpty() && !otherPov.equalsIgnoreCase(pov.getValue())) {
             // a turn has one POV character: the author sees that the second turn had another one
-            pov.setHelperText(loc.getValue(L.MSG_MERGE_OTHER_POV).formatted(otherPov));
+            pov.setHelperText(loc.getValue(M_L.MSG_MERGE_OTHER_POV).formatted(otherPov));
         }
-        TextArea present = smallArea(loc, L.LABEL_PRESENT_CHARACTERS, TurnDetailsMerge.names(first.presentCharacters(), second.presentCharacters()));
-        TextArea instructions = area(loc, L.LABEL_INSTRUCTIONS, TurnDetailsMerge.text(first.instructions(), second.instructions()));
+        TextArea present = smallArea(loc, M_L.LABEL_PRESENT_CHARACTERS, TurnDetailsMerge.names(first.presentCharacters(), second.presentCharacters()));
+        TextArea instructions = area(loc, M_L.LABEL_INSTRUCTIONS, TurnDetailsMerge.text(first.instructions(), second.instructions()));
 
         VerticalLayout layout = new VerticalLayout(hint);
         if (title != null) {
@@ -76,7 +78,7 @@ public class MergeTurnsDialog extends Dialog {
         Button merge = new Button(loc.getValue(L.LABEL_MERGE), _ -> {
             if (titleField != null && StringUtils.isBlank(titleField.getValue())) {
                 titleField.setInvalid(true);
-                titleField.setErrorMessage(loc.getValue(L.MSG_PLANNER_TITLE_REQUIRED));
+                titleField.setErrorMessage(loc.getValue(M_L.MSG_PLANNER_TITLE_REQUIRED));
                 return;
             }
             Turn merged = new Turn(titleField != null ? titleField.getValue() : null, setting.getValue(), pov.getValue(),
@@ -91,7 +93,7 @@ public class MergeTurnsDialog extends Dialog {
     }
 
     /** POV and present characters can be several lines, but are short: a small text area. */
-    private static TextArea smallArea(Localization loc, L label, String value) {
+    private static TextArea smallArea(Localization loc, LocalizationKey label, String value) {
         TextArea area = new TextArea(loc.getValue(label));
         area.setWidthFull();
         area.setValue(value);
@@ -99,7 +101,7 @@ public class MergeTurnsDialog extends Dialog {
         return area;
     }
 
-    private static TextArea area(Localization loc, L label, String value) {
+    private static TextArea area(Localization loc, LocalizationKey label, String value) {
         TextArea area = new TextArea(loc.getValue(label));
         area.setWidthFull();
         area.setValue(value);

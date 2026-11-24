@@ -1,7 +1,7 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
-import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.domain.service.NotificationService;
 import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.Constants;
@@ -301,7 +301,7 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
      * @param notice the source of the notification the panel sends when the batch ends after its page is gone, null for none
      */
     private Runs.Run summaryRun(Manuscript manuscript, String notice) {
-        return Runs.run("summaries", () -> loc.getValue(L.LABEL_GENERATING_SUMMARY)).book(manuscript)
+        return Runs.run("summaries", () -> loc.getValue(M_L.LABEL_GENERATING_SUMMARY)).book(manuscript)
                 .hold(manuscript, Runs.Mode.READ).quiet().currentPage().notifies(notice, false, manuscript.getName()).start();
     }
 

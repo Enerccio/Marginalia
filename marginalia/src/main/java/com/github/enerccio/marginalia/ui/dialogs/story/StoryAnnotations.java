@@ -1,6 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs.story;
 
-import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.collections.AnnotationSource;
 import com.github.enerccio.marginalia.domain.collections.AnnotationStatus;
 import com.github.enerccio.marginalia.domain.model.impl.AnchoredPassage;
@@ -197,7 +197,7 @@ public class StoryAnnotations {
                 continue;
             }
             marks.add(new TextMarkup.Mark(annotation.getStart(), annotation.getEnd(),
-                    CssStyles.ANNOTATION_MARK + " " + markClass(annotation.getSource()),
+                    MarginaliaCssStyles.ANNOTATION_MARK + " " + markClass(annotation.getSource()),
                     " " + MARK_ATTRIBUTE + "=\"" + annotation.getUuid() + "\""));
         }
         for (AnchoredPassage passage : passagesOf(message.getId())) {
@@ -214,10 +214,11 @@ public class StoryAnnotations {
 
     private static String markClass(AnnotationSource source) {
         return switch (source) {
-            case AI -> CssStyles.ANNOTATION_MARK_AI;
-            case AGENT -> CssStyles.ANNOTATION_MARK_AGENT;
-            case PLUGIN -> CssStyles.ANNOTATION_MARK_PLUGIN;
-            default -> CssStyles.ANNOTATION_MARK_AUTHOR;
+            case AI -> MarginaliaCssStyles.ANNOTATION_MARK_AI;
+            case AGENT -> MarginaliaCssStyles.ANNOTATION_MARK_AGENT;
+            // a checker without a model, as the ones of the extensions
+            case PLUGIN, PHRASE -> MarginaliaCssStyles.ANNOTATION_MARK_PLUGIN;
+            default -> MarginaliaCssStyles.ANNOTATION_MARK_AUTHOR;
         };
     }
 

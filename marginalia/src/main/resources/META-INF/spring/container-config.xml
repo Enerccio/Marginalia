@@ -3,7 +3,7 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/aop https://www.springframework.org/schema/aop/spring-aop.xsd">
 
-    <bean name="localization" class="com.github.enerccio.marginalia.loc.LocalizationImpl">
+    <bean name="localization" class="com.github.enerccio.marginalia.loc.MarginaliaLocalizationImpl">
         <property name="defaultLanguageCode" value="${marginalia.default-language:}" />
         <property name="bundles">
             <list>
@@ -16,22 +16,37 @@
                 <bean class="com.github.enerccio.marginalia.loc.LocalizationBundleIT" />
             </list>
         </property>
+        <property name="texts">
+            <list>
+                <bean class="com.github.enerccio.marginalia.loc.MarginaliaLocalizationBundleEN" />
+                <bean class="com.github.enerccio.marginalia.loc.MarginaliaLocalizationBundleJP" />
+                <bean class="com.github.enerccio.marginalia.loc.MarginaliaLocalizationBundleFR" />
+                <bean class="com.github.enerccio.marginalia.loc.MarginaliaLocalizationBundleES" />
+                <bean class="com.github.enerccio.marginalia.loc.MarginaliaLocalizationBundleDE" />
+                <bean class="com.github.enerccio.marginalia.loc.MarginaliaLocalizationBundleKO" />
+                <bean class="com.github.enerccio.marginalia.loc.MarginaliaLocalizationBundleIT" />
+            </list>
+        </property>
     </bean>
 
     <bean name="configuration" class="com.github.enerccio.marginalia.Configuration">
         <!-- every setting can be overridden by an environment variable or a -D system property of the same name
              (marginalia.data = MARGINALIA_DATA), the older keys of configuration.properties are the fallback -->
         <property name="folder" value="${marginalia.data:}" />
+        <!-- Marginalia's migrations and core tables: the start, a restore and the pre-migration backup check against them -->
+        <property name="databaseSchema" value="#{T(com.github.enerccio.marginalia.MarginaliaDatabase).SCHEMA}" />
         <property name="allowPersistentLogin" value="${marginalia.allow-persistent-login:${allowPersistentLogin:true}}" />
         <property name="persistentLoginInfoTTL" value="${marginalia.persistent-login-ttl:${persistentLoginTTL:2592000}}" />
         <property name="trustedProxies" value="${marginalia.trusted-proxies:${trustedProxies:}}" />
+        <!-- the application's name in its cookie names; empty keeps Marginalia's names -->
+        <property name="cookieNamespace" value="${marginalia.cookie-namespace:}" />
     </bean>
 
     <bean name="applicationPoint" class="com.github.enerccio.marginalia.bound.ApplicationPoint" />
 
     <bean name="sessionManager" class="com.github.enerccio.marginalia.bound.SessionManager" />
 
-    <bean name="sessionPoint" class="com.github.enerccio.marginalia.bound.SessionPoint" scope="session">
+    <bean name="sessionPoint" class="com.github.enerccio.marginalia.bound.MarginaliaSessionPoint" scope="session">
         <aop:scoped-proxy />
     </bean>
 

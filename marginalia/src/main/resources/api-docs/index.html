@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="referrer" content="no-referrer">
+    <title>Marginalia API</title>
+    <link rel="icon" type="image/png" href="docs/favicon-32x32.png">
+    <link rel="stylesheet" href="docs/swagger-ui.css">
+    <link rel="stylesheet" href="docs/api-docs.css">
+</head>
+<body>
+<form class="api-key" id="api-key" autocomplete="off">
+    <label for="key">API key</label>
+    <input type="password" id="key" name="key" placeholder="mrg_..." spellcheck="false">
+    <button type="submit">Use the key</button>
+    <button type="button" id="forget">Forget</button>
+    <span id="state" role="status"></span>
+</form>
+<p class="api-warning">
+    The key stays in this tab only: closing or reloading the page forgets it. With a key the list also shows every command the key
+    may run.
+</p>
+<div id="swagger-ui"></div>
+<script src="docs/swagger-ui-bundle.js"></script>
+<script src="docs/api-docs.js"></script>
+</body>
+</html>

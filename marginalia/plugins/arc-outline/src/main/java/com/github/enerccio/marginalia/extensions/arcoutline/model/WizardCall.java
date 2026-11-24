@@ -11,6 +11,8 @@ public class WizardCall {
     /** What the model got back, the error message of a failed call. */
     private String result;
     private boolean failed;
+    /** Whom or what the call was about as the author knows it (the name of a character), null when the name of the tool says enough. */
+    private String subject;
 
     public WizardCall() {
     }
@@ -44,6 +46,14 @@ public class WizardCall {
 
     public void setResult(String result) {
         this.result = result;
+    }
+
+    public String getSubject() {
+        return subject;
+    }
+
+    public void setSubject(String subject) {
+        this.subject = subject;
     }
 
     public boolean isFailed() {

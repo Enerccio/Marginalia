@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.generation;
 
+import com.github.enerccio.marginalia.domain.service.command.CommandScope;
 import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
@@ -63,7 +64,7 @@ class CommandMacroTest extends GenerationTestBase {
         @Command(commandName = "macro-probe", humanNameText = "Probe", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
                 readOnly = true, availableInMacros = true)
         public void probe(CommandContext context) throws Exception {
-            String book = context.getScope().getManuscript().getName();
+            String book = CommandScope.of(context).getManuscript().getName();
             context.setReturn("probe#" + PROBE_RUNS.incrementAndGet() + ":" + context.getPositional() + ":" + book);
         }
 

@@ -1,6 +1,6 @@
 package com.github.enerccio.marginalia.domain.styles;
 
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import org.springframework.beans.factory.InitializingBean;
 
 import java.util.*;
@@ -37,7 +37,7 @@ public class PartStyleRegistry implements InitializingBean {
 
     @Override
     public void afterPropertiesSet() {
-        register(APPLICATION, PartStyle.builtin(NORMAL, "Normal", L.LABEL_STYLE_NORMAL));
+        register(APPLICATION, PartStyle.builtin(NORMAL, "Normal", M_L.LABEL_STYLE_NORMAL));
         register(APPLICATION, createBookStyle());
         register(APPLICATION, htmlExportStyle());
         register(APPLICATION, epubExportStyle());
@@ -49,7 +49,7 @@ public class PartStyleRegistry implements InitializingBean {
      * The look the HTML export had before styles existed (the text part of its stylesheet); the exporter uses it when no style is chosen.
      */
     public static PartStyle htmlExportStyle() {
-        return PartStyle.builtin(EXPORT_HTML, "HTML page", L.LABEL_STYLE_EXPORT_HTML).setForExport(true)
+        return PartStyle.builtin(EXPORT_HTML, "HTML page", M_L.LABEL_STYLE_EXPORT_HTML).setForExport(true)
                 .set(PartStyleOption.FONT_FAMILY, "Georgia, 'Times New Roman', serif")
                 .set(PartStyleOption.LINE_HEIGHT, "1.6")
                 .set(PartStyleOption.TEXT_COLOR, "#222")
@@ -66,7 +66,7 @@ public class PartStyleRegistry implements InitializingBean {
      * The look the EPUB export had before styles existed; the exporter uses it when no style is chosen.
      */
     public static PartStyle epubExportStyle() {
-        return PartStyle.builtin(EXPORT_EPUB, "E-book (EPUB)", L.LABEL_STYLE_EXPORT_EPUB).setForExport(true)
+        return PartStyle.builtin(EXPORT_EPUB, "E-book (EPUB)", M_L.LABEL_STYLE_EXPORT_EPUB).setForExport(true)
                 .set(PartStyleOption.FONT_FAMILY, "serif")
                 .set(PartStyleOption.LINE_HEIGHT, "1.5")
                 .set(PartStyleOption.TEXT_ALIGN, "justify")
@@ -80,7 +80,7 @@ public class PartStyleRegistry implements InitializingBean {
      * The look the PDF export had before styles existed (the fonts are the embedded Liberation ones); the exporter uses it when no style is chosen.
      */
     public static PartStyle pdfExportStyle() {
-        return PartStyle.builtin(EXPORT_PDF, "PDF book", L.LABEL_STYLE_EXPORT_PDF).setForExport(true)
+        return PartStyle.builtin(EXPORT_PDF, "PDF book", M_L.LABEL_STYLE_EXPORT_PDF).setForExport(true)
                 .set(PartStyleOption.FONT_FAMILY, "serif")
                 .set(PartStyleOption.FONT_SIZE, "12pt")
                 .set(PartStyleOption.LINE_HEIGHT, "1.4")
@@ -95,7 +95,7 @@ public class PartStyleRegistry implements InitializingBean {
      * height, Word keeps its single spacing.
      */
     public static PartStyle docxExportStyle() {
-        return PartStyle.builtin(EXPORT_DOCX, "Word document", L.LABEL_STYLE_EXPORT_DOCX).setForExport(true)
+        return PartStyle.builtin(EXPORT_DOCX, "Word document", M_L.LABEL_STYLE_EXPORT_DOCX).setForExport(true)
                 .set(PartStyleOption.FONT_FAMILY, "\"Times New Roman\", serif")
                 .set(PartStyleOption.FONT_SIZE, "12pt")
                 .set(PartStyleOption.TEXT_ALIGN, "justify")
@@ -108,7 +108,7 @@ public class PartStyleRegistry implements InitializingBean {
      * The book style: the reading mode of the manuscript (what the story showed when its styles were turned on).
      */
     static PartStyle createBookStyle() {
-        PartStyle book = PartStyle.builtin(BOOK, "Book", L.LABEL_STYLE_BOOK);
+        PartStyle book = PartStyle.builtin(BOOK, "Book", M_L.LABEL_STYLE_BOOK);
         book.set(PartStyleOption.FONT_FAMILY, "\"Garamond\", \"Georgia\", \"Times New Roman\", serif")
                 .set(PartStyleOption.FONT_SIZE, "1.04rem")
                 .set(PartStyleOption.LINE_HEIGHT, "1.8")

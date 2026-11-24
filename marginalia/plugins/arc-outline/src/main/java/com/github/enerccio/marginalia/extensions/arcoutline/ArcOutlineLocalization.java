@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.extensions.arcoutline;
 import com.github.enerccio.marginalia.extensions.PluginLocalizationBundle;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.*;
 import com.github.enerccio.marginalia.loc.Language;
+import com.github.enerccio.marginalia.loc.L;
 
 import java.util.Map;
 
@@ -197,6 +198,8 @@ public class ArcOutlineLocalization extends PluginLocalizationBundle {
     public static final String FULL_TEXT = "Full text";
     public static final String TOOLS_GENERATORS = "Generators: arc, chapters, lore entry";
     public static final String TOOLS_GENERATORS_TIP = "It can call the arc and chapter generators and the Lore Generator. They return a draft; it saves one only when told to.";
+    public static final String TOOLS_CHARACTERS = "Characters: read, add, change and delete them";
+    public static final String TOOLS_CHARACTERS_TIP = "The cast of the book (Character Tracker): it can read the characters and their relationships, add them, change them and delete them. With the question before changing on, deleting is asked too.";
     public static final String ASK_BEFORE_IT_CHANGES_ANYTHING = "Ask me before it changes or deletes something";
     public static final String ADDING_IS_NOT_ASKED = "Adding a scene, an entry or an arc is not asked, you see it in the chat and can delete it. Changing and deleting what exists is.";
     public static final String THE_MODEL_WANTS_TO_RUN = "The model wants to run %s";
@@ -206,6 +209,29 @@ public class ArcOutlineLocalization extends PluginLocalizationBundle {
     public static final String ARC_OUTLINE_GENERATE_CHAPTERS = "Arc Outline: generate chapters";
     public static final String ARC_OUTLINE_IMPORT_FROM_STORY = "Arc Outline: import from the story";
     public static final String ARC_OUTLINE_PLOT_WIZARD = "Arc Outline: plot wizard answer";
+    public static final String CHAPTER_HEADINGS_IN_THE_TEXT = "Chapter headings in the text";
+    public static final String HEADINGS_HELP = "Every linked chapter (and arc) gets a heading at the start of its part of the active branch. The headings a part already starts with are replaced.";
+    public static final String ARCS_GET_HEADINGS_TOO = "Arcs get headings too (the chapters a level below them)";
+    public static final String PREFIX_OF_THE_ARCS = "Prefix of the arcs";
+    public static final String PREFIX_OF_THE_CHAPTERS = "Prefix of the chapters";
+    public static final String DEFAULT_ARC_PREFIX = "Part";
+    public static final String DEFAULT_CHAPTER_PREFIX = "Chapter";
+    public static final String NUMBERS = "Numbers";
+    public static final String ARABIC_NUMBERS = "Arabic (1, 2, 3)";
+    public static final String ROMAN_NUMBERS = "Roman (I, II, III)";
+    public static final String NO_NUMBERS = "No numbers";
+    public static final String NUMBER_THE_CHAPTERS_IN_EVERY_ARC = "Number the chapters from 1 in every arc";
+    public static final String PUT_THE_TITLES_INTO_THE_HEADINGS = "Put the titles into the headings";
+    public static final String REMOVE_EVERY_OTHER_HEADING_FIRST = "Remove every other heading of the story first";
+    public static final String KEEP_THE_SUMMARIES_VALID = "Keep the summaries valid (a heading does not change what happens)";
+    public static final String WRITE_THE_HEADINGS = "Write the headings";
+    public static final String REMOVE_ALL_HEADINGS = "Remove all headings";
+    public static final String REMOVE_EVERY_HEADING_LINE = "Remove every heading line from the text of the active branch? Each changed part keeps its old text in its history.";
+    public static final String IN_PART = "part %d";
+    public static final String NO_ARC_OR_CHAPTER_IS_LINKED = "No arc or chapter is linked to a part of the story";
+    public static final String PARTS_CHANGED_SUMMARIES_KEPT = "Parts changed: %d, summaries kept valid: %d";
+    public static final String WITHOUT_A_HEADING = "Without a heading: %d not linked, %d linked past the end of the active branch";
+    public static final String LINKED_TO_PART = "Linked to part %d";
 
     @Override
     protected void loadKeys() {
@@ -1576,6 +1602,22 @@ public class ArcOutlineLocalization extends PluginLocalizationBundle {
         ko(TOOLS_GENERATORS_TIP, "아크 및 챕터 생성기와 로어 생성기를 호출할 수 있습니다. 이들은 초안을 반환하며, 지시를 받았을 때만 저장합니다.");
         it(TOOLS_GENERATORS_TIP, "Può chiamare i generatori di archi e di capitoli e il Generatore di lore. Restituiscono una bozza; ne salva una solo quando gli viene detto.");
 
+        ja(TOOLS_CHARACTERS, "登場人物: 読み取り、追加、変更、削除");
+        zh(TOOLS_CHARACTERS, "角色：读取、添加、修改和删除");
+        fr(TOOLS_CHARACTERS, "Personnages : les lire, ajouter, modifier et supprimer");
+        es(TOOLS_CHARACTERS, "Personajes: leerlos, añadirlos, cambiarlos y borrarlos");
+        de(TOOLS_CHARACTERS, "Figuren: lesen, hinzufügen, ändern und löschen");
+        ko(TOOLS_CHARACTERS, "등장인물: 읽기, 추가, 변경, 삭제");
+        it(TOOLS_CHARACTERS, "Personaggi: leggerli, aggiungerli, modificarli ed eliminarli");
+
+        ja(TOOLS_CHARACTERS_TIP, "本の配役（キャラクタートラッカー）: 登場人物とその関係を読み、追加、変更、削除できます。変更前の確認がオンなら、削除も確認されます。");
+        zh(TOOLS_CHARACTERS_TIP, "本书的角色阵容（角色追踪器）：可以读取角色及其关系，并添加、修改和删除它们。开启修改前询问时，删除也会询问。");
+        fr(TOOLS_CHARACTERS_TIP, "La distribution du livre (Character Tracker) : il peut lire les personnages et leurs relations, en ajouter, les modifier et les supprimer. Avec la question avant modification activée, la suppression est demandée aussi.");
+        es(TOOLS_CHARACTERS_TIP, "El reparto del libro (Character Tracker): puede leer los personajes y sus relaciones, añadirlos, cambiarlos y borrarlos. Con la pregunta antes de cambiar activada, también se pregunta antes de borrar.");
+        de(TOOLS_CHARACTERS_TIP, "Die Besetzung des Buchs (Character Tracker): Es kann die Figuren und ihre Beziehungen lesen, hinzufügen, ändern und löschen. Ist die Frage vor dem Ändern an, wird auch vor dem Löschen gefragt.");
+        ko(TOOLS_CHARACTERS_TIP, "책의 배역(캐릭터 트래커): 등장인물과 그 관계를 읽고, 추가하고, 변경하고, 삭제할 수 있습니다. 변경 전 확인이 켜져 있으면 삭제도 확인합니다.");
+        it(TOOLS_CHARACTERS_TIP, "Il cast del libro (Character Tracker): può leggere i personaggi e le loro relazioni, aggiungerli, modificarli ed eliminarli. Con la domanda prima di modificare attiva, viene chiesto anche prima di eliminare.");
+
         ja(ASK_BEFORE_IT_CHANGES_ANYTHING, "変更や削除の前に確認する");
         zh(ASK_BEFORE_IT_CHANGES_ANYTHING, "修改或删除前先询问我");
         fr(ASK_BEFORE_IT_CHANGES_ANYTHING, "Me demander avant de modifier ou supprimer quoi que ce soit");
@@ -1647,5 +1689,189 @@ public class ArcOutlineLocalization extends PluginLocalizationBundle {
         de(ARC_OUTLINE_PLOT_WIZARD, "Gliederung der Handlungsbögen: Antwort des Plot-Assistenten");
         ko(ARC_OUTLINE_PLOT_WIZARD, "아크 개요: 줄거리 마법사 응답");
         it(ARC_OUTLINE_PLOT_WIZARD, "Struttura degli archi: risposta della procedura guidata della trama");
+
+        ja(CHAPTER_HEADINGS_IN_THE_TEXT, "本文の章見出し");
+        zh(CHAPTER_HEADINGS_IN_THE_TEXT, "正文中的章节标题");
+        fr(CHAPTER_HEADINGS_IN_THE_TEXT, "Titres de chapitre dans le texte");
+        es(CHAPTER_HEADINGS_IN_THE_TEXT, "Encabezados de capítulo en el texto");
+        de(CHAPTER_HEADINGS_IN_THE_TEXT, "Kapitelüberschriften im Text");
+        ko(CHAPTER_HEADINGS_IN_THE_TEXT, "본문의 챕터 제목");
+        it(CHAPTER_HEADINGS_IN_THE_TEXT, "Titoli dei capitoli nel testo");
+
+        ja(HEADINGS_HELP, "リンクされた各章（とアーク）は、アクティブな分岐のそのパートの先頭に見出しが付きます。パートの先頭にある既存の見出しは置き換えられます。");
+        zh(HEADINGS_HELP, "每个已链接的章节（和故事弧）都会在活动分支中其段落的开头获得一个标题。段落开头已有的标题会被替换。");
+        fr(HEADINGS_HELP, "Chaque chapitre lié (et arc) reçoit un titre au début de sa partie de la branche active. Les titres par lesquels une partie commence déjà sont remplacés.");
+        es(HEADINGS_HELP, "Cada capítulo vinculado (y arco) recibe un encabezado al principio de su parte de la rama activa. Los encabezados con los que ya empieza una parte se sustituyen.");
+        de(HEADINGS_HELP, "Jedes verknüpfte Kapitel (und jeder Handlungsbogen) erhält am Anfang seines Abschnitts im aktiven Zweig eine Überschrift. Überschriften, mit denen ein Abschnitt bereits beginnt, werden ersetzt.");
+        ko(HEADINGS_HELP, "연결된 각 챕터(와 아크)는 활성 분기에서 해당 파트의 시작에 제목을 받습니다. 파트가 이미 시작하는 제목은 교체됩니다.");
+        it(HEADINGS_HELP, "Ogni capitolo collegato (e arco) riceve un titolo all'inizio della sua parte del ramo attivo. I titoli con cui una parte inizia già vengono sostituiti.");
+
+        ja(ARCS_GET_HEADINGS_TOO, "アークにも見出しを付ける（章はその一段下）");
+        zh(ARCS_GET_HEADINGS_TOO, "故事弧也加标题（章节低一级）");
+        fr(ARCS_GET_HEADINGS_TOO, "Les arcs ont aussi un titre (les chapitres un niveau en dessous)");
+        es(ARCS_GET_HEADINGS_TOO, "Los arcos también llevan encabezado (los capítulos un nivel por debajo)");
+        de(ARCS_GET_HEADINGS_TOO, "Auch Handlungsbögen erhalten Überschriften (die Kapitel eine Ebene darunter)");
+        ko(ARCS_GET_HEADINGS_TOO, "아크에도 제목 붙이기(챕터는 한 단계 아래)");
+        it(ARCS_GET_HEADINGS_TOO, "Anche gli archi hanno un titolo (i capitoli un livello sotto)");
+
+        ja(PREFIX_OF_THE_ARCS, "アークの接頭辞");
+        zh(PREFIX_OF_THE_ARCS, "故事弧前缀");
+        fr(PREFIX_OF_THE_ARCS, "Préfixe des arcs");
+        es(PREFIX_OF_THE_ARCS, "Prefijo de los arcos");
+        de(PREFIX_OF_THE_ARCS, "Präfix der Handlungsbögen");
+        ko(PREFIX_OF_THE_ARCS, "아크 접두어");
+        it(PREFIX_OF_THE_ARCS, "Prefisso degli archi");
+
+        ja(PREFIX_OF_THE_CHAPTERS, "章の接頭辞");
+        zh(PREFIX_OF_THE_CHAPTERS, "章节前缀");
+        fr(PREFIX_OF_THE_CHAPTERS, "Préfixe des chapitres");
+        es(PREFIX_OF_THE_CHAPTERS, "Prefijo de los capítulos");
+        de(PREFIX_OF_THE_CHAPTERS, "Präfix der Kapitel");
+        ko(PREFIX_OF_THE_CHAPTERS, "챕터 접두어");
+        it(PREFIX_OF_THE_CHAPTERS, "Prefisso dei capitoli");
+
+        ja(DEFAULT_ARC_PREFIX, "第");
+        zh(DEFAULT_ARC_PREFIX, "卷");
+        fr(DEFAULT_ARC_PREFIX, "Partie");
+        es(DEFAULT_ARC_PREFIX, "Parte");
+        de(DEFAULT_ARC_PREFIX, "Teil");
+        ko(DEFAULT_ARC_PREFIX, "제");
+        it(DEFAULT_ARC_PREFIX, "Parte");
+
+        ja(DEFAULT_CHAPTER_PREFIX, "章");
+        zh(DEFAULT_CHAPTER_PREFIX, "章");
+        fr(DEFAULT_CHAPTER_PREFIX, "Chapitre");
+        es(DEFAULT_CHAPTER_PREFIX, "Capítulo");
+        de(DEFAULT_CHAPTER_PREFIX, "Kapitel");
+        ko(DEFAULT_CHAPTER_PREFIX, "챕터");
+        it(DEFAULT_CHAPTER_PREFIX, "Capitolo");
+
+        ja(NUMBERS, "番号");
+        zh(NUMBERS, "编号");
+        fr(NUMBERS, "Numéros");
+        es(NUMBERS, "Números");
+        de(NUMBERS, "Nummern");
+        ko(NUMBERS, "번호");
+        it(NUMBERS, "Numeri");
+
+        ja(ARABIC_NUMBERS, "アラビア数字（1, 2, 3）");
+        zh(ARABIC_NUMBERS, "阿拉伯数字（1, 2, 3）");
+        fr(ARABIC_NUMBERS, "Arabes (1, 2, 3)");
+        es(ARABIC_NUMBERS, "Arábigos (1, 2, 3)");
+        de(ARABIC_NUMBERS, "Arabisch (1, 2, 3)");
+        ko(ARABIC_NUMBERS, "아라비아 숫자(1, 2, 3)");
+        it(ARABIC_NUMBERS, "Arabi (1, 2, 3)");
+
+        ja(ROMAN_NUMBERS, "ローマ数字（I, II, III）");
+        zh(ROMAN_NUMBERS, "罗马数字（I, II, III）");
+        fr(ROMAN_NUMBERS, "Romains (I, II, III)");
+        es(ROMAN_NUMBERS, "Romanos (I, II, III)");
+        de(ROMAN_NUMBERS, "Römisch (I, II, III)");
+        ko(ROMAN_NUMBERS, "로마 숫자(I, II, III)");
+        it(ROMAN_NUMBERS, "Romani (I, II, III)");
+
+        ja(NO_NUMBERS, "番号なし");
+        zh(NO_NUMBERS, "不编号");
+        fr(NO_NUMBERS, "Sans numéros");
+        es(NO_NUMBERS, "Sin números");
+        de(NO_NUMBERS, "Keine Nummern");
+        ko(NO_NUMBERS, "번호 없음");
+        it(NO_NUMBERS, "Nessun numero");
+
+        ja(NUMBER_THE_CHAPTERS_IN_EVERY_ARC, "アークごとに章を1から番号付けする");
+        zh(NUMBER_THE_CHAPTERS_IN_EVERY_ARC, "每个故事弧中的章节从 1 开始编号");
+        fr(NUMBER_THE_CHAPTERS_IN_EVERY_ARC, "Numéroter les chapitres à partir de 1 dans chaque arc");
+        es(NUMBER_THE_CHAPTERS_IN_EVERY_ARC, "Numerar los capítulos desde 1 en cada arco");
+        de(NUMBER_THE_CHAPTERS_IN_EVERY_ARC, "Kapitel in jedem Handlungsbogen ab 1 nummerieren");
+        ko(NUMBER_THE_CHAPTERS_IN_EVERY_ARC, "아크마다 챕터 번호를 1부터 매기기");
+        it(NUMBER_THE_CHAPTERS_IN_EVERY_ARC, "Numera i capitoli da 1 in ogni arco");
+
+        ja(PUT_THE_TITLES_INTO_THE_HEADINGS, "見出しにタイトルを入れる");
+        zh(PUT_THE_TITLES_INTO_THE_HEADINGS, "在标题中加入名称");
+        fr(PUT_THE_TITLES_INTO_THE_HEADINGS, "Mettre les titres dans les en-têtes");
+        es(PUT_THE_TITLES_INTO_THE_HEADINGS, "Poner los títulos en los encabezados");
+        de(PUT_THE_TITLES_INTO_THE_HEADINGS, "Titel in die Überschriften aufnehmen");
+        ko(PUT_THE_TITLES_INTO_THE_HEADINGS, "제목에 이름 넣기");
+        it(PUT_THE_TITLES_INTO_THE_HEADINGS, "Inserisci i titoli nelle intestazioni");
+
+        ja(REMOVE_EVERY_OTHER_HEADING_FIRST, "先に物語の他の見出しをすべて削除する");
+        zh(REMOVE_EVERY_OTHER_HEADING_FIRST, "先删除故事中的所有其他标题");
+        fr(REMOVE_EVERY_OTHER_HEADING_FIRST, "Supprimer d'abord tous les autres titres de l'histoire");
+        es(REMOVE_EVERY_OTHER_HEADING_FIRST, "Quitar primero todos los demás encabezados de la historia");
+        de(REMOVE_EVERY_OTHER_HEADING_FIRST, "Zuerst alle anderen Überschriften der Geschichte entfernen");
+        ko(REMOVE_EVERY_OTHER_HEADING_FIRST, "먼저 이야기의 다른 제목을 모두 삭제");
+        it(REMOVE_EVERY_OTHER_HEADING_FIRST, "Rimuovi prima tutti gli altri titoli della storia");
+
+        ja(KEEP_THE_SUMMARIES_VALID, "要約を有効のままにする（見出しは出来事を変えない）");
+        zh(KEEP_THE_SUMMARIES_VALID, "保持摘要有效（标题不改变情节）");
+        fr(KEEP_THE_SUMMARIES_VALID, "Garder les résumés valides (un titre ne change pas ce qui se passe)");
+        es(KEEP_THE_SUMMARIES_VALID, "Mantener válidos los resúmenes (un encabezado no cambia lo que ocurre)");
+        de(KEEP_THE_SUMMARIES_VALID, "Zusammenfassungen gültig halten (eine Überschrift ändert nicht, was geschieht)");
+        ko(KEEP_THE_SUMMARIES_VALID, "요약을 유효하게 유지(제목은 사건을 바꾸지 않음)");
+        it(KEEP_THE_SUMMARIES_VALID, "Mantieni validi i riassunti (un titolo non cambia ciò che accade)");
+
+        ja(WRITE_THE_HEADINGS, "見出しを書き込む");
+        zh(WRITE_THE_HEADINGS, "写入标题");
+        fr(WRITE_THE_HEADINGS, "Écrire les titres");
+        es(WRITE_THE_HEADINGS, "Escribir los encabezados");
+        de(WRITE_THE_HEADINGS, "Überschriften schreiben");
+        ko(WRITE_THE_HEADINGS, "제목 쓰기");
+        it(WRITE_THE_HEADINGS, "Scrivi i titoli");
+
+        ja(REMOVE_ALL_HEADINGS, "すべての見出しを削除");
+        zh(REMOVE_ALL_HEADINGS, "删除所有标题");
+        fr(REMOVE_ALL_HEADINGS, "Supprimer tous les titres");
+        es(REMOVE_ALL_HEADINGS, "Quitar todos los encabezados");
+        de(REMOVE_ALL_HEADINGS, "Alle Überschriften entfernen");
+        ko(REMOVE_ALL_HEADINGS, "모든 제목 삭제");
+        it(REMOVE_ALL_HEADINGS, "Rimuovi tutti i titoli");
+
+        ja(REMOVE_EVERY_HEADING_LINE, "アクティブな分岐の本文からすべての見出し行を削除しますか？変更された各パートは履歴に以前の本文を残します。");
+        zh(REMOVE_EVERY_HEADING_LINE, "从活动分支的正文中删除所有标题行吗？每个被修改的段落都会在其历史中保留旧文本。");
+        fr(REMOVE_EVERY_HEADING_LINE, "Supprimer toutes les lignes de titre du texte de la branche active ? Chaque partie modifiée garde son ancien texte dans son historique.");
+        es(REMOVE_EVERY_HEADING_LINE, "¿Quitar todas las líneas de encabezado del texto de la rama activa? Cada parte modificada conserva su texto anterior en su historial.");
+        de(REMOVE_EVERY_HEADING_LINE, "Alle Überschriftenzeilen aus dem Text des aktiven Zweigs entfernen? Jeder geänderte Abschnitt behält seinen alten Text in seinem Verlauf.");
+        ko(REMOVE_EVERY_HEADING_LINE, "활성 분기의 본문에서 모든 제목 줄을 삭제할까요? 변경된 각 파트는 이전 본문을 기록에 보관합니다.");
+        it(REMOVE_EVERY_HEADING_LINE, "Rimuovere tutte le righe di titolo dal testo del ramo attivo? Ogni parte modificata conserva il testo precedente nella sua cronologia.");
+
+        ja(IN_PART, "パート %d");
+        zh(IN_PART, "第 %d 段");
+        fr(IN_PART, "partie %d");
+        es(IN_PART, "parte %d");
+        de(IN_PART, "Abschnitt %d");
+        ko(IN_PART, "파트 %d");
+        it(IN_PART, "parte %d");
+
+        ja(NO_ARC_OR_CHAPTER_IS_LINKED, "物語のパートにリンクされたアークや章がありません");
+        zh(NO_ARC_OR_CHAPTER_IS_LINKED, "没有故事弧或章节链接到故事的段落");
+        fr(NO_ARC_OR_CHAPTER_IS_LINKED, "Aucun arc ni chapitre n'est lié à une partie de l'histoire");
+        es(NO_ARC_OR_CHAPTER_IS_LINKED, "Ningún arco ni capítulo está vinculado a una parte de la historia");
+        de(NO_ARC_OR_CHAPTER_IS_LINKED, "Kein Handlungsbogen und kein Kapitel ist mit einem Abschnitt der Geschichte verknüpft");
+        ko(NO_ARC_OR_CHAPTER_IS_LINKED, "이야기의 파트에 연결된 아크나 챕터가 없습니다");
+        it(NO_ARC_OR_CHAPTER_IS_LINKED, "Nessun arco o capitolo è collegato a una parte della storia");
+
+        ja(PARTS_CHANGED_SUMMARIES_KEPT, "変更されたパート: %d、有効のままの要約: %d");
+        zh(PARTS_CHANGED_SUMMARIES_KEPT, "已修改段落：%d，保持有效的摘要：%d");
+        fr(PARTS_CHANGED_SUMMARIES_KEPT, "Parties modifiées : %d, résumés gardés valides : %d");
+        es(PARTS_CHANGED_SUMMARIES_KEPT, "Partes modificadas: %d, resúmenes mantenidos válidos: %d");
+        de(PARTS_CHANGED_SUMMARIES_KEPT, "Geänderte Abschnitte: %d, gültig gehaltene Zusammenfassungen: %d");
+        ko(PARTS_CHANGED_SUMMARIES_KEPT, "변경된 파트: %d, 유효하게 유지된 요약: %d");
+        it(PARTS_CHANGED_SUMMARIES_KEPT, "Parti modificate: %d, riassunti mantenuti validi: %d");
+
+        ja(WITHOUT_A_HEADING, "見出しなし: 未リンク %d、アクティブな分岐の末尾より後にリンク %d");
+        zh(WITHOUT_A_HEADING, "没有标题：%d 个未链接，%d 个链接到活动分支末尾之后");
+        fr(WITHOUT_A_HEADING, "Sans titre : %d non liés, %d liés au-delà de la fin de la branche active");
+        es(WITHOUT_A_HEADING, "Sin encabezado: %d sin vincular, %d vinculados más allá del final de la rama activa");
+        de(WITHOUT_A_HEADING, "Ohne Überschrift: %d nicht verknüpft, %d hinter dem Ende des aktiven Zweigs verknüpft");
+        ko(WITHOUT_A_HEADING, "제목 없음: 연결 안 됨 %d, 활성 분기 끝 너머에 연결됨 %d");
+        it(WITHOUT_A_HEADING, "Senza titolo: %d non collegati, %d collegati oltre la fine del ramo attivo");
+
+        ja(LINKED_TO_PART, "パート %d にリンクしました");
+        zh(LINKED_TO_PART, "已链接到第 %d 段");
+        fr(LINKED_TO_PART, "Lié à la partie %d");
+        es(LINKED_TO_PART, "Vinculado a la parte %d");
+        de(LINKED_TO_PART, "Mit Abschnitt %d verknüpft");
+        ko(LINKED_TO_PART, "파트 %d에 연결됨");
+        it(LINKED_TO_PART, "Collegato alla parte %d");
     }
 }

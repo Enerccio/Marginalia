@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.domain.service.ManuscriptReplaceService.Op
 import com.github.enerccio.marginalia.domain.service.ManuscriptReplaceService.Plan;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,17 +51,17 @@ public class ManuscriptSearchReplaceDialog extends SearchReplaceDialog {
             returns = @APIReturn(type = String.class))
     @Override
     protected String getTitle() {
-        return summariesOnly ? loc.getValue(L.LABEL_SUMMARIES) + ": " + loc.getValue(L.LABEL_SEARCH_AND_REPLACE)
-                : loc.getValue(L.LABEL_SEARCH_AND_REPLACE);
+        return summariesOnly ? loc.getValue(M_L.LABEL_SUMMARIES) + ": " + loc.getValue(M_L.LABEL_SEARCH_AND_REPLACE)
+                : loc.getValue(M_L.LABEL_SEARCH_AND_REPLACE);
     }
 
     @PublicAPI(from = "1.4.0",
             returns = @APIReturn(type = List.class))
     @Override
     protected List<Component> createOptions() {
-        summariesBox = new Checkbox(loc.getValue(L.LABEL_SEARCH_IN_SUMMARIES), true);
-        allBranchesBox = new Checkbox(loc.getValue(L.LABEL_SEARCH_IN_ALL_BRANCHES), false);
-        revalidateBox = new Checkbox(loc.getValue(L.LABEL_REVALIDATE_ALL_SUMMARIES), true);
+        summariesBox = new Checkbox(loc.getValue(M_L.LABEL_SEARCH_IN_SUMMARIES), true);
+        allBranchesBox = new Checkbox(loc.getValue(M_L.LABEL_SEARCH_IN_ALL_BRANCHES), false);
+        revalidateBox = new Checkbox(loc.getValue(M_L.LABEL_REVALIDATE_ALL_SUMMARIES), true);
         // there is nothing else to look into in the summaries overview
         return summariesOnly ? List.of(allBranchesBox, revalidateBox) : List.of(summariesBox, allBranchesBox, revalidateBox);
     }
@@ -80,16 +81,16 @@ public class ManuscriptSearchReplaceDialog extends SearchReplaceDialog {
             Plan plan = replaceService.plan(manuscript, options, progress);
             List<SearchReplaceItem> items = plan.items().stream()
                     .map(item -> new SearchReplaceItem(
-                            loc.getValue(item.kind() == Kind.MESSAGE ? L.LABEL_STORY_PART : L.LABEL_SUMMARY),
+                            loc.getValue(item.kind() == Kind.MESSAGE ? M_L.LABEL_STORY_PART : L.LABEL_SUMMARY),
                             String.valueOf(item.id()), item.hits()))
                     .toList();
             String warning = plan.outdatedSummaries() == 0 ? null
-                    : String.format(loc.getValue(L.MSG_REPLACE_OUTDATED_SUMMARIES), plan.outdatedSummaries());
+                    : String.format(loc.getValue(M_L.MSG_REPLACE_OUTDATED_SUMMARIES), plan.outdatedSummaries());
             return new SearchResult(items, warning, replacing -> {
                 ManuscriptReplaceService.Result result = replaceService.apply(manuscript, plan, replacing);
-                String message = String.format(loc.getValue(L.MSG_REPLACE_DONE), result.hits(), result.changed());
+                String message = String.format(loc.getValue(M_L.MSG_REPLACE_DONE), result.hits(), result.changed());
                 return result.skipped() == 0 ? message
-                        : message + "\n" + String.format(loc.getValue(L.MSG_REPLACE_SKIPPED), result.skipped());
+                        : message + "\n" + String.format(loc.getValue(M_L.MSG_REPLACE_SKIPPED), result.skipped());
             });
         };
     }

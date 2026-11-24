@@ -1,15 +1,15 @@
 ---
 label: Plugin basics
 order: 100
-verified: f7e7de02b
+verified: f337fe83d
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/extensions
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/ExtensionService.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/ToolService.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/ExtensionService.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/ToolService.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/tool
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/ToolServiceImpl.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/OsgiService.java
-  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/OsgiServiceImpl.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/impl/ToolServiceImpl.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/OsgiService.java
+  - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/impl/OsgiServiceImpl.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/instruct
 ---
 
@@ -149,8 +149,9 @@ public interface MarginaliaExtension {
 - `onExtensionUnload` undoes all of it: unregister every decorator and listener, remove the components the plugin
   added to open screens ([Unloading](ui-extensions.md#unloading)), stop background work. Nothing is removed
   automatically - a decorator left registered keeps running, from a bundle that no longer exists. The one exception:
-  the data providers registered with `IPCService`, the tool providers (with their commands) registered with `ToolService` and the settings registered with `InheritedSettingRegistry` ([Inherited settings](inherited-settings.md)) and the sources registered with `NotificationService` ([Desktop notifications](notifications.md)) under the symbolic name of the bundle are removed by the
-  application when the extension is unloaded ([Sharing data between extensions](ipc.md)).
+  the data providers registered with `IPCService`, the tool providers (with their commands) registered with `ToolService`, the story menu items of `StoryMenuRegistry`, the settings registered with `InheritedSettingRegistry` ([Inherited settings](inherited-settings.md)) and the sources registered with `NotificationService` ([Desktop notifications](notifications.md)) under the symbolic name of the bundle are removed by the
+  application when the extension is unloaded ([Sharing data between extensions](ipc.md)). These are the beans that implement
+  `ExtensionRegistrations` (`extensions` package): after `onExtensionUnload`, `OsgiServiceImpl` calls `unregisterAll` of each.
 
 Annotate the extension `@Configurable` and inject what you need:
 
@@ -296,7 +297,8 @@ osgiService.getLoadedExtensions();                // the extensions that are loa
 
 **Optional interfaces.** Besides `MarginaliaExtension`, the extension class can implement `ExtensionHasCss` (styles
 put into every page, see [Styles of a plugin](ui-extensions.md#styles-of-a-plugin)) and `ExtensionHasLocalization`
-(languages for the UI: `OsgiServiceImpl` registers the returned `LocalizationBundle`s in `Localization` right after
+(languages for the UI: `OsgiServiceImpl` registers the returned `LocalizationBundle`s, then the `TextBundle`s of
+`getTextBundles()` (the application's `M_L` texts of those languages), in `Localization` right after
 `onExtensionLoad` returned and removes them when the extension is unloaded; see
 [Example plugin](example.md#walkthrough-chinese-localization)).
 
@@ -312,7 +314,7 @@ first: Marginalia's own classes, Vaadin, Spring, Hibernate, Gson, everything in 
 - Plugins use the application's classes directly - no imports, no service lookups, `instanceof` and casts work.
 - A plugin can't override or replace a library of the application, and can't use a different version of one.
 - Plugins don't see each other's classes through imports either; if two plugins need to cooperate, do it through
-  shared data (attributes) or through the application's components (the registries of the core, such as `PartTextRegistry`, `ExportTextRegistry` and `AnnotationFactsRegistry`, and the gates of `SharedGate` that let two plugins share one GPU, see [http-hooks](libraries/http-hooks.md#the-gate-gpugate)). A plugin that uses the objects of another one
+  shared data (attributes) or through the application's components (the registries of the core, such as `PartTextRegistry`, `ExportTextRegistry` and `AnnotationFactsRegistry`, and the GPU locks of `GpuService` that let plugins and models share one GPU, see [GPU locks](gpu-locks.md)). A plugin that uses the objects of another one
   (which may be missing, or unloaded and installed again) finds it among `OsgiService.getLoadedExtensions()` by the
   *name* of its class and calls it by reflection, taking the types it needs from `extension.getClass().getClassLoader()`.
   Do not import its packages (`Import-Package`, `DynamicImport-Package`) or name its classes in your code: the

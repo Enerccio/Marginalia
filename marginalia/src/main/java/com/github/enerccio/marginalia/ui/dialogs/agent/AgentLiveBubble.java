@@ -1,8 +1,9 @@
 package com.github.enerccio.marginalia.ui.dialogs.agent;
 
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.service.AgentRunner.LiveAnswer;
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.details.Details;
@@ -24,13 +25,13 @@ final class AgentLiveBubble extends Div {
 
     AgentLiveBubble(AgentTranscriptRenderer renderer, Localization loc, String who) {
         reasoningText = renderer.text("", false);
-        reasoningBlock = new Details(loc.getValue(L.LABEL_REASONING), reasoningText);
+        reasoningBlock = new Details(loc.getValue(M_L.LABEL_REASONING), reasoningText);
         reasoningBlock.addClassName(CssStyles.HINT_TEXT);
         reasoningBlock.setOpened(true);
         reasoningBlock.setVisible(false);
         answer.setVisible(false);
-        add(renderer.text(who + " (" + loc.getValue(L.LABEL_AGENT_WORKING) + ")", true), reasoningBlock, answer);
-        addClassName(CssStyles.HELP_MESSAGE);
+        add(renderer.text(who + " (" + loc.getValue(M_L.LABEL_AGENT_WORKING) + ")", true), reasoningBlock, answer);
+        addClassName(MarginaliaCssStyles.HELP_MESSAGE);
     }
 
     /**

@@ -1,11 +1,13 @@
 package com.github.enerccio.marginalia.ui.dialogs.statistics;
 
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.MarginaliaCssStyles;
 import com.github.enerccio.marginalia.domain.collections.ActivityMetric;
 import com.github.enerccio.marginalia.domain.components.WritingActivity;
 import com.github.enerccio.marginalia.domain.components.WritingGoal;
 import com.github.enerccio.marginalia.domain.service.StatisticReportService;
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.LocalizationKey;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
@@ -81,13 +83,13 @@ public class ActivityCalendarView extends VerticalLayout {
         metric.addValueChangeListener(_ -> drawCalendar());
 
         summary = new Div();
-        summary.addClassName(CssStyles.STATISTIC_TOTALS);
+        summary.addClassName(MarginaliaCssStyles.STATISTIC_TOTALS);
         goal = new Div();
-        goal.addClassName(CssStyles.ACTIVITY_GOAL);
+        goal.addClassName(MarginaliaCssStyles.ACTIVITY_GOAL);
         calendar = new Div();
-        calendar.addClassName(CssStyles.ACTIVITY_CALENDAR);
-        note = new Div(loc.getValue(L.MSG_STATISTICS_CALENDAR_NOTE));
-        note.addClassName(CssStyles.TOKEN_USAGE_SUMMARY);
+        calendar.addClassName(MarginaliaCssStyles.ACTIVITY_CALENDAR);
+        note = new Div(loc.getValue(M_L.MSG_STATISTICS_CALENDAR_NOTE));
+        note.addClassName(MarginaliaCssStyles.TOKEN_USAGE_SUMMARY);
         add(metric, summary, goal, calendar, legend(), note);
     }
 
@@ -134,18 +136,18 @@ public class ActivityCalendarView extends VerticalLayout {
     private void drawSummary() {
         summary.removeAll();
         LocalDate from = ActivityCalendarGrid.start(activity, weeks(), firstDayOfWeek());
-        item(summary, L.LABEL_STREAK_CURRENT, activity.currentStreak());
-        item(summary, L.LABEL_STREAK_LONGEST, activity.longestStreak());
-        item(summary, L.LABEL_DAYS_WORKED, activity.daysWorked(from, activity.today()));
+        item(summary, M_L.LABEL_STREAK_CURRENT, activity.currentStreak());
+        item(summary, M_L.LABEL_STREAK_LONGEST, activity.longestStreak());
+        item(summary, M_L.LABEL_DAYS_WORKED, activity.daysWorked(from, activity.today()));
         if (activity.goal().isSet()) {
-            item(summary, L.LABEL_STREAK_GOAL_CURRENT, activity.currentGoalStreak());
-            item(summary, L.LABEL_STREAK_GOAL_LONGEST, activity.longestGoalStreak());
+            item(summary, M_L.LABEL_STREAK_GOAL_CURRENT, activity.currentGoalStreak());
+            item(summary, M_L.LABEL_STREAK_GOAL_LONGEST, activity.longestGoalStreak());
         }
     }
 
-    private void item(Div into, L label, long value) {
+    private void item(Div into, LocalizationKey label, long value) {
         Span item = new Span(loc.getValue(label) + ": " + format(value));
-        item.addClassName(CssStyles.STATISTIC_TOTAL_ITEM);
+        item.addClassName(MarginaliaCssStyles.STATISTIC_TOTAL_ITEM);
         into.add(item);
     }
 
@@ -158,10 +160,10 @@ public class ActivityCalendarView extends VerticalLayout {
         WritingActivity.Day today = activity.day(activity.today());
         if (target.words() > 0) {
             goal.add(bar(today.wordsWritten(), target.words(),
-                    String.format(loc.getValue(L.MSG_GOAL_PROGRESS_WORDS), format(today.wordsWritten()), format(target.words()))));
+                    String.format(loc.getValue(M_L.MSG_GOAL_PROGRESS_WORDS), format(today.wordsWritten()), format(target.words()))));
         }
         if (target.minutes() > 0) {
-            goal.add(bar(today.editMillis(), target.minutesInMillis(), String.format(loc.getValue(L.MSG_GOAL_PROGRESS_MINUTES),
+            goal.add(bar(today.editMillis(), target.minutesInMillis(), String.format(loc.getValue(M_L.MSG_GOAL_PROGRESS_MINUTES),
                     format(Math.round(today.editMillis() / 60_000.0)), format(target.minutes()))));
         }
         goal.setVisible(target.isSet());
@@ -169,12 +171,12 @@ public class ActivityCalendarView extends VerticalLayout {
 
     private Component bar(long value, long target, String text) {
         ProgressBar bar = new ProgressBar(0, 1, Math.min(1.0, (double) value / target));
-        bar.addClassName(CssStyles.ACTIVITY_GOAL_BAR);
+        bar.addClassName(MarginaliaCssStyles.ACTIVITY_GOAL_BAR);
         if (value >= target) {
             bar.addThemeVariants(ProgressBarVariant.LUMO_SUCCESS);
         }
         Div line = new Div(new Span(text), bar);
-        line.addClassName(CssStyles.ACTIVITY_GOAL_LINE);
+        line.addClassName(MarginaliaCssStyles.ACTIVITY_GOAL_LINE);
         return line;
     }
 
@@ -187,15 +189,15 @@ public class ActivityCalendarView extends VerticalLayout {
         List<ActivityCalendarGrid.Week> weeks = ActivityCalendarGrid.weeks(activity, metric.getValue(), weeks(), firstDayOfWeek());
         for (ActivityCalendarGrid.Week week : weeks) {
             Div column = new Div();
-            column.addClassName(CssStyles.ACTIVITY_CALENDAR_WEEK);
+            column.addClassName(MarginaliaCssStyles.ACTIVITY_CALENDAR_WEEK);
             Span month = new Span(week.month() == null ? "" : week.month().getMonth().getDisplayName(TextStyle.SHORT, locale));
-            month.addClassName(CssStyles.ACTIVITY_CALENDAR_MONTH);
+            month.addClassName(MarginaliaCssStyles.ACTIVITY_CALENDAR_MONTH);
             column.add(month);
             for (ActivityCalendarGrid.Cell cell : week.days()) {
                 Div day = new Div();
-                day.addClassNames(CssStyles.ACTIVITY_CALENDAR_DAY, CssStyles.ACTIVITY_CALENDAR_LEVEL + cell.level());
+                day.addClassNames(MarginaliaCssStyles.ACTIVITY_CALENDAR_DAY, MarginaliaCssStyles.ACTIVITY_CALENDAR_LEVEL + cell.level());
                 if (cell.today()) {
-                    day.addClassName(CssStyles.ACTIVITY_CALENDAR_TODAY);
+                    day.addClassName(MarginaliaCssStyles.ACTIVITY_CALENDAR_TODAY);
                 }
                 day.getElement().setAttribute("title", dayText(cell.day()));
                 column.add(day);
@@ -206,14 +208,14 @@ public class ActivityCalendarView extends VerticalLayout {
 
     private Component legend() {
         FlexLayout legend = new FlexLayout();
-        legend.addClassNames(CssStyles.ACTIVITY_CALENDAR_LEGEND, CssStyles.GAP_S);
-        legend.add(new Span(loc.getValue(L.LABEL_LESS)));
+        legend.addClassNames(MarginaliaCssStyles.ACTIVITY_CALENDAR_LEGEND, CssStyles.GAP_S);
+        legend.add(new Span(loc.getValue(M_L.LABEL_LESS)));
         for (int level = 0; level < WritingActivity.LEVELS; level++) {
             Div square = new Div();
-            square.addClassNames(CssStyles.ACTIVITY_CALENDAR_DAY, CssStyles.ACTIVITY_CALENDAR_LEVEL + level);
+            square.addClassNames(MarginaliaCssStyles.ACTIVITY_CALENDAR_DAY, MarginaliaCssStyles.ACTIVITY_CALENDAR_LEVEL + level);
             legend.add(square);
         }
-        legend.add(new Span(loc.getValue(L.LABEL_MORE)));
+        legend.add(new Span(loc.getValue(M_L.LABEL_MORE)));
         return legend;
     }
 
@@ -223,12 +225,12 @@ public class ActivityCalendarView extends VerticalLayout {
     String dayText(LocalDate date) {
         WritingActivity.Day day = activity.day(date);
         if (!day.worked()) {
-            return String.format(loc.getValue(L.MSG_STATISTICS_CALENDAR_NONE), date);
+            return String.format(loc.getValue(M_L.MSG_STATISTICS_CALENDAR_NONE), date);
         }
         String time = activity.timeKnown(date) ? StatisticsView.formatTime(day.editMillis()) : "–";
-        String text = String.format(loc.getValue(L.MSG_STATISTICS_CALENDAR_DAY), date, format(day.wordsWritten()), time);
+        String text = String.format(loc.getValue(M_L.MSG_STATISTICS_CALENDAR_DAY), date, format(day.wordsWritten()), time);
         if (day.lastActivity() != null) {
-            text += String.format(loc.getValue(L.MSG_STATISTICS_CALENDAR_LAST), clock(day.lastActivity()));
+            text += String.format(loc.getValue(M_L.MSG_STATISTICS_CALENDAR_LAST), clock(day.lastActivity()));
         }
         return day.reconstructed() ? text + " (~)" : text;
     }

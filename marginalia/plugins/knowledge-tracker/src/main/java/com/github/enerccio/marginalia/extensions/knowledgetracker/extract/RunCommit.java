@@ -1,8 +1,8 @@
 package com.github.enerccio.marginalia.extensions.knowledgetracker.extract;
 
 import com.github.enerccio.marginalia.extensions.knowledgetracker.model.KnowledgeState;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.process.BranchProcessor;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.process.Part;
+import com.github.enerccio.marginalia.extensions.storytracker.process.BranchProcessor;
+import com.github.enerccio.marginalia.extensions.storytracker.process.Part;
 
 import java.util.Collection;
 import java.util.List;

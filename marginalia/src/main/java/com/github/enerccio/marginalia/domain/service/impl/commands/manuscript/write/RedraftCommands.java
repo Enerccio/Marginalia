@@ -10,7 +10,7 @@ import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationOptions;
 import com.github.enerccio.marginalia.domain.templates.RedraftTemplateData;
 import com.github.enerccio.marginalia.domain.traits.*;
-import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,63 +36,93 @@ public class RedraftCommands extends ManuscriptWriteSupport {
     @Autowired
     private TemplateService templateService;
 
-    @Command(commandName = REDRAFT_PART, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_REDRAFT_PART, async = true,
+    @Command(commandName = REDRAFT_PART, batch = BatchPolicy.SINGLE, async = true,
             dataSeverity = CommandDataSeverity.DESTRUCTIVE,
-            description = L.DESC_COMMAND_REDRAFT_PART, llmDescription = L.DESC_COMMAND_REDRAFT_PART_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_HANDLE_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_REDRAFT_PART_RETURN))
+                    @CommandParameter(name = "part", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_REDRAFT_PART,
+            description = M_L.DESC_COMMAND_REDRAFT_PART,
+            llmDescription = M_L.DESC_COMMAND_REDRAFT_PART_LLM,
+            parameters = @MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_PART_HANDLE_PARAM),
+            returns = M_L.DESC_COMMAND_REDRAFT_PART_RETURN)
     public void redraft(CommandContext context) throws Exception {
         redraft(context, ref(context, "part"), null, null, null, true);
     }
 
-    @Command(commandName = REDRAFT_PART, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_REDRAFT_PART, async = true,
+    @Command(commandName = REDRAFT_PART, batch = BatchPolicy.SINGLE, async = true,
             dataSeverity = CommandDataSeverity.DESTRUCTIVE,
-            description = L.DESC_COMMAND_REDRAFT_PART, llmDescription = L.DESC_COMMAND_REDRAFT_PART_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_HANDLE_PARAM),
-                    @CommandParameter(name = "instructions", type = String.class, description = L.DESC_COMMAND_REDRAFT_INSTRUCTIONS_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_REDRAFT_PART_RETURN))
+                    @CommandParameter(name = "part", type = String.class),
+                    @CommandParameter(name = "instructions", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_REDRAFT_PART,
+            description = M_L.DESC_COMMAND_REDRAFT_PART,
+            llmDescription = M_L.DESC_COMMAND_REDRAFT_PART_LLM,
+            parameters = {@MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_PART_HANDLE_PARAM),
+                    @MarginaliaParameterText(name = "instructions", description = M_L.DESC_COMMAND_REDRAFT_INSTRUCTIONS_PARAM)},
+            returns = M_L.DESC_COMMAND_REDRAFT_PART_RETURN)
     public void redraftInstructions(CommandContext context) throws Exception {
         redraft(context, ref(context, "part"), context.get("instructions", String.class), null, null, true);
     }
 
-    @Command(commandName = REDRAFT_PART, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_REDRAFT_PART, async = true,
+    @Command(commandName = REDRAFT_PART, batch = BatchPolicy.SINGLE, async = true,
             dataSeverity = CommandDataSeverity.DESTRUCTIVE,
-            description = L.DESC_COMMAND_REDRAFT_PART, llmDescription = L.DESC_COMMAND_REDRAFT_PART_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_HANDLE_PARAM),
-                    @CommandParameter(name = "instructions", type = String.class, description = L.DESC_COMMAND_REDRAFT_INSTRUCTIONS_PARAM),
-                    @CommandParameter(name = "prompt", type = String.class, description = L.DESC_COMMAND_REDRAFT_PROMPT_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_REDRAFT_PART_RETURN))
+                    @CommandParameter(name = "part", type = String.class),
+                    @CommandParameter(name = "instructions", type = String.class),
+                    @CommandParameter(name = "prompt", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_REDRAFT_PART,
+            description = M_L.DESC_COMMAND_REDRAFT_PART,
+            llmDescription = M_L.DESC_COMMAND_REDRAFT_PART_LLM,
+            parameters = {@MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_PART_HANDLE_PARAM),
+                    @MarginaliaParameterText(name = "instructions", description = M_L.DESC_COMMAND_REDRAFT_INSTRUCTIONS_PARAM),
+                    @MarginaliaParameterText(name = "prompt", description = M_L.DESC_COMMAND_REDRAFT_PROMPT_PARAM)},
+            returns = M_L.DESC_COMMAND_REDRAFT_PART_RETURN)
     public void redraftPrompt(CommandContext context) throws Exception {
         redraft(context, ref(context, "part"), context.get("instructions", String.class), context.get("prompt", String.class), null, true);
     }
 
-    @Command(commandName = REDRAFT_PART, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_REDRAFT_PART, async = true,
+    @Command(commandName = REDRAFT_PART, batch = BatchPolicy.SINGLE, async = true,
             dataSeverity = CommandDataSeverity.DESTRUCTIVE,
-            description = L.DESC_COMMAND_REDRAFT_PART, llmDescription = L.DESC_COMMAND_REDRAFT_PART_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_HANDLE_PARAM),
-                    @CommandParameter(name = "instructions", type = String.class, description = L.DESC_COMMAND_REDRAFT_INSTRUCTIONS_PARAM),
-                    @CommandParameter(name = "prompt", type = String.class, description = L.DESC_COMMAND_REDRAFT_PROMPT_PARAM),
-                    @CommandParameter(name = "profile", type = String.class, description = L.DESC_COMMAND_GEN_PROFILE_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_REDRAFT_PART_RETURN))
+                    @CommandParameter(name = "part", type = String.class),
+                    @CommandParameter(name = "instructions", type = String.class),
+                    @CommandParameter(name = "prompt", type = String.class),
+                    @CommandParameter(name = "profile", type = String.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_REDRAFT_PART,
+            description = M_L.DESC_COMMAND_REDRAFT_PART,
+            llmDescription = M_L.DESC_COMMAND_REDRAFT_PART_LLM,
+            parameters = {@MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_PART_HANDLE_PARAM),
+                    @MarginaliaParameterText(name = "instructions", description = M_L.DESC_COMMAND_REDRAFT_INSTRUCTIONS_PARAM),
+                    @MarginaliaParameterText(name = "prompt", description = M_L.DESC_COMMAND_REDRAFT_PROMPT_PARAM),
+                    @MarginaliaParameterText(name = "profile", description = M_L.DESC_COMMAND_GEN_PROFILE_PARAM)},
+            returns = M_L.DESC_COMMAND_REDRAFT_PART_RETURN)
     public void redraftProfile(CommandContext context) throws Exception {
         redraft(context, ref(context, "part"), context.get("instructions", String.class), context.get("prompt", String.class),
                 ref(context, "profile"), true);
     }
 
-    @Command(commandName = REDRAFT_PART, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_REDRAFT_PART, async = true,
+    @Command(commandName = REDRAFT_PART, batch = BatchPolicy.SINGLE, async = true,
             dataSeverity = CommandDataSeverity.DESTRUCTIVE,
-            description = L.DESC_COMMAND_REDRAFT_PART, llmDescription = L.DESC_COMMAND_REDRAFT_PART_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_HANDLE_PARAM),
-                    @CommandParameter(name = "instructions", type = String.class, description = L.DESC_COMMAND_REDRAFT_INSTRUCTIONS_PARAM),
-                    @CommandParameter(name = "prompt", type = String.class, description = L.DESC_COMMAND_REDRAFT_PROMPT_PARAM),
-                    @CommandParameter(name = "profile", type = String.class, description = L.DESC_COMMAND_GEN_PROFILE_PARAM),
-                    @CommandParameter(name = "apply", type = Boolean.class, description = L.DESC_COMMAND_REDRAFT_APPLY_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_REDRAFT_PART_RETURN))
+                    @CommandParameter(name = "part", type = String.class),
+                    @CommandParameter(name = "instructions", type = String.class),
+                    @CommandParameter(name = "prompt", type = String.class),
+                    @CommandParameter(name = "profile", type = String.class),
+                    @CommandParameter(name = "apply", type = Boolean.class)}),
+            returns = @CommandReturn(name = "result", type = String.class))
+    @MarginaliaCommandTexts(humanName = M_L.LABEL_COMMAND_REDRAFT_PART,
+            description = M_L.DESC_COMMAND_REDRAFT_PART,
+            llmDescription = M_L.DESC_COMMAND_REDRAFT_PART_LLM,
+            parameters = {@MarginaliaParameterText(name = "part", description = M_L.DESC_COMMAND_PART_HANDLE_PARAM),
+                    @MarginaliaParameterText(name = "instructions", description = M_L.DESC_COMMAND_REDRAFT_INSTRUCTIONS_PARAM),
+                    @MarginaliaParameterText(name = "prompt", description = M_L.DESC_COMMAND_REDRAFT_PROMPT_PARAM),
+                    @MarginaliaParameterText(name = "profile", description = M_L.DESC_COMMAND_GEN_PROFILE_PARAM),
+                    @MarginaliaParameterText(name = "apply", description = M_L.DESC_COMMAND_REDRAFT_APPLY_PARAM)},
+            returns = M_L.DESC_COMMAND_REDRAFT_PART_RETURN)
     public void redraftApply(CommandContext context) throws Exception {
         Boolean apply = context.get("apply", Boolean.class);
         redraft(context, ref(context, "part"), context.get("instructions", String.class), context.get("prompt", String.class),
@@ -104,7 +134,7 @@ public class RedraftCommands extends ManuscriptWriteSupport {
         Book book = new Book(context);
         ChatMessage message = part(book, handle);
         if (StringUtils.isBlank(message.getResponse())) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_REDRAFT_NOT_POSSIBLE));
+            throw new IllegalArgumentException(loc.getValue(M_L.ERROR_COMMAND_REDRAFT_NOT_POSSIBLE));
         }
         if (StringUtils.isNotBlank(prompt)) {
             var checked = templateService.isValidTemplate(prompt, "redraftPrompt", RedraftTemplateData.class);
@@ -113,7 +143,7 @@ public class RedraftCommands extends ManuscriptWriteSupport {
             }
         }
         GenerationOptions options = options(context, profile);
-        if (apply && !confirmed(context, String.format(loc.getValue(L.MSG_COMMAND_REDRAFT_CONFIRM), book.locate(message.getUuid(), null).position()))) {
+        if (apply && !confirmed(context, String.format(loc.getValue(M_L.MSG_COMMAND_REDRAFT_CONFIRM), book.locate(message.getUuid(), null).position()))) {
             return;
         }
 
@@ -134,7 +164,7 @@ public class RedraftCommands extends ManuscriptWriteSupport {
 
             @Override
             public void onTerminated(String reasoning, String text) {
-                done.completeExceptionally(new CancellationException(loc.getValue(L.ERROR_COMMAND_GENERATION_CANCELLED)));
+                done.completeExceptionally(new CancellationException(loc.getValue(M_L.ERROR_COMMAND_GENERATION_CANCELLED)));
             }
 
             @Override
@@ -142,17 +172,17 @@ public class RedraftCommands extends ManuscriptWriteSupport {
                 done.completeExceptionally(throwable);
             }
         };
-        context.setStatus(loc.getValue(L.MSG_COMMAND_REDRAFTING));
+        context.setStatus(loc.getValue(M_L.MSG_COMMAND_REDRAFTING));
         String text;
         {
             CancellationToken token;
             try {
                 token = redraftService.redraft(book.manuscript, message, instructions, prompt, options, callback);
             } catch (RedraftService.ContextInsufficient e) {
-                throw new IllegalArgumentException(String.format(loc.getValue(L.ERROR_COMMAND_REDRAFT_CONTEXT), e.getRequired(), e.getMax()));
+                throw new IllegalArgumentException(String.format(loc.getValue(M_L.ERROR_COMMAND_REDRAFT_CONTEXT), e.getRequired(), e.getMax()));
             }
             if (token == null) {
-                throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_REDRAFT_NOT_POSSIBLE));
+                throw new IllegalArgumentException(loc.getValue(M_L.ERROR_COMMAND_REDRAFT_NOT_POSSIBLE));
             }
             text = await(context, done, token);
         }
@@ -160,7 +190,7 @@ public class RedraftCommands extends ManuscriptWriteSupport {
             return;
         }
         if (StringUtils.isBlank(text)) {
-            throw new IllegalStateException(loc.getValue(L.ERROR_COMMAND_REDRAFT_NOT_POSSIBLE));
+            throw new IllegalStateException(loc.getValue(M_L.ERROR_COMMAND_REDRAFT_NOT_POSSIBLE));
         }
 
         // the book as it is now: the story may have changed while the model wrote

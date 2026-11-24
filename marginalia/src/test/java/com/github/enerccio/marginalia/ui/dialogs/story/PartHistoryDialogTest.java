@@ -10,6 +10,8 @@ import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.MessageRevisionService;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.M_L;
+import com.github.enerccio.marginalia.loc.MarginaliaLocalization;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
 import com.vaadin.flow.component.Component;
@@ -42,7 +44,7 @@ class PartHistoryDialogTest extends MarginaliaTestBase {
     private MessageRevisionService messageRevisionService;
 
     @Autowired
-    private Localization loc;
+    private MarginaliaLocalization loc;
 
     // UI.setCurrent keeps only a weak reference, see WorkspaceStateTest
     private UI ui;
@@ -185,7 +187,7 @@ class PartHistoryDialogTest extends MarginaliaTestBase {
 
         dialog.showDeleted.setValue(true);
         dialog.select(rowOf("Two.").id());
-        assertThat(dialog.delete.getText()).isEqualTo(loc.getValue(L.LABEL_UNDELETE_VERSION));
+        assertThat(dialog.delete.getText()).isEqualTo(loc.getValue(M_L.LABEL_UNDELETE_VERSION));
         assertThat(dialog.purge.isVisible()).isTrue();
         dialog.deleteOrUndelete();
         assertThat(rows().stream().filter(RevisionRow::deleted)).isEmpty();
@@ -279,7 +281,7 @@ class PartHistoryDialogTest extends MarginaliaTestBase {
         List<Component> components = new ArrayList<>(all(clearing).toList());
         clearing.getFooter().getElement().getChildren().forEach(e -> e.getComponent().ifPresent(components::add));
         assertThat(components.stream().filter(c -> c instanceof com.vaadin.flow.component.html.Span s && s.getText().contains("4"))).hasSize(1);
-        Button clear = (Button) components.stream().filter(c -> c instanceof Button b && loc.getValue(L.LABEL_CLEAR_HISTORY).equals(b.getText())).findFirst().orElseThrow();
+        Button clear = (Button) components.stream().filter(c -> c instanceof Button b && loc.getValue(M_L.LABEL_CLEAR_HISTORY).equals(b.getText())).findFirst().orElseThrow();
         assertThat(clear.isEnabled()).isTrue();
         clear.click();
 
@@ -303,7 +305,7 @@ class PartHistoryDialogTest extends MarginaliaTestBase {
 
         List<Component> components = new ArrayList<>();
         clearing.getFooter().getElement().getChildren().forEach(e -> e.getComponent().ifPresent(components::add));
-        assertThat(components.stream().filter(c -> c instanceof Button b && loc.getValue(L.LABEL_CLEAR_HISTORY).equals(b.getText()))
+        assertThat(components.stream().filter(c -> c instanceof Button b && loc.getValue(M_L.LABEL_CLEAR_HISTORY).equals(b.getText()))
                 .allMatch(c -> !((Button) c).isEnabled())).isTrue();
     }
 }

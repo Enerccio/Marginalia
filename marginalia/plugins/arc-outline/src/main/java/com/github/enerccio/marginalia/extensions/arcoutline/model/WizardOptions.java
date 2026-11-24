@@ -38,6 +38,8 @@ public class WizardOptions {
         OUTLINE,
         /** Read the author's notes (the Story Notes plugin), add pages and change them. Pages the author hid from assistants do not exist for it. */
         NOTES,
+        /** Read the characters of the book and their relationships (the Character Tracker plugin), add, change and delete them. */
+        CHARACTERS,
         /** The generators: an arc, the chapters of an arc, a lore entry. They only return a draft until the model is told to save it. */
         GENERATE
     }
