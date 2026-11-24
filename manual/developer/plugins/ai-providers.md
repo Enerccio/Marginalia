@@ -15,7 +15,7 @@ covers:
   - marginalia/plugins/google-genai
   - marginalia/plugins/anthropic
   - marginalia/plugins/grok
-verified: f337fe83d
+verified: d479667bb
 ---
 
 # Inference providers from a plugin

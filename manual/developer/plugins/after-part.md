@@ -1,7 +1,7 @@
 ---
 label: After the part
 order: 65
-verified: f337fe83d
+verified: d479667bb
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/generation/AfterPart.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/AfterPartPhase.java

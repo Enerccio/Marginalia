@@ -4,7 +4,7 @@ order: 50
 covers:
   - marginalia/libs/translator-common
   - marginalia/plugins/reallang-translator/src/main/java
-verified: f337fe83d
+verified: d479667bb
 ---
 
 # translator-common

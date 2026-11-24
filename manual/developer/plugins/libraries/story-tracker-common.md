@@ -3,7 +3,7 @@ label: story-tracker-common
 order: 45
 covers:
   - marginalia/libs/story-tracker-common
-verified: e3d59370f
+verified: d479667bb
 ---
 
 # story-tracker-common

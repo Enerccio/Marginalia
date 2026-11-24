@@ -11,7 +11,7 @@ covers:
   - marginalia/platform/src/main/java/com/github/enerccio/marginalia/ui/widgets/GpuLockSelect.java
   - marginalia/platform/src/main/java/com/github/enerccio/marginalia/ui/workspace/parts/admin/GpuPanel.java
   - marginalia/platform/src/main/java/com/github/enerccio/marginalia/domain/service/impl/inference/GatedInferenceService.java
-verified: f337fe83d
+verified: d479667bb
 ---
 
 # GPU locks

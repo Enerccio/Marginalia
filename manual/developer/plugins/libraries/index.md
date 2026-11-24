@@ -9,7 +9,7 @@ covers:
   - Dockerfile
   - .github/workflows/server.yml
   - .github/workflows/desktop.yml
-verified: f337fe83d
+verified: d479667bb
 ---
 
 # Libraries for plugins
