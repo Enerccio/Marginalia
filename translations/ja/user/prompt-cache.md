@@ -286,7 +286,7 @@ class SlotSwitcher:
             return response.is_success
         except httpx.HTTPError as e:
             # a cache that is not there is only slower, never an error of the request
-            log.warning("slot_cache: %s %s: %s", self.base_url, action, e)
+            log.warning("slot_cache: %s %s %s: %s %r", self.base_url, action, key or "", type(e).__name__, e)
             return False
 
     async def switch(self, key, api_key=None, folder=None, idle=SAVE_IDLE_SECONDS):
