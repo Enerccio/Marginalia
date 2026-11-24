@@ -203,7 +203,15 @@ class DatabaseBackupScheduleTest extends PlatformTestBase {
         // every second
         backupService.updateSchedule(true, "* * * * * *", 0);
 
-        assertThat(waitFor(() -> scheduledCount() >= 1, Duration.ofSeconds(10))).as("scheduled backup created").isTrue();
+        // the file exists before the job has saved the time of the run: wait for the saved time (an earlier test may have left an old one)
+        assertThat(waitFor(() -> {
+            try {
+                Date last = backupService.getSchedule().lastRun();
+                return scheduledCount() >= 1 && last != null && System.currentTimeMillis() - last.getTime() < 10_000;
+            } catch (Exception e) {
+                return false;
+            }
+        }, Duration.ofSeconds(10))).as("scheduled backup created").isTrue();
 
         BackupSchedule schedule = backupService.getSchedule();
         assertThat(schedule.lastRun()).isNotNull().isCloseTo(new Date(), 10_000);
