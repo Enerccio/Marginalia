@@ -36,7 +36,7 @@ covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/dialogs/agent
   - marginalia/platform/src/main/java/com/github/enerccio/marginalia/ui/widgets/WorkspaceBrowser.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/workspace/parts/AgentPart.java
-verified: ecc4a625a
+verified: d3fd95f7f
 ---
 
 # Agents

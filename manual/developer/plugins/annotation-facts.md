@@ -7,7 +7,7 @@ covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/templates/AnnotateTemplateData.java
   - marginalia/plugins/knowledge-tracker/src/main/java/com/github/enerccio/marginalia/extensions/knowledgetracker/facts/KnowledgeFactsBuilder.java
   - marginalia/plugins/knowledge-tracker/src/main/java/com/github/enerccio/marginalia/extensions/knowledgetracker/facts/KnowledgeFactsProvider.java
-verified: ecc4a625a
+verified: f337fe83d
 ---
 
 # Facts for the annotation

@@ -1,7 +1,7 @@
 ---
 label: Building from source
 order: 990
-verified: ecc4a625a
+verified: f337fe83d
 covers:
   - pom.xml
   - marginalia/pom.xml
