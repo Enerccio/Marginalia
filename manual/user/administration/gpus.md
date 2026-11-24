@@ -19,6 +19,8 @@ You set it up once, as the administrator; every user then picks a lock for their
 | **GPU lock** | One way to use a GPU: what is loaded on it. For example *Language model*, *ComfyUI* and *Speech* on the same GPU. A lock has two ordered lists of steps: the **acquire steps** load it (start a container, load a model, unload whatever must go first), the **release steps** free the card of it (stop the container, unload the model). A third list, the **steps before every job**, runs before each job of the lock whether the GPU holds it or not (before the acquire steps when it does not): for what must be made sure of every time, because something else may have used the card. **Jobs at once** limits how many jobs of the lock run together (an image server that makes one image at a time: 1; 0 for no limit). |
 | **GPU step** | One HTTP request: an address, a method, headers (`Name: value`, one per line, stored encrypted, so a bearer key can be written there), a body, a timeout (empty: 60 seconds) and a wait after the answer. A step can be used by several locks, for example one *unload the language model* step that both the image and the speech lock run first. **Test** makes the request at once. |
 
+![The window of a lock](../../images/gpu-lock-dialog.png)
+
 Pick the lock in:
 
 - the [settings of an AI](../inference-providers.md) (**GPU lock** in the general settings), for the language model;
@@ -82,6 +84,8 @@ page), what Marginalia thinks is loaded is wrong, and a job may start on a full 
 
 The tab lists the GPUs with the lock each is loaded with now (*Unknown* when nothing ran yet or it was unloaded) and how many jobs run
 and wait on it, then the locks and the steps, each with buttons to add, edit and delete. **Refresh** reads what the GPUs hold again.
+
+![The GPUs tab with a GPU, a lock and the steps](../../images/admin-gpus.png)
 
 **Unload now** frees a GPU by hand, for example to use the card for something outside Marginalia: it waits for the running jobs, runs the
 release steps of the loaded lock and leaves the GPU unknown (also when a step failed; the message says which). The next job loads its lock

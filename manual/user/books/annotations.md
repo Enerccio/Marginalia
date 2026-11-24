@@ -174,6 +174,8 @@ a model, a name you dropped. A part is checked for them **without a model**, and
 that passage (its source is *Phrase watch list*, and the entry it matched is named with it). From there it is a note like any other:
 let the [redraft](#redrafting-to-address-the-notes) deal with it, or **Dismiss** a hit that is fine (in dialogue, say).
 
+![The phrase watch list of a book](../../images/phrase-watch-dialog.png)
+
 The phrases are not banned from the model's output. A ban would only stop a phrase after it has started and would push the model to the
 nearest synonym; a note on the finished text lets the passage be rewritten as a whole.
 

@@ -7,6 +7,7 @@ import os from 'node:os';
 import {bookTab, dialog, idle, login, main, openBook, openHere, press, sleep, snap, snapDialog} from '../lib/shot.mjs';
 import {clickSummaries} from '../lib/story.mjs';
 
+let savedFile;                                        // the edited export, for the phone part (an old folder of an earlier run may be empty)
 await main(async ({ page }) => {
   await login(page);
   await openBook(page);
@@ -22,6 +23,7 @@ await main(async ({ page }) => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'summaries-'));
   const file = path.join(dir, download.suggestedFilename());
   await download.saveAs(file);
+  savedFile = file;
   const text = fs.readFileSync(file, 'utf8');
   console.log('  exported ' + download.suggestedFilename() + ', ' + text.split('\n').length + ' lines');
 
@@ -60,8 +62,7 @@ await main(async ({ page }) => {
   await idle(page, 500);
   await page.getByRole('menuitem', { name: 'Import Summaries' }).click();
   await idle(page, 600);
-  const file = fs.readdirSync(os.tmpdir()).filter(n => n.startsWith('summaries-')).map(n => path.join(os.tmpdir(), n)).pop();
-  const exported = path.join(file, fs.readdirSync(file)[0]);
+  const exported = savedFile;
   await page.locator('vaadin-dialog[opened] input[type=file]').last().setInputFiles(exported);
   await sleep(1500);
   await snap(page, 'phone-summaries-import');

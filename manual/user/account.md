@@ -302,11 +302,17 @@ Your [phrase watch list](books/annotations.md#watching-for-phrases), which every
 **annotation templates** its entries and the entries of the folders and books pick from: what the note of a phrase that was found says,
 its type and whether it is given to the model. Saved with the **Save** of the settings, like the other tabs.
 
+![The phrase watch list in the settings](../images/settings-phrase-watch.png)
+
 ### API keys
 
 Keys for programs and scripts that use Marginalia over its HTTP API (`/api/v1`): a program sends the key in the header
 `Authorization: Bearer <key>` and does what you could do, in your books. Only for administrators and users with the permission
 [*API access*](administration/permissions.md); without it the tab says so.
+
+![The API keys tab](../images/settings-api-keys.png)
+
+![A new key, shown once](../images/api-key-created.png)
 
 **New API key** asks for a **Name** (what uses the key, so you know which one to revoke), the **Access** and when it
 **Expires** (after a number of days, or never when empty). The access is any combination of:

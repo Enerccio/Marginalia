@@ -57,6 +57,10 @@ one of your categories never breaks a book. The **Categories of this book** butt
 The left sidebar of the [story editor](../books/story-editor.md) gets a **State** tab. Everything is saved to the book as you
 change it.
 
+![The State tab with a tracked character](../../images/plugin-statetracker.png)
+
+![The history of a value](../../images/plugin-statetracker-history.png)
+
 **Track a character** asks for a **name**, optionally **aliases** (the other names the character is written as in the
 *Present Characters* field of a part, separated by commas), and the **tracked categories**. The list offers the categories of
 the book and your own; picking one of yours copies it into the book. A horse can track only *Injuries* while the heroine
@@ -89,6 +93,10 @@ The **Processing** panel at the top of the State tab lets a model read the story
 the river, a lantern handed to someone else, a sword drawn, a letter lost. It reads the parts of the active branch in order,
 from the **Start point** (the start of the book by default; parts before it are never read), and remembers how far it got.
 
+![The processing settings](../../images/plugin-statetracker-settings.png)
+
+![The review of the proposed changes](../../images/plugin-statetracker-review.png)
+
 - **Process now** reads the parts that are not processed yet, **Process next part** only the next one. A long series asks
   first how many requests it will take. When you scroll down the list of characters past these buttons, **Process now**,
   **Process next part** and **Tidy the state** are also offered in the bar at the top of the tab.
@@ -111,6 +119,10 @@ as the state, it reports for every part what that part says about time: *the nex
 *the fortieth day since you woke*, *on the twentieth of April*, a vague *the weeks blurred together* (marked as approximate), or
 a flashback, a memory or a dream of the past, which does not move the clock and changes nothing in the state. The model does
 not count: the plugin adds the days up.
+
+![The story clock in the processing settings](../../images/plugin-statetracker-clock.png)
+
+![Fixing the time of a part by hand](../../images/plugin-statetracker-clock-dialog.png)
 
 - **Day 1 is the day of** names the event the days are counted from (*the awakening*): the time reads *Day 14 after the
   awakening, evening*. **Day at the start point**, **Time of day** and **Date at the start point** give the time before the first
@@ -138,6 +150,8 @@ It works as if you had unticked the change in the review: the value the change m
 again. A row is left alone when you changed the value by hand since (edited, removed, restored or deleted it, or gave a single
 category another value). The log keeps the last 200 changes.
 
+![The log of automatic changes](../../images/plugin-statetracker-log.png)
+
 ### Returning to an earlier point
 
 Before every run that applies changes (a run of the tab with or without a review, the automatic reading of new parts, the
@@ -145,6 +159,8 @@ commands, a tidy) the tracker takes a **checkpoint**: the whole state of its cha
 clock and the place it had read up to (*Start of the book* before the first run). **Checkpoints** in the Processing panel lists
 them, newest first: the part the tracker had read up to, the time, what kind of run came next and how many changes it applied.
 Only checkpoints whose part is on the active branch are listed.
+
+![A change taken back](../../images/plugin-statetracker-reverted.png)
 
 **Return to this point** on a row undoes that run and everything after it: the values of the characters (current and past),
 the marks of the story clock, the processed parts and the log of automatic changes are those of the checkpoint, and the next run
@@ -162,6 +178,8 @@ book, so book backups and copies do not include them.
 Some states fade without the story saying so: a mood, wet clothes, being out of breath, a cup held long after the meal.
 **Tidy the state** in the Processing panel asks the model about them. It reads the last processed parts with the current values
 of the tracked characters who are in those parts, and for each value it can:
+
+![The review of a tidy](../../images/plugin-statetracker-tidy-review.png)
 
 - **drop** it: it is no longer true or no longer worth keeping;
 - **update** it: the parts show it moved on (the anger has turned into relief);

@@ -27,7 +27,7 @@ await main(async ({ page }) => {
   await page.mouse.click(1581, 322);
   await page.mouse.click(1581, 481);
   await sleep(300);
-  await page.mouse.click(1640, 149);
+  await press(dialog(page), 'Create meta summary');
   await sleep(3500);
   await snapDialog(page, 'meta-summary-create', 1);
   await press(dialog(page), 'Exit');

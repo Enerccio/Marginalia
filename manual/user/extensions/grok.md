@@ -33,6 +33,10 @@ the *Per Type Settings* tab offers **xAI Grok**.
 3. Fill in the *General Settings* (context size, response size, [reasoning](#reasoning)) and the settings of the provider on the
    *Per Type Settings* tab, then click **Test Connection**.
 
+![A Grok provider](../../images/plugin-grok.png)
+
+![The Grok provider in the list](../../images/plugin-grok-list.png)
+
 | Field | |
 |---|---|
 | **Api Key** | The key of the xAI Console. It is stored encrypted and not shown again; when you edit the provider, click **Reset** to enter another one. |

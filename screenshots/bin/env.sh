@@ -6,4 +6,6 @@ export SHOT_HOME="$SHOT_ROOT/.data"            # used as -Duser.home, data ends 
 export SHOT_PORT=8099                          # the application
 export SHOT_LLM_PORT=8098                      # the fake inference server
 export SHOT_URL="http://localhost:$SHOT_PORT"
-export SHOT_WAR="$REPO_ROOT/marginalia/target/marginalia-1.8.0.war"
+export SHOT_WAR="$REPO_ROOT/marginalia/target/marginalia-1.9.0.war"
+# Maven must run on the project's JDK (the brew default is older than the class files the build makes)
+[ -d "$HOME/Library/Java/JavaVirtualMachines/corretto-26.0.2.1/Contents/Home" ] && export JAVA_HOME="$HOME/Library/Java/JavaVirtualMachines/corretto-26.0.2.1/Contents/Home"

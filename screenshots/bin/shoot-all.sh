@@ -46,6 +46,10 @@ run shoot-features.mjs                            # annotations, redraft, merge,
 on 13-db-backup
 run plugin-anthropic.mjs                          # installs the Anthropic plugin and adds a Claude provider: a copy, discarded
 on 13-db-backup
+run plugin-grok.mjs                               # installs the Grok plugin and adds a Grok provider: a copy, discarded
+on 13-db-backup
+run shoot-platform.mjs                           # GPUs, API keys, phrase watch list: changes the data, a copy, discarded
+on 13-db-backup
 run shoot-folders.mjs                             # folders made through the UI, the book moved into one, the phone list, the assistant with books: a copy, discarded
 on 13-db-backup
 run shoot-history.mjs                             # changes the last part (edits, a redraft), names a version: a copy, discarded
@@ -78,8 +82,8 @@ run plugin-arcoutline-wizard.mjs                  # the plot wizard: a conversat
 # application verifies it again at the start
 on 13-db-backup
 "$SHOT_ROOT/bin/stop-app.sh" >/dev/null
-cp out/broken/authorsnote-1.8.0.jar "$SHOT_HOME/.marginalia/extensions/authorsnote-1.8.0.jar"
-rm -f "$SHOT_HOME/.marginalia/extensions/authorsnote-1.8.0.valid"
+cp out/broken/authorsnote-1.9.0.jar "$SHOT_HOME/.marginalia/extensions/authorsnote-1.9.0.jar"
+rm -f "$SHOT_HOME/.marginalia/extensions/authorsnote-1.9.0.valid"
 "$SHOT_ROOT/bin/start-app.sh" >/dev/null
 run shoot-invalid-extensions.mjs                  # a copy, discarded
 # plugin screens
