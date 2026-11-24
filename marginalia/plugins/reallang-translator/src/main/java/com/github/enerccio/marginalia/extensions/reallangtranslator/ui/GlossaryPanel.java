@@ -12,11 +12,13 @@ import com.github.enerccio.marginalia.extensions.reallangtranslator.service.Glos
 import com.github.enerccio.marginalia.extensions.translatorcommon.ui.CommonStyles;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
+import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -36,11 +38,15 @@ public class GlossaryPanel extends VerticalLayout {
     private final BookReal service;
     private final String languageId;
     private final Grid<Effective> grid = new Grid<>();
-    private final Button edit = new Button(T.localized(EDIT), Solid.PEN.create(), _ -> selected(this::edit));
-    private final Button delete = new Button(T.localized(DELETE), Solid.TRASH.create(), _ -> selected(this::delete));
-    private final Button accept = new Button(T.localized(ACCEPT), Solid.CHECK.create(), _ -> selected(this::accept));
-    private final Button toggle = new Button(T.localized(SWITCH_OFF_FOR_THIS_BOOK), Solid.TOGGLE_OFF.create(), _ -> selected(this::toggle));
+    // the buttons are always there, disabled when they do not apply: a button that appeared on a click made the bar wrap and pushed the table down;
+    // on a phone they are their icons with the name as the tooltip
+    private final boolean phone = UIUtils.isPhone();
+    private final Button edit = tool(T.localized(EDIT), Solid.PEN, () -> selected(this::edit));
+    private final Button delete = tool(T.localized(DELETE), Solid.TRASH, () -> selected(this::delete));
+    private final Button accept = tool(T.localized(ACCEPT), Solid.CHECK, () -> selected(this::accept));
+    private final Button toggle = tool(T.localized(SWITCH_OFF), Solid.TOGGLE_OFF, () -> selected(this::toggle));
     private final MenuBar move = new MenuBar();
+    private final MenuItem moveRoot;
 
     public GlossaryPanel(Manuscript book, BookReal service, String languageId) {
         this.book = book;
@@ -53,10 +59,15 @@ public class GlossaryPanel extends VerticalLayout {
 
         Span hint = new Span(T.localized(GLOSSARY_HINT));
         hint.addClassName(CommonStyles.HINT);
-        Button add = new Button(T.localized(ADD), Solid.PLUS.create(), _ -> add());
+        Button add = tool(T.localized(ADD), Solid.PLUS, this::add);
         add.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         delete.addThemeVariants(ButtonVariant.LUMO_ERROR);
         move.addThemeVariants(com.vaadin.flow.component.menubar.MenuBarVariant.LUMO_TERTIARY);
+        moveRoot = phone ? move.addItem(Solid.ARROW_UP.create()) : move.addItem(T.localized(MOVE_TO));
+        if (phone) {
+            moveRoot.setAriaLabel(T.localized(MOVE_TO));
+            move.setTooltipText(moveRoot, T.localized(MOVE_TO));
+        }
         HorizontalLayout toolbar = new HorizontalLayout(add, edit, delete, accept, toggle, move);
         toolbar.setWidthFull();
         toolbar.setWrap(true);
@@ -115,25 +126,30 @@ public class GlossaryPanel extends VerticalLayout {
         Effective item = grid.getSelectedItems().stream().findFirst().orElse(null);
         edit.setEnabled(item != null);
         delete.setEnabled(item != null);
-        accept.setVisible(item != null && item.level() == Level.BOOK && item.entry().isProposed());
+        accept.setEnabled(item != null && item.level() == Level.BOOK && item.entry().isProposed());
         // a word of a higher level is switched off by an entry of the book; that entry is switched on again the same way (or deleted, which brings the
         // word of the level above back)
-        toggle.setVisible(item != null);
-        if (item != null) {
-            toggle.setText(item.entry().isEnabled() ? T.localized(SWITCH_OFF_FOR_THIS_BOOK) : T.localized(SWITCH_ON_FOR_THIS_BOOK));
+        toggle.setEnabled(item != null);
+        boolean on = item == null || item.entry().isEnabled();
+        toggle.setIcon(on ? Solid.TOGGLE_OFF.create() : Solid.TOGGLE_ON.create());
+        if (!phone) {
+            toggle.setText(on ? T.localized(SWITCH_OFF) : T.localized(SWITCH_ON));
         }
+        String full = on ? T.localized(SWITCH_OFF_FOR_THIS_BOOK) : T.localized(SWITCH_ON_FOR_THIS_BOOK);
+        toggle.setTooltipText(full);
+        toggle.setAriaLabel(full);
         buildMoveMenu(item);
     }
 
     /** The menu of where an entry of the book can go: the language and the folders above the book. */
     private void buildMoveMenu(Effective item) {
-        move.removeAll();
-        move.setVisible(item != null && item.level() == Level.BOOK);
-        if (item == null || item.level() != Level.BOOK) {
+        var sub = moveRoot.getSubMenu();
+        sub.removeAll();
+        boolean movable = item != null && item.level() == Level.BOOK;
+        moveRoot.setEnabled(movable);
+        if (!movable) {
             return;
         }
-        var root = move.addItem(T.localized(MOVE_TO));
-        var sub = root.getSubMenu();
         sub.addItem(T.localized(MOVE_TO_THE_LANGUAGE), _ -> moveTo(item, Target.language()));
         try {
             List<Folder> folders = service.glossaryFolders(book);
@@ -143,6 +159,16 @@ public class GlossaryPanel extends VerticalLayout {
         } catch (Exception e) {
             Notification.error(String.format(T.localized(THE_GLOSSARY_CAN_NOT_BE_CHANGED), e.getMessage()));
         }
+    }
+
+    /** A button of the bar: icon and name, on a phone the icon with the name as its tooltip. */
+    private Button tool(String name, Solid icon, Runnable action) {
+        Button button = phone ? new Button(icon.create(), _ -> action.run()) : new Button(name, icon.create(), _ -> action.run());
+        if (phone) {
+            button.setTooltipText(name);
+            button.setAriaLabel(name);
+        }
+        return button;
     }
 
     private void add() {

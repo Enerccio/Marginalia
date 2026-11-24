@@ -132,6 +132,8 @@ public class ReallangTranslatorLocalization extends PluginLocalizationBundle {
     public static final String WRITE_HOW_THE_WORD_IS_WRITTEN_OR_KEEP_IT = "Write how the word is written, or choose to keep it as it is";
     public static final String SWITCH_OFF_FOR_THIS_BOOK = "Switch off for this book";
     public static final String SWITCH_ON_FOR_THIS_BOOK = "Switch on for this book";
+    public static final String SWITCH_OFF = "Switch off";
+    public static final String SWITCH_ON = "Switch on";
     public static final String MOVE_TO = "Move to";
     public static final String MOVE_TO_THE_LANGUAGE = "The language";
     public static final String THE_GLOSSARY_CAN_NOT_BE_CHANGED = "The glossary can not be changed: %s";
@@ -1135,6 +1137,20 @@ public class ReallangTranslatorLocalization extends PluginLocalizationBundle {
         de(SWITCH_ON_FOR_THIS_BOOK, "Für dieses Buch einschalten");
         ko(SWITCH_ON_FOR_THIS_BOOK, "이 책에서 켜기");
         it(SWITCH_ON_FOR_THIS_BOOK, "Attiva per questo libro");
+        ja(SWITCH_OFF, "オフにする");
+        zh(SWITCH_OFF, "关闭");
+        fr(SWITCH_OFF, "Désactiver");
+        es(SWITCH_OFF, "Desactivar");
+        de(SWITCH_OFF, "Ausschalten");
+        ko(SWITCH_OFF, "끄기");
+        it(SWITCH_OFF, "Disattiva");
+        ja(SWITCH_ON, "オンにする");
+        zh(SWITCH_ON, "开启");
+        fr(SWITCH_ON, "Activer");
+        es(SWITCH_ON, "Activar");
+        de(SWITCH_ON, "Einschalten");
+        ko(SWITCH_ON, "켜기");
+        it(SWITCH_ON, "Attiva");
 
         ja(MOVE_TO, "移動先");
         zh(MOVE_TO, "移到");
