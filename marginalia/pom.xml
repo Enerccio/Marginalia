@@ -91,7 +91,7 @@
     <dependency>
       <groupId>org.apache.pdfbox</groupId>
       <artifactId>pdfbox</artifactId>
-      <version>3.0.5</version>
+      <version>3.0.8</version>
       <scope>test</scope>
     </dependency>
 
@@ -136,7 +136,7 @@
     <dependency>
       <groupId>org.assertj</groupId>
       <artifactId>assertj-core</artifactId>
-      <version>3.27.3</version>
+      <version>3.27.7</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -289,7 +289,7 @@
       <plugin>
         <groupId>org.eclipse.jetty.ee11</groupId>
         <artifactId>jetty-ee11-maven-plugin</artifactId>
-        <version>12.1.14</version>
+        <version>12.1.15</version>
         <configuration>
           <webApp>
             <contextPath>/</contextPath>
@@ -299,7 +299,7 @@
           <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-server</artifactId>
-            <version>12.1.14</version>
+            <version>12.1.15</version>
           </dependency>
         </dependencies>
       </plugin>
@@ -376,12 +376,12 @@
           <dependency>
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjrt</artifactId>
-            <version>1.9.25.1</version>
+            <version>1.9.27</version>
           </dependency>
           <dependency>
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjtools</artifactId>
-            <version>1.9.25.1</version>
+            <version>1.9.27</version>
           </dependency>
         </dependencies>
         <configuration>
@@ -482,7 +482,7 @@
         <!-- the full installer (every built-in plugin inside) needs the plugin JARs in desktop.pluginsDir -->
         <desktop.skipFull>true</desktop.skipFull>
         <desktop.pluginsDir>${project.build.directory}/desktop-plugins</desktop.pluginsDir>
-        <desktop.jetty.version>12.1.10</desktop.jetty.version>
+        <desktop.jetty.version>12.1.15</desktop.jetty.version>
         <!-- JDK modules of the runtime image: the app, Jetty, the tray icon / browser opening (java.desktop) and
              the ByteBuddy agent (jdk.attach, java.instrument). The packaged application is woven at build time and
              does not install the agent; the modules stay for -Dmarginalia.extendable.agent=true -->
