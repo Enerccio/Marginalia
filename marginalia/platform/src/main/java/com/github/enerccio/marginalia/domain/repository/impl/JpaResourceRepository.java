@@ -8,7 +8,7 @@ import jakarta.persistence.metamodel.EntityType;
 
 import java.util.*;
 
-public class JpaResourceRepository extends JpaOwnedRepository<Resource> implements ResourceRepository {
+public class JpaResourceRepository extends JpaExtendableRepository<Resource> implements ResourceRepository {
 
     @Override
     protected Class<Resource> getEntityClass() {

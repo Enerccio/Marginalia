@@ -1,12 +1,17 @@
 package com.github.enerccio.marginalia.domain.model.impl;
 
-import com.github.enerccio.marginalia.domain.model.OwnedEntity;
+import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import jakarta.persistence.*;
 
+/**
+ * A file of a user (an image of a lore entry, a picture of a part, a file of an agent's workspace). An
+ * {@link ExtendableEntity} since V33: extensions keep their own data about a file under their key of
+ * {@link #getAttributes()}, which a {@code ResourceService.copy}, a book backup and a lorebook file carry along.
+ */
 @Entity
 @Table(name = "resources")
-public class Resource extends OwnedEntity {
+public class Resource extends ExtendableEntity {
 
     private String mimeType;
 

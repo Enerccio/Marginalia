@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
+import com.google.gson.JsonObject;
 import com.github.enerccio.marginalia.domain.model.impl.Resource;
 import com.github.enerccio.marginalia.domain.repository.ResourceRepository;
 import com.github.enerccio.marginalia.domain.security.model.User;
@@ -26,7 +27,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.*;
 
-public class ResourceServiceImpl extends OwnedServiceImpl<Resource, ResourceRepository> implements ResourceService {
+public class ResourceServiceImpl extends ExtendableServiceImpl<Resource, ResourceRepository> implements ResourceService {
 
     private static final long MAX_IMAGE_PIXELS = 50_000_000L;
 
@@ -449,7 +450,23 @@ public class ResourceServiceImpl extends OwnedServiceImpl<Resource, ResourceRepo
         copy.setHash(current.getHash());
         copy.setSize(current.getSize());
         copy.setPath(current.getPath());
+        // the data of the extensions about the file goes with it
+        copy.setAttributes(current.getAttributes().deepCopy());
         return save(copy);
+    }
+
+    @Override
+    @CommonTx
+    public Resource withAttributes(Resource resource, JsonObject attributes) throws Exception {
+        if (attributes == null || attributes.isEmpty()) {
+            return resource;
+        }
+        Resource current = resource == null ? null : findForUser(resource.getUuid());
+        if (current == null) {
+            throw new IllegalArgumentException("Resource doesn't exist");
+        }
+        current.setAttributes(attributes.deepCopy());
+        return save(current);
     }
 
 }

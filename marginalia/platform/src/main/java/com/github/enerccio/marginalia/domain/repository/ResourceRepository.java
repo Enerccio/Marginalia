@@ -7,7 +7,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
-public interface ResourceRepository extends OwnedRepository<Resource> {
+public interface ResourceRepository extends ExtendableRepository<Resource> {
 
     Resource findByHash(String hash, User owner) throws Exception;
 

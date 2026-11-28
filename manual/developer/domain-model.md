@@ -103,13 +103,13 @@ classDiagram
     }
     BaseEntity <|-- User
     BaseEntity <|-- OwnedEntity
-    OwnedEntity <|-- Resource
     OwnedEntity <|-- ExtendableEntity
     ExtendableEntity <|-- Manuscript
     ExtendableEntity <|-- ChatMessage
     ExtendableEntity <|-- Summary
     ExtendableEntity <|-- Lorebook
     ExtendableEntity <|-- LorebookEntry
+    ExtendableEntity <|-- Resource
     OwnedEntity <|-- Usage
     OwnedEntity <|-- ManuscriptStatistic
     OwnedEntity <|-- ActivityInterval
@@ -836,7 +836,7 @@ and release steps). Deletes are hard. The fields and the turns are described in 
 
 ## Resources
 
-`Resource` (`resources`, an `OwnedEntity`) is an uploaded file: the images attached to parts
+`Resource` (`resources`, an `ExtendableEntity` since V33, before an `OwnedEntity`) is an uploaded file: the images attached to parts
 (`ChatMessage.getImages()`, see [Extended attributes](#extendableentity---extended-attributes)) and the files that extensions keep with a part (the audio of the Audiobook, linked to the part). A backup
 carries the uuids of both and the export packs the files, see *Resources in backups* under [Books and the story](services.md#books-and-the-story).
 
@@ -846,6 +846,7 @@ carries the uuids of both and the export packs the files, see *Resources in back
 | `hash` | Hash of the content; with the owner it is the key for that deduplication (`ix_resources_user_hash`). |
 | `mimeType`, `originalName` | Detected content type and the name the file was uploaded with. |
 | `objectId`, `clazz` | Loose link to the object that uses the file (class name and id, like `TagRelation`). Bookkeeping for the Resources tab (which groups the files by it) - not a cleanup reference, the object may be gone. The cleanup uses it for *unused resources* (see [Cleanup references](#cleanup-references)). |
+| `attributes` | The data of extensions about the file, under their own keys (`ExtendableEntity.getAttributes()`; no `@ExtendedAttribute` fields of its own, `_fulltext` stays empty). Changed only through `ResourceService.save`. `ResourceService.copy` copies it (a cloned lorebook or book), the book backup (`resources.json`, `attributes` of each file) and the lorebook file (`images`, `attributes`) carry it and set it on the restored file with `ResourceService.withAttributes`; a copy of somebody else's shared lorebook or published book does not get it (`copyImageOf`). |
 | `servedFrom` | Not stored. Set by `ResourceService` on a file it gives to a reader of somebody else's published book: the owner, whose folder holds the file (`findImageForReader`, `readForReader`). |
 
 Deleting a resource is a soft delete like any other; files are never deleted from disk.

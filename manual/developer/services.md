@@ -166,7 +166,8 @@ in those texts that is the uuid of a resource, the uuids of the parts and the bo
 attachments inside the backup JSON (`collect`, `remap` where returning null drops the image).
 `exportBackup(backup, withResources, onResource)` writes to a temp file and returns a `BackupExport`; with the resources it is a ZIP of all of them, the images and the other ones:
 `backup.json` (the stored file, streamed), `resources.json` (`{"version":1,"resources":[{uuid, entry, name, mimeType, hash,
-size}]}`) and `resources/<n>.<ext>`, one image at a time with `Files.copy`, so nothing but the JSON tree is in memory.
+size, attributes}]}`, `attributes` the data of the extensions about the file, only when there is some, set on the restored
+file with `ResourceService.withAttributes`) and `resources/<n>.<ext>`, one image at a time with `Files.copy`, so nothing but the JSON tree is in memory.
 Import, restore and `analyzeLorebooks` detect a ZIP by its first bytes (`openSource`) and read entries only by the names
 the manifest lists under `resources/` (no extraction to disk). An image is read bounded by `MAX_IMAGE_BYTES` and goes
 through `ResourceService.uploadImage`, so it is validated again and the hash dedupe reuses an existing file; any other file (by the `mimeType` of the manifest) is read
@@ -184,7 +185,7 @@ all the resources a backup points to. The ZIP is only a transfer format, a store
 left out: the model, the exports and the activation scan read the text with `LoreImages.strip`
 (`LorebookActivationService.renderPayload`, `evaluateInContent`, `ExporterServiceImpl`, the SillyTavern export); a backup finds the uuids in
 `lorebooks[].entries[].payload` (`BackupResources.lorebooks`) and rewrites them like those of the parts; the lorebook export file
-carries the images in an `images` object (uuid, name, mime type, base64), which `importLorebook` stores with `uploadImage` (an image
+carries the images in an `images` object (uuid, name, mime type, base64, the `attributes` of the resource when it has any), which `importLorebook` stores with `uploadImage` (and `withAttributes`) (an image
 that is not in the file becomes a copy of the user's own, if there is one); `cloneLorebook` copies the images
 (`ResourceService.copy`) so that the copy deletes its own; `importShared` takes copies of the images of the other user with
 `ResourceService.copyImageOf(uuid, owner)`, which the caller may use only for an image shown by an entry of a lorebook that user shares.

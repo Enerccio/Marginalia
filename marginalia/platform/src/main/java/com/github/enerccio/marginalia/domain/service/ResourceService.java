@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service;
 
+import com.google.gson.JsonObject;
 import com.github.enerccio.marginalia.domain.model.impl.Resource;
 import com.github.enerccio.marginalia.domain.repository.ResourceRepository;
 import com.github.enerccio.marginalia.domain.security.model.User;
@@ -9,7 +10,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
-public interface ResourceService extends OwnedService<Resource, ResourceRepository> {
+public interface ResourceService extends ExtendableService<Resource, ResourceRepository> {
 
     Resource upload(String filename, byte[] content, String contentType) throws Exception;
 
@@ -60,12 +61,21 @@ public interface ResourceService extends OwnedService<Resource, ResourceReposito
 
     /**
      * Makes another resource of the current user for the same file, for an object that must not share the resource
-     * with the original (a cloned book). Files are never changed, so the copy does not copy the file.
+     * with the original (a cloned book). Files are never changed, so the copy does not copy the file. The data of the
+     * extensions ({@link Resource#getAttributes()}) is copied.
      *
      * @return the copy, not linked to anything
      * @throws IllegalArgumentException if the resource is not the user's
      */
     Resource copy(Resource resource) throws Exception;
+
+    /**
+     * Gives the user's resource the data of the extensions from an export (a backup, a lorebook file) and saves it; the
+     * resource as it is for null or empty attributes.
+     *
+     * @throws IllegalArgumentException if the resource is not the user's
+     */
+    Resource withAttributes(Resource resource, JsonObject attributes) throws Exception;
 
     /**
      * A new image of the current user with the content of an image of another user: the images of a lorebook that user shared, when

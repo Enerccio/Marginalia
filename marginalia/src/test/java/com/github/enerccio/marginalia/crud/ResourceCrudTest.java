@@ -23,7 +23,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-class ResourceCrudTest extends OwnedCrudContract<Resource> {
+class ResourceCrudTest extends ExtendableCrudContract<Resource> {
 
     @Autowired
     private ResourceService resourceService;
@@ -291,5 +291,30 @@ class ResourceCrudTest extends OwnedCrudContract<Resource> {
         assertThat(new File(configuration.getImagesFolder(owner), image.getPath())).exists();
         loginAs(theirs.getOwner());
         assertThat(resourceService.findImage(theirs.getUuid())).isNotNull();
+    }
+
+    @Test
+    void aCopyKeepsTheDataOfTheExtensions() throws Exception {
+        Resource image = resourceService.uploadImage("a.png", png(uniqueName("copy").hashCode()));
+        image.getAttributes().addProperty("plugin", "about the file");
+        image = resourceService.save(image);
+
+        Resource copy = resourceService.copy(image);
+
+        assertThat(reload(copy).getAttributes().get("plugin").getAsString()).isEqualTo("about the file");
+        assertThat(copy.getPath()).isEqualTo(image.getPath());
+    }
+
+    @Test
+    void withAttributesSetsTheDataOfAnExportOnTheUsersResourceOnly() throws Exception {
+        Resource image = resourceService.uploadImage("a.png", png(uniqueName("attrs").hashCode()));
+        com.google.gson.JsonObject attributes = new com.google.gson.JsonObject();
+        attributes.addProperty("plugin", 1);
+
+        assertThat(reload(resourceService.withAttributes(image, attributes)).getAttributes().get("plugin").getAsInt()).isEqualTo(1);
+        assertThat(resourceService.withAttributes(image, null)).isSameAs(image);
+
+        loginAs(createUser());
+        assertThatThrownBy(() -> resourceService.withAttributes(image, attributes)).isInstanceOf(IllegalArgumentException.class);
     }
 }

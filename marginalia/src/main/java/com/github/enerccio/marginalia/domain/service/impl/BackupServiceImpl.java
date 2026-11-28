@@ -536,7 +536,7 @@ public class BackupServiceImpl implements BackupService {
      * @param entry name of the entry of the archive with the file
      * @param hash  hash of the content, as the resource of the exporting user had it
      */
-    private record BundledImage(String uuid, String entry, String name, String hash, String mimeType) {
+    private record BundledImage(String uuid, String entry, String name, String hash, String mimeType, JsonObject attributes) {
     }
 
     /**
@@ -646,7 +646,8 @@ public class BackupServiceImpl implements BackupService {
                     String name = string(image, "entry");
                     // only the images of the archive are read, whatever the entry names say
                     if (uuid != null && name != null && name.startsWith("resources/") && zip.getEntry(name) != null) {
-                        images.put(uuid, new BundledImage(uuid, name, string(image, "name"), string(image, "hash"), string(image, "mimeType")));
+                        images.put(uuid, new BundledImage(uuid, name, string(image, "name"), string(image, "hash"), string(image, "mimeType"),
+                                image.has("attributes") && image.get("attributes").isJsonObject() ? image.getAsJsonObject("attributes") : null));
                     }
                 }
             }
@@ -726,7 +727,8 @@ public class BackupServiceImpl implements BackupService {
         }
         String name = StringUtils.defaultIfBlank(bundled.name(), bundled.entry());
         try {
-            return (image ? resourceService.uploadImage(name, data) : resourceService.upload(name, data, bundled.mimeType())).getUuid();
+            Resource stored = image ? resourceService.uploadImage(name, data) : resourceService.upload(name, data, bundled.mimeType());
+            return resourceService.withAttributes(stored, bundled.attributes()).getUuid();
         } catch (IllegalArgumentException e) {
             log.warn("Resource {} of the archive is not usable", bundled.uuid(), e);
             return null;
@@ -858,6 +860,10 @@ public class BackupServiceImpl implements BackupService {
                         item.addProperty("mimeType", resource.getMimeType());
                         item.addProperty("hash", resource.getHash());
                         item.addProperty("size", resource.getSize());
+                        // the data of the extensions about the file
+                        if (!resource.getAttributes().isEmpty()) {
+                            item.add("attributes", resource.getAttributes());
+                        }
                         manifest.add(item);
                     }
                     if (imagePacked != null) {

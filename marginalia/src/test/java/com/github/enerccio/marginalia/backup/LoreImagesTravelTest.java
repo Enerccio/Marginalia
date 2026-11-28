@@ -54,6 +54,11 @@ class LoreImagesTravelTest extends BackupTestBase {
         ByteArrayOutputStream png = new ByteArrayOutputStream();
         ImageIO.write(picture, "png", png);
         image = resourceService.uploadImage("map.png", png.toByteArray());
+        // the data an extension keeps about the file
+        JsonObject plugin = new JsonObject();
+        plugin.addProperty("tokens", 7);
+        image.getAttributes().add("plugin", plugin);
+        image = resourceService.save(image);
         imageData = resourceService.getResourceData(image);
         lorebook = lorebook(uniqueName("World"));
         entry(lorebook, "Port", entry -> entry.setPayload("The port.\n\n" + LoreImages.markup("Map", image.getUuid())));
@@ -71,12 +76,19 @@ class LoreImagesTravelTest extends BackupTestBase {
         return LoreImages.uuids(entries.getFirst().getPayload()).iterator().next();
     }
 
-    /** The image is the user's, another resource than the original one, with the same content. */
+    /** The image is the user's, another resource than the original one, with the same content and the data of the extensions. */
     private void ownCopy(String uuid) throws Exception {
+        Resource copy = ownFile(uuid);
+        assertThat(copy.getAttributes().getAsJsonObject("plugin").get("tokens").getAsInt()).isEqualTo(7);
+    }
+
+    /** As {@link #ownCopy} without the data of the extensions, which are another user's. */
+    private Resource ownFile(String uuid) throws Exception {
         assertThat(uuid).isNotEqualTo(image.getUuid());
         Resource copy = resourceService.findImage(uuid);
         assertThat(copy).isNotNull();
         assertThat(resourceService.getResourceData(copy)).isEqualTo(imageData);
+        return copy;
     }
 
     @Test
@@ -105,7 +117,7 @@ class LoreImagesTravelTest extends BackupTestBase {
         loginAs(createUser());
         Lorebook copy = lorebookService.importShared(lorebook, null);
 
-        ownCopy(imageOf(copy));
+        assertThat(ownFile(imageOf(copy)).getAttributes().has("plugin")).as("the author's extension data stays the author's").isFalse();
         assertThat(resourceService.findImage(image.getUuid())).as("the author's image is not the reader's").isNull();
     }
 

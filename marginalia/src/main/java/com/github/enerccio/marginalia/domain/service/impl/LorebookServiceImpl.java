@@ -534,6 +534,9 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
                     imageObj.addProperty("name", image.getOriginalName());
                     imageObj.addProperty("mimeType", image.getMimeType());
                     imageObj.addProperty("data", Base64.getEncoder().encodeToString(resourceService.getResourceData(image)));
+                    if (!image.getAttributes().isEmpty()) {
+                        imageObj.add("attributes", image.getAttributes());
+                    }
                     images.add(uuid, imageObj);
                 }
             }
@@ -646,7 +649,10 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
             if (embedded != null && embedded.isJsonObject()) {
                 try {
                     byte[] data = Base64.getDecoder().decode(StringUtils.defaultString(getString(embedded.getAsJsonObject(), "data")));
-                    return resourceService.uploadImage(StringUtils.defaultIfBlank(getString(embedded.getAsJsonObject(), "name"), uuid), data).getUuid();
+                    JsonObject embeddedObj = embedded.getAsJsonObject();
+                    Resource stored = resourceService.uploadImage(StringUtils.defaultIfBlank(getString(embeddedObj, "name"), uuid), data);
+                    JsonElement attributes = embeddedObj.get("attributes");
+                    return resourceService.withAttributes(stored, attributes != null && attributes.isJsonObject() ? attributes.getAsJsonObject() : null).getUuid();
                 } catch (Exception e) {
                     log.warn("The image {} of the lorebook file can't be stored", uuid, e);
                     return null;
