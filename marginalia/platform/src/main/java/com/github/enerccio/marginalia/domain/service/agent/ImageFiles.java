@@ -171,6 +171,51 @@ public final class ImageFiles {
     }
 
     /**
+     * The size of the image in pixels, {@code {width, height}}, read from its header without decoding it, a WebP too; null
+     * when the bytes are not an image the workspace takes or the header can't be read.
+     */
+    public static int[] dimensions(byte[] bytes) {
+        String mime = mimeType(bytes);
+        if (mime == null) {
+            return null;
+        }
+        return "image/webp".equals(mime) ? webpSize(bytes) : size(bytes);
+    }
+
+    /**
+     * The size of a WebP from the header of its first chunk: {@code VP8 } (lossy), {@code VP8L} (lossless) or {@code VP8X}
+     * (extended, which holds the size of the canvas); null for anything else.
+     */
+    private static int[] webpSize(byte[] bytes) {
+        if (bytes.length < 30) {
+            return null;
+        }
+        String chunk = new String(bytes, 12, 4, java.nio.charset.StandardCharsets.US_ASCII);
+        int[] size = switch (chunk) {
+            case "VP8 " -> (bytes[23] & 0xFF) == 0x9D && (bytes[24] & 0xFF) == 0x01 && (bytes[25] & 0xFF) == 0x2A
+                    ? new int[]{u16(bytes, 26) & 0x3FFF, u16(bytes, 28) & 0x3FFF} : null;
+            case "VP8L" -> {
+                if ((bytes[20] & 0xFF) != 0x2F) {
+                    yield null;
+                }
+                long bits = (bytes[21] & 0xFFL) | (bytes[22] & 0xFFL) << 8 | (bytes[23] & 0xFFL) << 16 | (bytes[24] & 0xFFL) << 24;
+                yield new int[]{(int) (bits & 0x3FFF) + 1, (int) ((bits >> 14) & 0x3FFF) + 1};
+            }
+            case "VP8X" -> new int[]{u24(bytes, 24) + 1, u24(bytes, 27) + 1};
+            default -> null;
+        };
+        return size == null || size[0] < 1 || size[1] < 1 ? null : size;
+    }
+
+    private static int u16(byte[] bytes, int at) {
+        return (bytes[at] & 0xFF) | (bytes[at + 1] & 0xFF) << 8;
+    }
+
+    private static int u24(byte[] bytes, int at) {
+        return u16(bytes, at) | (bytes[at + 2] & 0xFF) << 16;
+    }
+
+    /**
      * The size of an image in pixels from its header, without decoding it; null when this runtime can't tell (WebP, which
      * it does not read, or a file that starts like an image and is not one).
      */

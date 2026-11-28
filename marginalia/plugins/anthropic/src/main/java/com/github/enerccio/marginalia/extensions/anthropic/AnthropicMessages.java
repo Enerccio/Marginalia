@@ -195,7 +195,7 @@ final class AnthropicMessages {
                 .toolUseId(callId).content(result).isError(result.startsWith("Error: ")).build());
     }
 
-    private static ContentBlockParam attachmentBlock(LLMAttachment attachment) {
+    static ContentBlockParam attachmentBlock(LLMAttachment attachment) {
         String mime = StringUtils.defaultIfBlank(attachment.getMimeType(), "application/octet-stream").toLowerCase(Locale.ROOT);
         if (attachment.getData() == null && attachment.getUrl() == null) {
             throw new IllegalArgumentException("Attachment has neither data nor url");

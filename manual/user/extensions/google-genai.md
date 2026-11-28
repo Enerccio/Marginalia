@@ -85,7 +85,8 @@ Everything a story needs works as with an OpenAI-compatible provider: streaming,
 The token counts shown in the story (the size of a part, the prompt) are counted by Google (the `countTokens` request of the
 model), once for each text: the answers are remembered. When Google cannot be asked (no key, no network, an error), Marginalia
 estimates the count itself for a minute and then tries Google again; a text that is saved or edited while another save is
-going on is estimated too. The estimate differs a little from what Google bills.
+going on is estimated too. The estimate differs a little from what Google bills. The images of the lore that go along with a
+prompt are counted by Google the same way.
 
 ## When the extension is not loaded
 

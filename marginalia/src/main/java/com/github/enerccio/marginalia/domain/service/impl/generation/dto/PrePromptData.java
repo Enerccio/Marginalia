@@ -33,6 +33,12 @@ public class PrePromptData {
      * Extensions add to it, not overwrite it.
      */
     private long reservedTokens;
+    /**
+     * Tokens of the images of the lore entries sent with the prompt ({@code GenerationProperties.LORE_IMAGES}), counted by
+     * {@code TokenizerService.countImageTokens}; 0 when there are none or the AI takes no images. Part of the base of the
+     * budget in {@code PrepareContentStep}.
+     */
+    private long loreImageTokens;
 
     public String getJailbreak() {
         return jailbreak;
@@ -176,5 +182,13 @@ public class PrePromptData {
 
     public void setReservedTokens(long reservedTokens) {
         this.reservedTokens = reservedTokens;
+    }
+
+    public long getLoreImageTokens() {
+        return loreImageTokens;
+    }
+
+    public void setLoreImageTokens(long loreImageTokens) {
+        this.loreImageTokens = loreImageTokens;
     }
 }

@@ -5,7 +5,9 @@ import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.ExtensionAI;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
 import com.github.enerccio.marginalia.domain.service.InferenceServices;
+import com.github.enerccio.marginalia.domain.service.ImageTokenizer;
 import com.github.enerccio.marginalia.domain.service.TokenizerResolver;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMAttachment;
 import com.github.enerccio.marginalia.domain.service.impl.inference.tokenizer.TokenizerStrategy;
 import com.github.enerccio.marginalia.extensions.ExtensionAIFactory;
 import com.github.enerccio.marginalia.extensions.ExtensionAIForm;
@@ -83,6 +85,22 @@ public class AnthropicFactory implements ExtensionAIFactory {
                 return "ANTHROPIC_COUNT_TOKENS";
             }
         };
+        ImageTokenizer images = new ImageTokenizer() {
+            @Override
+            public String getName() {
+                return "ANTHROPIC_COUNT_IMAGE_TOKENS";
+            }
+
+            @Override
+            public long countImageTokens(AI ai, LLMAttachment image) throws Exception {
+                InferenceService found = inferenceServices.forAI(ai);
+                AnthropicInferenceService service = found == null ? null : found.unwrap(AnthropicInferenceService.class);
+                if (service == null) {
+                    throw new IllegalStateException("The extension " + EXTENSION_ID + " is not loaded");
+                }
+                return service.countImageTokensOnline(image);
+            }
+        };
         return new TokenizerResolver() {
             @Override
             public TokenizerKey keyFor(AI ai) {
@@ -94,6 +112,11 @@ public class AnthropicFactory implements ExtensionAIFactory {
             @Override
             public List<TokenizerStrategy> chain(TokenizerKey key, AI ai) {
                 return List.of(anthropic);
+            }
+
+            @Override
+            public List<ImageTokenizer> imageChain(TokenizerKey key, AI ai) {
+                return List.of(images);
             }
         };
     }

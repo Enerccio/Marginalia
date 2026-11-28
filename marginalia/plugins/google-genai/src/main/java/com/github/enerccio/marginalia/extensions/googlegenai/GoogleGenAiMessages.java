@@ -171,7 +171,7 @@ final class GoogleGenAiMessages {
         return part.build();
     }
 
-    private static Part attachmentPart(LLMAttachment attachment) {
+    static Part attachmentPart(LLMAttachment attachment) {
         String mime = StringUtils.defaultIfBlank(attachment.getMimeType(), "application/octet-stream");
         if (attachment.getData() != null) {
             return Part.fromBytes(attachment.getData(), mime);

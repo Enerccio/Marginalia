@@ -2,9 +2,14 @@ package com.github.enerccio.marginalia.ui.components;
 
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
+import com.github.enerccio.marginalia.domain.model.impl.Resource;
+import com.github.enerccio.marginalia.domain.service.LoreImages;
 import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
 import com.github.enerccio.marginalia.domain.service.LorebookService;
+import com.github.enerccio.marginalia.domain.service.ResourceService;
 import com.github.enerccio.marginalia.domain.service.TokenizerService;
+import com.github.enerccio.marginalia.domain.service.agent.ImageFiles;
+import com.github.enerccio.marginalia.domain.service.impl.inference.tokenizer.EstimatedImageTokenizer;
 import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import org.apache.commons.lang3.StringUtils;
@@ -14,9 +19,13 @@ import org.springframework.beans.factory.annotation.Configurable;
 import java.util.*;
 
 /**
- * The token estimates of a lorebook as the lorebook view and the lorebook editor show them, so that both give the same
- * numbers: of an entry (its content, counted approximately and kept until it changes), of the enabled entries of a lorebook,
- * and of the enabled entries of the lorebook with all its subbooks.
+ * The token estimates of a lorebook as the lorebook view, the lorebook editor and the activation preview show them, so that
+ * they give the same numbers: of an entry (its content, counted approximately and kept until it changes), of the enabled
+ * entries of a lorebook, and of the enabled entries of the lorebook with all its subbooks.
+ * <p>
+ * The content is counted as the model reads it: the text without the image lines ({@link LoreImages#strip}), plus the
+ * estimate of each image it shows ({@link EstimatedImageTokenizer}, by the pixels of the stored file, as if the model took
+ * images; an image that is gone counts nothing, as the generation leaves it out).
  */
 @Configurable
 public class LorebookTokens {
@@ -33,7 +42,12 @@ public class LorebookTokens {
     @Autowired
     private LorebookService lorebookService;
 
+    @Autowired
+    private ResourceService resourceService;
+
     private final Map<Long, Long> counted = new HashMap<>();
+    // the estimate of an image by the uuid of its resource, the files do not change
+    private final Map<String, Long> images = new HashMap<>();
 
     /**
      * The tokens of the content of the entry, counted when it was not counted yet.
@@ -47,10 +61,39 @@ public class LorebookTokens {
      * Counts the content of the entry again (it changed).
      */
     public long recount(LorebookEntry entry) throws Exception {
-        long tokens = tokenizerService.countTokensApprox(StringUtils.defaultString(entry.getPayload()));
+        long tokens = estimate(entry.getPayload());
         if (entry.getId() != null) {
             counted.put(entry.getId(), tokens);
         }
+        return tokens;
+    }
+
+    /**
+     * The estimate of a content: its text without the image lines and each image it shows (once). Not cached, see
+     * {@link #of}.
+     */
+    public long estimate(String payload) throws Exception {
+        long tokens = tokenizerService.countTokensApprox(StringUtils.defaultString(LoreImages.strip(StringUtils.defaultString(payload))));
+        for (String uuid : LoreImages.uuids(payload)) {
+            tokens += image(uuid);
+        }
+        return tokens;
+    }
+
+    private long image(String uuid) throws Exception {
+        Long known = images.get(uuid);
+        if (known != null) {
+            return known;
+        }
+        Resource resource = resourceService.findImage(uuid);
+        long tokens = 0;
+        if (resource != null) {
+            byte[] data = resourceService.getResourceData(resource);
+            int[] size = ImageFiles.dimensions(data);
+            tokens = size != null ? EstimatedImageTokenizer.estimate(size[0], size[1])
+                    : ImageFiles.isImage(data) ? EstimatedImageTokenizer.UNKNOWN_TOKENS : 0;
+        }
+        images.put(uuid, tokens);
         return tokens;
     }
 
@@ -95,7 +138,7 @@ public class LorebookTokens {
             for (LorebookEntry entry : lorebookEntryService.getEntriesForLorebook(book.getId())) {
                 if (entry.isEnabled()) {
                     total += book == root ? of(entry)
-                            : tokenizerService.countTokensApprox(StringUtils.defaultString(entry.getPayload()));
+                            : estimate(entry.getPayload());
                 }
             }
             queue.addAll(lorebookService.getSubbooks(book));

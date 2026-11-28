@@ -215,7 +215,11 @@ Skipped when the book has no lorebook. Otherwise:
    the user prompt. The images in the content (`![caption](resource:<uuid>)`, `LoreImages`) are not in the text:
    `renderPayload` (and the recursion scan) strips them. When the AI is multimodal (`isMultimodal()`) they are listed in
    `GenerationProperties.LORE_IMAGES` (`List<LoreImage>`: entry name, caption, resource uuid, insertion mode, in the order of
-   the entries, also those of an entry whose text is empty) for the payload step.
+   the entries, also those of an entry whose text is empty) for the payload step. Each image is read and prepared here once
+   (`GenerationStepBase.loreImageAttachment`; `LORE_IMAGE_ATTACHMENTS`, `Map<String, LLMAttachment>` by resource uuid, null for
+   an image that can't be read) and counted with `TokenizerService.countImageTokens` (see [Services](services.md#models)): the
+   sum is `PrePromptData.loreImageTokens`, and an entry's images (with the first entry that shows them) are in its tokens of the
+   lore usage report, also for an entry that has images and no text.
 
 Events: `BEFORE_PROCESS_LOREBOOK`, `PROCESS_LOREBOOKS` (the list in `LOREBOOKS` can be changed),
 `PROCESS_LOREBOOK_ENTRY` (once per entry, `LOREBOOK_ENTRY`; the entry is evaluated first and `LOREBOOK_VERDICT` holds
@@ -243,7 +247,9 @@ with a summary is the **stop part**: it and everything before it is represented 
 ```
 limit      = context tokens − response tokens        (smaller of protocol and provider limits)
 baseTokens = system template rendered with lore and summaries (no story)
-           + jailbreak + rendered user prompt + 100
+           + jailbreak + rendered user prompt
+           + PrePromptData.loreImageTokens           (the images of the lore, 0 unless the AI is multimodal)
+           + 100
 reserved   = PrePromptData.reservedTokens            (set by extensions, 0 by default)
 ```
 
@@ -255,7 +261,7 @@ doesn't fit ends the loop. The chosen texts, oldest first, become `MANUSCRIPT_CH
 **Token breakdown.** When the budget is computed, the step creates a `PromptTokenBreakdown` (`domain.components`) and
 puts it into the `TOKEN_BREAKDOWN` property. It holds the raw counts of each section - context, response and prompt
 limit, jailbreak, system template (the system prompt without lore and summaries), lore, summaries, story, lore in the
-user prompt, the user prompt and `reserved` - and what was cut: the parts that didn't fit (`cutMessages`,
+user prompt, the user prompt, `reserved` and the lore images (`imageTokens`) - and what was cut: the parts that didn't fit (`cutMessages`,
 `cutTokens`), without the parts a summary replaces. The counts are measured separately, so they need not add up exactly
 to the payload.
 
@@ -287,9 +293,9 @@ user       lore before user prompt + "\n\n" + rendered user prompt
 Earlier parts are sent as the model's own previous answers, each preceded by a short placeholder user turn. The final
 user message carries the instructions.
 
-**Lore images** (`LORE_IMAGES`, empty unless the AI is *Multimodal*): each resource once, read with
-`resourceService.findImage` and scaled by `ImageFiles.prepare` (an image that is gone or can't be read is left out with a
-warning), with a caption line `[ Images of the lore, in order: 1. Entry (caption); ... ]`. The images of `IN_LORE_BLOCK`
+**Lore images** (`LORE_IMAGES`, empty unless the AI is *Multimodal*): each resource once, the attachment the lorebook step
+prepared (`LORE_IMAGE_ATTACHMENTS`; one an extension added later is read here with `resourceService.findImage` and scaled by
+`ImageFiles.prepare`, and not counted; an image that is gone or can't be read is left out with a warning), with a caption line `[ Images of the lore, in order: 1. Entry (caption); ... ]`. The images of `IN_LORE_BLOCK`
 entries go into a user message of their own right after the system message, answered by an assistant message
 (`LORE_IMAGES_ACKNOWLEDGED`), since the system role of most APIs takes text only; with `AI.getImagePlacement()` `SYSTEM` (OpenAI
 compatible only) they are attachments of the system message instead, which `OpenAICompatibleInferenceService.toSystemMessage`
@@ -448,6 +454,7 @@ from the panel's Review, a window that is a part of the phase's entry (`Floating
 | `backgroundLore`, `backgroundLoreTokens` | `PROCESS_LOREBOOK` | Lore for the master template. |
 | `backgroundUserLore`, `backgroundUserLoreTokens` | `PROCESS_LOREBOOK` | Lore put before the user prompt. |
 | `systemPrompt`, `systemPromptTokens` | `PREPARE_CONTENT` | Rendered master template. |
+| `loreImageTokens` | `PROCESS_LOREBOOK` | The tokens of the lore images sent with the prompt (`TokenizerService.countImageTokens`), part of `baseTokens`. |
 | `reservedTokens` | extensions, up to `BEFORE_SUMMARIES` | Room for text extensions add to the prompt later (e.g. a message inserted into the payload); taken from the room for the story. Add to it, don't overwrite it. See [Generation events](plugins/generation-events.md#reserving-tokens). |
 
 ## Template context

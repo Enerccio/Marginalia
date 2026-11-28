@@ -75,6 +75,15 @@ public final class GenerationProperties {
     public static final String LORE_IMAGES = "LORE_IMAGES";
 
     /**
+     * {@code Map<String, LLMAttachment>} the images of {@link #LORE_IMAGES} as they are sent (read and scaled down), by the uuid
+     * of the resource, set with it; an image that can't be read maps to null. The lorebook step counts their tokens
+     * ({@code TokenizerService.countImageTokens}, in {@code PrePromptData.getLoreImageTokens()}) and the payload step sends these,
+     * so an image is read once. An image an extension adds to {@link #LORE_IMAGES} later is read by the payload step and not
+     * counted.
+     */
+    public static final String LORE_IMAGE_ATTACHMENTS = "LORE_IMAGE_ATTACHMENTS";
+
+    /**
      * {@code LorebookTemplateData} used to render activated entries, available from {@link Events#AFTER_PROCESS_LOREBOOK}.
      */
     public static final String LOREBOOK_TEMPLATE_DATA = "LOREBOOK_TEMPLATE_DATA";

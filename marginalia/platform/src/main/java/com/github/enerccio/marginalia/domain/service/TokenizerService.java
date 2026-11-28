@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.domain.service;
 import com.github.enerccio.marginalia.domain.components.TokenizerChoice;
 import com.github.enerccio.marginalia.domain.components.TokenizerProbe;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMAttachment;
 
 import java.util.List;
 
@@ -10,6 +11,20 @@ public interface TokenizerService {
     long countTokens(AI ai, String text) throws Exception;
     long countTokensApprox(String text) throws Exception;
     void invalidateCache(Long aiId);
+
+    /**
+     * The tokens the image takes in a request of the AI: counted by the provider when its {@link TokenizerResolver} brings an
+     * {@link ImageTokenizer} that answers, otherwise estimated by the pixels ({@link #countImageTokensApprox}). 0 for null
+     * and for an attachment that is not an image. Never fails: a count that fails is replaced by the estimate. Calls the
+     * server of the provider, so not in a transaction that writes (estimated there).
+     */
+    long countImageTokens(AI ai, LLMAttachment image);
+
+    /**
+     * The estimate of the image by its pixels, the same for every model; 0 for null and for an attachment that is not an
+     * image.
+     */
+    long countImageTokensApprox(LLMAttachment image);
 
     /**
      * Makes a tokenizer of an extension available to the OpenAI compatible AIs that are set to use it. Called by the extension

@@ -126,7 +126,12 @@ under another one, and drag the splitters between them.
   themselves are sent only when the model's settings say *Multimodal (accepts images)* (see [Inference providers](../inference-providers.md)).
   Images travel with the lorebook: a clone, a copy of a shared lorebook, an exported lorebook file and a book backup
   with its files carry them, and the copy gets images of its own. The SillyTavern export and the book exports leave them
-  out. The story's *Lorebook* tab shows them under the text of the entry. Images do not count in the token estimates yet.
+  out. The story's *Lorebook* tab shows them under the text of the entry. When the images are sent, a generation counts
+  them in the room of the prompt (the story so far gets less room), in the *Token Usage* of the part and in the tokens of the
+  entry in *Lore Usage*: Anthropic and Google count them exactly, for the other models Marginalia estimates about one token
+  per 750 pixels of the image as it is sent (a large image is scaled down to 1568 pixels on its longest side first). The
+  estimates of the lorebook editor, the lorebook view and the activation preview count the images the same way (as if the
+  model took them) and the text without the image lines.
 - **Jumping between entries.** Ctrl+click (Cmd+click on a Mac) the name or a keyword of another entry in the content, in
   the text or in the preview, to open that entry in the tab you used last; with Shift too it opens in a new tab. The
   bottom line also lists, after **Mentioned in:**, the entries whose content names this one; click one to open it,

@@ -83,7 +83,7 @@ Anthropic reports (tokens read from the cache and written to it count as sent), 
 The token counts shown in the story (the size of a part, the prompt) are counted by Anthropic (the `count_tokens` request of
 the model), once for each text: the answers are remembered. When Anthropic cannot be asked (no key, no network, an error),
 Marginalia estimates the count itself for a minute and then tries again; a text that is saved or edited while another save is
-going on is estimated too.
+going on is estimated too. The images of the lore that go along with a prompt are counted by Anthropic the same way.
 
 Two things differ from other providers:
 

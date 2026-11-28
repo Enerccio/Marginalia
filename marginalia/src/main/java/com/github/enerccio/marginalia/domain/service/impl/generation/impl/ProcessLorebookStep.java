@@ -12,6 +12,7 @@ import com.github.enerccio.marginalia.domain.service.LoreImages;
 import com.github.enerccio.marginalia.domain.service.LorebookActivationService;
 import com.github.enerccio.marginalia.domain.service.LorebookActivationService.Verdict;
 import com.github.enerccio.marginalia.domain.service.impl.generation.*;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMAttachment;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LoreImage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LorebookEntryVerdict;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.PrePromptData;
@@ -22,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.IdentityHashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -85,17 +87,31 @@ public class ProcessLorebookStep extends GenerationStepBase {
                             // the images of the entries go along only to a model that is set to take them
                             boolean images = controller.getAi() != null && controller.getAi().isMultimodal();
                             List<LoreImage> loreImages = new java.util.ArrayList<>();
+                            // each image is sent (and counted) once, with the first entry that shows it
+                            Map<String, LLMAttachment> attachments = new LinkedHashMap<>();
+                            long imageTokens = 0;
                             for (LorebookEntry entry : finalActivatedEntries) {
                                 String payload = activationService.renderPayload(entry, templateData);
+                                long entryImageTokens = 0;
                                 if (images) {
                                     for (LoreImages.Reference reference : LoreImages.references(entry.getPayload())) {
-                                        loreImages.add(new LoreImage(entry.getName(), reference.caption(), reference.uuid(), entry.getInsertionMode()));
+                                        LoreImage image = new LoreImage(entry.getName(), reference.caption(), reference.uuid(), entry.getInsertionMode());
+                                        loreImages.add(image);
+                                        if (!attachments.containsKey(image.resource())) {
+                                            LLMAttachment attachment = loreImageAttachment(controller, image);
+                                            attachments.put(image.resource(), attachment);
+                                            entryImageTokens += tokenizerService.countImageTokens(controller.getAi(), attachment);
+                                        }
                                     }
                                 }
+                                imageTokens += entryImageTokens;
                                 if (StringUtils.isBlank(payload)) {
+                                    if (entryImageTokens > 0) {
+                                        usage.add(entry.getUuid(), entryImageTokens, scan.depthOf(entry));
+                                    }
                                     continue;
                                 }
-                                usage.add(entry.getUuid(), inferenceService.countTokens(payload), scan.depthOf(entry));
+                                usage.add(entry.getUuid(), inferenceService.countTokens(payload) + entryImageTokens, scan.depthOf(entry));
                                 if (entry.getInsertionMode() == InsertionMode.IN_LORE_BLOCK) {
                                     builder.append(payload);
                                     builder.append("\n\n");
@@ -108,6 +124,8 @@ public class ProcessLorebookStep extends GenerationStepBase {
                             String lorebookUserContent = builderUserPrompt.toString().trim();
                             log.debug("Final lorebook content: {}, {}", lorebookContent, lorebookUserContent);
                             controller.getProperties().put(GenerationProperties.LORE_IMAGES, loreImages);
+                            controller.getProperties().put(GenerationProperties.LORE_IMAGE_ATTACHMENTS, attachments);
+                            controller.getPrePromptData().setLoreImageTokens(imageTokens);
                             controller.getPrePromptData().setLoreUsage(usage);
                             controller.getPrePromptData().setBackgroundLore(lorebookContent);
                             controller.getPrePromptData().setBackgroundLoreTokens(inferenceService.countTokens(lorebookContent));

@@ -601,7 +601,7 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
      the footer); images in entries (`LoreImages`, `![caption](resource:<uuid>)`: paste, drop and the image button of
      `MarkdownEditor`, the preview, *Send lore images* and *Images in the system message* per AI, the lore block's images in an
      answered user message after the system prompt, copied with clones, shared copies, lorebook files and book backups).
-     Not done yet: the images in the token count/budget (and the activation preview, the lore usage report), screenshots for the manual (before the release). A full-screen dialog, opened from the *Lorebook* view of the
+     Then (2026-11-28): the images in the generation budget, the Token Usage and the lore usage report (`ImageTokenizer`, `TokenizerService.countImageTokens`, online in the anthropic and google-genai plugins). the same estimate of the images in the lorebook editor, the lorebook view and the activation preview (`LorebookTokens`). Not done yet: screenshots for the manual (before the release). A full-screen dialog, opened from the *Lorebook* view of the
      workspace and from the book's *Lorebook* tab (`ManuscriptLorebookPart`); the phone keeps `PhoneLorebookView`.
      - **Dock:** a detachable `TabDock` (like the story editor's). One fixed tab (not closable, not minimizable) with the
        list of entries: text only (name, enabled, order, tags, filter; the search, `LorebookEntryFilter` and sub
@@ -638,7 +638,7 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
        wand to the grid (`addGenerateColumn`). In the editor: the wand on the list tab (a new entry) and in the header of
        an entry tab (rewrite/extend this entry); the dialog gets `@Extendable` hooks for both and the plugin registers
        them, the generated text lands in the open tab.
-     - ✅ (but the token count) **Images in entries:** upload or paste an image into the content; it is stored as a `Resource` (`ResourceService`,
+     - ✅ **Images in entries:** upload or paste an image into the content; it is stored as a `Resource` (`ResourceService`,
        `objectId`/`clazz` = the entry) and referenced in the content (a Markdown image with a resource link, shown in the
        preview). In a generation the text goes into the prompt without the image markup, and the images (`LLMAttachment`,
        scaled by `ImageFiles.prepare`) go to the message where the entry's text lands: `BEFORE_USER_PROMPT` and a lore

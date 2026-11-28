@@ -429,7 +429,10 @@ the content where the tab is) or in a new slot; `TabDock.place(id, withId, right
 tabs' objects into the list), so a change in a tab shows in the list (`entryChanged` refreshes it, the caption and the totals);
 after a search and replace or **Refresh** the list is loaded from the database and `reloadTabs` gives every tab its fresh entry
 (`LorebookEntryEditor.reload`: `copyFields` into the tab's object, then `showFields` sets the values of the existing components, nothing is built again; the list takes the tab's object back) or closes it. The token counts
-of the view and of the editor are one class, `LorebookTokens` (`of`, `recount`, `ofEnabled`, `withSubbooks`, `format`).
+of the view, of the editor and of the activation preview are one class, `LorebookTokens` (`of`, `recount`, `ofEnabled`, `withSubbooks`, `estimate`, `format`):
+an entry counts as the model reads it, the text without the image lines (`LoreImages.strip`, approximately) plus each image
+it shows once, `EstimatedImageTokenizer.estimate` of the pixels of the stored file (`ImageFiles.dimensions`, kept per
+resource uuid; a gone image counts 0), whether or not the model of a book takes images.
 The arrangement is kept in the lorebook, the attribute `LorebookEditorDialog.CONFIG_ATTRIBUTE` (`$lorebookEditor`:
 `{"layout": TabDock.getLayout(), "state": TabDock.storeState(), "tabs": [{"tab": "entry-2", "entry": "<uuid>"}, ...]}`, the tabs
 most recently used first), so it travels with backups (a clone copies it, but its entries have other uuids, so its tabs are

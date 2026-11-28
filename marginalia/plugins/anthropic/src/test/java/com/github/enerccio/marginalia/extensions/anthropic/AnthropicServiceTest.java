@@ -9,6 +9,7 @@ import com.github.enerccio.marginalia.domain.service.InferenceException.Type;
 import com.github.enerccio.marginalia.domain.service.InferenceService.*;
 import com.github.enerccio.marginalia.domain.service.function.FunctionDefinition;
 import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMAttachment;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMToolCall;
@@ -511,5 +512,18 @@ class AnthropicServiceTest {
         assertEquals(42, service.countTokensOnline("The ship sailed."), "the answer is remembered");
         assertEquals(1, server.paths.stream().filter(path -> path.equals("/v1/messages/count_tokens")).count());
         assertEquals(0, service.countTokensOnline("  "), "nothing is asked for a blank text");
+    }
+
+    @Test
+    void anImageIsCountedByAnthropicOnceForItsBytes() {
+        server.reply(200, "{\"input_tokens\":1590}");
+        LLMAttachment image = LLMAttachment.of("image/png", new byte[]{1, 2, 3, 4});
+
+        assertEquals(1590, service.countImageTokensOnline(image));
+        assertEquals(1590, service.countImageTokensOnline(LLMAttachment.of("image/png", new byte[]{1, 2, 3, 4})), "the answer is remembered");
+        assertEquals(1, server.paths.stream().filter(path -> path.equals("/v1/messages/count_tokens")).count());
+        JsonNode block = server.requests.get(0).path("messages").get(0).path("content").get(0);
+        assertEquals("image", block.path("type").asText());
+        assertEquals("image/png", block.path("source").path("media_type").asText());
     }
 }

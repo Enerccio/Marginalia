@@ -19,6 +19,7 @@ import com.github.enerccio.marginalia.domain.service.InferenceException.Type;
 import com.github.enerccio.marginalia.domain.service.function.FunctionCallException;
 import com.github.enerccio.marginalia.domain.service.function.FunctionDefinition;
 import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMAttachment;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMToolCall;
 import com.github.enerccio.marginalia.domain.service.structured.SchemaCheck;
@@ -205,9 +206,42 @@ public class AnthropicInferenceService implements InferenceService, AutoCloseabl
         }
     }
 
-    private static String sha256(String text) {
+    /**
+     * The tokens of the image as Anthropic counts it (a user message of the image alone, so a few tokens of the message are
+     * in it), for the image counter of {@link AnthropicFactory}'s resolver; cached by the bytes (or the link) and paused after
+     * a failure like {@link #countTokensOnline}. The application estimates the image when this throws.
+     */
+    long countImageTokensOnline(LLMAttachment image) {
+        if (System.currentTimeMillis() < countPausedUntil) {
+            throw new IllegalStateException("Counting with Anthropic is paused after a failure");
+        }
+        if (image.getData() == null && image.getUrl() == null) {
+            throw new IllegalArgumentException("The image has neither data nor url");
+        }
+        String hash = "image:" + (image.getData() != null ? sha256(image.getData()) : sha256(image.getUrl()));
+        Long known = countCache.get(hash);
+        if (known != null) {
+            return known;
+        }
         try {
-            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(text.getBytes(StandardCharsets.UTF_8)));
+            long tokens = client().messages().countTokens(MessageCountTokensParams.builder().model(model())
+                    .addUserMessageOfContentBlockParams(List.of(AnthropicMessages.attachmentBlock(image))).build()).inputTokens();
+            countCache.put(hash, tokens);
+            return tokens;
+        } catch (RuntimeException e) {
+            countPausedUntil = System.currentTimeMillis() + COUNT_PAUSE_MILLIS;
+            logFailure("Counting the tokens of an image with Anthropic failed, counting approximately for a minute", e);
+            throw runtime(e);
+        }
+    }
+
+    private static String sha256(String text) {
+        return sha256(text.getBytes(StandardCharsets.UTF_8));
+    }
+
+    private static String sha256(byte[] bytes) {
+        try {
+            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes));
         } catch (NoSuchAlgorithmException e) {
             throw new IllegalStateException("SHA-256 is not available", e);
         }

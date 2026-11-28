@@ -22,7 +22,8 @@ public class LoreUsage {
      * One entry that was used.
      *
      * @param entry  the uuid of the entry (the id of a restored book differs, the uuid is kept)
-     * @param tokens the tokens of the text it added to the prompt, as the model of the book counts them
+     * @param tokens the tokens of the text it added to the prompt, as the model of the book counts them, and of the images it
+     *               sent (each image with the first entry that shows it)
      * @param depth  0 when the prompt activated it, n when the content of the entries of the pass n - 1 did (scan depth)
      */
     public record Used(String entry, long tokens, int depth) {

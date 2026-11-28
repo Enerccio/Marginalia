@@ -74,7 +74,8 @@ public class PrepareContentStep extends GenerationStepBase {
                     templateData.setTemplateContext(templateContext.fork());
                     String emptyTemplate = templateService.processTemplate(data.getGeneralTemplate(), "systemTemplate", templateData);
                     templateData.setTemplateContext(templateContext);
-                    long baseTokens = inferenceService.countTokens(emptyTemplate) + data.getJailbreakTokens() + data.getUserPromptProcessedTokens() + 100; /* Buffer for HEADERS */
+                    long baseTokens = inferenceService.countTokens(emptyTemplate) + data.getJailbreakTokens() + data.getUserPromptProcessedTokens()
+                            + Math.max(0, data.getLoreImageTokens()) + 100; /* Buffer for HEADERS */
                     // room extensions reserved for what they add to the prompt later
                     long reservedTokens = Math.max(0, data.getReservedTokens());
 
@@ -233,6 +234,7 @@ public class PrepareContentStep extends GenerationStepBase {
         }
         breakdown.setUserPromptTokens(Math.max(0, userPrompt));
         breakdown.setReservedTokens(Math.max(0, data.getReservedTokens()));
+        breakdown.setImageTokens(Math.max(0, data.getLoreImageTokens()));
         return breakdown;
     }
 

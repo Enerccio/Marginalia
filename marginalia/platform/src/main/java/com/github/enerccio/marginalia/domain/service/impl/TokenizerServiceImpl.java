@@ -7,9 +7,11 @@ import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.ExtensionAI;
 import com.github.enerccio.marginalia.domain.model.impl.OpenAICompatible;
 import com.github.enerccio.marginalia.domain.service.ExtensionTokenizer;
+import com.github.enerccio.marginalia.domain.service.ImageTokenizer;
 import com.github.enerccio.marginalia.domain.service.InferenceServices;
 import com.github.enerccio.marginalia.domain.service.TokenizerResolver;
 import com.github.enerccio.marginalia.domain.service.TokenizerService;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMAttachment;
 import com.github.enerccio.marginalia.domain.service.impl.inference.tokenizer.*;
 import com.github.enerccio.marginalia.extensions.ExtensionAIFactory;
 import org.slf4j.Logger;
@@ -55,6 +57,7 @@ public class TokenizerServiceImpl implements TokenizerService {
 
     // Reusable strategy singletons
     private final TokenizerStrategy tokkit = new JavaTokkitStrategy();
+    private final EstimatedImageTokenizer imageEstimate = new EstimatedImageTokenizer();
 
     // The tokenizers of the loaded extensions by their id
     private final Map<String, ExtensionTokenizer> extensionTokenizers = new ConcurrentHashMap<>();
@@ -156,6 +159,37 @@ public class TokenizerServiceImpl implements TokenizerService {
         }
 
         return tokkit.countTokens(ai, text);
+    }
+
+    @Override
+    public long countImageTokens(AI ai, LLMAttachment image) {
+        if (image == null || EstimatedImageTokenizer.estimate(image) == 0) {
+            return 0;
+        }
+        if (TransactionSynchronizationManager.isActualTransactionActive() && !TransactionSynchronizationManager.isCurrentTransactionReadOnly()) {
+            return countImageTokensApprox(image);
+        }
+        List<ImageTokenizer> chain;
+        try {
+            TokenizerResolver resolver = resolverFor(ai);
+            chain = resolver.imageChain(resolver.keyFor(ai), ai);
+        } catch (RuntimeException e) {
+            log.debug("No counter of images for AI ID {}: {}", ai == null ? null : ai.getId(), e.getMessage());
+            chain = List.of();
+        }
+        for (ImageTokenizer tokenizer : chain) {
+            try {
+                return tokenizer.countImageTokens(ai, image);
+            } catch (Exception e) {
+                log.debug("Image tokenizer '{}' failed for AI ID {}: {}", tokenizer.getName(), ai == null ? null : ai.getId(), e.getMessage());
+            }
+        }
+        return countImageTokensApprox(image);
+    }
+
+    @Override
+    public long countImageTokensApprox(LLMAttachment image) {
+        return imageEstimate.countImageTokens(null, image);
     }
 
     @Override

@@ -7,6 +7,11 @@ import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Summary;
 import com.github.enerccio.marginalia.domain.service.*;
+import com.github.enerccio.marginalia.domain.model.impl.Resource;
+import com.github.enerccio.marginalia.domain.service.agent.ImageFiles;
+import com.github.enerccio.marginalia.domain.service.agent.VirtualPath;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMAttachment;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LoreImage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.PrePromptData;
 import com.github.enerccio.marginalia.domain.templates.TemplateContext;
 import com.github.enerccio.marginalia.domain.templates.TemplateVariables;
@@ -14,6 +19,7 @@ import com.github.enerccio.marginalia.extensions.PartTextRegistry;
 import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 public abstract class GenerationStepBase implements GenerationStep {
     private static final Logger log = LoggerFactory.getLogger(GenerationStepBase.class);
@@ -76,6 +83,38 @@ public abstract class GenerationStepBase implements GenerationStep {
     /** The text of a part as the model reads it (an extension may keep the story in another form than the model should read). */
     @Autowired
     protected PartTextRegistry partTextRegistry;
+
+    @Autowired
+    protected TokenizerService tokenizerService;
+
+    @Autowired
+    protected ResourceService resourceService;
+
+    /**
+     * The image of a lore entry as the model is sent it (read and {@link ImageFiles#prepare prepared}), the one the lorebook
+     * step prepared when it is in {@link GenerationProperties#LORE_IMAGE_ATTACHMENTS}; null when it is not there or can't be
+     * read (logged, the turn goes on without it).
+     */
+    @SuppressWarnings("unchecked")
+    protected LLMAttachment loreImageAttachment(GenerationController controller, LoreImage image) {
+        Map<String, LLMAttachment> prepared = (Map<String, LLMAttachment>) controller.getProperties().get(GenerationProperties.LORE_IMAGE_ATTACHMENTS);
+        if (prepared != null && prepared.containsKey(image.resource())) {
+            return prepared.get(image.resource());
+        }
+        try {
+            Resource resource = resourceService.findImage(image.resource());
+            if (resource == null) {
+                log.warn("The image {} of the lore entry {} is not there", image.resource(), image.entryName());
+                return null;
+            }
+            byte[] data = resourceService.getResourceData(resource);
+            return ImageFiles.prepare(data, VirtualPath.parse("/lore/" + image.resource())).toAttachment(
+                    StringUtils.defaultIfBlank(resource.getOriginalName(), image.resource()));
+        } catch (Exception e) {
+            log.warn("The image {} of the lore entry {} can't be sent", image.resource(), image.entryName(), e);
+            return null;
+        }
+    }
 
     protected abstract void onStep(GenerationController controller) throws Exception;
 

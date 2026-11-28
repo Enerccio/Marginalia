@@ -23,7 +23,7 @@ public class PromptTokenBreakdown {
      * Tokens of a single message of the final payload.
      *
      * @param role   {@code SYSTEM}, {@code USER} or {@code ASSISTANT}
-     * @param tokens tokens of the message content
+     * @param tokens tokens of the message content and of its images
      */
     public record MessageTokens(String role, long tokens) {
     }
@@ -73,6 +73,10 @@ public class PromptTokenBreakdown {
      * Room reserved by extensions for text they add to the prompt later.
      */
     private long reservedTokens;
+    /**
+     * Images of the lore entries sent with the prompt (estimated by their pixels unless the provider counts them).
+     */
+    private long imageTokens;
 
     /**
      * Story messages put into the payload.
@@ -210,6 +214,14 @@ public class PromptTokenBreakdown {
 
     public void setReservedTokens(long reservedTokens) {
         this.reservedTokens = reservedTokens;
+    }
+
+    public long getImageTokens() {
+        return imageTokens;
+    }
+
+    public void setImageTokens(long imageTokens) {
+        this.imageTokens = imageTokens;
     }
 
     public int getHistoryMessages() {

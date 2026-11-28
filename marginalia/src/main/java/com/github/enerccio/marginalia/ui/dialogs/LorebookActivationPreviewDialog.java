@@ -9,7 +9,6 @@ import com.github.enerccio.marginalia.domain.service.LorebookActivationService;
 import com.github.enerccio.marginalia.domain.service.LorebookActivationService.Verdict;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.TagRelationService;
-import com.github.enerccio.marginalia.domain.service.TokenizerService;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LorebookEntryVerdict;
 import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
 import com.github.enerccio.marginalia.domain.templates.TemplateContext;
@@ -18,6 +17,7 @@ import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.M_L;
 import com.github.enerccio.marginalia.loc.MarginaliaLocalization;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.components.LorebookTokens;
 import com.github.enerccio.marginalia.ui.widgets.BookLabels;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.ModalityMode;
@@ -62,9 +62,6 @@ public class LorebookActivationPreviewDialog extends Dialog {
     @Autowired
     private TagRelationService tagRelationService;
 
-    @Autowired
-    private TokenizerService tokenizerService;
-
     private final Lorebook root;
 
     private TextArea textField;
@@ -75,6 +72,8 @@ public class LorebookActivationPreviewDialog extends Dialog {
     private Span focusLine;
     private Grid<LorebookEntryVerdict> grid;
     private final Map<Long, String> bookNames = new HashMap<>();
+    // the estimates as the lorebook editor shows them, the text and the images of an entry
+    private final LorebookTokens lorebookTokens = new LorebookTokens();
 
     /**
      * @param root the lorebook the preview starts from, as the book that uses it would
@@ -197,7 +196,7 @@ public class LorebookActivationPreviewDialog extends Dialog {
             for (LorebookEntryVerdict verdict : verdicts) {
                 if (verdict.verdict().activated()) {
                     used++;
-                    tokens += tokenizerService.countTokensApprox(StringUtils.defaultString(verdict.entry().getPayload()));
+                    tokens += lorebookTokens.estimate(verdict.entry().getPayload());
                 }
             }
             summary.setText(String.format(loc.getValue(M_L.MSG_ACTIVATION_PREVIEW_SUMMARY), used, verdicts.size(), tokens));

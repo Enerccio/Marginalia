@@ -171,6 +171,7 @@ platform domain.service.ExtensionTokenizer
 platform domain.service.ExtensionVerificationException
 platform domain.service.FunctionRegistry
 platform domain.service.GpuService
+platform domain.service.ImageTokenizer
 platform domain.service.InferenceErrors
 platform domain.service.InferenceException
 platform domain.service.InferenceListener

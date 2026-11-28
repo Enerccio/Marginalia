@@ -22,4 +22,15 @@ public interface TokenizerResolver {
      * The strategies to try for the key, the best first. Called when nothing is known for the key yet.
      */
     List<TokenizerStrategy> chain(TokenizerKey key, AI ai);
+
+    /**
+     * The counters of images to try for the key, the best first; the application's estimate
+     * ({@code EstimatedImageTokenizer}) comes after them and is not in the list. None by default: the images of the AI are
+     * estimated. A provider whose API counts images (Anthropic, Google) returns its own.
+     *
+     * @since 1.9.1
+     */
+    default List<ImageTokenizer> imageChain(TokenizerKey key, AI ai) {
+        return List.of();
+    }
 }

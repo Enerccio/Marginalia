@@ -4,12 +4,15 @@ import com.github.enerccio.marginalia.domain.components.TokenizerKey;
 import com.github.enerccio.marginalia.domain.model.impl.ExtensionAI;
 import com.github.enerccio.marginalia.domain.service.InferenceException;
 import com.github.enerccio.marginalia.domain.service.InferenceServices;
+import com.github.enerccio.marginalia.domain.service.ImageTokenizer;
 import com.github.enerccio.marginalia.domain.service.TokenizerResolver;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMAttachment;
 import com.github.enerccio.marginalia.domain.service.impl.inference.tokenizer.TokenizerStrategy;
 import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Proxy;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -86,5 +89,17 @@ class GoogleGenAiTokenizerTest {
         // ...and the next ones do not try Google at all
         IllegalStateException paused = assertThrows(IllegalStateException.class, () -> service.countTokensOnline("another text"));
         assertTrue(paused.getMessage().contains("paused"));
+    }
+
+    @Test
+    void imagesAreCountedByTheProviderToo() {
+        ExtensionAI ai = ai("gemini-2.5-flash", "k", null);
+
+        List<ImageTokenizer> images = resolver.imageChain(resolver.keyFor(ai), ai);
+
+        assertEquals(1, images.size());
+        assertEquals("GOOGLE_COUNT_IMAGE_TOKENS", images.get(0).getName());
+        // the extension was unloaded: the application estimates the image
+        assertThrows(IllegalStateException.class, () -> images.get(0).countImageTokens(ai, LLMAttachment.of("image/png", new byte[16])));
     }
 }

@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.MessagePrompt;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
 import com.github.enerccio.marginalia.domain.service.impl.generation.*;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMAttachment;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.templates.TemplateVariables;
 import com.github.enerccio.marginalia.utils.AppClock;
@@ -144,6 +145,9 @@ public class GenerateNewMessageStep extends GenerationStepBase {
                 if (content != null) {
                     counted.put(content, tokens);
                 }
+            }
+            for (LLMAttachment attachment : message.getAttachments()) {
+                tokens += tokenizerService.countImageTokens(controller.getAi(), attachment);
             }
             messages.add(new PromptTokenBreakdown.MessageTokens(message.getRole() == null ? null : message.getRole().name(), tokens));
         }

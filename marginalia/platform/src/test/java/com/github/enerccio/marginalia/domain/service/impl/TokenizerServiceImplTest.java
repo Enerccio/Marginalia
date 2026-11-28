@@ -3,7 +3,10 @@ package com.github.enerccio.marginalia.domain.service.impl;
 import com.github.enerccio.marginalia.domain.components.TokenizerKey;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.OpenAICompatible;
+import com.github.enerccio.marginalia.domain.service.ImageTokenizer;
 import com.github.enerccio.marginalia.domain.service.TokenizerResolver;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMAttachment;
+import com.github.enerccio.marginalia.domain.service.impl.inference.tokenizer.EstimatedImageTokenizer;
 import com.github.enerccio.marginalia.domain.service.impl.inference.tokenizer.TokenizerStrategy;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -30,6 +33,25 @@ class TokenizerServiceImplTest {
                 @Override
                 public TokenizerKey keyFor(AI ai) {
                     return TokenizerKey.of("remote-" + ((OpenAICompatible) ai).getUri());
+                }
+
+                @Override
+                public List<ImageTokenizer> imageChain(TokenizerKey key, AI ai) {
+                    return List.of(new ImageTokenizer() {
+                        @Override
+                        public String getName() {
+                            return "REMOTE_IMAGES";
+                        }
+
+                        @Override
+                        public long countImageTokens(AI ai, LLMAttachment image) {
+                            remoteCalls.incrementAndGet();
+                            if (((OpenAICompatible) ai).getUri().equals("broken")) {
+                                throw new IllegalStateException("down");
+                            }
+                            return 42;
+                        }
+                    });
                 }
 
                 @Override
@@ -118,5 +140,42 @@ class TokenizerServiceImplTest {
         service.invalidateCache(1L);
 
         assertThat(service.cachedStrategies()).isZero();
+    }
+
+    // ---- images
+
+    /** A 1500 x 1000 PNG: 2000 tokens by the estimate. */
+    private static LLMAttachment png() throws Exception {
+        java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+        javax.imageio.ImageIO.write(new java.awt.image.BufferedImage(1500, 1000, java.awt.image.BufferedImage.TYPE_INT_RGB), "png", out);
+        return LLMAttachment.of("image/png", out.toByteArray());
+    }
+
+    @Test
+    void theProviderCountsTheImageWhenItsResolverCan() throws Exception {
+        assertThat(service.countImageTokens(ai(), png())).isEqualTo(42);
+        assertThat(remoteCalls).hasValue(1);
+    }
+
+    @Test
+    void anImageIsEstimatedWhenTheProviderFails() throws Exception {
+        assertThat(service.countImageTokens(ai(1L, "broken"), png())).isEqualTo(2000);
+        assertThat(service.countImageTokensApprox(png())).isEqualTo(EstimatedImageTokenizer.estimate(1500, 1000)).isEqualTo(2000);
+    }
+
+    @Test
+    void writeTransactionEstimatesTheImage() throws Exception {
+        TransactionSynchronizationManager.setActualTransactionActive(true);
+        TransactionSynchronizationManager.setCurrentTransactionReadOnly(false);
+
+        assertThat(service.countImageTokens(ai(), png())).isEqualTo(2000);
+        assertThat(remoteCalls).hasValue(0);
+    }
+
+    @Test
+    void whatIsNotAnImageIsNotCounted() {
+        assertThat(service.countImageTokens(ai(), null)).isZero();
+        assertThat(service.countImageTokens(ai(), LLMAttachment.of(LLMAttachment.Kind.FILE, "application/pdf", "a.pdf", new byte[20]))).isZero();
+        assertThat(remoteCalls).hasValue(0);
     }
 }

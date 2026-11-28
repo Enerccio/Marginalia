@@ -104,6 +104,7 @@ public class TokenUsageDialog extends Dialog implements LLMInteract {
         addSection(labels, values, colors, L.LABEL_JAILBREAK, breakdown.getJailbreakTokens());
         addSection(labels, values, colors, M_L.LABEL_TOKEN_TEMPLATE, breakdown.getTemplateTokens());
         addSection(labels, values, colors, M_L.LABEL_TOKEN_LORE, breakdown.getLoreTokens());
+        addSection(labels, values, colors, M_L.LABEL_IMAGES, breakdown.getImageTokens());
         addSection(labels, values, colors, M_L.LABEL_SUMMARIES, breakdown.getSummaryTokens());
         addSection(labels, values, colors, M_L.LABEL_TOKEN_STORY, breakdown.getHistoryTokens());
         addSection(labels, values, colors, M_L.LABEL_TOKEN_USER_LORE, breakdown.getUserLoreTokens());

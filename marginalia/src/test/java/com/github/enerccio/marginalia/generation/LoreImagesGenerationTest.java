@@ -2,11 +2,13 @@ package com.github.enerccio.marginalia.generation;
 
 import com.github.enerccio.marginalia.domain.collections.InsertionMode;
 import com.github.enerccio.marginalia.domain.collections.PromptPlacement;
+import com.github.enerccio.marginalia.domain.components.PromptTokenBreakdown;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Resource;
 import com.github.enerccio.marginalia.domain.service.*;
+import com.github.enerccio.marginalia.domain.service.impl.inference.tokenizer.EstimatedImageTokenizer;
 import com.github.enerccio.marginalia.test.GenerationRun;
 import com.github.enerccio.marginalia.test.GenerationTestBase;
 import com.google.gson.JsonArray;
@@ -42,6 +44,9 @@ class LoreImagesGenerationTest extends GenerationTestBase {
 
     @Autowired
     private AIService aiService;
+
+    @Autowired
+    private ChatMessageService chatMessageService;
 
     private Resource image;
 
@@ -184,5 +189,28 @@ class LoreImagesGenerationTest extends GenerationTestBase {
         JsonArray messages = sent(manuscript);
 
         assertThat(roles(messages)).containsExactly("system", "user");
+    }
+
+    @Test
+    void theImagesAreCountedInTheBudgetOfTheTurn() throws Exception {
+        aiTakes(true, PromptPlacement.AFTER);
+        Manuscript manuscript = book(InsertionMode.IN_LORE_BLOCK);
+
+        GenerationRun run = generate(manuscript, "a dragon");
+        assertThat(run.await(TIMEOUT)).isEqualTo(GenerationRun.Outcome.COMPLETED);
+        PromptTokenBreakdown breakdown = chatMessageService.find(run.getMessage().getId()).getTokenBreakdown();
+
+        // the 4 x 3 image: one token by the estimate of the OpenAI compatible AI
+        assertThat(breakdown.getImageTokens()).isEqualTo(EstimatedImageTokenizer.estimate(4, 3));
+        // the message with the image carries its tokens on top of its caption
+        assertThat(breakdown.getMessages().get(1).tokens()).isGreaterThanOrEqualTo(breakdown.getImageTokens());
+    }
+
+    @Test
+    void anAiWithoutImagesCountsNone() throws Exception {
+        GenerationRun run = generate(book(InsertionMode.IN_LORE_BLOCK), "a dragon");
+        assertThat(run.await(TIMEOUT)).isEqualTo(GenerationRun.Outcome.COMPLETED);
+
+        assertThat(chatMessageService.find(run.getMessage().getId()).getTokenBreakdown().getImageTokens()).isZero();
     }
 }
